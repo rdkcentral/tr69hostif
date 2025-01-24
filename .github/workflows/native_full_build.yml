@@ -1,0 +1,25 @@
+name: Coverity Full Analysis Scan
+
+on:
+  pull_request:
+    branches: [ develop  ]
+    paths: ['**/*.c', '**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.h', '**/*.hpp']
+env:
+  AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME }}
+  AUTOMATICS_PASSCODE: ${{ secrets.AUTOMATICS_PASSCODE }}
+
+jobs:
+  execute-unit-tests-on-pr:
+    name: Execute unit tests for coverity framework
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/rdkcentral/docker-device-mgt-service-test/native-platform:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run cov_build
+        run: |
+          chmod +x cov_build.sh
+          sh cov_build.sh

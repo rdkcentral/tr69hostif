@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright 2024 Comcast Cable Communications Management, LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ SPDX-License-Identifier: Apache-2.0
+-->
+<dm:document spec="urn:broadband-forum-org:tr-181-2-12-0-usp" xmlns:dm="urn:broadband-forum-org:cwmp:datamodel-1-2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:broadband-forum-org:cwmp:datamodel-1-2 http://www.broadband-forum.org/cwmp/cwmp-datamodel-1-2.xsd" >
+  <model name="data-model">
+    <object base="Device.DeviceInfo." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="Manufacturer" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="ManufacturerOUI" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="ModelName" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Description" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+          <default type="factory" value="TR-181, TR-135 and Comcast specific Datamodel Configuration"/>
+        </syntax>
+      </parameter>
+      <parameter base="ProductClass" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="SerialNumber" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="HardwareVersion" access="readOnly" notification="4" alwaysInclude="true" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="SoftwareVersion" access="readOnly" notification="4" alwaysInclude="true" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="AdditionalSoftwareVersion" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="ProvisioningCode" access="readWrite" notification="4" alwaysInclude="true" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="UpTime" access="readOnly" notification="0" maxNotification="0" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+      <parameter base="FirstUseDate" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <dateTime/>
+        </syntax>
+      </parameter>
+      <parameter base="X_COMCAST-COM_STB_MAC" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="X_COMCAST-COM_STB_IP" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="X_COMCAST-COM_FirmwareFilename" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="X_COMCAST-COM_FirmwareToDownload" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="X_COMCAST-COM_FirmwareDownloadStatus" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+       <parameter base="X_COMCAST-COM_Reset" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="X_COMCAST-COM_PowerStatus" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="VendorLogFileNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>      
+      <parameter base="SupportedDataModelNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+      <parameter base="ProcessorNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+
+      <parameter base="X_RDKCENTRAL-COM_RDKVersion" access="readOnly" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_PreferredGatewayType" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareDownloadStatus" access="readOnly" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareFilename" access="readOnly" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareToDownload" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareDownloadProtocol" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareDownloadURL" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareDownloadNow" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <boolean/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <boolean/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareDownloadPercent" access="readOnly" notification="0" maxNotification="2" >
+        <syntax> <int/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_FirmwareUpdateState" access="readOnly" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_Reset" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="X_RDKCENTRAL-COM_BootTime" access="readOnly" notification="0" maxNotification="2" >
+        <syntax> <unsignedInt/> </syntax>
+      </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.VideoTelemetry." access="readOnly" minEntries="1" maxEntries="1" >
+       <parameter base="FrequncyMinutes" access="readWrite" notification="0" maxNotification="2" >
+         <syntax>
+           <unsignedInt/>
+            <default type="factory" value="15"/>
+         </syntax>
+       </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.HDMI_ARC." access="readOnly"  minEntries="0" maxEntries="1" >
+       <parameter base="Enabled" access="readWrite" notification="0" maxNotification="2" >
+         <syntax>
+           <boolean/>
+           <default type="factory" value="false"/>
+         </syntax>
+       </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CodeBigFirst." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="Enable" access="writeOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+    </object>
+       <object base="Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_SDCard." access="readOnly" minEntries="1" maxEntries="unbounded">
+      <parameter base="Capacity" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+      <parameter base="CardFailed" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="LifeElapsed" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="LotID" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Manufacturer" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Model" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="ReadOnly" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="SerialNumber" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="TSBQualified" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="Status" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.SPEAKER." access="readOnly"  minEntries="0" maxEntries="1" >
+       <parameter base="Enabled" access="readWrite" notification="0" maxNotification="2" >
+         <syntax>
+           <boolean/>
+           <default type="factory" value="true"/>
+         </syntax>
+       </parameter>
+    </object>
+   <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.BLE.Tile." access="readOnly" minEntries="1" maxEntries="1"/>
+   <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings." access="readOnly" minEntries="1" maxEntries="1"/>
+     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.SPDIF." access="readOnly"  minEntries="0" maxEntries="1" >
+       <parameter base="Enabled" access="readWrite" notification="0" maxNotification="2" >
+         <syntax>
+           <boolean/>
+           <default type="factory" value="false"/>
+         </syntax>
+       </parameter>
+    </object>
+      <object base="Device.X_COMCAST-COM_Xcalibur.Client.CoPilot." access="readOnly" minEntries="1" maxEntries="unbounded" >
+      <parameter base="rssServerMode" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+      <parameter base="rssServerArgs" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.BLE." access="readOnly" minEntries="1" maxEntries="1"/>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_XRPolling." access="readWrite" minEntries="0" maxEntries="1" >
+      <parameter base="Action" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
+   <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort.HDMI." access="readOnly"  minEntries="0" maxEntries="1" >
+       <parameter base="Enabled" access="readWrite" notification="0" maxNotification="2" >
+         <syntax>
+           <boolean/>
+           <default type="factory" value="false"/>
+         </syntax>
+       </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DisplaySettings.AudioPort." access="readOnly" minEntries="1" maxEntries="1"/>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TvSettings." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="Boost" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="PictureMode" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="Backlight" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="AutoBacklightMode" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="DolbyVisionMode" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="PictureModeString" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="DynamicContrastModeString" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Brightness" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="Contrast" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="Saturation" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="Sharpness" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="Hue" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="ColorTemperature" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="AspectRatio" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.BLE.Tile.Cmd." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="Request" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
+         <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.FTUEReport." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <boolean/>
+           <default type="factory" value="false"/>
+        </syntax>
+      </parameter>
+     </object>
+     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance." access="readOnly"  minEntries="0" maxEntries="1" >
+       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+         <syntax>
+           <boolean/>
+           <default type="factory" value="true"/>
+         </syntax>
+       </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature." access="readOnly" minEntries="1" maxEntries="1" />
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature." access="readOnly" minEntries="1" maxEntries="1" />
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature." access="readOnly" minEntries="1" maxEntries="1">
+    <parameter base="ViperPPUrl" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <string/>
+        </syntax>
+      </parameter>
+      <parameter base="RoamTrigger" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <string/>
+        </syntax>
+      </parameter>
+     </object>
+      <object base="Device.Time." access="readOnly" minEntries="1" maxEntries="1" >
+       <parameter base="NTPServer1" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer2" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer3" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer4" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer5" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Status" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="CurrentLocalTime" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="LocalTimeZone" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="X_RDK_CurrentUTCTime" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="AudioStandards" access="readOnly"  notification="0" maxNotification="2" >
+        <syntax>
+          <list/>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="ProfileLevelNumberOfEntries" access="readOnly"  notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+    </object>
+  </model>
+</dm:document>
