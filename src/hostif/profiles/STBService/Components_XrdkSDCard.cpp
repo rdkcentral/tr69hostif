@@ -805,6 +805,8 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
 			}
                         break;
 			}
+		    case SD_Capacity:
+			break;
 		    case SD_CardFailed:
 			break;
 		    case SD_LifeElapsed:
@@ -838,6 +840,8 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
 				ERR_CHK(safec_rc);
 			}
                 	break;
+	     case SD_Capacity:
+		break;
 	     case SD_CardFailed:
 		break;
 	     case SD_LifeElapsed:
