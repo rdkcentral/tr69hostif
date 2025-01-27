@@ -789,22 +789,6 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
                         break;
 		    case SD_LifeElapsed:
 			break;
-		    case SD_Capacity:
-			break;
-		    case SD_CardFailed:
-			break;
-		    case SD_LifeElapsed:
-			break;
-		    case SD_LotID:
-			break;
-		    case SD_Manufacturer:
-			break;
-		    case SD_Model:
-			break;
-		    case SD_SerialNumber:
-			break;
-		    case SD_TSBQualified:
-			break;
                 }
             }
             else
@@ -854,6 +838,22 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
 				ERR_CHK(safec_rc);
 			}
                 	break;
+	     case SD_CardFailed:
+		break;
+	     case SD_LifeElapsed:
+		break;
+	     case SD_LotID:
+		break;
+	     case SD_Manufacturer:
+		break;
+	     case SD_Model:
+		break;
+	     case SD_ReadOnly:
+		break;
+	     case SD_SerialNumber:
+		break;
+	     case SD_TSBQualified:
+	     	break;
 		}
         }
     }
