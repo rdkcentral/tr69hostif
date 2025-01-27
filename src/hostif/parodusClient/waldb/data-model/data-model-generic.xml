@@ -4367,7 +4367,7 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.Migration." access="readOnly" minEntries="0" maxEntries="1">
-      <parameter base="MigrationStatus" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="MigrationStatus" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
