@@ -118,6 +118,7 @@
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
+#define MigrationStatus "/tmp/MigrationStatus"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
@@ -459,6 +460,50 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
         return NOK;
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
+    return OK;
+}
+
+/**
+ * @brief This function retrieves the Migration Status from the MigrationStatus file.
+ *
+ * @param[out] stMsgData TR-069 Host interface message request.
+ * @param[in] pChanged  Status of the operation.
+ *
+ * @return Returns the status of the operation.
+ *
+ * @retval OK if it is successful.
+ * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+ * @ingroup TR69_HOSTIF_DEVICEINFO_API
+ */
+int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t *, bool *pChanged = NULL)
+{
+   string line;
+    int linecount = 0;
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
+    ifstream file_read (MigrationStatus);
+     try {
+        if (file_read.is_open())
+        {
+            while(getline(file_read, line))
+            { 
+                linecount++;
+            }
+            file_read.close();
+        }
+        else 
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Failed to open file\n", __FUNCTION__);
+            return NOK;
+        }
+     }
+     catch (const std::exception e) {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
+        return NOK;
+    }
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(line.c_str());
+    strncpy(stMsgData->paramValue, line.c_str(), stMsgData->paramLen);
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
 
