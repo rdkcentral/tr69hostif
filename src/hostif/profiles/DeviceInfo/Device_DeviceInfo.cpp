@@ -475,7 +475,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
  * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
-int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t *, bool *pChanged = NULL)
+int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     string line;
     int linecount = 0;
