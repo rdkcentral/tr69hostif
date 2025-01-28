@@ -528,7 +528,7 @@ public:
      *
      * @see get_Device_DeviceInfo_Migration_MigrationStatus.
      */
-    int get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t *, bool *pChanged = NULL)
+    int get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t *, bool *pChanged = NULL);
 
     /**
      * @brief get_Device_DeviceInfo_AdditionalHardwareVersion.
