@@ -167,7 +167,7 @@ int hostIf_STBServiceXSDCard::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s]Entering...  \n", __FILE__, __FUNCTION__);
 
         if(NULL == path) {
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d]Failed : Parameter is NULL, %s  \n", __FILE__, __FUNCTION__, __LINE__, path);
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d]Failed : Parameter is NULL \n", __FILE__, __FUNCTION__, __LINE__);
             return ret;
         }
 
@@ -576,7 +576,7 @@ int hostIf_STBServiceXSDCard::getStatus(HOSTIF_MsgData_t *stMsgData)
 	    {
 		    ERR_CHK(rc);
 	    }
-            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] param.sdCardProp.bchVal: %d\n", __FUNCTION__, __FILE__, param.sdCardProp.uchVal);
+            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] param.sdCardProp.bchVal: %s\n", __FUNCTION__, __FILE__, param.sdCardProp.uchVal);
         }
         stMsgData->paramtype=hostIf_StringType;
     }
@@ -598,12 +598,11 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
     static char sdCardDeviceID[RDK_STMGR_MAX_STRING_LENGTH] = "";
     static char sdCardPartitionID[RDK_STMGR_MAX_STRING_LENGTH] = "";
 
-    eSTMGRReturns stRet;
     if ('\0' == sdCardDeviceID[0])
     {
         eSTMGRDeviceInfoList deviceInfoList;
         memset (&deviceInfoList, 0, sizeof(deviceInfoList));
-        stRet = rdkStorage_getDeviceInfoList(&deviceInfoList);
+        rdkStorage_getDeviceInfoList(&deviceInfoList);
         for (int i = 0; i < deviceInfoList.m_numOfDevices; i++)
         {
             if (RDK_STMGR_DEVICE_TYPE_SDCARD == deviceInfoList.m_devices[i].m_type)
@@ -779,6 +778,8 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
                                 }
                                 break;
 				}
+			    case RDK_STMGR_DEVICE_STATUS_UNKNOWN:
+				break;
                         }
                         break;
                     }
@@ -786,6 +787,8 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
                         sdCardParam->sdCardProp.bVal = (deviceInfo.m_status != RDK_STMGR_DEVICE_STATUS_NOT_QUALIFIED &&
                                 deviceInfo.m_status != RDK_STMGR_DEVICE_STATUS_UNKNOWN);
                         break;
+		    case SD_LifeElapsed:
+			break;
                 }
             }
             else
@@ -802,6 +805,24 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
 			}
                         break;
 			}
+		    case SD_Capacity:
+			break;
+		    case SD_CardFailed:
+			break;
+		    case SD_LifeElapsed:
+			break;
+		    case SD_LotID:
+			break;
+		    case SD_Manufacturer:
+			break;
+		    case SD_Model:
+			break;
+		    case SD_ReadOnly:
+			break;
+		    case SD_SerialNumber:
+			break;
+		    case SD_TSBQualified:
+			break;
                 }
             }
         }
@@ -819,6 +840,24 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
 				ERR_CHK(safec_rc);
 			}
                 	break;
+	     case SD_Capacity:
+		break;
+	     case SD_CardFailed:
+		break;
+	     case SD_LifeElapsed:
+		break;
+	     case SD_LotID:
+		break;
+	     case SD_Manufacturer:
+		break;
+	     case SD_Model:
+		break;
+	     case SD_ReadOnly:
+		break;
+	     case SD_SerialNumber:
+		break;
+	     case SD_TSBQualified:
+	     	break;
 		}
         }
     }
