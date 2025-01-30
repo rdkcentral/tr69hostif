@@ -81,6 +81,7 @@ extern "C" {
 #include "Device_DeviceInfo.h"
 #include "safec_lib.h"
 
+
 //------------------------------------------------------------------------------
 // Initialize global variables and functions.
 //------------------------------------------------------------------------------
