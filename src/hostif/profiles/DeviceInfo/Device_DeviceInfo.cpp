@@ -5014,7 +5014,6 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
-    //const char *rdm_comm = "/etc/rdm/rdmBundleMgr.sh";
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
 
