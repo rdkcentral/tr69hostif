@@ -34,7 +34,7 @@
 #include "hostIf_msgHandler.h"
 #include "hostIf_utils.h"
 #include <glib.h>
-#include "libsoup-2.4/libsoup/soup.h"
+#include "libsoup-3.0/libsoup/soup.h"
 #include <yajl/yajl_parse.h>
 #include <yajl/yajl_gen.h>
 extern T_ARGLIST argList;
