@@ -22,5 +22,22 @@
 export top_srcdir=`pwd`
 RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
+
+cp ./src/integrationtest/conf/data-model-generic.xml /etc/data-model.xml
+cp ./src/integrationtest/conf/mgrlist.conf /etc/
+
+mkdir -p /opt/secure/RFC/
+cp ./src/integrationtest/conf/rfcdefaults.ini /tmp/
+cp ./src/integrationtest/conf/rfc.properties /etc/
+cp ./src/integrationtest/conf/tr181store.ini /opt/secure/RFC/
+cp ./src/integrationtest/conf/bootstrap.ini /opt/secure/RFC/
+cp ./partners_defaults.json /etc/
+touch /opt/secure/RFC/tr181localstore.ini
+touch /opt/persistent/tr181localstore.ini
+touch /opt/secure/RFC/bootstrap.journal
+
+/usr/local/bin/tr69hostif -c /etc/mgrlist.conf -d /etc/debug.ini -p 10999 -s 11999 | tee /opt/logs/tr69hostIf.log.0 &
+
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup_sequence.json test/functional-tests/tests/test_bootup_sequence.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communication.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communications.py
+

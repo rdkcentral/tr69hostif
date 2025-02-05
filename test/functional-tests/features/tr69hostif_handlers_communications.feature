@@ -27,3 +27,6 @@ Feature: tr69hostif runs as daemon to collect data
     Then the tr69hostif Profile Initialization is done for Device.DeviceInfo
     Then the tr69hostif validation is done for Device.DeviceInfo get/set handlers
     Then the tr69hostif validation is done for Device.Time get/set handlers
+    Then the tr69hostif validation is done for RFC get/set handlers
+    Then the tr69hostif validation is done for Non RFC get/set handlers
+    Then the tr69hostif validation is done for Bootstrap get/set handlers

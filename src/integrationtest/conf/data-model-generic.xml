@@ -25,12 +25,7 @@
           <default type="factory" value="0"/>
         </syntax>
       </parameter>
-    </object>
-    <object base="Device.Time." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="NTPServer1" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <string/> </syntax>
-      </parameter>
-    </object>
+    </object>    
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enabled" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
@@ -166,6 +161,58 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.Time." access="readOnly" minEntries="1" maxEntries="1" >
+       <parameter base="NTPServer1" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer2" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer3" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer4" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="NTPServer5" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Status" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="CurrentLocalTime" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="LocalTimeZone" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="X_RDK_CurrentUTCTime" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC." access="readOnly" minEntries="1" maxEntries="1"/>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Preference." access="readOnly" minEntries="1" maxEntries="1">
       <parameter base="URL" access="readWrite" notification="0" maxNotification="2" >
@@ -189,7 +236,7 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo." access="readOnly" minEntries="0" maxEntries="1" >
-     <parameter base="AccountID" access="readWrite" notification="0" maxNotification="2" >
+     <parameter base="AccountID_2" access="readWrite" notification="0" maxNotification="2" >
        <syntax>
           <string/>
        </syntax>
@@ -239,13 +286,6 @@
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.newNTP." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-	</object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="AudioProfileTarget" access="readWrite" notification="0" maxNotification="2" >
        <syntax>
@@ -3179,14 +3219,14 @@
      </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="PartnerId" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="PartnerId_2" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager." access="readOnly" minEntries="1" maxEntries="1" >
-     <parameter base="InstallPackage" access="writeOnly" notification="0" maxNotification="2" >
+     <parameter base="InstallPackage_2" access="writeOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
@@ -3248,6 +3288,23 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="Detection" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="Duration" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+    </object>	  
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -3527,18 +3584,18 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable_2" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <boolean/>
           <default type="factory" value="true"/>
         </syntax>
       </parameter>
-      <parameter base="IssueType" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="IssueType_2" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
       </parameter>
-      <parameter base="WebCfgData" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="WebCfgData_2" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
@@ -4078,7 +4135,7 @@
         </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="ConfigURL" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="ConfigURL_2" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
@@ -4090,7 +4147,7 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.MTLS." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable_2" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
 	  <boolean/>
 	  <default type="factory" value="true"/>

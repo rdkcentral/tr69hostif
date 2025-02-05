@@ -42,7 +42,7 @@ T2_REPORT_PROFILE_PARAM_MSG_PCK="Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPac
 T2_TEMP_REPORT_PROFILE_PARAM="Device.X_RDKCENTRAL-COM_T2.Temp_ReportProfiles"
 RBUS_EXCEPTION_STRING = "Failed to get the data"
 
-LOG_FILE = "/opt/logs/tr69hostIf.log.0"
+LOG_FILE = "/opt/logs/tr69hostif.log.0"
 
 DATA_LAKE_URL = "https://mockxconf:50051"
 DL_ADMIN_URL = "https://mockxconf:50051/adminSupport"
