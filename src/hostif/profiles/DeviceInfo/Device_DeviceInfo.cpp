@@ -63,7 +63,7 @@
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
 #include "hostIf_utils.h"
-#include "pwrMgr.h"
+#include "power_controller.h"
 #include "rbus.h"
 #include <curl/curl.h>
 
@@ -1441,18 +1441,13 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     int ret = NOK;
     const char *pwrState = "PowerOFF";
     int str_len = 0;
-    IARM_Bus_PWRMgr_GetPowerState_Param_t param;
-    memset(&param, 0, sizeof(param));
-
-    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                        IARM_BUS_PWRMGR_API_GetPowerState,
-                        (void *)&param,
-                        sizeof(param));
-    if(err == IARM_RESULT_SUCCESS)
+    PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
+    if (0 == PowerController_GetPowerState(&curState, &previousState)) 
     {
-        pwrState = (param.curState==IARM_BUS_PWRMGR_POWERSTATE_OFF)?"PowerOFF":(param.curState==IARM_BUS_PWRMGR_POWERSTATE_ON)?"PowerON":"Standby";
+        pwrState = (curState==POWER_STATE_OFF)?"PowerOFF":(curState==POWER_STATE_ON)?"PowerON":"Standby";
 
-//        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",param.curState, pwrState);
+       //TODO: will comment this.
+       RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",curState, pwrState);
         str_len = strlen(pwrState);
         try
         {
