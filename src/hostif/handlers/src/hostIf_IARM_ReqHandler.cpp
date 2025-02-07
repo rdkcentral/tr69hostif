@@ -393,7 +393,8 @@ static IARM_Result_t _Gettr69HostIfMgr(void *arg)
 //----------------------------------------------------------------------
 //_hostIf_EventHandler: This is to listen the IARM events and handles.
 //----------------------------------------------------------------------
-static void _hostIf_EventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState, void* userdata)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     errno_t rc = -1;
