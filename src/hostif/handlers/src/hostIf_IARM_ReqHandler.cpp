@@ -36,7 +36,7 @@
 #include "libIBus.h"
 #include "libIARM.h"
 #include "sysMgr.h"
-#include "pwrMgr.h"
+#include "power_controller.h"
 #ifdef SNMP_ADAPTER_ENABLED
 #include "hostIf_SNMPClient_ReqHandler.h"
 #endif
@@ -56,7 +56,8 @@ static IARM_Result_t _Settr69HostIfMgr(void *arg);
 static IARM_Result_t _SetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _GetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _RegisterForEventstr69HostIfMgr(void *arg);
-static void _hostIf_EventHandler(const char *, IARM_EventId_t, void *, size_t);
+static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState, void* userdata);
 //----------------------------------------------------------------------
 // hostIf_IARM_IF_Start: This shall be use to initialize and register
 // the  hostIf application to IARM bus.
@@ -161,7 +162,7 @@ static bool TR69_HostIf_Mgr_Get_RegisterCall()
 
     /* Notification RPC:*/
     IARM_Bus_RegisterEvent(IARM_BUS_TR69HOSTIFMGR_EVENT_MAX);
-    IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, _hostIf_EventHandler);
+    PowerController_RegisterPowerModeChangedCallback(_hostIf_EventHandler, nullptr);
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
@@ -392,46 +393,42 @@ static IARM_Result_t _Gettr69HostIfMgr(void *arg)
 //----------------------------------------------------------------------
 //_hostIf_EventHandler: This is to listen the IARM events and handles.
 //----------------------------------------------------------------------
-static void _hostIf_EventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState, void* userdata)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-    if (0 == strcmp(owner, IARM_BUS_PWRMGR_NAME))
+    errno_t rc = -1;
+    HOSTIF_MsgData_t stRfcData = {0};
+    rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_DEEPSLEEP_ENABLE);
+    if(rc!=EOK)
     {
-        errno_t rc = -1;
-        HOSTIF_MsgData_t stRfcData = {0};
-        rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_DEEPSLEEP_ENABLE);
-        if(rc!=EOK)
-        {
-            ERR_CHK(rc);
-        }
-        if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
-        {
-            IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
-            IARM_Bus_PWRMgr_PowerState_t curPowerState = param->data.state.curState;
-            IARM_Bus_PWRMgr_PowerState_t newPowerState = param->data.state.newState;
+        ERR_CHK(rc);
+    }
+    if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
+    {
             const char *event_time = NULL;
 
-            if((newPowerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) &&
-               (curPowerState != IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+            if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) &&
+               (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
             {
                 std::string event_time_string = std::to_string(std::time(nullptr));
                 event_time = event_time_string.c_str(); 
                 NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time);
             }
-            else if((newPowerState != IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) &&
-                   (curPowerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+            else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) &&
+                   (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
             {
                 std::string event_time_string = std::to_string(std::time(nullptr));
                 event_time = event_time_string.c_str();
                 NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-exit-deepsleep-state", event_time);
             }
-        }
-        else 
-        {
-            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending DeepSleep notification. \n",
-                 __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE );
-        }
     }
+    else 
+    {
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending DeepSleep notification. \n",
+                 __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE );
+    }
+
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
 
