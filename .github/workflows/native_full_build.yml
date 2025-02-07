@@ -1,4 +1,4 @@
-name: Coverity Full Analysis Scan
+name: Build Component in Native Environment
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ env:
   AUTOMATICS_PASSCODE: ${{ secrets.AUTOMATICS_PASSCODE }}
 
 jobs:
-  execute-unit-tests-on-pr:
-    name: Execute unit tests for coverity framework
+  build-tr69hostif-on-pr:
+    name: Build tr69hostif component in github rdkcentral
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/rdkcentral/docker-device-mgt-service-test/native-platform:latest
