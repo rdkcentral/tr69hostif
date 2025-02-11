@@ -1437,12 +1437,13 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
-    IARM_Result_t err;
-    int ret = NOK;
+    int ret = NOK, pwr_ret = -1;
     const char *pwrState = "PowerOFF";
     int str_len = 0;
     PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
-    if (0 == PowerController_GetPowerState(&curState, &previousState)) 
+    
+    pwr_ret = PowerController_GetPowerState(&curState, &previousState);
+    if (0 == pwr_ret) 
     {
         pwrState = (curState==POWER_STATE_OFF)?"PowerOFF":(curState==POWER_STATE_ON)?"PowerON":"Standby";
 
@@ -1464,7 +1465,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     }
     else
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in IARM_Bus_Call() for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, ret);
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in power controller thunder cleint call for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, pwr_ret);
         ret = NOK;
     }
 
