@@ -170,12 +170,14 @@ static yajl_alloc_funcs allocFuncs = {
 
 void *jsonIfHandlerThread(void *msg)
 {
+    printf(" jsonIfHandlerThread start [%s:%s] Entering..\n",__FUNCTION__, __FILE__); 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
 
     /*Start HTTP server */
     hostIf_HttpServerStart();
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+    printf(" jsonIfHandlerThread end [%s:%s] Entering..\n",__FUNCTION__, __FILE__); 
     return NULL;
 }
 
@@ -342,6 +344,7 @@ void hostIf_HTTPJsonMsgHandler(
  */
 void hostIf_HttpServerStart()
 {
+    printf("hostIf_HttpServerStart start\n");
     GError *error = NULL;
     guint port = argList.httpPort;
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
@@ -352,9 +355,10 @@ void hostIf_HttpServerStart()
     if(server == NULL)
         //server = soup_server_new (SOUP_SERVER_PORT, port, NULL);
         server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "hostif", NULL);
-
+  printf("soup_server_new calling\n");
     if (!server)
     {
+        printf("SERVER: Could not create server.\n");
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"SERVER: Could not create server.\n");
         // TODO: Return code
         return;
@@ -369,6 +373,7 @@ void hostIf_HttpServerStart()
         }
 
         //soup_server_run(server);
+        printf("SERVER: Started server successfully.\n");
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"SERVER: Started server successfully.\n");
     }
 
