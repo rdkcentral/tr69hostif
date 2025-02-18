@@ -187,6 +187,7 @@ bool GetFeatureEnabled(char *cmd)
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+   printf ("hostif main started\n");	
     int ch = 0;
     errno_t rc = -1;
 #ifdef WEBPA_RFC_ENABLED
@@ -201,6 +202,7 @@ int main(int argc, char *argv[])
 
     while (1)
     {
+	printf ("hostif while inside\n");    
         static struct option long_options[] =
         {
             /* These options don't set a flag.
@@ -280,7 +282,7 @@ int main(int argc, char *argv[])
             exit(0);
         }
     }
-
+   printf ("rdk logger init start\n"); 
     /* Enable RDK logger.*/
     if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
 
@@ -293,7 +295,8 @@ int main(int argc, char *argv[])
         usage();
         exit (0);
     }
-
+printf ("rdk logger init end\n"); 
+printf ("weppa start\n"); 	
 #ifdef WEBPA_RFC_ENABLED
     retVal = GetFeatureEnabled("WEBPAXG");
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] WEBPAXG returns %d\n", __FUNCTION__, retVal);
@@ -312,13 +315,13 @@ int main(int argc, char *argv[])
         return ch;
     }
 #endif
-
+printf ("sem_init start\n");
     if (sem_init(&shutdown_thread_sem, 0, 0) == -1)
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] sem_init() failed\n", __FUNCTION__, __FILE__);
         return 1;
     }
-
+printf ("RDK LOG ERROR ,Log TR69hostif thread start\n");
     if (pthread_create(&shutdown_thread, NULL, shutdown_thread_entry, NULL) != 0)
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] pthread_create() failed\n", __FUNCTION__, __FILE__);
@@ -336,7 +339,7 @@ int main(int argc, char *argv[])
     signal (SIGPIPE, SIG_IGN);
 
     setvbuf(stdout, NULL, _IOLBF, 0);
-
+   printf ("initialize the glib and g_time and logger start\n");
     //------------------------------------------------------------------------------
     // Initialize the glib, g_time and logger
     //------------------------------------------------------------------------------
@@ -351,9 +354,10 @@ int main(int argc, char *argv[])
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"g_thread NOT supported\n");
     }
 #endif
+printf ("Enable RDK LOGGER before USE_WIFI_PROFILE\n");	
     /* Enable RDK logger.*/
     if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
-
+printf ("USE_WIFI_PROFILE Start\n");	
 #if defined(USE_WIFI_PROFILE)
     /* Perform the necessary operations to initialise the WiFi device */
     (void)WiFiDevice::init();
@@ -372,7 +376,8 @@ int main(int argc, char *argv[])
 #endif
     RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"Starting tr69HostIf Service\n");
 
-
+printf ("Starting tr69HostIf Service\n");		
+printf ("Starting hostIf_initalize_ConfigManger function\n");
 
     /*Commented: This function will replace hostIf_initalize_ConfigManger()
      This shall read all configuration properties of hostif like, profile Manager List,
@@ -384,7 +389,7 @@ int main(int argc, char *argv[])
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to hostIf_initalize_ConfigManger()\n");
     }
-
+printf ("End of hostIf_initalize_ConfigManger function\n");
 #ifndef NEW_HTTP_SERVER_DISABLE
     ifstream ifs_legacyEnabled(LEGACY_RFC_ENABLED_PATH);
     if(!ifs_legacyEnabled.is_open())
@@ -397,13 +402,14 @@ int main(int argc, char *argv[])
         ifs_legacyEnabled.close();
     }
 #endif
-
+printf ("Starting hostIf_IARM_IF_Start function\n");
     if(false == hostIf_IARM_IF_Start() )
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
     }
-
+printf ("End of hostIf_IARM_IF_Start function\n");
     /* Load the data model xml file*/
+printf ("Start of loadDataModel function\n");	
     DB_STATUS status = loadDataModel();
     if(status != DB_SUCCESS)
     {
@@ -414,7 +420,7 @@ int main(int argc, char *argv[])
     {
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully initialize Data Model.\n");
     }
-
+printf ("Successfully initialize Data Model\n");
     //------------------------------------------------------------------------------
     // hostIf_HttpServerStart: Soup HTTP Server
     //------------------------------------------------------------------------------
