@@ -432,6 +432,7 @@ printf ("Successfully initialize Data Model\n");
 #ifndef NEW_HTTP_SERVER_DISABLE
     if(!legacyRFCEnabled())
     {
+	printf("Starting New HTTP Server\n");    
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"legacyRFC Set to False, Starting New HTTP Server\n");
         if((HTTPServerThread = g_thread_try_new("http_server_thread", (GThreadFunc)HTTPServerStartThread, (void *)HTTPServerName, &httpError)) == NULL)
         {
