@@ -222,10 +222,11 @@ static void HTTPRequestHandler(
 void *HTTPServerStartThread(void *msg)
 {
     /*Start HTTP server */
+    printf("inside the HTTPServerStartThread server");
     GError *error = NULL;
     int status =-1;
     guint httpServerPort = argList.httpServerPort;
-
+    printf("HTTPServerStartThread [%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
 
 #ifndef GLIB_VERSION_2_36
@@ -238,13 +239,14 @@ void *HTTPServerStartThread(void *msg)
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Error in Data Model Initialization\n");
         return NULL;
     }
-
+    printf("starting HTTPServerStartThread soup_server_new\n");
     if(http_server == NULL)
         http_server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "HTTPServer", NULL);
 
     if (!http_server)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"SERVER: Could not create server.\n");
+        printf("SERVER: Could not create server.\n");
         return NULL;
     }
     else
@@ -262,7 +264,7 @@ void *HTTPServerStartThread(void *msg)
             RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open : /tmp/.tr69hostif_http_server_ready \n");
         else
             ofs.close();
-
+       printf("HTTPServerStartThread SERVER: Started server successfully.\n");
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"SERVER: Started server successfully.\n");
     }
 
@@ -271,7 +273,7 @@ void *HTTPServerStartThread(void *msg)
         httpServerThreadDone = true;
         cv_httpServerThreadDone.notify_all();
     }
-
+    printf("end of HTTPServerStartThread");
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return NULL;
 }
