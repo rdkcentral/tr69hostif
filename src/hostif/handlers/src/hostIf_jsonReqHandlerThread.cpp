@@ -224,7 +224,6 @@ void hostIf_HTTPJsonMsgHandler(
     SoupServerMessage *msg,
     const gchar       *path,
     GHashTable        *query,
-    SoupClientContext *client,
     gpointer           user_data)
 {
     GList   *params;
@@ -325,7 +324,7 @@ void hostIf_HTTPJsonMsgHandler(
 
     // TODO: What is the correct MIME type?
     soup_server_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, (const char *) buf, len);
-    soup_message_set_status(req_body, SOUP_STATUS_OK, NULL);
+    soup_server_message_set_status(msg, SOUP_STATUS_OK, NULL);
 
     yajl_gen_free(json);
 
@@ -351,8 +350,7 @@ void hostIf_HttpServerStart()
 #endif
 
     if(server == NULL) {
-        //server = soup_server_new (SOUP_SERVER_PORT, port, NULL);
-        server = soup_server_new(NULL);
+        server = soup_server_new("server-header", "hostif", NULL);
         g_object_set(server, "server-header", "hostif", NULL);
     }
 
