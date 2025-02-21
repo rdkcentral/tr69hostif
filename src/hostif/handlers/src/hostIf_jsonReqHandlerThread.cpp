@@ -349,10 +349,8 @@ void hostIf_HttpServerStart()
     g_type_init();
 #endif
 
-    if(server == NULL) {
+    if(server == NULL)
         server = soup_server_new("server-header", "hostif", NULL);
-        g_object_set(server, "server-header", "hostif", NULL);
-    }
 
     if (!server)
     {
