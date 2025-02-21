@@ -221,29 +221,29 @@ hostIf_HTTPJsonParse(const unsigned char *message, int length)
 
 void hostIf_HTTPJsonMsgHandler(
     SoupServer        *server,
-    SoupMessage       *msg,
+    SoupServerMessage *msg,
     const gchar       *path,
     GHashTable        *query,
-    SoupServerMessage *msgBody,
+    SoupClientContext *client,
     gpointer           user_data)
 {
     GList   *params;
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
 
-    if (!msgBody->request_body ||
-            !msgBody->request_body->data ||
-            !msgBody->request_body->length)
+    if (!msg->request_body ||
+            !msg->request_body->data ||
+            !msg->request_body->length)
     {
-        soup_server_message_set_status(msgBody, SOUP_STATUS_BAD_REQUEST, "No request data.");
+        soup_server_message_set_status(msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
         RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed due to no message data.\n", __FUNCTION__, __FILE__);
         return;
     }
 
-    params = hostIf_HTTPJsonParse((const unsigned char *) msgBody->request_body->data, msgBody->request_body->length);
+    params = hostIf_HTTPJsonParse((const unsigned char *) msg->request_body->data, msg->request_body->length);
     if (!params)
     {
-        soup_server_message_set_status(msgBody, SOUP_STATUS_BAD_REQUEST, "No request data.");
+        soup_server_message_set_status(msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
         RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting... Failed due to Parse HTTP Json messages. \n", __FUNCTION__, __FILE__);
         return;
     }
@@ -256,7 +256,7 @@ void hostIf_HTTPJsonMsgHandler(
 #endif
     if (!json)
     {
-        soup_server_message_set_status(msgBody, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Cannot create return object");
+        soup_server_message_set_status(msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Cannot create return object");
         RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to create json object\n", __FUNCTION__, __FILE__);
         return;
     }
@@ -323,8 +323,8 @@ void hostIf_HTTPJsonMsgHandler(
     yajl_gen_get_buf(json, &buf, &len);
 
     // TODO: What is the correct MIME type?
-    soup_server_message_set_response(msgBody, (const char *) "application/json", SOUP_MEMORY_COPY, (const char *) buf, len);
-    soup_message_set_status(msg, SOUP_STATUS_OK);
+    soup_server_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, (const char *) buf, len);
+    soup_message_set_status(msg->request_body, SOUP_STATUS_OK, NULL);
 
     yajl_gen_free(json);
 
@@ -351,7 +351,8 @@ void hostIf_HttpServerStart()
 
     if(server == NULL)
         //server = soup_server_new (SOUP_SERVER_PORT, port, NULL);
-        server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "hostif", NULL);
+        server = soup_server_new (NULL);
+        g_object_set(server, "server-header", "hostif", NULL);
 
     if (!server)
     {
