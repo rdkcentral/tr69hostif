@@ -50,10 +50,9 @@ static SoupServer  *http_server = NULL;
 
 static void HTTPRequestHandler(
     SoupServer        *server,
-    SoupMessage       *msg,
+    SoupServerMessage *msg,
     const char        *path,
     GHashTable        *query,
-    SoupClientContext *client,
     void           *user_data)
 {
     cJSON *jsonRequest = NULL;
@@ -67,31 +66,34 @@ static void HTTPRequestHandler(
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     getCurrentTime(startPtr);
-    if (!msg->request_body ||
-            !msg->request_body->data ||
-            !msg->request_body->length)
+    SoupMessageBody *req_body = soup_server_message_get_request_body(msg);
+    if (!req_body ||
+            !req_body->data ||
+            !req_body->length)
     {
-        soup_message_set_status_full (msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
+        soup_server_message_set_status (msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed due to no message data.\n", __FUNCTION__, __FILE__);
         return;
     }
 
-    const char *pcCallerID = (char *)soup_message_headers_get_one(msg->request_headers, "CallerID");
+    SoupMessageHeaders *req_headers = soup_server_message_get_request_headers(msg);
+    const char *pcCallerID = (char *)soup_message_headers_get_one(req_headers, "CallerID");
 
-    jsonRequest = cJSON_Parse((const char *) msg->request_body->data);
+    jsonRequest = cJSON_Parse((const char *) req_body->data);
 
     if(jsonRequest)
     {
         reqSt = (req_struct *)malloc(sizeof(req_struct));
         if(reqSt == NULL)
         {
-            soup_message_set_status_full (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Cannot create return object");
+            soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Cannot create return object");
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to create req_struct\n", __FUNCTION__, __FILE__);
             return;
         }
         memset(reqSt, 0, sizeof(req_struct));
 
-        if(!strcmp(msg->method, "GET"))
+        const char *method = soup_server_message_get_method(msg);
+        if(!strcmp(method, "GET"))
         {
             if(!pcCallerID || !strlen(pcCallerID))
             {
@@ -126,16 +128,16 @@ static void HTTPRequestHandler(
             }
             else
             {
-                soup_message_set_status_full (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Invalid request format");
+                soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Invalid request format");
                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Request couldn't be processed\n", __FUNCTION__, __FILE__);
                 return;
             }
         }
-        else if(!strcmp(msg->method, "POST"))
+        else if(!strcmp(method, "POST"))
         {
             if(!pcCallerID || !strlen(pcCallerID))
             {
-                soup_message_set_status_full (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "POST Not Allowed without CallerID");
+                soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "POST Not Allowed without CallerID");
                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. POST operation not allowed with unknown CallerID\n", __FUNCTION__, __FILE__);
                 wdmp_free_req_struct(reqSt);
                 reqSt = NULL;
@@ -170,7 +172,7 @@ static void HTTPRequestHandler(
             }
             else
             {
-                soup_message_set_status_full (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Invalid request format");
+                soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Invalid request format");
                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Request couldn't be processed\n", __FUNCTION__, __FILE__);
                 wdmp_free_req_struct(reqSt);
                 reqSt = NULL;
@@ -179,7 +181,7 @@ static void HTTPRequestHandler(
         }
         else
         {
-            soup_message_set_status_full (msg, SOUP_STATUS_NOT_IMPLEMENTED, "Method not implemented");
+            soup_server_message_set_status (msg, SOUP_STATUS_NOT_IMPLEMENTED, "Method not implemented");
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Unsupported operation \n", __FUNCTION__, __FILE__);
             wdmp_free_req_struct(reqSt);
             reqSt = NULL;
@@ -189,8 +191,8 @@ static void HTTPRequestHandler(
         char *buf = cJSON_Print(jsonResponse);
 
         if(buf) {
-            soup_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, buf, strlen(buf));
-            soup_message_set_status (msg, SOUP_STATUS_OK);
+            soup_server_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, buf, strlen(buf));
+            soup_server_message_set_status (msg, SOUP_STATUS_OK, NULL);
         }
 
         wdmp_free_req_struct(reqSt);
@@ -207,7 +209,7 @@ static void HTTPRequestHandler(
     }
     else
     {
-        soup_message_set_status_full (msg, SOUP_STATUS_BAD_REQUEST, "Bad Request");
+        soup_server_message_set_status (msg, SOUP_STATUS_BAD_REQUEST, "Bad Request");
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to parse JSON Message \n", __FUNCTION__, __FILE__);
         return;
     }
@@ -240,7 +242,7 @@ void *HTTPServerStartThread(void *msg)
     }
 
     if(http_server == NULL)
-        http_server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "HTTPServer", NULL);
+        http_server = soup_server_new("server-header", "HTTPServer", NULL);
 
     if (!http_server)
     {
