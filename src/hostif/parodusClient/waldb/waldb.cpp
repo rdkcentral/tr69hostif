@@ -137,9 +137,6 @@ static void removeUnnecessaryAttributes(XMLDocument *pParent)
                 {
                     param->ToElement()->DeleteAttribute("notification");
                     param->ToElement()->DeleteAttribute("maxNotification");
-                    param->ToElement()->DeleteAttribute("rebootIdx");
-                    param->ToElement()->DeleteAttribute("initIdx");
-                    param->ToElement()->DeleteAttribute("setIdx");
                     param=param->NextSibling();
                 }
             }
