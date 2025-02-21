@@ -230,17 +230,18 @@ void hostIf_HTTPJsonMsgHandler(
     GList   *params;
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+    SoupMessageBody *req_body = soup_server_message_get_request_body(msg);
 
-    if (!msg->request_body ||
-            !msg->request_body->data ||
-            !msg->request_body->length)
+    if (!req_body ||
+            !req_body->data ||
+            !req_body->length)
     {
         soup_server_message_set_status(msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
         RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed due to no message data.\n", __FUNCTION__, __FILE__);
         return;
     }
 
-    params = hostIf_HTTPJsonParse((const unsigned char *) msg->request_body->data, msg->request_body->length);
+    params = hostIf_HTTPJsonParse((const unsigned char *) req_body->data, req_body->length);
     if (!params)
     {
         soup_server_message_set_status(msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
@@ -324,7 +325,7 @@ void hostIf_HTTPJsonMsgHandler(
 
     // TODO: What is the correct MIME type?
     soup_server_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, (const char *) buf, len);
-    soup_message_set_status(msg->request_body, SOUP_STATUS_OK, NULL);
+    soup_message_set_status(req_body, SOUP_STATUS_OK, NULL);
 
     yajl_gen_free(json);
 
@@ -349,10 +350,11 @@ void hostIf_HttpServerStart()
     g_type_init();
 #endif
 
-    if(server == NULL)
+    if(server == NULL) {
         //server = soup_server_new (SOUP_SERVER_PORT, port, NULL);
-        server = soup_server_new (NULL);
+        server = soup_server_new(NULL);
         g_object_set(server, "server-header", "hostif", NULL);
+    }
 
     if (!server)
     {
