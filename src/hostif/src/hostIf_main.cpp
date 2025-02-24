@@ -236,6 +236,7 @@ int main(int argc, char *argv[])
             if(optarg)
             {
                 memset(argList.confFile, '\0', sizeof (argList.confFile));
+//                memset(argList.confFile, '\0', 10*sizeof(argList.confFile));
                 rc=strcpy_s (argList.confFile,sizeof(argList.confFile),optarg);
 		if(rc!=EOK)
     		{
