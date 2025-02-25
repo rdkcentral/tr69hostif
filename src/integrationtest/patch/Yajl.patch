@@ -1,0 +1,13 @@
+diff --git a/src/hostif/handlers/src/hostIf_jsonReqHandlerThread.cpp b/src/hostif/handlers/src/hostIf_jsonReqHandlerThread.cpp
+index 0b04f21..8120f63 100644
+--- a/src/hostif/handlers/src/hostIf_jsonReqHandlerThread.cpp
++++ b/src/hostif/handlers/src/hostIf_jsonReqHandlerThread.cpp
+@@ -322,7 +322,7 @@ void hostIf_HTTPJsonMsgHandler(
+ 
+     // Get the string
+     const unsigned char     *buf;
+-    unsigned int             len;
++    size_t             len;
+     yajl_gen_get_buf(json, &buf, &len);
+ 
+     // TODO: What is the correct MIME type?

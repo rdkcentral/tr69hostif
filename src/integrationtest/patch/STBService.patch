@@ -1,0 +1,12 @@
+diff --git a/src/hostif/profiles/STBService/Makefile.am b/src/hostif/profiles/STBService/Makefile.am
+index 109bfab..4d8e276 100644
+--- a/src/hostif/profiles/STBService/Makefile.am
++++ b/src/hostif/profiles/STBService/Makefile.am
+@@ -44,6 +44,7 @@ libstbservice_la_SOURCES =	Components_AudioOutput.cpp \
+ 				Components_DisplayDevice.cpp \
+ 				Components_VideoOutput.cpp \
+ 				Components_VideoDecoder.cpp \
++				Stubs.cpp \
+ 				Capabilities.cpp
+ if WITH_XRDK_SDCARD_PROFILE
+ libstbservice_la_SOURCES += Components_XrdkSDCard.cpp
