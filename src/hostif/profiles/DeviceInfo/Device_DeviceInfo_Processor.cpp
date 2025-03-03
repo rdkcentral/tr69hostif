@@ -115,6 +115,7 @@ void hostIf_DeviceProcessorInterface::getLock()
 
 void hostIf_DeviceProcessorInterface::releaseLock()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcessorInterface::m_mutex);
 }
 
