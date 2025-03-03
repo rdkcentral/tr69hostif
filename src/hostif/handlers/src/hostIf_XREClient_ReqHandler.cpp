@@ -105,6 +105,7 @@ void XREClientReqHandler::getLock()
 
 void XREClientReqHandler::releaseLock()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Unlocking mutex..\n", __FUNCTION__, __FILE__);
     g_mutex_unlock(&XREClientReqHandler::m_mutex);
 }
 
