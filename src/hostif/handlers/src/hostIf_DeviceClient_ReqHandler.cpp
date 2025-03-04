@@ -584,6 +584,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_SoftwareVersion(stMsgData);
         }
+	else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.Migration.MigrationStatus") == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_Migration_MigrationStatus(stMsgData);
+        }
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_COMCAST-COM_Reset") == 0 ||
                  strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_Reset") == 0)
         {
