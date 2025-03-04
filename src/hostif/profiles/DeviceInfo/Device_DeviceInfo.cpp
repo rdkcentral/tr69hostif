@@ -496,7 +496,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
             return NOK;
         }
      }
-     catch (const std::exception e) {
+     catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
         return NOK;
     }
