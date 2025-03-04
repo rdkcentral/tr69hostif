@@ -4666,7 +4666,8 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t * stMsgD
     {
         char* command = (char *)"(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &";
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Invoking 'system (\"%s\")'. %s = true\n", __FUNCTION__, command, stMsgData->paramName);
-        int ret = v_secure_system("(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &");
+	int ret = system (command);
+        //int ret = v_secure_system("(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &");
         if (ret != 0)
         {
             RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] 'system (\"%s\")' returned error code '%d'\n", __FUNCTION__, command, ret);
