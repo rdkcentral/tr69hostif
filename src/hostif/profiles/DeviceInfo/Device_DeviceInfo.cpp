@@ -128,6 +128,7 @@ void *ResetFunc(void *);
 
 
 static char stbMacCache[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
+static int mutex_lock = 0;
 static string reverseSSHArgs,shortsArgs,nonShortsArgs;
 map<string,string> stunnelSSHArgs;
 const string sshCommand = "/lib/rdk/startTunnel.sh";
@@ -262,13 +263,27 @@ void hostIf_DeviceInfo::closeAllInstances()
 
 void hostIf_DeviceInfo::getLock()
 {
+   if(mutex_lock == 0) {
+    mutex_lock = 1;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Locking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_init(&hostIf_DeviceInfo::m_mutex);
     g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
+   }
+   else {
+       RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex already locked...  \n", __FUNCTION__, __LINE__);
+   }
 }
 
 void hostIf_DeviceInfo::releaseLock()
 {
+    if(mutex_lock == 1) {
+    mutex_lock = 0;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+    }
+    else {
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex is not locked, cannot unlock...  \n", __FUNCTION__, __LINE__);
+    }
 }
 
 GHashTable*  hostIf_DeviceInfo::getNotifyHash()
@@ -4658,20 +4673,31 @@ int hostIf_DeviceInfo::set_xOpsRPC_Profile(HOSTIF_MsgData_t * stMsgData)
     return OK;
 }
 
+void triggerRPCReboot()
+{
+    char buff[1024] = { '\0' };
+    FILE* pipe = v_secure_popen("r", "sh /lib/rdk/rebootNow.sh -s hostifDeviceInfo");
+
+    if (pipe) {
+        memset(buff, 0, sizeof(buff));
+        while (fgets(buff, sizeof(buff), pipe)) {
+            // Process output if needed
+            memset(buff, 0, sizeof(buff));
+        }
+        v_secure_pclose(pipe);
+    }
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully executed reboot script\n", __FUNCTION__, __LINE__);
+}
+
 int hostIf_DeviceInfo::set_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t * stMsgData)
 {
     LOG_ENTRY_EXIT;
 
-    if (get_boolean (stMsgData->paramValue))
-    {
-        char* command = (char *)"(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &";
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Invoking 'system (\"%s\")'. %s = true\n", __FUNCTION__, command, stMsgData->paramName);
-        int ret = v_secure_system("(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &");
-        if (ret != 0)
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] 'system (\"%s\")' returned error code '%d'\n", __FUNCTION__, command, ret);
-            return NOK;
-        }
+    if (get_boolean(stMsgData->paramValue)) {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Invoking 'system (\"%s\")'\n", __FUNCTION__, stMsgData->paramName);
+
+        std::thread rpcThread(triggerRPCReboot);
+        rpcThread.detach();  // Detach the thread to run independently
     }
     else
     {

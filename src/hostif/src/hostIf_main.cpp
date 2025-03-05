@@ -595,6 +595,7 @@ void exit_gracefully (int sig_received)
                 HttpServerStop();
 #endif
             }
+	    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Unlocking Mutex..\n", __FUNCTION__, __FILE__);
             pthread_mutex_unlock(&graceful_exit_mutex);
         }
     }
