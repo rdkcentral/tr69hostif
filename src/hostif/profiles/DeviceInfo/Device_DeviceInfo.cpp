@@ -4658,21 +4658,31 @@ int hostIf_DeviceInfo::set_xOpsRPC_Profile(HOSTIF_MsgData_t * stMsgData)
     return OK;
 }
 
+void triggerRPCReboot()
+{
+    char buff[1024] = { '\0' };
+    FILE* pipe = v_secure_popen("r", "sh /lib/rdk/rebootNow.sh -s hostifDeviceInfo &");
+
+    if (pipe) {
+        memset(buff, 0, sizeof(buff));
+        while (fgets(buff, sizeof(buff), pipe)) {
+            // Process output if needed
+            memset(buff, 0, sizeof(buff));
+        }
+        v_secure_pclose(pipe);
+    }
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully executed reboot script\n", __FUNCTION__, __LINE__);
+}
+
 int hostIf_DeviceInfo::set_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t * stMsgData)
 {
     LOG_ENTRY_EXIT;
 
-    if (get_boolean (stMsgData->paramValue))
-    {
-        char* command = (char *)"(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &";
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Invoking 'system (\"%s\")'. %s = true\n", __FUNCTION__, command, stMsgData->paramName);
-	int ret = system (command);
-        //int ret = v_secure_system("(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &");
-        if (ret != 0)
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] 'system (\"%s\")' returned error code '%d'\n", __FUNCTION__, command, ret);
-            return NOK;
-        }
+    if (get_boolean(stMsgData->paramValue)) {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Invoking 'system (\"%s\")'\n", __FUNCTION__, stMsgData->paramName);
+
+        std::thread rpcThread(triggerRPCReboot);
+        rpcThread.detach();  // Detach the thread to run independently
     }
     else
     {
