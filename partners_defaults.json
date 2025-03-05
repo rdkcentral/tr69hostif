@@ -57,7 +57,7 @@
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.PSNUrl" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.AppList" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsCrashdumpUpload.Enable" : "false",
-        "Device.X_RDK_WebPA_Server.URL" : "",
+        "Device.X_RDK_WebPA_Server.URL" : "https://webpa.rdkcentral.com:8080",
         "Device.X_RDK_WebPA_TokenServer.URL" : "",
         "Device.X_RDK_WebPA_DNSText.URL" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CrashportalEndpoint.Enable" : "true",
