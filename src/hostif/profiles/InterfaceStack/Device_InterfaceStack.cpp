@@ -245,6 +245,7 @@ void hostif_InterfaceStack::getLock()
 
 void hostif_InterfaceStack::releaseLock()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostif_InterfaceStack::stMutex);
 }
 

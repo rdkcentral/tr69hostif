@@ -170,6 +170,7 @@ void hostIf_DeviceProcess::getLock()
 
 void hostIf_DeviceProcess::releaseLock()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_mutex);
 }
 
@@ -193,6 +194,7 @@ int hostIf_DeviceProcess::getNumOfProcessEntries(HOSTIF_MsgData_t *stMsgData)
     pProcTab = openproc(PROC_FILLMEM);
     if (pProcTab == NULL)
     {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
@@ -208,6 +210,7 @@ int hostIf_DeviceProcess::getNumOfProcessEntries(HOSTIF_MsgData_t *stMsgData)
 
     put_int(stMsgData->paramValue,iTotalNumOfProcess);
     stMsgData->paramtype = hostIf_UnsignedIntType;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
 }
@@ -371,6 +374,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_PID(HOSTIF
     g_mutex_lock(&hostIf_DeviceProcess::m_libproc_lock);
     if(OK != readProcessFields(stMsgData->paramName,eProcessPid))
     {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
@@ -383,6 +387,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_PID(HOSTIF
 
     put_int(stMsgData->paramValue,processStatus.uiPid);
     stMsgData->paramtype = hostIf_UnsignedIntType;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
 }
@@ -405,6 +410,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Command(HO
     g_mutex_lock(&hostIf_DeviceProcess::m_libproc_lock);
     if(OK != readProcessFields(stMsgData->paramName,eProcessCommand))
     {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
@@ -430,7 +436,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Command(HO
     {
         ERR_CHK(rc);
     }
-
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
 }
@@ -452,6 +458,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Size(HOSTI
     g_mutex_lock(&hostIf_DeviceProcess::m_libproc_lock);
     if(OK != readProcessFields(stMsgData->paramName,eProcessSize))
     {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
@@ -464,6 +471,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Size(HOSTI
 
     put_int(stMsgData->paramValue,processStatus.uiSize);
     stMsgData->paramtype = hostIf_UnsignedIntType;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
 }
@@ -485,6 +493,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Priority(H
     g_mutex_lock(&hostIf_DeviceProcess::m_libproc_lock);
     if(OK != readProcessFields(stMsgData->paramName,eProcessPriority))
     {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
@@ -497,6 +506,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Priority(H
 
     put_int(stMsgData->paramValue,processStatus.uiPriority);
     stMsgData->paramtype = hostIf_UnsignedIntType;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
 }
@@ -518,6 +528,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_CPUTime(HO
     g_mutex_lock(&hostIf_DeviceProcess::m_libproc_lock);
     if(OK != readProcessFields(stMsgData->paramName,eProcessCpuTime))
     {
+       RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
        g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
        return NOK;
     }
@@ -530,6 +541,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_CPUTime(HO
 
     put_int(stMsgData->paramValue,processStatus.uiCpuTime);
     stMsgData->paramtype = hostIf_UnsignedIntType;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
 }
@@ -552,6 +564,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_State(HOST
      errno_t rc = -1;
     if(OK != readProcessFields(stMsgData->paramName,eProcessState))
     {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
@@ -577,7 +590,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_State(HOST
     {
         ERR_CHK(rc);
     }
-
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
 }
