@@ -4661,7 +4661,7 @@ int hostIf_DeviceInfo::set_xOpsRPC_Profile(HOSTIF_MsgData_t * stMsgData)
 void triggerRPCReboot()
 {
     char buff[1024] = { '\0' };
-    FILE* pipe = v_secure_popen("r", "sh /lib/rdk/rebootNow.sh -s hostifDeviceInfo &");
+    FILE* pipe = v_secure_popen("r", "sh /lib/rdk/rebootNow.sh -s hostifDeviceInfo");
 
     if (pipe) {
         memset(buff, 0, sizeof(buff));
