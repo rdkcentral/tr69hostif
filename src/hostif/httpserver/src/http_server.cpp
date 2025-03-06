@@ -37,7 +37,7 @@ extern "C"
 #include "http_server.h"
 #include "waldb.h"
 #include "request_handler.h"
-#include "libsoup/soup.h"
+#include "libsoup-3.0/libsoup/soup.h"
 #include <mutex>
 #include <condition_variable>
 
