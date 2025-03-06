@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
     }
-
+    mergeDataModel();
     /* Load the data model xml file*/
     DB_STATUS status = loadDataModel();
     if(status != DB_SUCCESS)
@@ -635,6 +635,30 @@ static void usage()
         ================================================================================\n\
         \n" << endl;
 #endif
+}
+
+void mergeDataModel() {
+    FILE *fp = fopen("/etc/device.properties", "r");
+    if (fp == NULL) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
+        return;
+    }
+
+    char line[256];
+    char rdk_profile[256] = {0};
+
+    while (fgets(line, sizeof(line), fp)) {
+        if (sscanf(line, "RDK_PROFILE=%s", rdk_profile) == 1) {
+            break;
+        }
+    }
+    fclose(fp);
+
+    if (strcmp(rdk_profile, "TV") == 0) {
+        system("cat data-model-generic.xml data-model-tv.xml > /tmp/data-model.xml");
+    } else {
+        system("cat data-model-generic.xml data-model-stb.xml > /tmp/data-model.xml");
+    }
 }
 
 /** @} */
