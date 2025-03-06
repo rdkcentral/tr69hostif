@@ -140,6 +140,7 @@ void hostIf_Time::getLock()
 
 void hostIf_Time::releaseLock()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_Time::m_mutex);
 }
 
