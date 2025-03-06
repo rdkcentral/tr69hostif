@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
     }
-    mergeDataModel();
+    void mergeDataModel();
     /* Load the data model xml file*/
     DB_STATUS status = loadDataModel();
     if(status != DB_SUCCESS)
