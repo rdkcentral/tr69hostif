@@ -21,7 +21,7 @@ noinst_LTLIBRARIES=libhttpserver.la
                                                                        
 libhttpserver_la_SOURCES=src/http_server.cpp src/request_handler.cpp src/XrdkCentralComRFCVar.cpp
 
-libhttpserver_la_LDFLAGS = -lrdkloggers -lwdmp-c $(SOUP_LIBS) -lcjson 
+libhttpserver_la_LDFLAGS = -lrdkloggers -lwdmp-c $(SOUP_LIBS) -lcjson -lsoup-3.0
 
 AM_CXXFLAGS = "-std=c++11" $(SOUP_CFLAGS) -I$(top_srcdir)/src/hostif/httpserver/include \
               -I$(top_srcdir)/src/hostif/include \
@@ -32,7 +32,8 @@ AM_CXXFLAGS = "-std=c++11" $(SOUP_CFLAGS) -I$(top_srcdir)/src/hostif/httpserver/
 	      	  -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/glib-2.0 \
 	      	  -I${PKG_CONFIG_SYSROOT_DIR}$(libdir)/glib-2.0/include \
               -I$(top_srcdir)/src/hostif/parodusClient/waldb \
-              -I$(top_srcdir)/src/hostif/parodusClient/pal
+              -I$(top_srcdir)/src/hostif/parodusClient/pal \
+	      -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/libsoup-3.0
 
 libhttpserver_la_LIBADD = $(top_builddir)/src/hostif/parodusClient/waldb/libwaldb.la \
                              $(top_builddir)/src/hostif/handlers/libMsgHandlers.la 

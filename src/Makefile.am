@@ -115,9 +115,10 @@ else
 AM_LDFLAGS += $(SYSTEMD_SDNOTIFY_LDFLAGS)
 endif
 
-bin_PROGRAMS = tr69hostif
+bin_PROGRAMS = tr69hostif background
 tr69hostif_SOURCES = $(top_srcdir)/src/hostif/src/hostIf_main.cpp $(top_srcdir)/src/hostif/src/hostIf_utils.cpp
 tr69hostif_SOURCES += $(top_srcdir)/src/hostif/src/IniFile.cpp
+background_SOURCES = $(top_srcdir)/src/background.c
 
 tr69hostif_LDADD = $(top_builddir)/src/hostif/handlers/libMsgHandlers.la
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/STBService/libstbservice.la
