@@ -317,7 +317,7 @@ void triggerResetScript()
         }
         else {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Successfully executed %s Reset. \n",__FUNCTION__, scriptbuff);
-            system(REBOOT_SCR);
+            v_secure_system(REBOOT_SCR);
         }
         break;
 
@@ -335,7 +335,7 @@ void triggerResetScript()
         }
         else {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Successfully executed %s Reset. \n",__FUNCTION__, scriptbuff);
-            system(REBOOT_SCR);
+            v_secure_system(REBOOT_SCR);
         }
         break;
     case WarehouseReset:
@@ -366,7 +366,7 @@ void triggerResetScript()
         }
         else {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Successfully executed %s Reset. \n",__FUNCTION__, scriptbuff);
-            system(REBOOT_SCR);
+            v_secure_system(REBOOT_SCR);
         }
         break;
     default:
