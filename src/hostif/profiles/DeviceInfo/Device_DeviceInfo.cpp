@@ -2294,7 +2294,7 @@ int hostIf_DeviceInfo::set_xOpsDMUploadLogsNow (HOSTIF_MsgData_t *stMsgData)
     {
         /*@ TODO: Execute the script;*/
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Start executing script to upload logs... \n",__FUNCTION__);
-        system(LOG_UPLOAD_SCR);
+        v_Secure_system(LOG_UPLOAD_SCR);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully executed %s. \n", LOG_UPLOAD_SCR);
     }
     else
