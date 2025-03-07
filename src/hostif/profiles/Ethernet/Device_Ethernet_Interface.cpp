@@ -786,11 +786,11 @@ int hostIf_EthernetInterface::set_Device_Ethernet_Interface_Enable(HOSTIF_MsgDat
 
     if(FALSE == value)
     {
-        rc = v_secure_system("ifconfig eth%d down", ethInterfNo-1);
+        rc = system("ifconfig eth%d down", ethInterfNo-1);
     }
     else
     {
-        rc = v_secure_system("ifconfig eth%d up", ethInterfNo-1);
+        rc = system("ifconfig eth%d up", ethInterfNo-1);
     }
 
     if(rc < 0)
