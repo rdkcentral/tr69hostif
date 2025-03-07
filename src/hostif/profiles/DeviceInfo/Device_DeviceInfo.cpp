@@ -2902,7 +2902,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
 
                 RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting SSH Tunnel \n",__FUNCTION__);
                 string arg = "start";
-                v_secure_system("/lib/rdk/startTunnel.sh %s %s &", arg.c_str(), reverseSSHArgs.c_str());
+                v_secure_system("background /lib/rdk/startTunnel.sh %s %s &", arg.c_str(), reverseSSHArgs.c_str());
             }
 #ifdef __SINGLE_SESSION_ONLY__
         }
