@@ -4386,7 +4386,6 @@
       <parameter base="MigrationStatus" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
 	  <string/>
-	  <default type="factory" value="NOT_STARTED"/>
         </syntax>
       </parameter>
     </object>
