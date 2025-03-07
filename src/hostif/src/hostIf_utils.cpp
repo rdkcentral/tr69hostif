@@ -310,14 +310,14 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("%s", scriptbuff);
+        ret = v_secure_system("background %s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute : %s. \n",__FUNCTION__, scriptbuff);
         }
         else {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Successfully executed %s Reset. \n",__FUNCTION__, scriptbuff);
-            v_secure_system(REBOOT_SCR);
+            system(REBOOT_SCR);
         }
         break;
 
@@ -328,14 +328,14 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("%s", scriptbuff);
+        ret = v_secure_system("background %s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute : %s. \n",__FUNCTION__, scriptbuff);
         }
         else {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Successfully executed %s Reset. \n",__FUNCTION__, scriptbuff);
-            v_secure_system(REBOOT_SCR);
+            system(REBOOT_SCR);
         }
         break;
     case WarehouseReset:
@@ -344,7 +344,7 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("%s", scriptbuff);
+        ret = v_secure_system("background %s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute: %s. \n",__FUNCTION__, scriptbuff);
@@ -359,14 +359,14 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("%s", scriptbuff);
+        ret = v_secure_system("background %s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute: %s. \n",__FUNCTION__, scriptbuff);
         }
         else {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Successfully executed %s Reset. \n",__FUNCTION__, scriptbuff);
-            v_secure_system(REBOOT_SCR);
+            system(REBOOT_SCR);
         }
         break;
     default:
