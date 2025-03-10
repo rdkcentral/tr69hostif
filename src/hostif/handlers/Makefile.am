@@ -48,6 +48,8 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 
 if LIBSOUP3_ENABLE
 AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-3.0
+else
+AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-2.4
 endif
 
 AM_CXXFLAGS += "-std=c++11" $(PROCPS_CFLAGS)
