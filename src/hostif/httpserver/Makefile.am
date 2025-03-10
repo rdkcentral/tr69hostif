@@ -38,7 +38,9 @@ AM_CXXFLAGS = "-std=c++11" $(SOUP_CFLAGS) -I$(top_srcdir)/src/hostif/httpserver/
               -I$(top_srcdir)/src/hostif/parodusClient/pal
 
 if LIBSOUP3_ENABLE
-AM_CXXFLAGS += -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/libsoup-3.0
+AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-3.0
+else
+AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-2.4
 endif
 
 libhttpserver_la_LIBADD = $(top_builddir)/src/hostif/parodusClient/waldb/libwaldb.la \
