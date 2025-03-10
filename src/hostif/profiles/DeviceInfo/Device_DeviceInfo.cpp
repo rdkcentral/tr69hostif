@@ -477,18 +477,16 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
-    string line;
-    int linecount = 0;
+    string line = "NOT_STARTED";
     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
     ifstream file_read (MigrationStatus);
     try {
         if (file_read.is_open())
         {
-            while(getline(file_read, line))
-            {
-                linecount++;
+            if (file_read.peek() != EOF) {  // Check if the file is not empty
+     	         std::getline(file_read, line);
             }
-            file_read.close();
+	    file_read.close();
         }
         else
         {
@@ -500,9 +498,12 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
         return NOK;
     }
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] value:%s\n", __FUNCTION__, line.c_str());
+    int len = strlen(line);
     stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(line.c_str());
     strncpy(stMsgData->paramValue, line.c_str(), stMsgData->paramLen);
+    stMsgData->paramValue[len+1] = '\0';
+    stMsgData->paramLen = len;
     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
