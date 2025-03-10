@@ -41,7 +41,6 @@ AC_FUNC_REALLOC
 
 # Check for GLib 2.0
 PKG_CHECK_MODULES([GLIB], [glib-2.0])
-PKG_CHECK_MODULES([SOUP], [libsoup-3.0])
 
 # Generate the Makefile
  AC_CONFIG_FILES([
