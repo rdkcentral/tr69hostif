@@ -24,6 +24,8 @@ libhttpserver_la_SOURCES=src/http_server.cpp src/request_handler.cpp src/XrdkCen
 libhttpserver_la_LDFLAGS = -lrdkloggers -lwdmp-c $(SOUP_LIBS) -lcjson
 if LIBSOUP3_ENABLE
 libhttpserver_la_LDFLAGS += -lsoup-3.0
+else
+libhttpserver_la_LDFLAGS += -lsoup-2.4
 endif
 
 AM_CXXFLAGS = "-std=c++11" $(SOUP_CFLAGS) -I$(top_srcdir)/src/hostif/httpserver/include \
