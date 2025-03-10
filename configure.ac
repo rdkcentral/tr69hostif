@@ -436,6 +436,16 @@ AC_CHECK_HEADERS([rdkStorageMgr.h], [HAVE_RDK_STMGR_V2_H=yes], [HAVE_RDK_STMGR_V
 AC_LANG_POP
 AM_CONDITIONAL([ENABLE_RDK_STMGR_V2], [test "x$HAVE_RDK_STMGR_V2_H" = "xyes" -a '(' "x$XRDK_SDCARD_PROFILE_ENABLE" = "xtrue" -o "x$XRDK_EMMC_PROFILE_ENABLE" = "xtrue" ')'])
 
+# This enables libsoup-3 support
+AC_ARG_ENABLE([libsoup3],
+[  --enable-libsoup3    Turn on libsoup-3 support],
+[case "${enableval}" in
+  yes) libsoup3=true ;;
+  no)  libsoup3=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-libsoup3]) ;;
+esac],[libsoup3=false])
+AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 
