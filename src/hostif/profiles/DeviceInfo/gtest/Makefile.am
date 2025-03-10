@@ -31,6 +31,9 @@ endif
 
 # Define the libraries to link against
 COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl 
+if LIBSOUP3_ENABLE
+COMMON_LDADD +=  -lsoup-3.0
+endif
 
 # Define the compiler flags
 COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) $(SOUP_LIBS) -fprofile-arcs -ftest-coverage
