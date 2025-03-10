@@ -500,7 +500,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] value:%s\n", __FUNCTION__, line.c_str());
     int len = strlen(line.c_str());
     stMsgData->paramtype = hostIf_StringType;
-    strncpy(stMsgData->paramValue, line.c_str(), stMsgData->paramLen);
+    strncpy(stMsgData->paramValue, line.c_str(), len);
     stMsgData->paramValue[len+1] = '\0';
     stMsgData->paramLen = len;
     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
