@@ -46,7 +46,7 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 	$(XRDK_RF4CE_PROFILE_FLAG) \
         -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/
 if LIBSOUP3_ENABLE
-AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-3.0
+AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-3.0 -DLIBSOUP3_ENABLE
 else
 AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-2.4
 endif
