@@ -4382,5 +4382,13 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM.IUI." access="readOnly" minEntries="0" maxEntries="1">
+      <parameter base="Version" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+          <default type="factory" value=""/>
+        </syntax>
+      </parameter>
+    </object>
   </model>
 </dm:document>
