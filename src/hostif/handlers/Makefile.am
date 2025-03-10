@@ -44,8 +44,11 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
         -I=/usr/include/rdk/ds/ \
         -I=/usr/include/rdk/ds-hal/ \
 	$(XRDK_RF4CE_PROFILE_FLAG) \
-        -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/ \
-	-I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-3.0
+        -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/
+
+if LIBSOUP3_ENABLE
+AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-3.0
+endif
 
 AM_CXXFLAGS += "-std=c++11" $(PROCPS_CFLAGS)
 
