@@ -448,12 +448,12 @@ int main(int argc, char *argv[])
            CRUD_CONFIG_FILE, manufacturer, fw_name.c_str(), model,
            serialNumber.c_str(), bootTime.c_str(), reboot_reason.c_str(), clientCertFile.c_str(), tokenServerUrl.c_str());
 
-    v_secure_system("/usr/bin/parodus \
+    v_secure_system("backgroundrun /usr/bin/parodus \
     --hw-mac=%s --webpa-ping-time=%d --webpa-interface-used=%s --webpa-url=%s \
     --partner-id=%s --webpa-backoff-max=9 --ssl-cert-path=%s  --acquire-jwt=%d \
     --dns-txt-url=%s --jwt-public-key-file=%s --jwt-algo=RS256 --record-jwt-payload=%s \
     --crud-config-file=%s  --hw-manufacturer=%s --fw-name=%s --hw-model=%s \
-    --hw-serial-number=%s --boot-time=%s --hw-last-reboot-reason=\"%s\" --client-cert-path=%s --token-server-url=%s &",
+    --hw-serial-number=%s --boot-time=%s --hw-last-reboot-reason=\"%s\" --client-cert-path=%s --token-server-url=%s",
                     hw_addr.c_str(), pingWaitTime, networkIf.c_str(), webpa_url.c_str(),
                     partnerId.c_str(), SSL_CERT_FILE, acquireJWT,
                     dnsTextUrl.c_str(), JWT_KEY, RECORD_JWT_PAYLOAD_FILE,

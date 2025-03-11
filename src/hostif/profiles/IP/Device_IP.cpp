@@ -693,7 +693,7 @@ int hostIf_IP::set_Device_IP_IPv4Enable(HOSTIF_MsgData_t *stMsgData)
 
     if(get_int(stMsgData->paramValue) == 1)
     {
-        rc = v_secure_system("ifup -a");
+        rc = v_secure_system("backgroundrun ifup -a");
 	if(rc != -1)
 	{
            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] Enabled \n",__FUNCTION__);
@@ -702,7 +702,7 @@ int hostIf_IP::set_Device_IP_IPv4Enable(HOSTIF_MsgData_t *stMsgData)
     }
     else if(get_int(stMsgData->paramValue) == 0)
     {
-        rc = v_secure_system("ifdown -a");
+        rc = v_secure_system("backgroundrun ifdown -a");
 	if(rc != -1)
         {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] Disabled \n",__FUNCTION__);
