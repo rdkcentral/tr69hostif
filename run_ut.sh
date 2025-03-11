@@ -20,7 +20,7 @@
 
 apt-get update
 apt-get -y install libtinyxml2-dev
-apt-get -y install libsoup2.4-dev
+apt-get -y install libsoup-3.0-dev
 
 sed '/<\/model>/d; /<\/dm:document>/d' ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml > ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
 sed '/<?xml/,/<model/ d' ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml >> ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
@@ -43,7 +43,7 @@ cd ./src/
 automake --add-missing
 autoreconf --install
 
-./configure
+./configure --enable-libsoup3
 
 make clean
 

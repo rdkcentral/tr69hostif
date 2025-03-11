@@ -48,6 +48,179 @@ extern bool httpServerThreadDone;
 extern T_ARGLIST argList;
 static SoupServer  *http_server = NULL;
 
+#ifdef LIBSOUP3_ENABLE
+static void HTTPRequestHandler(
+    SoupServer        *server,
+    SoupServerMessage *msg,
+    const char        *path,
+    GHashTable        *query,
+    void           *user_data)
+{
+    cJSON *jsonRequest = NULL;
+    cJSON *jsonResponse = NULL;
+    req_struct *reqSt = NULL;
+    res_struct *respSt = NULL;
+
+    struct timespec start,end,*startPtr,*endPtr;
+    startPtr = &start;
+    endPtr = &end;
+
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+    getCurrentTime(startPtr);
+    SoupMessageBody *req_body = soup_server_message_get_request_body(msg);
+    if (!req_body ||
+            !req_body->data ||
+            !req_body->length)
+    {
+        soup_server_message_set_status (msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed due to no message data.\n", __FUNCTION__, __FILE__);
+        return;
+    }
+
+    SoupMessageHeaders *req_headers = soup_server_message_get_request_headers(msg);
+    const char *pcCallerID = (char *)soup_message_headers_get_one(req_headers, "CallerID");
+
+    jsonRequest = cJSON_Parse((const char *) req_body->data);
+
+    if(jsonRequest)
+    {
+        reqSt = (req_struct *)malloc(sizeof(req_struct));
+        if(reqSt == NULL)
+        {
+            soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Cannot create return object");
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to create req_struct\n", __FUNCTION__, __FILE__);
+            return;
+        }
+        memset(reqSt, 0, sizeof(req_struct));
+
+        const char *method = soup_server_message_get_method(msg);
+        if(!strcmp(method, "GET"))
+        {
+            if(!pcCallerID || !strlen(pcCallerID))
+            {
+                pcCallerID = "Unknown";
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s] Unknown Caller ID, GET is allowed by default\n", __FUNCTION__, __FILE__);
+            }
+            else
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%s] GET with CallerID : %s..\n", __FUNCTION__, __FILE__, pcCallerID);
+            parse_get_request(jsonRequest, &reqSt, WDMP_TR181);
+            respSt = handleRequest(pcCallerID, reqSt);
+            if(respSt)
+            {
+                jsonResponse = cJSON_CreateObject();
+                wdmp_form_get_response(respSt, jsonResponse);
+
+                // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
+                int new_st_code = 0;
+
+                for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
+                {
+                    if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1)
+                    {
+                        new_st_code =  respSt->retStatus[paramIndex];
+                        break;
+                    }
+                }
+                cJSON * stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
+                if( NULL != stcode)
+                {
+                    cJSON_SetIntValue(stcode, new_st_code);
+                }
+            }
+            else
+            {
+                soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Invalid request format");
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Request couldn't be processed\n", __FUNCTION__, __FILE__);
+                return;
+            }
+        }
+        else if(!strcmp(method, "POST"))
+        {
+            if(!pcCallerID || !strlen(pcCallerID))
+            {
+                soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "POST Not Allowed without CallerID");
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. POST operation not allowed with unknown CallerID\n", __FUNCTION__, __FILE__);
+                wdmp_free_req_struct(reqSt);
+                reqSt = NULL;
+                return;
+            }
+            else
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%s] POST with CallerID : %s..\n", __FUNCTION__, __FILE__, pcCallerID);
+
+            parse_set_request(jsonRequest, &reqSt, WDMP_TR181);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"Calling handleRequest...\n");
+            respSt = handleRequest(pcCallerID, reqSt);
+            if(respSt)
+            {
+                jsonResponse = cJSON_CreateObject();
+                wdmp_form_set_response(respSt, jsonResponse);
+                // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
+                int new_st_code = 0;
+
+                for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
+                {
+                    if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1)
+                    {
+                        new_st_code =  respSt->retStatus[paramIndex];
+                        break;
+                    }
+                }
+                cJSON * stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
+                if( NULL != stcode)
+                {
+                    cJSON_SetIntValue(stcode, new_st_code);
+                }
+            }
+            else
+            {
+                soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Invalid request format");
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Request couldn't be processed\n", __FUNCTION__, __FILE__);
+                wdmp_free_req_struct(reqSt);
+                reqSt = NULL;
+                return;
+            }
+        }
+        else
+        {
+            soup_server_message_set_status (msg, SOUP_STATUS_NOT_IMPLEMENTED, "Method not implemented");
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Unsupported operation \n", __FUNCTION__, __FILE__);
+            wdmp_free_req_struct(reqSt);
+            reqSt = NULL;
+            return;
+        }
+
+        char *buf = cJSON_Print(jsonResponse);
+
+        if(buf) {
+            soup_server_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, buf, strlen(buf));
+            soup_server_message_set_status (msg, SOUP_STATUS_OK, NULL);
+        }
+
+        wdmp_free_req_struct(reqSt);
+        reqSt = NULL;
+        cJSON_Delete(jsonRequest);
+        cJSON_Delete(jsonResponse);
+        wdmp_free_res_struct(respSt);
+        respSt = NULL;
+
+        if(buf != NULL) {
+            free(buf);
+            buf = NULL;
+        }
+    }
+    else
+    {
+        soup_server_message_set_status (msg, SOUP_STATUS_BAD_REQUEST, "Bad Request");
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to parse JSON Message \n", __FUNCTION__, __FILE__);
+        return;
+    }
+
+    getCurrentTime(endPtr);
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Curl Request Processing Time : %lu ms\n", timeValDiff(startPtr, endPtr));
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+    return;
+}
+#else
 static void HTTPRequestHandler(
     SoupServer        *server,
     SoupMessage       *msg,
@@ -217,7 +390,7 @@ static void HTTPRequestHandler(
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return;
 }
-
+#endif
 
 void *HTTPServerStartThread(void *msg)
 {
@@ -240,7 +413,11 @@ void *HTTPServerStartThread(void *msg)
     }
 
     if(http_server == NULL)
+#ifdef LIBSOUP3_ENABLE
+        http_server = soup_server_new("server-header", "HTTPServer", NULL);
+#else
         http_server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "HTTPServer", NULL);
+#endif
 
     if (!http_server)
     {
@@ -286,4 +463,3 @@ void HttpServerStop()
         RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"SERVER: Stopped server successfully.\n");
     }
 }
-

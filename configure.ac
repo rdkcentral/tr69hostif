@@ -394,6 +394,15 @@ if test "$RDK_SUPPORT_PARODUS" = "yes"; then
     AC_DEFINE([RDK_SUPPORT_PARODUS], [1], [Define to enable support parodus])
 fi
 
+# This enables libsoup-3 support
+AC_ARG_ENABLE([libsoup3],
+[  --enable-libsoup3    Turn on libsoup-3 support],
+[case "${enableval}" in
+  yes) libsoup3=true ;;
+  no)  libsoup3=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-libsoup3]) ;;
+esac],[libsoup3=false])
+AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
 
 AM_CONDITIONAL([WITH_MOCA_PROFILE], [test "x$enable_moca" = "xyes"])
 AM_CONDITIONAL([WITH_MOCA20], [test "x$enable_moca2" = "xyes"])
@@ -424,7 +433,6 @@ AC_PROG_CC
 AC_CHECK_HEADERS([stdlib.h unistd.h])
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.24.0])
 PKG_CHECK_MODULES([GTHREAD], [gthread-2.0 >= 2.24.0])
-PKG_CHECK_MODULES([SOUP], [libsoup-2.4 >= 2.31.6])
 
 AC_CHECK_LIB(gthread-2.0, g_thread_init)
 # Checks for typedefs, structures, and compiler characteristics.
