@@ -43,7 +43,7 @@ cd ./src/
 automake --add-missing
 autoreconf --install
 
-./configure
+./configure --enable-libsoup3
 
 make clean
 
