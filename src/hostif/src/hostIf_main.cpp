@@ -637,6 +637,45 @@ static void usage()
 #endif
 }
 
+#include <stdio.h>
+#include <string.h>
+
+void filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
+    FILE *in_fp1 = fopen(input1, "r");
+    FILE *in_fp2 = fopen(input2, "r");
+    FILE *out_fp = fopen(output, "w");
+
+    if (!in_fp1 || !in_fp2 || !out_fp) {
+        perror("Error opening files");
+        if (in_fp1) fclose(in_fp1);
+        if (in_fp2) fclose(in_fp2);
+        if (out_fp) fclose(out_fp);
+        return;
+    }
+
+    char line[1024];
+
+    // Process the first file
+    while (fgets(line, sizeof(line), in_fp1)) {
+        if (strstr(line, "</model>") || strstr(line, "</dm:document>")) {
+            continue; // Skip unwanted lines
+        }
+        fputs(line, out_fp);
+    }
+
+    // Process the second file
+    while (fgets(line, sizeof(line), in_fp2)) {
+        if (strstr(line, "</model>") || strstr(line, "</dm:document>")) {
+            continue; // Skip unwanted lines
+        }
+        fputs(line, out_fp);
+    }
+
+    fclose(in_fp1);
+    fclose(in_fp2);
+    fclose(out_fp);
+}
+
 void mergeDataModel() {
     FILE *fp = fopen("/etc/device.properties", "r");
     if (fp == NULL) {
@@ -654,11 +693,20 @@ void mergeDataModel() {
     }
     fclose(fp);
 
+    const char *generic_file = "data-model-generic.xml";
+    const char *output_file = "/tmp/data-model.xml";
+
     if (strcmp(rdk_profile, "TV") == 0) {
-        system("cat data-model-generic.xml data-model-tv.xml > /tmp/data-model.xml");
+        const char *tv_file = "data-model-tv.xml";
+        filter_and_merge_xml(generic_file, tv_file, output_file);
+    } else if (strcmp(rdk_profile, "STB") == 0) {
+        const char *stb_file = "data-model-stb.xml";
+        filter_and_merge_xml(generic_file, stb_file, output_file);
     } else {
-        system("cat data-model-generic.xml data-model-stb.xml > /tmp/data-model.xml");
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unsupported RDK_PROFILE: %s\n", rdk_profile);
     }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
 }
 
 /** @} */
