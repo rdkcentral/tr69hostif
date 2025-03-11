@@ -1436,7 +1436,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
     return OK;
 }
 
-static void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
+void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
 {
     hostIf_DeviceInfo::bPowerControllerEnable = isPwrContEnalbe;
 }

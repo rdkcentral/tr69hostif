@@ -252,6 +252,8 @@ class hostIf_DeviceInfo {
     std::string         m_strXOpsRPCFwDwldStartedNotification;
     bool                m_bXOpsRPCFwDwldCompletedNotification;
 
+    static bool bPowerControllerEnable;
+    
     string getEstbIp();
     bool isRsshactive();
     bool isShortsEnabled();
@@ -313,7 +315,6 @@ public:
 
     GHashTable* getNotifyHash();
 
-    bool bPowerControllerEnable;
     static void setPowerConInterface( bool isPwrContEnalbe);
 
 //    void runSystemMgmtTimePathMonitor();
