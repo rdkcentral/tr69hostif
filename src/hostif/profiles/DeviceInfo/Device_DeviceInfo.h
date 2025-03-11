@@ -314,10 +314,7 @@ public:
     GHashTable* getNotifyHash();
 
     bool bPowerControllerEnable;
-    static void setPowerConInterface( bool isPwrContEnalbe)
-    {
-        bPowerControllerEnable = isPwrContEnalbe;
-    }
+    static void setPowerConInterface( bool isPwrContEnalbe);
 
 //    void runSystemMgmtTimePathMonitor();
     /**

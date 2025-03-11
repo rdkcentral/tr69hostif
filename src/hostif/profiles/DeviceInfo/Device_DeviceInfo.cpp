@@ -1436,6 +1436,11 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
     return OK;
 }
 
+static void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
+{
+    hostIf_DeviceInfo::bPowerControllerEnable = isPwrContEnalbe;
+}
+
 /**
  * @brief The X_COMCAST_COM_PowerStatus as get parameter results in the power status
  * being performed on the device. Power status of the device based on the front panel
