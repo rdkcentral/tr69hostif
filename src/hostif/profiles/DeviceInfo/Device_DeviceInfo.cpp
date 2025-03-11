@@ -63,7 +63,7 @@
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
 #include "hostIf_utils.h"
-#include "pwrMgr.h"
+#include "power_controller.h"
 #include "rbus.h"
 #include <curl/curl.h>
 
@@ -1452,40 +1452,42 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
-    IARM_Result_t err;
-    int ret = NOK;
+    int ret = NOK, pwr_ret = -1;
     const char *pwrState = "PowerOFF";
     int str_len = 0;
-    IARM_Bus_PWRMgr_GetPowerState_Param_t param;
-    memset(&param, 0, sizeof(param));
+    PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
 
-    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                        IARM_BUS_PWRMGR_API_GetPowerState,
-                        (void *)&param,
-                        sizeof(param));
-    if(err == IARM_RESULT_SUCCESS)
-    {
-        pwrState = (param.curState==IARM_BUS_PWRMGR_POWERSTATE_OFF)?"PowerOFF":(param.curState==IARM_BUS_PWRMGR_POWERSTATE_ON)?"PowerON":"Standby";
+    if(hostIf_DeviceInfo::bPowerControllerEnable) {
+        pwr_ret = PowerController_GetPowerState(&curState, &previousState);
+        if (0 == pwr_ret) 
+        {
+            pwrState = (curState==POWER_STATE_OFF)?"PowerOFF":(curState==POWER_STATE_ON)?"PowerON":"Standby";
 
-//        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",param.curState, pwrState);
-        str_len = strlen(pwrState);
-        try
+           //TODO: will comment this.
+           RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",curState, pwrState);
+            str_len = strlen(pwrState);
+            try
+            {
+                strncpy((char *)stMsgData->paramValue, pwrState, str_len);
+                stMsgData->paramValue[str_len+1] = '\0';
+                stMsgData->paramLen = str_len;
+                stMsgData->paramtype = hostIf_StringType;
+                ret = OK;
+            } catch (const std::exception &e)
+            {
+                RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
+                ret = NOK;
+            }
+        }
+        else
         {
-            strncpy((char *)stMsgData->paramValue, pwrState, str_len);
-            stMsgData->paramValue[str_len+1] = '\0';
-            stMsgData->paramLen = str_len;
-            stMsgData->paramtype = hostIf_StringType;
-            ret = OK;
-        } catch (const std::exception &e)
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in power controller thunder cleint call for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, pwr_ret);
             ret = NOK;
         }
     }
-    else
+    else 
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in IARM_Bus_Call() for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, ret);
-        ret = NOK;
+         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Interface failed : %d \n", hostIf_DeviceInfo::bPowerControllerEnable);   
     }
 
     //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
@@ -4190,6 +4192,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComXREContainerRFCEnable(HOSTIF_MsgData_t 
     }
     return ret;
 }
+
 
 void executeRfcMgr()
 {

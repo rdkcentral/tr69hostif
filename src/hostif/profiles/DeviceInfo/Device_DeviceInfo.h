@@ -313,6 +313,12 @@ public:
 
     GHashTable* getNotifyHash();
 
+    bool bPowerControllerEnable;
+    static void setPowerConInterface( bool isPwrContEnalbe)
+    {
+        bPowerControllerEnable = isPwrContEnalbe;
+    }
+
 //    void runSystemMgmtTimePathMonitor();
     /**
     * Description. This is the getter api for DeviceInfo for
