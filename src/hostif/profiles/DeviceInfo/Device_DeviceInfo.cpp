@@ -1492,7 +1492,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     }
     else 
     {
-         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Interface failed : %d \n", hostIf_DeviceInfo::bPowerControllerEnable);   
+         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d \n", hostIf_DeviceInfo::bPowerControllerEnable);
     }
 
     //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);

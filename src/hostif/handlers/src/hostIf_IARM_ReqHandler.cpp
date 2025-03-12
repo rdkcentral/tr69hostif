@@ -136,7 +136,7 @@ RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"##########################################
     PowerController_Init();
     // Get powercontroller thunder client interface in separate thread
     std::thread pwrThread(getPwrContInterface);
-    if(pwrThead.joinable())
+    if(pwrThread.joinable())
     {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: created getPwrContInterface thread.. \n", __FUNCTION__, __LINE__);
         pwrThread.detach();  // Detach the thread to run independently
