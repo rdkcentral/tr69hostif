@@ -366,6 +366,7 @@ void TimeClientReqHandler::checkForUpdates()
     GHashTable* notifyhash = NULL;
 
     hostIf_Time::getLock();
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Got lock\n", __FUNCTION__, __FILE__);
 
 #ifdef HAVE_VALUE_CHANGE_EVENT
     instanceNumber = 0;
@@ -396,6 +397,7 @@ void TimeClientReqHandler::checkForUpdates()
             {
                 if(!instanceNumber)
                 {   // Time settings not found in Notify Hash Table
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Unlocking mutex..\n", __FUNCTION__, __FILE__);
                     hostIf_Time::releaseLock();
                     continue;
                 }
