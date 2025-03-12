@@ -264,23 +264,18 @@ void hostIf_DeviceInfo::closeAllInstances()
 
 void hostIf_DeviceInfo::getLock()
 {
-   if(mutex_lock == 0) {
-    mutex_lock = 1;
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Locking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_init(&hostIf_DeviceInfo::m_mutex);
     g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
-   }
-   else {
-       RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex already locked...  \n", __FUNCTION__, __LINE__);
-   }
+    mutex_lock = 1;
 }
 
 void hostIf_DeviceInfo::releaseLock()
 {
-    if(mutex_lock == 1) {
-    mutex_lock = 0;
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
-    g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+    if(mutex_lock == 1)
+    {
+        mutex_lock = 0;
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+        g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
     }
     else {
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex is not locked, cannot unlock...  \n", __FUNCTION__, __LINE__);
