@@ -93,6 +93,8 @@
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
 
+#include "power_controller.h"
+
 #define VERSION_FILE                       "/version.txt"
 #define SOC_ID_FILE                        "/var/log/socprov.log"
 #define PREFERRED_GATEWAY_FILE	           "/opt/prefered-gateway"
@@ -1434,7 +1436,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
 
 void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
 {
-    hostIf_DeviceInfo::bPowerControllerEnable = isPwrContEnalbe;
+    bPowerControllerEnable = isPwrContEnalbe;
 }
 
 /**
@@ -1458,7 +1460,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     int str_len = 0;
     PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
 
-    if(hostIf_DeviceInfo::bPowerControllerEnable) {
+    if(bPowerControllerEnable) {
         pwr_ret = PowerController_GetPowerState(&curState, &previousState);
         if (0 == pwr_ret) 
         {
@@ -1488,7 +1490,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     }
     else 
     {
-         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d \n", hostIf_DeviceInfo::bPowerControllerEnable);
+        //RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d \n", hostIf_DeviceInfo::bPowerControllerEnable);
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d \n", bPowerControllerEnable);
     }
 
     //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
