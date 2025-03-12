@@ -4412,7 +4412,7 @@ int hostIf_DeviceInfo::set_xFirmwareDownloadNow(HOSTIF_MsgData_t *stMsgData)
                 char cmd[200] = {'\0'};
                 snprintf(cmd, 200,"%s %s %s %s %d %d &",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
 
-                ret = v_secure_system("backgroundrun %s %s %s %s %d %d &",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
+                ret = v_secure_system("%s %s %s %s %d %d &",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
 
                 if (ret != 0) {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to trigger Download, \'system (\"%s\")\' returned error code '%d'\n", __FUNCTION__, cmd, ret);
