@@ -49,6 +49,7 @@
 #define X_RDK_RFC_DEEPSLEEP_ENABLE           "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable"
 #define RETRYSLEEP 300 //
 
+static bool IsPwrCtlInt = false;
 static bool TR69_HostIf_Mgr_Init();
 static bool TR69_HostIf_Mgr_Connect();
 static bool TR69_HostIf_Mgr_Get_RegisterCall();
@@ -92,7 +93,7 @@ bool hostIf_IARM_IF_Start()
     return ret;
 }
 
-void getPwrContInterface()
+void hostIf_getPwrContInterface()
 {
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     while(true)
@@ -100,7 +101,8 @@ void getPwrContInterface()
         if(POWER_CONTROLLER_ERROR_NONE ==  PowerController_Connect())
         {
             hostIf_DeviceInfo::getInstance(0)->setPowerConInterface(true);
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Got the powercontroller interface..\n", __FUNCTION__, __FILE__);
+            IsPwrCtlInt = true;
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Got the powercontroller interface.. IsPwrCtlInt = %s\n", __FUNCTION__, __FILE__ , (IsPwrCtlInt?"true":"false"));
             break;
         }
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Retry after %d usec..\n", __FUNCTION__, __FILE__, RETRYSLEEP);
@@ -135,7 +137,7 @@ RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"##########################################
     RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Init().. \n", __FUNCTION__, __LINE__);
     PowerController_Init();
     // Get powercontroller thunder client interface in separate thread
-    std::thread pwrThread(getPwrContInterface);
+    std::thread pwrThread(hostIf_getPwrContInterface);
     if(pwrThread.joinable())
     {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: created getPwrContInterface thread.. \n", __FUNCTION__, __LINE__);
@@ -313,10 +315,20 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to IARM_Bus_Term(), return with Error code: %d\n", __FUNCTION__, err);
     }
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
-    PowerController_Term();
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
+    if (IsPwrCtlInt) 
+    {
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
+        PowerController_UnRegisterPowerModeChangedCallback(_hostIf_EventHandler, nullptr);
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
 
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
+        PowerController_Term();
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: No PowerController interface .. IsPwrCtlInt = %d\n", __FUNCTION__, __LINE__, IsPwrCtlInt);
+    }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return err;
 }
