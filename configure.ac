@@ -394,6 +394,15 @@ if test "$RDK_SUPPORT_PARODUS" = "yes"; then
     AC_DEFINE([RDK_SUPPORT_PARODUS], [1], [Define to enable support parodus])
 fi
 
+# This enables libsoup-3 support
+AC_ARG_ENABLE([libsoup3],
+[  --enable-libsoup3    Turn on libsoup-3 support],
+[case "${enableval}" in
+  yes) libsoup3=true ;;
+  no)  libsoup3=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-libsoup3]) ;;
+esac],[libsoup3=false])
+AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
 
 AM_CONDITIONAL([WITH_MOCA_PROFILE], [test "x$enable_moca" = "xyes"])
 AM_CONDITIONAL([WITH_MOCA20], [test "x$enable_moca2" = "xyes"])

@@ -102,6 +102,7 @@
 #define XRE_CONTAINER_SUPPORT_STATUS_FILE  "/opt/XRE_container_enable"
 #define IPREMOTE_INTERFACE_INFO            "/tmp/ipremote_interface_info"
 #define MODEL_NAME_FILE                    "/tmp/.model"
+#define IUI_VERSION_FILE                   "/tmp/.iuiVersion"
 #define PREVIOUS_REBOT_REASON_FILE         "/opt/secure/reboot/previousreboot.info"
 #define NTPENABLED_FILE                    "/opt/.ntpEnabled"
 #define RDKV_DAB_ENABLE_FILE               "/opt/dab-enable"
@@ -263,23 +264,18 @@ void hostIf_DeviceInfo::closeAllInstances()
 
 void hostIf_DeviceInfo::getLock()
 {
-   if(mutex_lock == 0) {
-    mutex_lock = 1;
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Locking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_init(&hostIf_DeviceInfo::m_mutex);
     g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
-   }
-   else {
-       RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex already locked...  \n", __FUNCTION__, __LINE__);
-   }
+    mutex_lock = 1;
 }
 
 void hostIf_DeviceInfo::releaseLock()
 {
-    if(mutex_lock == 1) {
-    mutex_lock = 0;
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
-    g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+    if(mutex_lock == 1)
+    {
+        mutex_lock = 0;
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+        g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
     }
     else {
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex is not locked, cannot unlock...  \n", __FUNCTION__, __LINE__);
@@ -2101,6 +2097,71 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_BootTime(HOSTIF_MsgData_t * stMsgDat
     stMsgData->paramtype = hostIf_UnsignedIntType;
     stMsgData->paramLen = sizeof(hostIf_UnsignedIntType);
     return ret;
+}
+
+int hostIf_DeviceInfo::get_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    int ret=NOT_HANDLED;
+    stMsgData->paramtype = hostIf_StringType;
+
+    std::string iuiVersion;
+    std::ifstream file(IUI_VERSION_FILE);
+
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to open IUI Version file\n!", __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    if (std::getline(file, iuiVersion)) {
+        // Remove newline char if any in iui version
+        if (!iuiVersion.empty() && iuiVersion.back() == '\n') {
+            iuiVersion.pop_back();
+        }
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] iuiVersion = %s.\n", __FUNCTION__, __FILE__, __LINE__, iuiVersion.c_str());
+        strncpy((char *)stMsgData->paramValue, iuiVersion.c_str(), sizeof(stMsgData->paramValue)-1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+        stMsgData->paramLen = iuiVersion.length();
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] paramValue: %s stMsgData->paramLen: %d \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramValue, stMsgData->paramLen);
+        ret = OK;
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s(): Failed to read iui version.\n", __FUNCTION__);
+    }
+
+    file.close();
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
+    return ret;
+
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t *stMsgData)
+{
+    std::string iuiVersion = getStringValue(stMsgData);
+
+    if (iuiVersion.empty()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Empty IUI Version provided\n", __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    std::ofstream file(IUI_VERSION_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to open IUI Version file for writing\n", __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    file << iuiVersion;
+
+    if (file.fail()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to write IUI Version to file\n", __FUNCTION__, __FILE__, __LINE__);
+        file.close();
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] Successfully wrote IUI Version: %s\n", __FUNCTION__, __FILE__, __LINE__, iuiVersion.c_str());
+    file.close();
+    return OK;
 }
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType(HOSTIF_MsgData_t *stMsgData)
