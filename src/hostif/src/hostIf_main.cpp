@@ -637,8 +637,7 @@ static void usage()
 #endif
 }
 
-#include <stdio.h>
-#include <string.h>
+
 
 void filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r");
