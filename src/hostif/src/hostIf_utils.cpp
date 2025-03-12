@@ -310,7 +310,7 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("backgroundrun %s", scriptbuff);
+        ret = v_secure_system("%s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute : %s. \n",__FUNCTION__, scriptbuff);
@@ -328,7 +328,7 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("backgroundrun %s", scriptbuff);
+        ret = v_secure_system("%s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute : %s. \n",__FUNCTION__, scriptbuff);
@@ -344,7 +344,7 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("backgroundrun %s", scriptbuff);
+        ret = v_secure_system("%s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute: %s. \n",__FUNCTION__, scriptbuff);
@@ -359,7 +359,7 @@ void triggerResetScript()
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Executing : %s \n",__FUNCTION__, scriptbuff);
 
         /*System command */
-        ret = v_secure_system("backgroundrun %s", scriptbuff);
+        ret = v_secure_system("%s", scriptbuff);
         if (WEXITSTATUS(ret) != 0 )
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to execute: %s. \n",__FUNCTION__, scriptbuff);
