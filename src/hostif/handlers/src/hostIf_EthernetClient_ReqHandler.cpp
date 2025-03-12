@@ -417,6 +417,7 @@ void EthernetClientReqHandler::checkForUpdates()
     int index = 1;
     char tmp_buff[TR69HOSTIFMGR_MAX_PARAM_LEN];
     hostIf_EthernetInterface::getLock();
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Got lock..\n", __FILE__, __FUNCTION__);
 
     memset(&msgData,0,sizeof(msgData));
     memset(tmp_buff,0,TR69HOSTIFMGR_MAX_PARAM_LEN);
@@ -470,6 +471,7 @@ void EthernetClientReqHandler::checkForUpdates()
             {
                 if(!instanceNumber)
                 {   // Ethernet settings not found in Notify Hash Table
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Unocking mutex..\n", __FILE__, __FUNCTION__);
                     hostIf_EthernetInterface::releaseLock();
                     continue;
                 }

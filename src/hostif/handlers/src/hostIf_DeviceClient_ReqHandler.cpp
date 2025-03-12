@@ -408,7 +408,8 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         if(!pIfaceStatus)
         {
             hostIf_DeviceInfo::releaseLock();
-            ret = NOK;
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] pIfaceStatus is NULL for %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
+            return NOK;
         }
         if(strcasecmp(stMsgData->paramName,"Device.DeviceInfo.ProcessStatus.ProcessNumberOfEntries")==0)
         {
