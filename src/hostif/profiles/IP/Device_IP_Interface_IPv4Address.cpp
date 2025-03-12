@@ -91,7 +91,7 @@ int hostIf_IPv4Address::setIpOrMask(int interfaceNo, char *value, const char* ip
     {
         if (0 == strcasecmp (backupAddressingType, "static"))
         {
-            v_secure_system("backgroundrun ifconfig %s %s %s", nameOfInterface, ipOrMask, value);
+            v_secure_system("ifconfig %s %s %s", nameOfInterface, ipOrMask, value);
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s(),%d] IPv4Address: IPAddress/SubnetMask is set \n", __FUNCTION__, __LINE__);
         }
     }
@@ -656,13 +656,13 @@ int hostIf_IPv4Address::set_IPv4Address_Enable(HOSTIF_MsgData_t *stMsgData, int 
 
     if(FALSE == get_boolean(stMsgData->paramValue))
     {
-        v_secure_system("backgroundrun ifconfig %s 0.0.0.0", nameOfInterface);
+        v_secure_system("ifconfig %s 0.0.0.0", nameOfInterface);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s(),%d] IPv4Address Disabled   \n",__FUNCTION__,__LINE__);
 
     }
     if(TRUE == get_boolean(stMsgData->paramValue))
     {
-        v_secure_system("backgroundrun ifdown %s && ifup %s", nameOfInterface, nameOfInterface);
+        v_secure_system("ifdown %s && ifup %s", nameOfInterface, nameOfInterface);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s(),%d] IPv4Address Enabled \n",__FUNCTION__,__LINE__);
     }
 
