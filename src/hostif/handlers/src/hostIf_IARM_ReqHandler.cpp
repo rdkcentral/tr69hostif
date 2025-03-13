@@ -324,6 +324,10 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
         PowerController_Term();
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
+        hostIf_DeviceInfo::getInstance(0)->setPowerConInterface(false);
+        IsPwrCtlInt = false;
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]:  setPowerConInterface flag to false. and  IsPwrCtlInt=%s\n", __FUNCTION__, __LINE__, (IsPwrCtlInt?"true":"false"));
+
     }
     else
     {

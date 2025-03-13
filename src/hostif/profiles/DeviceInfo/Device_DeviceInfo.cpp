@@ -153,6 +153,8 @@ XRFCStorage hostIf_DeviceInfo::m_rfcStorage;
 XBSStore* hostIf_DeviceInfo::m_bsStore;
 string hostIf_DeviceInfo::m_xrPollingAction = "0";
 
+static bool bPowerControllerEnable;
+
 /****************************************************************************************************************************************************/
 // Device.DeviceInfo Profile. Getters:
 /****************************************************************************************************************************************************/
@@ -1490,11 +1492,11 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     }
     else 
     {
-        //RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d \n", hostIf_DeviceInfo::bPowerControllerEnable);
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d \n", bPowerControllerEnable);
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d. Try after sometime. \n", bPowerControllerEnable);
+        ret = NOK;
     }
 
-    //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return ret;
 }
 

@@ -252,8 +252,6 @@ class hostIf_DeviceInfo {
     std::string         m_strXOpsDevManageableNotification;
     std::string         m_strXOpsRPCFwDwldStartedNotification;
     bool                m_bXOpsRPCFwDwldCompletedNotification;
-
-    static bool bPowerControllerEnable;
     
     string getEstbIp();
     bool isRsshactive();
