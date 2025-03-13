@@ -264,23 +264,18 @@ void hostIf_DeviceInfo::closeAllInstances()
 
 void hostIf_DeviceInfo::getLock()
 {
-   if(mutex_lock == 0) {
-    mutex_lock = 1;
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Locking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_init(&hostIf_DeviceInfo::m_mutex);
     g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
-   }
-   else {
-       RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex already locked...  \n", __FUNCTION__, __LINE__);
-   }
+    mutex_lock = 1;
 }
 
 void hostIf_DeviceInfo::releaseLock()
 {
-    if(mutex_lock == 1) {
-    mutex_lock = 0;
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
-    g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+    if(mutex_lock == 1)
+    {
+        mutex_lock = 0;
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+        g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
     }
     else {
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex is not locked, cannot unlock...  \n", __FUNCTION__, __LINE__);
@@ -2956,7 +2951,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
                         reverseSSHArgs.c_str(),
                         shortsArgs.c_str(),
                         nonShortsArgs.c_str());
-                v_secure_system("/bin/sh %s %s %s %s %s %s %s %s &", stunnelCommand.c_str(),
+                v_secure_system("backgroundrun /bin/sh %s %s %s %s %s %s %s %s", stunnelCommand.c_str(),
                                 stunnelSSHArgs.at("localport").c_str(),
                                 stunnelSSHArgs.at("host").c_str(),
                                 stunnelSSHArgs.at("hostIp").c_str(),
@@ -2968,7 +2963,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
 
                 RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting SSH Tunnel \n",__FUNCTION__);
                 string arg = "start";
-                v_secure_system("/lib/rdk/startTunnel.sh %s %s &", arg.c_str(), reverseSSHArgs.c_str());
+                v_secure_system("backgroundrun /lib/rdk/startTunnel.sh %s %s", arg.c_str(), reverseSSHArgs.c_str());
             }
 #ifdef __SINGLE_SESSION_ONLY__
         }
@@ -2983,7 +2978,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
     {
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Stop SSH Tunnel \n",__FUNCTION__);
         string arg = "stop";
-        v_secure_system("/lib/rdk/startTunnel.sh %s &", arg.c_str());
+        v_secure_system("backgroundrun /lib/rdk/startTunnel.sh %s", arg.c_str());
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return OK;
@@ -4122,7 +4117,7 @@ int hostIf_DeviceInfo::ScheduleAutoReboot(bool bValue)
     /* Call the script for scheduling
      * cron args with Reboot day and bValue */
     snprintf(cmd,sizeof(cmd),"sh /lib/rdk/ScheduleAutoReboot.sh %d &", bValue);
-    v_secure_system("sh /lib/rdk/ScheduleAutoReboot.sh %d &", bValue);
+    v_secure_system("backgroundrun sh /lib/rdk/ScheduleAutoReboot.sh %d", bValue);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully executed \"%s\". \n", __FUNCTION__, __LINE__, cmd);
     ret = OK;
     return ret;
@@ -4137,12 +4132,12 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCRoamTrigger(HOSTIF_MsgData_t *stMsgD
 	char *execBuf = NULL;
 	execBuf = (char *)malloc(100 * sizeof(char));
         asprintf(&execBuf,"wl roam_trigger %s &", stMsgData->paramValue);
-        v_secure_system("wl roam_trigger %s &", stMsgData->paramValue);
+        v_secure_system("backgroundrun wl roam_trigger %s", stMsgData->paramValue);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully executed \"%s\" with \"%s\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, execBuf);
         free(execBuf);
 	ret = OK;
     }
-    v_secure_system("wl roam_trigger &");
+    v_secure_system("backgroundrun wl roam_trigger");
     return ret;
 }
 
@@ -4320,7 +4315,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCVideoTelFreq(HOSTIF_MsgData_t *stMsg
         if (tmpVal > 0 && tmpVal <=60)
         {
             sprintf(execBuf, "sh /lib/rdk/vdec-statistics.sh %d &", tmpVal);
-            v_secure_system("sh /lib/rdk/vdec-statistics.sh %d &", tmpVal);
+            v_secure_system("backgroundrun sh /lib/rdk/vdec-statistics.sh %d", tmpVal);
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully executed \"%s\" with \"%s\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, execBuf);
             ret = OK;
         }
@@ -4483,7 +4478,7 @@ int hostIf_DeviceInfo::set_xFirmwareDownloadNow(HOSTIF_MsgData_t *stMsgData)
                 char cmd[200] = {'\0'};
                 snprintf(cmd, 200,"%s %s %s %s %d %d &",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
 
-                ret = v_secure_system("%s %s %s %s %d %d &",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
+                ret = v_secure_system("backgroundrun %s %s %s %s %d %d",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
 
                 if (ret != 0) {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to trigger Download, \'system (\"%s\")\' returned error code '%d'\n", __FUNCTION__, cmd, ret);
@@ -5117,7 +5112,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
 
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing command - sh %s %s & \n", __FUNCTION__ , rdm_comm, stMsgData->paramValue);
 
-    ret = v_secure_system("sh %s %s &", rdm_comm, stMsgData->paramValue);
+    ret = v_secure_system("backgroundrun sh %s %s", rdm_comm, stMsgData->paramValue);
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
