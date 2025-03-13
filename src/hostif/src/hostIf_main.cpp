@@ -661,15 +661,17 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
         }
         fputs(line, out_fp);
     }
+    int skip = 1;
 
-    // Process the second file
-    while (fgets(line, sizeof(line), in_fp2)) {
-        if (strstr(line, "</model>") || strstr(line, "</dm:document>")) {
-            continue; // Skip unwanted lines
+   while (fgets(line, sizeof(line), in_fp2)) {
+        if (skip) {
+            if (strstr(line, "<model>")) {
+                skip = 0; // Stop skipping lines after finding <model>
+            }
+            continue;
         }
         fputs(line, out_fp);
     }
-
     fclose(in_fp1);
     fclose(in_fp2);
     fclose(out_fp);
