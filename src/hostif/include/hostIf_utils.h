@@ -37,7 +37,7 @@
 #include "hostIf_tr69ReqHandler.h"
 #include <curl/curl.h>
 
-#define REBOOT_SCR "sh /rebootNow.sh -s hostIf_utils"
+#define REBOOT_SCR "backgroundrun sh /rebootNow.sh -s hostIf_utils"
 #define SCR_PATH "/lib/rdk"
 #define NTP_FILE_NAME "/opt/persistent/firstNtpTime"
 #define FW_DWN_FILE_PATH "/opt/fwdnldstatus.txt"
