@@ -98,6 +98,7 @@ AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	-lds -ldshalcli
 endif
 
+AM_LDFLAGS += -lWPEFrameworkPowerController
 
 AM_CFLAGS =  $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
 AM_CPPFLAGS =  $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
