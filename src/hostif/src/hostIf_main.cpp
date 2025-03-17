@@ -678,6 +678,7 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
 }
 
 void mergeDataModel() {
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
     FILE *fp = fopen("/etc/device.properties", "r");
     if (fp == NULL) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
