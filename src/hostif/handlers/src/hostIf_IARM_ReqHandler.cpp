@@ -47,7 +47,7 @@
 #include "safec_lib.h"
 
 #define X_RDK_RFC_DEEPSLEEP_ENABLE           "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable"
-#define RETRYSLEEP 300 //
+#define RETRYSLEEP (300 * 1000) //Retry sleep
 
 static bool IsPwrCtlInt = false;
 static bool TR69_HostIf_Mgr_Init();
