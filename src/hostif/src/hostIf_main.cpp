@@ -680,10 +680,8 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
 void mergeDataModel() {
     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
     FILE *fp = fopen("/etc/device.properties", "r");
-    if (fp == NULL) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
-        return;
-    }
+    if (fp != NULL) {
+
 
     char line[256];
     char rdk_profile[256] = {0};
@@ -713,6 +711,11 @@ void mergeDataModel() {
     }
 
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
+    }
+else
+    {
+     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
+    }
 }
 
 /** @} */
