@@ -689,11 +689,15 @@ void mergeDataModel() {
     char rdk_profile[256] = {0};
 
     while (fgets(line, sizeof(line), fp)) {
-        if (sscanf(line, "RDK_PROFILE=%s", rdk_profile) == 1) {
+        int sscanf_result = sscanf(line, "RDK_PROFILE=%s", rdk_profile);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "mergeDataModel: sscanf result: %d, line: %s", sscanf_result, line);
+        if (sscanf_result == 1) {
             break;
+       
         }
     }
     fclose(fp);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
 
     const char *generic_file = "data-model-generic.xml";
     const char *output_file = "/tmp/data-model.xml";
