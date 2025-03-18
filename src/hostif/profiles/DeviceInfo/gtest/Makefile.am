@@ -36,8 +36,6 @@ if LIBSOUP3_ENABLE
 COMMON_LDADD +=  -lsoup-3.0
 endif
 
-COMMON_LDADD += -lWPEFrameworkPowerController
-
 # Define the compiler flags
 COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) $(SOUP_LIBS) -fprofile-arcs -ftest-coverage
 

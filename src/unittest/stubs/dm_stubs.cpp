@@ -136,6 +136,11 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
     return POWER_CONTROLLER_ERROR_NONE;
 }
 
+uint32_t PowerController_GetPowerState(PowerController_PowerState_t* currentState, PowerController_PowerState_t* previousState)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
 rbusValue_t rbusValue_Init(rbusValue_t* value)
 {
     return NULL;
