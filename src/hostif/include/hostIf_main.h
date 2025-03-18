@@ -111,6 +111,7 @@
 extern gchar *date_str;
 
 void tr69hostIf_logger (const gchar *log_domain, GLogLevelFlags log_level,const gchar *message, gpointer user_data);
+ void mergeDataModel();
 
 #define G_LOG_DOMAIN    ((gchar*) 0)
 #define LOG_TR69HOSTIF  "LOG.RDK.TR69HOSTIF"
