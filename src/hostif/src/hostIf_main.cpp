@@ -638,7 +638,6 @@ static void usage()
 }
 
 
-
 void filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r");
     FILE *in_fp2 = fopen(input2, "r");
@@ -654,28 +653,43 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
 
     char line[1024];
 
-    // Process the first file
+    // Process the generic file (input1)
+    int skip_generic = 0;
     while (fgets(line, sizeof(line), in_fp1)) {
+        if (!skip_generic && strstr(line, "<?xml")) {
+            skip_generic = 1;
+        }
+        if (skip_generic && strstr(line, "<model>")) {
+            skip_generic = 0; // Stop skipping after <model>
+            continue;         // Skip the <model> line itself
+        }
+        if (!skip_generic) {
+            fputs(line, out_fp);
+        }
+    }
+
+    // Process the STB file (input2)
+    int skip = 1;
+    while (fgets(line, sizeof(line), in_fp2)) {
+        if (skip) {
+            if (strstr(line, "<model>")) {
+                skip = 0; // Stop skipping after <model>
+                continue; // Skip the <model> line itself
+            }
+            continue;
+        }
         if (strstr(line, "</model>") || strstr(line, "</dm:document>")) {
             continue; // Skip unwanted lines
         }
         fputs(line, out_fp);
     }
-    int skip = 1;
 
-   while (fgets(line, sizeof(line), in_fp2)) {
-        if (skip) {
-            if (strstr(line, "<model>")) {
-                skip = 0; // Stop skipping lines after finding <model>
-            }
-            continue;
-        }
-        fputs(line, out_fp);
-    }
     fclose(in_fp1);
     fclose(in_fp2);
     fclose(out_fp);
 }
+
+
 
 void mergeDataModel() {
     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
