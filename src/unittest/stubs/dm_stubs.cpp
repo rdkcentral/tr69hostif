@@ -22,6 +22,7 @@
 #include "hostIf_main.h"
 #include "XrdkCentralComRFCStore.h"
 #include "rbus.h"
+#include "power_controller.h"
 
 rbusHandle_t rbusHandle = NULL;
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
@@ -109,6 +110,32 @@ IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void*
     return IARM_RESULT_SUCCESS;
 }
 
+
+void PowerController_Init()
+{
+
+}
+
+void PowerController_Term()
+{
+
+}
+
+uint32_t PowerController_Connect()
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_RegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb callback, void* userdata)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb callback)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
 rbusValue_t rbusValue_Init(rbusValue_t* value)
 {
     return NULL;
@@ -123,7 +150,6 @@ void rbusObject_SetValue(rbusObject_t object, char const* var, rbusValue_t value
 {
     return;
 }
-
 
 void rbusValue_Release(rbusValue_t value)
 {
