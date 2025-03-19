@@ -695,7 +695,6 @@ while (fgets(line, sizeof(line), in_fp1)) {
     }
     if (skip_range && strstr(line, "<model name=\"data-model\">")) {
         skip_range = 0; // Stop skipping after this line
-        fputs(line, out_fp); // Write the <model name="data-model"> line
         continue; // continue to the next line
     }
     if (skip_range) {
