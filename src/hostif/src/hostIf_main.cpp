@@ -688,28 +688,28 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
 
     // Process the generic file (input1), skipping lines from <?xml to <dm:document> (inclusive)
     int skip_range = 0;
-    int first_dm_document_skipped = 0; // Flag to track if the first <dm:document> has been skipped
-    while (fgets(line, sizeof(line), in_fp1)) {
-        if (strstr(line, "<?xml")) {
-            skip_range = 1; // Start skipping
-            continue;
-        }
-        if (skip_range && strstr(line, "<dm:document>") && !first_dm_document_skipped) {
-            skip_range = 0; // Stop skipping
-            first_dm_document_skipped = 1;
-            continue; // Skip the <dm:document> line as well
-        }
-        if (skip_range) {
-            continue; // Skip lines in the range
-        }
-        fputs(line, out_fp); // Write all other lines
+while (fgets(line, sizeof(line), in_fp1)) {
+    if (strstr(line, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")) {
+        skip_range = 1; // Start skipping
+        continue;
     }
+    if (skip_range && strstr(line, "<model name=\"data-model\">")) {
+        skip_range = 0; // Stop skipping after this line
+        fputs(line, out_fp); // Write the <model name="data-model"> line
+        continue; // continue to the next line
+    }
+    if (skip_range) {
+        continue; // Skip lines in the range
+    }
+    fputs(line, out_fp); // Write all other lines
+}
 
-    fclose(in_fp1);
-    fclose(in_fp2);
-    fclose(out_fp);
+fclose(in_fp1);
+fclose(in_fp2);
+fclose(out_fp);
 
-    printf("Merged XML files successfully into %s\n", output);
+printf("Merged XML files successfully into %s\n", output);
+    
 }
 
 
