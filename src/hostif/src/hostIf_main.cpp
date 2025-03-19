@@ -688,13 +688,15 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
 
     // Process the generic file (input1), skipping lines from <?xml to <dm:document> (inclusive)
     int skip_range = 0;
+    int first_dm_document_skipped = 0; // Flag to track if the first <dm:document> has been skipped
     while (fgets(line, sizeof(line), in_fp1)) {
         if (strstr(line, "<?xml")) {
             skip_range = 1; // Start skipping
             continue;
         }
-        if (skip_range && strstr(line, "<dm:document>")) {
+        if (skip_range && strstr(line, "<dm:document>") && !first_dm_document_skipped) {
             skip_range = 0; // Stop skipping
+            first_dm_document_skipped = 1;
             continue; // Skip the <dm:document> line as well
         }
         if (skip_range) {
