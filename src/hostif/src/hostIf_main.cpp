@@ -652,34 +652,54 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
     }
 
     char line[1024];
+    char last_model_line[1024] = {0};
+    char last_dm_document_line[1024] = {0};
+    long model_last_line_pos = -1, dm_document_last_line_pos = -1; // Track positions of the last occurrences
 
-    // Process the STB/TV specific file (input2), removing all </model> and </dm:document> lines
+    // First pass: Identify the last occurrences of the lines to be skipped
+    long line_pos = 0;
     while (fgets(line, sizeof(line), in_fp2)) {
-        if (strstr(line, "</model>") || strstr(line, "</dm:document>")) {
-            continue; // Skip these lines
+        if (strstr(line, "</model>")) {
+            strcpy(last_model_line, line); // Save the last </model> line
+            model_last_line_pos = line_pos; // Save its position
         }
-        fputs(line, out_fp); // Write other lines
+        if (strstr(line, "</dm:document>")) {
+            strcpy(last_dm_document_line, line); // Save the last </dm:document> line
+            dm_document_last_line_pos = line_pos; // Save its position
+        }
+        line_pos++;
     }
 
-    rewind(in_fp1); // Reset the generic file pointer
+    // Rewind the STB file to the beginning for a second pass
+    rewind(in_fp2);
+    line_pos = 0;
 
-    // Process the generic file (input1), removing lines from <?xml to <model
+    // Second pass: Write lines, skipping only the last occurrences of </model> and </dm:document>
+    while (fgets(line, sizeof(line), in_fp2)) {
+        if ((line_pos == model_last_line_pos && strstr(line, "</model>")) ||
+            (line_pos == dm_document_last_line_pos && strstr(line, "</dm:document>"))) {
+            // Skip the last occurrence of each line
+            line_pos++;
+            continue;
+        }
+        fputs(line, out_fp); // Write all other lines
+        line_pos++;
+    }
+
+    // Process the generic file (input1), skipping lines from <?xml to <dm:document> (inclusive)
     int skip_range = 0;
     while (fgets(line, sizeof(line), in_fp1)) {
         if (strstr(line, "<?xml")) {
-            skip_range = 1;
+            skip_range = 1; // Start skipping
             continue;
         }
-
-        if (strstr(line, "<model>")) {
-            skip_range = 0;
-            continue;
+        if (skip_range && strstr(line, "<dm:document>")) {
+            skip_range = 0; // Stop skipping
+            continue; // Skip the <dm:document> line as well
         }
-
-        if (skip_range == 1){
-            continue;
+        if (skip_range) {
+            continue; // Skip lines in the range
         }
-
         fputs(line, out_fp); // Write all other lines
     }
 
