@@ -96,6 +96,11 @@ bool hostIf_IARM_IF_Start()
 void hostIf_getPwrContInterface()
 {
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+
+    /*TODO: remove this sleep after fix METROL-1045*/
+    sleep(5);//added sleep wait for the WPEframework active. 
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Init().. \n", __FUNCTION__, __LINE__);
+    PowerController_Init();
     while(true)
     {
         if(POWER_CONTROLLER_ERROR_NONE ==  PowerController_Connect())
@@ -134,8 +139,6 @@ RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"##########################################
     }
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] Success 'IARM_Bus_Init(%s)'.\n", __FUNCTION__,    IARM_BUS_TR69HOSTIFMGR_NAME);
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Init().. \n", __FUNCTION__, __LINE__);
-    PowerController_Init();
     // Get powercontroller thunder client interface in separate thread
     std::thread pwrThread(hostIf_getPwrContInterface);
     if(pwrThread.joinable())
