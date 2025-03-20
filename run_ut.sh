@@ -23,9 +23,10 @@ apt-get -y install libtinyxml2-dev
 apt-get -y install libsoup-3.0-dev
 
 
-cp ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml /etc/data-model-tv.xml 
-cp ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml /etc/data-model-generic.xml
-cp ./src/hostif/parodusClient/waldb/data-model/data-model-stb.xml /etc/data-model-stb.xml 
+sed '/<\/model>/d; /<\/dm:document>/d' ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml > ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
+sed '/<?xml/,/<model/ d' ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml >> ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
+
+cp ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml /tmp/data-model.xml
 
 cp ./src/unittest/stubs/rfc.properties /etc/rfc.properties
 cp ./src/unittest/stubs/rfcdefaults.ini /tmp/rfcdefaults.ini
