@@ -18,7 +18,7 @@
 ##########################################################################
 [Unit]
 Description=TR69 Host Interface Daemon
-After=wpeframework-powermanager.service lighttpd.service securemount.service dsmgr.service
+After=lighttpd.service securemount.service dsmgr.service
 
 [Service]
 Type=notify
