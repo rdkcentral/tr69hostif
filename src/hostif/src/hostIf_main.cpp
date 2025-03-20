@@ -639,9 +639,9 @@ static void usage()
 
 
 void filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
-    FILE *in_fp1 = fopen(input1, "r"); // Generic file
-    FILE *in_fp2 = fopen(input2, "r"); // STB or TV specific file
-    FILE *out_fp = fopen(output, "w"); // Output file
+    FILE *in_fp1 = fopen(input1, "r"); 
+    FILE *in_fp2 = fopen(input2, "r"); 
+    FILE *out_fp = fopen(output, "w"); 
 
     if (!in_fp1 || !in_fp2 || !out_fp) {
         perror("Error opening files");
@@ -650,58 +650,48 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
         if (out_fp) fclose(out_fp);
         return;
     }
-
     char line[1024];
     char last_model_line[1024] = {0};
     char last_dm_document_line[1024] = {0};
-    long model_last_line_pos = -1, dm_document_last_line_pos = -1; // Track positions of the last occurrences
-
-    // First pass: Identify the last occurrences of the lines to be skipped
+    long model_last_line_pos = -1, dm_document_last_line_pos = -1; 
     long line_pos = 0;
     while (fgets(line, sizeof(line), in_fp2)) {
         if (strstr(line, "</model>")) {
-            strcpy(last_model_line, line); // Save the last </model> line
-            model_last_line_pos = line_pos; // Save its position
+            strcpy(last_model_line, line); 
+            model_last_line_pos = line_pos; 
         }
         if (strstr(line, "</dm:document>")) {
-            strcpy(last_dm_document_line, line); // Save the last </dm:document> line
-            dm_document_last_line_pos = line_pos; // Save its position
+            strcpy(last_dm_document_line, line); 
+            dm_document_last_line_pos = line_pos; 
         }
         line_pos++;
     }
-
-    // Rewind the STB file to the beginning for a second pass
     rewind(in_fp2);
     line_pos = 0;
-
-    // Second pass: Write lines, skipping only the last occurrences of </model> and </dm:document>
     while (fgets(line, sizeof(line), in_fp2)) {
         if ((line_pos == model_last_line_pos && strstr(line, "</model>")) ||
             (line_pos == dm_document_last_line_pos && strstr(line, "</dm:document>"))) {
-            // Skip the last occurrence of each line
             line_pos++;
             continue;
         }
-        fputs(line, out_fp); // Write all other lines
+        fputs(line, out_fp); 
         line_pos++;
     }
-
-    // Process the generic file (input1), skipping lines from <?xml to <dm:document> (inclusive)
     int skip_range = 0;
-while (fgets(line, sizeof(line), in_fp1)) {
-    if (strstr(line, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")) {
-        skip_range = 1; // Start skipping
-        continue;
-    }
-    if (skip_range && strstr(line, "<model name=\"data-model\">")) {
-        skip_range = 0; // Stop skipping after this line
-        continue; // continue to the next line
-    }
-    if (skip_range) {
-        continue; // Skip lines in the range
-    }
-    fputs(line, out_fp); // Write all other lines
-}
+    while (fgets(line, sizeof(line), in_fp1)) {
+        if (strstr(line, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")) {
+            skip_range = 1; 
+            continue;
+        }
+        if (skip_range && strstr(line, "<model name=\"data-model\">")) {
+            skip_range = 0; 
+            continue; 
+        }
+        if (skip_range) {
+            continue; 
+        }
+        fputs(line, out_fp); 
+    }  
 
 fclose(in_fp1);
 fclose(in_fp2);
@@ -718,40 +708,37 @@ void mergeDataModel() {
     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
     FILE *fp = fopen("/etc/device.properties", "r");
     if (fp != NULL) {
-
-
-    char line[256];
-    char rdk_profile[256] = {0};
-
-    while (fgets(line, sizeof(line), fp)) {
-        int sscanf_result = sscanf(line, "RDK_PROFILE=%s", rdk_profile);
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "mergeDataModel: sscanf result: %d, line: %s", sscanf_result, line);
-        if (sscanf_result == 1) {
-            break;
-       
+        char line[256];
+        char rdk_profile[256] = {0};
+        while (fgets(line, sizeof(line), fp))
+        {
+            int sscanf_result = sscanf(line, "RDK_PROFILE=%s", rdk_profile);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "mergeDataModel: sscanf result: %d, line: %s", sscanf_result, line);
+            if (sscanf_result == 1) 
+	    {
+                break;
+            }
+         }
+        fclose(fp);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
+        const char *generic_file = "/etc/data-model-generic.xml";
+        const char *output_file = "/tmp/data-model.xml";
+        if (strcmp(rdk_profile, "TV") == 0) {
+            const char *tv_file = "/etc/data-model-tv.xml";
+            filter_and_merge_xml(generic_file, tv_file, output_file);
+        } 
+        else if (strcmp(rdk_profile, "STB") == 0) {
+            const char *stb_file = "/etc/data-model-stb.xml";
+            filter_and_merge_xml(generic_file, stb_file, output_file);
+        } 
+        else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unsupported RDK_PROFILE: %s\n", rdk_profile);
         }
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
     }
-    fclose(fp);
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
-
-    const char *generic_file = "/etc/data-model-generic.xml";
-    const char *output_file = "/tmp/data-model.xml";
-
-    if (strcmp(rdk_profile, "TV") == 0) {
-        const char *tv_file = "/etc/data-model-tv.xml";
-        filter_and_merge_xml(generic_file, tv_file, output_file);
-    } else if (strcmp(rdk_profile, "STB") == 0) {
-        const char *stb_file = "/etc/data-model-stb.xml";
-        filter_and_merge_xml(generic_file, stb_file, output_file);
-    } else {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unsupported RDK_PROFILE: %s\n", rdk_profile);
-    }
-
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
-    }
-else
+    else
     {
-     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
     }
 }
 
