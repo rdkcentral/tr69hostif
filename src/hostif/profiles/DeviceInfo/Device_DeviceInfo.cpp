@@ -5109,9 +5109,9 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Performing Download for %s \n", __FUNCTION__ , stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
 
-    ret = v_secure_system("rdm -c %s &", stMsgData->paramValue);
+    ret = v_secure_system("rdm -v \"%s\" &", stMsgData->paramValue);
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
