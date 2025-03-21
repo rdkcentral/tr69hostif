@@ -105,6 +105,7 @@ static int isShutdownTriggered = 0;
 #define GENERIC_XML_FILE "/etc/data-model-generic.xml"
 #define STB_XML_FILE "/etc/data-model-stb.xml"
 #define TV_XML_FILE "/etc/data-model-tv.xml"
+#define OUTPUT_XML_FILE "/tmp/data-model.xml"
 
 
 std::mutex mtx_httpServerThreadDone;
