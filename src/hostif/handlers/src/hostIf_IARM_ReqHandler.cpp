@@ -99,8 +99,9 @@ void hostIf_getPwrContInterface()
 
     /*TODO: remove this sleep after fix METROL-1045*/
     sleep(5);//added sleep wait for the WPEframework active. 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Init().. \n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Init().. \n", __FUNCTION__, __LINE__);
     PowerController_Init();
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Init().. \n", __FUNCTION__, __LINE__);
     while(true)
     {
         if(POWER_CONTROLLER_ERROR_NONE ==  PowerController_Connect())
@@ -114,7 +115,7 @@ void hostIf_getPwrContInterface()
         usleep(RETRYSLEEP); //retry after RETRYSLEEP milli seconds.
 
     }
-    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
     PowerController_RegisterPowerModeChangedCallback(_hostIf_EventHandler, nullptr);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
 
@@ -150,7 +151,6 @@ RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"##########################################
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: Failed to create getPwrContInterface thread.. \n", __FUNCTION__, __LINE__);
     }
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Init().. \n", __FUNCTION__, __LINE__);
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return true;
