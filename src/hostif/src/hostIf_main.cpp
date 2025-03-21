@@ -101,6 +101,12 @@ static void usage();
 T_ARGLIST argList = {{'\0'}, 0};
 static int isShutdownTriggered = 0;
 
+#define DEVICE_PROPS_FILE "/etc/device.properties"
+#define GENERIC_XML_FILE "/etc/data-model-generic.xml"
+#define STB_XML_FILE "/etc/data-model-stb.xml"
+#define TV_XML_FILE "/etc/data-model-tv.xml"
+
+
 std::mutex mtx_httpServerThreadDone;
 std::condition_variable cv_httpServerThreadDone;
 bool httpServerThreadDone = false;
