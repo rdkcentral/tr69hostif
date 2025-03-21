@@ -105,7 +105,7 @@ static int isShutdownTriggered = 0;
 #define GENERIC_XML_FILE "/etc/data-model-generic.xml"
 #define STB_XML_FILE "/etc/data-model-stb.xml"
 #define TV_XML_FILE "/etc/data-model-tv.xml"
-#define OUTPUT_XML_FILE "/tmp/data-model.xml"
+#define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
 
 
 std::mutex mtx_httpServerThreadDone;
@@ -729,7 +729,7 @@ void mergeDataModel() {
         fclose(fp);
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
         const char *generic_file = GENERIC_XML_FILE;
-        const char *output_file = OUTPUT_XML_FILE;
+        const char *output_file = WEBPA_DATA_MODEL_FILE;
         if (strcmp(rdk_profile, "TV") == 0) {
             const char *tv_file = TV_XML_FILE;
             filter_and_merge_xml(generic_file, tv_file, output_file);
