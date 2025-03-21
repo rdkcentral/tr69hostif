@@ -252,7 +252,7 @@ class hostIf_DeviceInfo {
     std::string         m_strXOpsDevManageableNotification;
     std::string         m_strXOpsRPCFwDwldStartedNotification;
     bool                m_bXOpsRPCFwDwldCompletedNotification;
-
+    
     string getEstbIp();
     bool isRsshactive();
     bool isShortsEnabled();
@@ -313,6 +313,8 @@ public:
     static int sendDeviceMgtNotification(const char* source, const char* type);
 
     GHashTable* getNotifyHash();
+
+    static void setPowerConInterface( bool isPwrContEnalbe);
 
 //    void runSystemMgmtTimePathMonitor();
     /**
