@@ -712,7 +712,7 @@ printf("Merged XML files successfully into %s\n", output);
 
 void mergeDataModel() {
     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
-    FILE *fp = fopen("/etc/device.properties", "r");
+    FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
     if (fp != NULL) {
         char line[256];
         char rdk_profile[256] = {0};
@@ -727,14 +727,14 @@ void mergeDataModel() {
          }
         fclose(fp);
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
-        const char *generic_file = "/etc/data-model-generic.xml";
-        const char *output_file = "/tmp/data-model.xml";
+        const char *generic_file = GENERIC_XML_FILE;
+        const char *output_file = OUTPUT_XML_FILE;
         if (strcmp(rdk_profile, "TV") == 0) {
-            const char *tv_file = "/etc/data-model-tv.xml";
+            const char *tv_file = TV_XML_FILE;
             filter_and_merge_xml(generic_file, tv_file, output_file);
         } 
         else if (strcmp(rdk_profile, "STB") == 0) {
-            const char *stb_file = "/etc/data-model-stb.xml";
+            const char *stb_file = STB_XML_FILE;
             filter_and_merge_xml(generic_file, stb_file, output_file);
         } 
         else {
