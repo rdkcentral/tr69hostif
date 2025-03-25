@@ -92,6 +92,7 @@
 #include <cstdlib>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <vector>
 #include <string.h>
 #include <exception>
@@ -119,7 +120,7 @@ typedef enum {
 
 void tr69hostIf_logger (const gchar *log_domain, GLogLevelFlags log_level,const gchar *message, gpointer user_data);
 MergeStatus mergeDataModel();
-void filter_and_merge_xml(const char *input1, const char *input2, const char *output);
+bool filter_and_merge_xml(const char *input1, const char *input2, const char *output);
 
 #define G_LOG_DOMAIN    ((gchar*) 0)
 #define LOG_TR69HOSTIF  "LOG.RDK.TR69HOSTIF"
