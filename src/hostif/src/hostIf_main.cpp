@@ -652,7 +652,7 @@ static void usage()
 }
 
 
-void filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
+bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r"); 
     FILE *in_fp2 = fopen(input2, "r"); 
     FILE *out_fp = fopen(output, "w"); 
@@ -662,7 +662,7 @@ void filter_and_merge_xml(const char *input1, const char *input2, const char *ou
         if (in_fp1) fclose(in_fp1);
         if (in_fp2) fclose(in_fp2);
         if (out_fp) fclose(out_fp);
-        return;
+         return false;
     }
     char line[1024];
     char last_model_line[1024] = {0};
@@ -712,6 +712,7 @@ fclose(in_fp2);
 fclose(out_fp);
 
 RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML files successfully into %s\n", output);
+return true;
 
 }
 
