@@ -236,7 +236,7 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo." access="readOnly" minEntries="0" maxEntries="1" >
-     <parameter base="AccountID_2" access="readWrite" notification="0" maxNotification="2" >
+     <parameter base="AccountID" access="readWrite" notification="0" maxNotification="2" >
        <syntax>
           <string/>
        </syntax>
@@ -3219,14 +3219,14 @@
      </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="PartnerId_2" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="PartnerId" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager." access="readOnly" minEntries="1" maxEntries="1" >
-     <parameter base="InstallPackage_2" access="writeOnly" notification="0" maxNotification="2" >
+     <parameter base="InstallPackage" access="writeOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
@@ -3584,18 +3584,18 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable_2" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <boolean/>
           <default type="factory" value="true"/>
         </syntax>
       </parameter>
-      <parameter base="IssueType_2" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="IssueType" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
       </parameter>
-      <parameter base="WebCfgData_2" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="WebCfgData" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
@@ -4135,7 +4135,7 @@
         </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="ConfigURL_2" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="ConfigURL" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
@@ -4147,7 +4147,7 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.MTLS." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable_2" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
 	  <boolean/>
 	  <default type="factory" value="true"/>

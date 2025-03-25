@@ -104,6 +104,7 @@ static int isShutdownTriggered = 0;
 std::mutex mtx_httpServerThreadDone;
 std::condition_variable cv_httpServerThreadDone;
 bool httpServerThreadDone = false;
+bool httptest = false;
 
 #if defined(PARODUS_ENABLE)
 // Parodus Init Thread

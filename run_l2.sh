@@ -23,7 +23,7 @@ export top_srcdir=`pwd`
 RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
 
-cp ./src/integrationtest/conf/data-model-generic.xml /etc/data-model.xml
+#cp ./src/integrationtest/conf/data-model-generic.xml /etc/data-model.xml
 cp ./src/integrationtest/conf/mgrlist.conf /etc/
 
 mkdir -p /opt/secure/RFC/
