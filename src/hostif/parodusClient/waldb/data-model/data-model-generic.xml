@@ -3549,6 +3549,14 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="DownloadStatus" access="readWrite" notification="0" maxNotification="2" >                                <syntax>
+          <syntax>
+	    <boolean/>
+            <default type="factory" value="f"false/>
+          </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderTestClient." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="ServerURL" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
