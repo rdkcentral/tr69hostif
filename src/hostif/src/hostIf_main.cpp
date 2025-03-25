@@ -409,7 +409,14 @@ int main(int argc, char *argv[])
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
     }
-     mergeDataModel();
+    MergeStatus mergeStatus = mergeDataModel();
+    if (mergeStatus != MERGE_SUCCESS) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in merging Data Model\n");
+        return DB_FAILURE; // Or handle the failure appropriately
+    } 
+    else {
+         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Successfully merged Data Model.\n");
+    }
     /* Load the data model xml file*/
     DB_STATUS status = loadDataModel();
     if(status != DB_SUCCESS)
@@ -704,14 +711,12 @@ fclose(in_fp1);
 fclose(in_fp2);
 fclose(out_fp);
 
-printf("Merged XML files successfully into %s\n", output);
-    
+RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML files successfully into %s\n", output);
+
 }
 
 
-
-
-void mergeDataModel() {
+MergeStatus mergeDataModel()  {
     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
     FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
     if (fp != NULL) {
@@ -732,20 +737,29 @@ void mergeDataModel() {
         const char *output_file = WEBPA_DATA_MODEL_FILE;
         if (strcmp(rdk_profile, "TV") == 0) {
             const char *tv_file = TV_XML_FILE;
-            filter_and_merge_xml(generic_file, tv_file, output_file);
+	    if (!filter_and_merge_xml(generic_file, tv_file, output_file)) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error while merging XML files for TV profile\n");
+                return MERGE_FAILURE;
+            }
         } 
         else if (strcmp(rdk_profile, "STB") == 0) {
             const char *stb_file = STB_XML_FILE;
-            filter_and_merge_xml(generic_file, stb_file, output_file);
+	    if (!filter_and_merge_xml(generic_file, stb_file, output_file)) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error while merging XML files for STB profile\n");
+                return MERGE_FAILURE;
+            }
         } 
         else {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unsupported RDK_PROFILE: %s\n", rdk_profile);
+	    return MERGE_FAILURE;
         }
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
+	return MERGE_SUCCESS;
     }
     else
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
+	return MERGE_FAILURE;
     }
 }
 
