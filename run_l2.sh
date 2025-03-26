@@ -36,6 +36,11 @@ touch /opt/secure/RFC/tr181localstore.ini
 touch /opt/persistent/tr181localstore.ini
 touch /opt/secure/RFC/bootstrap.journal
 
+pid=`pidof tr69hostif`
+if [ ! -z "$pid" ]; then
+    kill -9 `pidof tr69hostif`
+fi
+
 /usr/local/bin/tr69hostif -c /etc/mgrlist.conf -d /etc/debug.ini -p 10999 -s 11999 | tee /opt/logs/tr69hostIf.log.0 &
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup_sequence.json test/functional-tests/tests/test_bootup_sequence.py
