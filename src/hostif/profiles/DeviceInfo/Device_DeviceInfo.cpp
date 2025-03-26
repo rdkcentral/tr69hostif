@@ -5106,7 +5106,6 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
-    const char *rdm_comm = "/etc/rdm/rdmBundleMgr.sh";
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
 
@@ -5115,9 +5114,9 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing command - sh %s %s & \n", __FUNCTION__ , rdm_comm, stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
 
-    ret = v_secure_system("backgroundrun sh %s %s", rdm_comm, stMsgData->paramValue);
+    ret = v_secure_system("rdm -v \"%s\" &", stMsgData->paramValue);
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
