@@ -3553,7 +3553,6 @@
       <parameter base="DownloadStatus" access="readWrite" notification="0" maxNotification="2" >
           <syntax>
 	    <boolean/>
-            <default type="factory" value="f"false/>
           </syntax>
       </parameter>
     </object>
