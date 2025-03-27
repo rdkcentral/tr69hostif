@@ -56,6 +56,7 @@ cp libIBus.h /usr/local/include
 cp libIARM.h /usr/local/include
 cp libIARMBus.so /usr/local/lib/libWPEFrameworkPowerController.so
 
+
 echo "##### Building tr69hostif module"
 cd $WORKDIR
 sed -i '/PKG_CHECK_MODULES(\[PROCPS\], \[libproc >= 3.2.8\])/s/^/#/' ./configure.ac
