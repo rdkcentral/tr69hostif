@@ -52,7 +52,7 @@ echo "Building IARMBus stubs"
 cd $WORKDIR
 cd ./src/unittest/stubs
 g++ -fPIC -shared -o libIARMBus.so iarm_stubs.cpp  -I$WORKDIR/src/hostif/parodusClient/pal -I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/parodusClient/waldb -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/include -I$WORKDIR/src/hostif/profiles/DeviceInfo -I$WORKDIR/src/hostif/parodusClient/pal -fpermissive
-g++ -fPIC -shared -o libWPEFrameworkPowerController.so dm_stubs.cpp  -I$WORKDIR/src/hostif/parodusClient/pal -I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/parodusClient/waldb -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/include -I$WORKDIR/src/hostif/profiles/DeviceInfo -I$WORKDIR/src/hostif/parodusClient/pal -fpermissive
+g++ -fPIC -shared -o libWPEFrameworkPowerController.so powerctrl_stubs.cpp  -I$WORKDIR/src/unittest/stubs -fpermissive
 cp libIARMBus.so /usr/local/lib
 cp libIBus.h /usr/local/include
 cp libIARM.h /usr/local/include
