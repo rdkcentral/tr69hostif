@@ -25,7 +25,10 @@ mkdir -p "$RESULT_DIR"
 
 
 
-cp ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml /tmp/data-model.xml
+sed '/<\/model>/d; /<\/dm:document>/d' ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml > ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
+sed '/<?xml/,/<model/ d' ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml >> ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
+
+cp ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml /tmp/data-model.xml
 
 
 
