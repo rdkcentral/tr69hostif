@@ -60,7 +60,7 @@ void appendNextObject(char* currentParam, const char* pAttparam);
 int getNumberofInstances(const char* paramName);
 
 
-#define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
+#define WEBPA_DATA_MODEL_FILE "/etc/data-model.xml"
 static void *g_dbhandle = NULL;
 std::mutex g_db_mutex;
 
