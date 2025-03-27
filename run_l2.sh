@@ -24,9 +24,9 @@ RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
 
 
-cp ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml /etc/data-model-tv.xml
-cp ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml /etc/data-model-generic.xml
-cp ./src/hostif/parodusClient/waldb/data-model/data-model-stb.xml /etc/data-model-stb.xml
+
+cp ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml /tmp/data-model.xml
+
 
 
 
