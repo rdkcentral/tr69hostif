@@ -30,6 +30,8 @@ mkdir -p "$RESULT_DIR"
  cp ./src/hostif/parodusClient/waldb/data-model/data-model-stb.xml /etc/data-model-stb.xml
 
 
+  echo "RDK_PROFILE=STB" > /etc/device.properties
+
 
 
 
