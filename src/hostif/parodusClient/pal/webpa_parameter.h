@@ -33,7 +33,7 @@ extern "C"
 #include "webpa_adapter.h"
 
 
-#define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
+#define WEBPA_DATA_MODEL_FILE "/etc/data-model.xml"
 #define MAX_NUM_PARAMETERS 2048
 #define MAX_DATATYPE_LENGTH 48
 #define MAX_PARAM_LENGTH TR69HOSTIFMGR_MAX_PARAM_LEN
