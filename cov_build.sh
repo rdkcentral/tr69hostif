@@ -28,10 +28,11 @@ cd $ROOT
 rm -rf rdk-halif-device_settings
 rm -rf rdkvhal-devicesettings-raspberrypi4
 rm -rf iarmbus
+rm -rf remote_debugger
 git clone https://github.com/rdkcentral/rdk-halif-device_settings.git
 git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 git clone https://github.com/rdkcentral/iarmbus.git
-
+git clone https://github.com/rdkcentral/remote_debugger.git
 
 # Build devicesettings version with fixes for native build and use that as a stub
 # TODO This is not present in mainline versions. Component maintainers will have to provide this in future.
@@ -64,7 +65,7 @@ rm -f ./src/unittest/stubs/rdk_debug.h
 autoreconf -i
 ./configure  --enable-libsoup3=yes
 
-make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I/usr/include/cjson -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/handlers/include -I$WORKDIR/src/hostif/parodusClient/waldb -I$WORKDIR/src/hostif/profiles/DeviceInfo -I/usr/include/cjson -I$WORKDIR/src/hostif/profiles/Time -I$WORKDIR/src/hostif/profiles/Device -I/usr/include/libsoup-3.0 -I/usr/include/yajl -I$WORKDIR/src/hostif/profiles/STBService -I$WORKDIR/src/unittest/stubs/ds -I/usr/devicesettings/ds -I/usr/local/include -I$WORKDIR/src/hostif/profiles/IP -I$WORKDIR/src/hostif/profiles/Ethernet -I/usr/local/include/rbus -I$WORKDIR/src/hostif/parodusClient/pal -I/usr/rdk-halif-device_settings/include -I/usr/local/include/libparodus -I/usr/local/include -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/local/include/ -I/usr/include/yajl -I/usr/tinyxml2 -I/usr/devicesettings/ds -I/$WORKDIR/src/hostif/httpserver/include -DLIBSOUP3_ENABLE" \
-AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus  -lnanomsg  -lIARMBus -lds -ldshalcli -ldshalsrv  -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE"
+make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I/usr/include/cjson -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/handlers/include -I$WORKDIR/src/hostif/parodusClient/waldb -I$WORKDIR/src/hostif/profiles/DeviceInfo -I/usr/include/cjson -I$WORKDIR/src/hostif/profiles/Time -I$WORKDIR/src/hostif/profiles/Device -I/usr/include/libsoup-3.0 -I/usr/include/yajl -I$WORKDIR/src/hostif/profiles/STBService -I$WORKDIR/src/unittest/stubs/ds -I/usr/devicesettings/ds -I/usr/local/include -I$WORKDIR/src/hostif/profiles/IP -I$WORKDIR/src/hostif/profiles/Ethernet -I/usr/local/include/rbus -I$WORKDIR/src/hostif/parodusClient/pal -I/usr/rdk-halif-device_settings/include -I/usr/local/include/libparodus -I/usr/local/include -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/local/include/ -I/usr/include/yajl -I/usr/tinyxml2 -I/usr/devicesettings/ds -I/$WORKDIR/src/hostif/httpserver/include -I/usr/remote_debugger/src/ -DLIBSOUP3_ENABLE" \
+AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus  -lnanomsg  -lIARMBus -lds -ldshalcli -ldshalsrv  -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER"
 make install
 

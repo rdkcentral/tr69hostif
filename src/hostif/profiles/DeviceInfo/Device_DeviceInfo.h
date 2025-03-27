@@ -123,7 +123,7 @@
 
 #define CDL_FLASH_FILE "/opt/cdl_flashed_file_name"
 #define CURENT_FW_FILE "/tmp/currently_running_image_name"
-#define LOG_UPLOAD_SCR	"/lib/rdk/UploadLogsNow.sh &"
+#define LOG_UPLOAD_SCR	"backgroundrun /lib/rdk/UploadLogsNow.sh"
 #define CURRENT_LOG_UPLOAD_STATUS "/opt/loguploadstatus.txt"
 
 #define XRDK_BOOT_TIME                                  "Device.DeviceInfo.X_RDKCENTRAL-COM_BootTime"
