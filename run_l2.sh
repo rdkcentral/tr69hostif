@@ -28,7 +28,8 @@ cp ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml /etc/data-model
 cp ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml /etc/data-model-generic.xml
 
 sed '/<\/model>/d; /<\/dm:document>/d' /etc/data-model-tv.xml > /tmp/data-model.xml
-sed '/<?xml/,/<model/ d' /etc/data-model-generic.xml >> /tmp/data-model.xml
+sed '0,/<?xml/,/<model/ d' /etc/data-model-generic.xml >> /tmp/data-model.xml
+
 
 
 cp ./src/integrationtest/conf/mgrlist.conf /etc/
