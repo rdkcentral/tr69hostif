@@ -54,6 +54,7 @@ g++ -fPIC -shared -o libIARMBus.so iarm_stubs.cpp  -I$WORKDIR/src/hostif/parodus
 cp libIARMBus.so /usr/local/lib
 cp libIBus.h /usr/local/include
 cp libIARM.h /usr/local/include
+cp libIARMBus.so /usr/local/lib/libWPEFrameworkPowerController.so
 
 echo "##### Building tr69hostif module"
 cd $WORKDIR
