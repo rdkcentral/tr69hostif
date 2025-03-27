@@ -30,17 +30,6 @@ import signal
 def run_module(module_path: str):
     return subprocess.run("{module_path}", shell=True)
 
-def set_rdk_profile():
-    file_path = "/etc/device.properties"
-    try:
-        # Open the file in append mode and write the key-value pair
-        with open(file_path, 'a') as file:
-            file.write("RDK_PROFILE=TV\n")
-        print(f"Successfully added RDK_PROFILE=TV to {file_path}")
-    except PermissionError:
-        print(f"Permission denied: Unable to write to {file_path}. Try running as root or with sudo.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
 
 #tr69hostif
 def kill_module(module: str, signal: int=9):
