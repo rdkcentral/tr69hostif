@@ -28,10 +28,11 @@ cd $ROOT
 rm -rf rdk-halif-device_settings
 rm -rf rdkvhal-devicesettings-raspberrypi4
 rm -rf iarmbus
+rm -rf remote_debugger
 git clone https://github.com/rdkcentral/rdk-halif-device_settings.git
 git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 git clone https://github.com/rdkcentral/iarmbus.git
-
+git clone https://github.com/rdkcentral/remote_debugger.git
 
 # Build devicesettings version with fixes for native build and use that as a stub
 # TODO This is not present in mainline versions. Component maintainers will have to provide this in future.
