@@ -101,6 +101,13 @@ static void usage();
 T_ARGLIST argList = {{'\0'}, 0};
 static int isShutdownTriggered = 0;
 
+#define DEVICE_PROPS_FILE "/etc/device.properties"
+#define GENERIC_XML_FILE "/etc/data-model-generic.xml"
+#define STB_XML_FILE "/etc/data-model-stb.xml"
+#define TV_XML_FILE "/etc/data-model-tv.xml"
+#define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
+
+
 std::mutex mtx_httpServerThreadDone;
 std::condition_variable cv_httpServerThreadDone;
 bool httpServerThreadDone = false;
@@ -402,7 +409,14 @@ int main(int argc, char *argv[])
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
     }
-
+    MergeStatus mergeStatus = mergeDataModel();
+    if (mergeStatus != MERGE_SUCCESS) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in merging Data Model\n");
+        return DB_FAILURE; // Or handle the failure appropriately
+    } 
+    else {
+         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Successfully merged Data Model.\n");
+    }
     /* Load the data model xml file*/
     DB_STATUS status = loadDataModel();
     if(status != DB_SUCCESS)
@@ -635,6 +649,119 @@ static void usage()
         ================================================================================\n\
         \n" << endl;
 #endif
+}
+
+
+bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
+    FILE *in_fp1 = fopen(input1, "r"); 
+    FILE *in_fp2 = fopen(input2, "r"); 
+    FILE *out_fp = fopen(output, "w"); 
+
+    if (!in_fp1 || !in_fp2 || !out_fp) {
+        perror("Error opening files");
+        if (in_fp1) fclose(in_fp1);
+        if (in_fp2) fclose(in_fp2);
+        if (out_fp) fclose(out_fp);
+         return false;
+    }
+    char line[1024];
+    char last_model_line[1024] = {0};
+    char last_dm_document_line[1024] = {0};
+    long model_last_line_pos = -1, dm_document_last_line_pos = -1; 
+    long line_pos = 0;
+    while (fgets(line, sizeof(line), in_fp2)) {
+        if (strstr(line, "</model>")) {
+            strcpy(last_model_line, line); 
+            model_last_line_pos = line_pos; 
+        }
+        if (strstr(line, "</dm:document>")) {
+            strcpy(last_dm_document_line, line); 
+            dm_document_last_line_pos = line_pos; 
+        }
+        line_pos++;
+    }
+    rewind(in_fp2);
+    line_pos = 0;
+    while (fgets(line, sizeof(line), in_fp2)) {
+        if ((line_pos == model_last_line_pos && strstr(line, "</model>")) ||
+            (line_pos == dm_document_last_line_pos && strstr(line, "</dm:document>"))) {
+            line_pos++;
+            continue;
+        }
+        fputs(line, out_fp); 
+        line_pos++;
+    }
+    int skip_range = 0;
+    while (fgets(line, sizeof(line), in_fp1)) {
+        if (strstr(line, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")) {
+            skip_range = 1; 
+            continue;
+        }
+        if (skip_range && strstr(line, "<model name=\"data-model\">")) {
+            skip_range = 0; 
+            continue; 
+        }
+        if (skip_range) {
+            continue; 
+        }
+        fputs(line, out_fp); 
+    }  
+
+fclose(in_fp1);
+fclose(in_fp2);
+fclose(out_fp);
+
+RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML files successfully into %s\n", output);
+return true;
+
+}
+
+
+MergeStatus mergeDataModel()  {
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
+    FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
+    if (fp != NULL) {
+        char line[256];
+        char rdk_profile[256] = {0};
+        while (fgets(line, sizeof(line), fp))
+        {
+            int sscanf_result = sscanf(line, "RDK_PROFILE=%s", rdk_profile);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "mergeDataModel: sscanf result: %d, line: %s", sscanf_result, line);
+            if (sscanf_result == 1) 
+	    {
+                break;
+            }
+         }
+        fclose(fp);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
+        const char *generic_file = GENERIC_XML_FILE;
+        const char *output_file = WEBPA_DATA_MODEL_FILE;
+        if (strcmp(rdk_profile, "TV") == 0) {
+            const char *tv_file = TV_XML_FILE;
+	    if (!filter_and_merge_xml(generic_file, tv_file, output_file)) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error while merging XML files for TV profile\n");
+                return MERGE_FAILURE;
+            }
+        } 
+        else if (strcmp(rdk_profile, "STB") == 0) {
+            const char *stb_file = STB_XML_FILE;
+	    if (!filter_and_merge_xml(generic_file, stb_file, output_file)) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error while merging XML files for STB profile\n");
+                return MERGE_FAILURE;
+            }
+        } 
+        else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unsupported RDK_PROFILE: %s\n", rdk_profile);
+	    return MERGE_FAILURE;
+        }
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
+	return MERGE_SUCCESS;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to open /etc/device.properties\n");
+	return MERGE_FAILURE;
+    }
 }
 
 /** @} */
