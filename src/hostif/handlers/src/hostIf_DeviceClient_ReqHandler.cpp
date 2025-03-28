@@ -522,6 +522,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_SoftwareVersion(stMsgData);
         }
+        else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.MigrationPreparer.MigrationReady") == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_MigrationPreparer_MigrationReady(stMsgData);
+        }		
         else if (strcasecmp(stMsgData->paramName,IUI_VERSION) == 0)
         {
             ret = pIface->get_Device_DeviceInfo_IUI_Version(stMsgData);
