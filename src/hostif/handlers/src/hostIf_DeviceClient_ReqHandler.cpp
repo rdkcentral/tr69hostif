@@ -232,6 +232,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_xRDKDownloadManager_InstallPackage(stMsgData);
         }
+	else if (strcasecmp(stMsgData->paramName,X_RDKDownloadManager_DownloadStatus) == 0
+	{
+	    ret = pIface->set_xRDKDownloadManager_DownloadStatus(stMsgData);
+	}
         else if (strcasecmp(stMsgData->paramName,IPREMOTE_SUPPORT) == 0)
         {
             ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportEnable(stMsgData);
