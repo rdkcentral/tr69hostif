@@ -142,11 +142,11 @@ rbusError_t TR_Dml_EventSubHandler(rbusHandle_t handle, rbusEventSubAction_t act
 
     *autoPublish = true;
 
-    if(!strcmp("Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus", eventName))
-    {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][rbusdml] Disable Autopublish for action=%s eventName=%s", action == RBUS_EVENT_ACTION_SUBSCRIBE ? "subscribe" : "unsubscribe", __FUNCTION__, eventName);
-        *autoPublish = false;
-    }
+   // if(!strcmp("Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus", eventName))
+  //  {
+    //    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][rbusdml] Disable Autopublish for action=%s eventName=%s", action == RBUS_EVENT_ACTION_SUBSCRIBE ? "subscribe" : "unsubscribe", __FUNCTION__, eventName);
+      //  *autoPublish = false;
+    //}
     if(!strcmp("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType", eventName))
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][rbusdml] Disable Autopublish for action=%s eventName=%s", action == RBUS_EVENT_ACTION_SUBSCRIBE ? "subscribe" : "unsubscribe", __FUNCTION__, eventName);
