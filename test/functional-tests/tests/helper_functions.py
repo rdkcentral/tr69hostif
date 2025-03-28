@@ -30,6 +30,7 @@ import signal
 def run_module(module_path: str):
     return subprocess.run("{module_path}", shell=True)
 
+
 #tr69hostif
 def kill_module(module: str, signal: int=9):
     print(f"Recived Signal to kill {module} {signal} with pid {get_pid({module})}")
