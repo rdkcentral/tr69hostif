@@ -290,6 +290,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadDeferReboot(stMsgData);
         }
+        else if (!strcasecmp(stMsgData->paramName, IUI_VERSION))
+        {
+            ret = pIface->set_Device_DeviceInfo_IUI_Version(stMsgData);
+        }	
         else
         {
             ret = NOK;
@@ -518,6 +522,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_SoftwareVersion(stMsgData);
         }
+        else if (strcasecmp(stMsgData->paramName,IUI_VERSION) == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_IUI_Version(stMsgData);
+        }	
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.AdditionalHardwareVersion") == 0)
         {
             ret = pIface->get_Device_DeviceInfo_AdditionalHardwareVersion(stMsgData);
