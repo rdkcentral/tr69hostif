@@ -4014,7 +4014,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
 
     return retVal;
 }
-int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerDownloadstatus(HOSTIF_MsgData_t *stMsgData)
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerDownloadStatus(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
     bool isenabled = false;
