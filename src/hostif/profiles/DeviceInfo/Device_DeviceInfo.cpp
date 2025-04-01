@@ -3751,7 +3751,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else if (strcasecmp(stMsgData->paramName,RDK_DOWNLOAD_STATUS) == 0)
     {
-	ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerDownloadstatus(stMsgData);    
+	ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerDownloadStatus(stMsgData);    
     }
 #endif
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
