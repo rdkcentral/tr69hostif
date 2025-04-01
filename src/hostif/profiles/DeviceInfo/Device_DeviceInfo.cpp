@@ -5047,7 +5047,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgD
     string experience = "";
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
  
-    string resp = getJsonRPCData(postData); 
+    string resp = getJsonRPCData(std::move(postData)); 
     if(resp.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
