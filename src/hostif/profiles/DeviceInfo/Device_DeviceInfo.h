@@ -515,6 +515,24 @@ public:
      * @see get_Device_DeviceInfo_ProductClass.
      */
     int get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+    
+    /**
+     * @brief get_Device_DeviceInfo_Migration_MigrationStatus.
+     *
+     * This function provides the status of the migration.
+     * The Status (human readable string).
+     *
+     * @return The status of the operation.
+     *
+     * @retval OK if Device_DeviceInfo_Migration_MigrationStatus was successfully fetched.
+     * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+     *
+     * @sideeffect All necessary structures and buffers are deallocated.
+     * @execution Synchronous.
+     *
+     * @see get_Device_DeviceInfo_Migration_MigrationStatus.
+     */
+    int get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t *, bool *pChanged = NULL);
 
     /**
     * @brief get_Device_DeviceInfo_IUI_Version.
