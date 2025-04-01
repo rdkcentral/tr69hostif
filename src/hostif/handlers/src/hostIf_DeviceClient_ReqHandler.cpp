@@ -290,6 +290,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadDeferReboot(stMsgData);
         }
+        else if (!strcasecmp(stMsgData->paramName, IUI_VERSION))
+        {
+            ret = pIface->set_Device_DeviceInfo_IUI_Version(stMsgData);
+        }
         else
         {
             ret = NOK;
@@ -408,7 +412,8 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         if(!pIfaceStatus)
         {
             hostIf_DeviceInfo::releaseLock();
-            ret = NOK;
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] pIfaceStatus is NULL for %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
+            return NOK;
         }
         if(strcasecmp(stMsgData->paramName,"Device.DeviceInfo.ProcessStatus.ProcessNumberOfEntries")==0)
         {
@@ -516,6 +521,14 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.SoftwareVersion") == 0)
         {
             ret = pIface->get_Device_DeviceInfo_SoftwareVersion(stMsgData);
+        }
+	else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.Migration.MigrationStatus") == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_Migration_MigrationStatus(stMsgData);
+        }
+        else if (strcasecmp(stMsgData->paramName,IUI_VERSION) == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_IUI_Version(stMsgData);
         }
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.AdditionalHardwareVersion") == 0)
         {

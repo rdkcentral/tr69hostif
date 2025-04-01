@@ -98,6 +98,7 @@ AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	-lds -ldshalcli
 endif
 
+AM_LDFLAGS += -lWPEFrameworkPowerController
 
 AM_CFLAGS =  $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
 AM_CPPFLAGS =  $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
@@ -115,9 +116,10 @@ else
 AM_LDFLAGS += $(SYSTEMD_SDNOTIFY_LDFLAGS)
 endif
 
-bin_PROGRAMS = tr69hostif
+bin_PROGRAMS = tr69hostif backgroundrun
 tr69hostif_SOURCES = $(top_srcdir)/src/hostif/src/hostIf_main.cpp $(top_srcdir)/src/hostif/src/hostIf_utils.cpp
 tr69hostif_SOURCES += $(top_srcdir)/src/hostif/src/IniFile.cpp
+backgroundrun_SOURCES = $(top_srcdir)/src/backgroundrun.c
 
 tr69hostif_LDADD = $(top_builddir)/src/hostif/handlers/libMsgHandlers.la
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/STBService/libstbservice.la

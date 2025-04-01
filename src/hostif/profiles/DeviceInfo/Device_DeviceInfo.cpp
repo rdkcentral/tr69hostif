@@ -63,7 +63,7 @@
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
 #include "hostIf_utils.h"
-#include "pwrMgr.h"
+#include "power_controller.h"
 #include "rbus.h"
 #include <curl/curl.h>
 
@@ -93,6 +93,8 @@
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
 
+#include "power_controller.h"
+
 #define VERSION_FILE                       "/version.txt"
 #define SOC_ID_FILE                        "/var/log/socprov.log"
 #define PREFERRED_GATEWAY_FILE	           "/opt/prefered-gateway"
@@ -102,6 +104,7 @@
 #define XRE_CONTAINER_SUPPORT_STATUS_FILE  "/opt/XRE_container_enable"
 #define IPREMOTE_INTERFACE_INFO            "/tmp/ipremote_interface_info"
 #define MODEL_NAME_FILE                    "/tmp/.model"
+#define IUI_VERSION_FILE                   "/tmp/.iuiVersion"
 #define PREVIOUS_REBOT_REASON_FILE         "/opt/secure/reboot/previousreboot.info"
 #define NTPENABLED_FILE                    "/opt/.ntpEnabled"
 #define RDKV_DAB_ENABLE_FILE               "/opt/dab-enable"
@@ -118,6 +121,7 @@
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
+#define MigrationStatus "/opt/MigrationStatus"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
@@ -128,6 +132,7 @@ void *ResetFunc(void *);
 
 
 static char stbMacCache[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
+static int mutex_lock = 0;
 static string reverseSSHArgs,shortsArgs,nonShortsArgs;
 map<string,string> stunnelSSHArgs;
 const string sshCommand = "/lib/rdk/startTunnel.sh";
@@ -148,6 +153,8 @@ XRFCStorage hostIf_DeviceInfo::m_rfcStorage;
 #endif
 XBSStore* hostIf_DeviceInfo::m_bsStore;
 string hostIf_DeviceInfo::m_xrPollingAction = "0";
+
+static bool bPowerControllerEnable;
 
 /****************************************************************************************************************************************************/
 // Device.DeviceInfo Profile. Getters:
@@ -264,11 +271,20 @@ void hostIf_DeviceInfo::getLock()
 {
     g_mutex_init(&hostIf_DeviceInfo::m_mutex);
     g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
+    mutex_lock = 1;
 }
 
 void hostIf_DeviceInfo::releaseLock()
 {
-    g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+    if(mutex_lock == 1)
+    {
+        mutex_lock = 0;
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+        g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+    }
+    else {
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex is not locked, cannot unlock...  \n", __FUNCTION__, __LINE__);
+    }
 }
 
 GHashTable*  hostIf_DeviceInfo::getNotifyHash()
@@ -459,6 +475,50 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
         return NOK;
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
+    return OK;
+}
+
+/**
+ * @brief This function retrieves the Migration Status from the MigrationStatus file.
+ *
+ * @param[out] stMsgData TR-069 Host interface message request.
+ * @param[in] pChanged  Status of the operation.
+ *
+ * @return Returns the status of the operation.
+ *
+ * @retval OK if it is successful.
+ * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+ * @ingroup TR69_HOSTIF_DEVICEINFO_API
+ */
+int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    string line = "NOT_STARTED";
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
+    ifstream file_read (MigrationStatus);
+    try {
+        if (file_read.is_open())
+        {
+            if (file_read.peek() != EOF) {  // Check if the file is not empty
+     	         std::getline(file_read, line);
+            }
+	    file_read.close();
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Failed to open file\n", __FUNCTION__);
+        }
+     }
+     catch (const std::exception &e) {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
+        return NOK;
+    }
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] value:%s\n", __FUNCTION__, line.c_str());
+    int len = strlen(line.c_str());
+    stMsgData->paramtype = hostIf_StringType;
+    strncpy(stMsgData->paramValue, line.c_str(), len);
+    stMsgData->paramValue[len+1] = '\0';
+    stMsgData->paramLen = len;
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
 
@@ -1421,6 +1481,11 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
     return OK;
 }
 
+void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
+{
+    bPowerControllerEnable = isPwrContEnalbe;
+}
+
 /**
  * @brief The X_COMCAST_COM_PowerStatus as get parameter results in the power status
  * being performed on the device. Power status of the device based on the front panel
@@ -1437,43 +1502,46 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
-    IARM_Result_t err;
-    int ret = NOK;
+    int ret = NOK, pwr_ret = -1;
     const char *pwrState = "PowerOFF";
     int str_len = 0;
-    IARM_Bus_PWRMgr_GetPowerState_Param_t param;
-    memset(&param, 0, sizeof(param));
+    PowerController_PowerState_t curState = POWER_STATE_UNKNOWN, previousState = POWER_STATE_UNKNOWN;
 
-    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
-                        IARM_BUS_PWRMGR_API_GetPowerState,
-                        (void *)&param,
-                        sizeof(param));
-    if(err == IARM_RESULT_SUCCESS)
-    {
-        pwrState = (param.curState==IARM_BUS_PWRMGR_POWERSTATE_OFF)?"PowerOFF":(param.curState==IARM_BUS_PWRMGR_POWERSTATE_ON)?"PowerON":"Standby";
+    if(bPowerControllerEnable) {
+        pwr_ret = PowerController_GetPowerState(&curState, &previousState);
+        if (0 == pwr_ret) 
+        {
+            pwrState = (curState==POWER_STATE_OFF)?"PowerOFF":(curState==POWER_STATE_ON)?"PowerON":"Standby";
 
-//        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",param.curState, pwrState);
-        str_len = strlen(pwrState);
-        try
+           //TODO: will comment this.
+           RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",curState, pwrState);
+            str_len = strlen(pwrState);
+            try
+            {
+                strncpy((char *)stMsgData->paramValue, pwrState, str_len);
+                stMsgData->paramValue[str_len+1] = '\0';
+                stMsgData->paramLen = str_len;
+                stMsgData->paramtype = hostIf_StringType;
+                ret = OK;
+            } catch (const std::exception &e)
+            {
+                RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
+                ret = NOK;
+            }
+        }
+        else
         {
-            strncpy((char *)stMsgData->paramValue, pwrState, str_len);
-            stMsgData->paramValue[str_len+1] = '\0';
-            stMsgData->paramLen = str_len;
-            stMsgData->paramtype = hostIf_StringType;
-            ret = OK;
-        } catch (const std::exception &e)
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in power controller thunder cleint call for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, pwr_ret);
             ret = NOK;
         }
     }
-    else
+    else 
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in IARM_Bus_Call() for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, ret);
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Powercontroller Interface failed : %d. Try after sometime. \n", bPowerControllerEnable);
         ret = NOK;
     }
 
-    //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return ret;
 }
 
@@ -2090,6 +2158,71 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_BootTime(HOSTIF_MsgData_t * stMsgDat
     stMsgData->paramtype = hostIf_UnsignedIntType;
     stMsgData->paramLen = sizeof(hostIf_UnsignedIntType);
     return ret;
+}
+
+int hostIf_DeviceInfo::get_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    int ret=NOT_HANDLED;
+    stMsgData->paramtype = hostIf_StringType;
+
+    std::string iuiVersion;
+    std::ifstream file(IUI_VERSION_FILE);
+
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to open IUI Version file\n!", __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    if (std::getline(file, iuiVersion)) {
+        // Remove newline char if any in iui version
+        if (!iuiVersion.empty() && iuiVersion.back() == '\n') {
+            iuiVersion.pop_back();
+        }
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] iuiVersion = %s.\n", __FUNCTION__, __FILE__, __LINE__, iuiVersion.c_str());
+        strncpy((char *)stMsgData->paramValue, iuiVersion.c_str(), sizeof(stMsgData->paramValue)-1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+        stMsgData->paramLen = iuiVersion.length();
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] paramValue: %s stMsgData->paramLen: %d \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramValue, stMsgData->paramLen);
+        ret = OK;
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s(): Failed to read iui version.\n", __FUNCTION__);
+    }
+
+    file.close();
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
+    return ret;
+
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t *stMsgData)
+{
+    std::string iuiVersion = getStringValue(stMsgData);
+
+    if (iuiVersion.empty()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Empty IUI Version provided\n", __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    std::ofstream file(IUI_VERSION_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to open IUI Version file for writing\n", __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    file << iuiVersion;
+
+    if (file.fail()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to write IUI Version to file\n", __FUNCTION__, __FILE__, __LINE__);
+        file.close();
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] Successfully wrote IUI Version: %s\n", __FUNCTION__, __FILE__, __LINE__, iuiVersion.c_str());
+    file.close();
+    return OK;
 }
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType(HOSTIF_MsgData_t *stMsgData)
@@ -2875,7 +3008,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
                         reverseSSHArgs.c_str(),
                         shortsArgs.c_str(),
                         nonShortsArgs.c_str());
-                v_secure_system("/bin/sh %s %s %s %s %s %s %s %s &", stunnelCommand.c_str(),
+                v_secure_system("backgroundrun /bin/sh %s %s %s %s %s %s %s %s", stunnelCommand.c_str(),
                                 stunnelSSHArgs.at("localport").c_str(),
                                 stunnelSSHArgs.at("host").c_str(),
                                 stunnelSSHArgs.at("hostIp").c_str(),
@@ -2887,7 +3020,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
 
                 RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting SSH Tunnel \n",__FUNCTION__);
                 string arg = "start";
-                v_secure_system("/lib/rdk/startTunnel.sh %s %s &", arg.c_str(), reverseSSHArgs.c_str());
+                v_secure_system("backgroundrun /lib/rdk/startTunnel.sh %s %s", arg.c_str(), reverseSSHArgs.c_str());
             }
 #ifdef __SINGLE_SESSION_ONLY__
         }
@@ -2902,7 +3035,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
     {
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Stop SSH Tunnel \n",__FUNCTION__);
         string arg = "stop";
-        v_secure_system("/lib/rdk/startTunnel.sh %s &", arg.c_str());
+        v_secure_system("backgroundrun /lib/rdk/startTunnel.sh %s", arg.c_str());
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return OK;
@@ -4041,7 +4174,7 @@ int hostIf_DeviceInfo::ScheduleAutoReboot(bool bValue)
     /* Call the script for scheduling
      * cron args with Reboot day and bValue */
     snprintf(cmd,sizeof(cmd),"sh /lib/rdk/ScheduleAutoReboot.sh %d &", bValue);
-    v_secure_system("sh /lib/rdk/ScheduleAutoReboot.sh %d &", bValue);
+    v_secure_system("backgroundrun sh /lib/rdk/ScheduleAutoReboot.sh %d", bValue);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully executed \"%s\". \n", __FUNCTION__, __LINE__, cmd);
     ret = OK;
     return ret;
@@ -4056,12 +4189,12 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCRoamTrigger(HOSTIF_MsgData_t *stMsgD
 	char *execBuf = NULL;
 	execBuf = (char *)malloc(100 * sizeof(char));
         asprintf(&execBuf,"wl roam_trigger %s &", stMsgData->paramValue);
-        v_secure_system("wl roam_trigger %s &", stMsgData->paramValue);
+        v_secure_system("backgroundrun wl roam_trigger %s", stMsgData->paramValue);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully executed \"%s\" with \"%s\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, execBuf);
         free(execBuf);
 	ret = OK;
     }
-    v_secure_system("wl roam_trigger &");
+    v_secure_system("backgroundrun wl roam_trigger");
     return ret;
 }
 
@@ -4176,6 +4309,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComXREContainerRFCEnable(HOSTIF_MsgData_t 
     return ret;
 }
 
+
 void executeRfcMgr()
 {
     char buff[1024] = { '\0' };
@@ -4239,7 +4373,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCVideoTelFreq(HOSTIF_MsgData_t *stMsg
         if (tmpVal > 0 && tmpVal <=60)
         {
             sprintf(execBuf, "sh /lib/rdk/vdec-statistics.sh %d &", tmpVal);
-            v_secure_system("sh /lib/rdk/vdec-statistics.sh %d &", tmpVal);
+            v_secure_system("backgroundrun sh /lib/rdk/vdec-statistics.sh %d", tmpVal);
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully executed \"%s\" with \"%s\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, execBuf);
             ret = OK;
         }
@@ -4402,7 +4536,7 @@ int hostIf_DeviceInfo::set_xFirmwareDownloadNow(HOSTIF_MsgData_t *stMsgData)
                 char cmd[200] = {'\0'};
                 snprintf(cmd, 200,"%s %s %s %s %d %d &",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
 
-                ret = v_secure_system("%s %s %s %s %d %d &",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
+                ret = v_secure_system("backgroundrun %s %s %s %s %d %d",userTriggerDwScr, m_xFirmwareDownloadProtocol.c_str(), m_xFirmwareDownloadURL.c_str(), m_xFirmwareToDownload.c_str(), m_xFirmwareDownloadUseCodebig, m_xFirmwareDownloadDeferReboot);
 
                 if (ret != 0) {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to trigger Download, \'system (\"%s\")\' returned error code '%d'\n", __FUNCTION__, cmd, ret);
@@ -4658,20 +4792,31 @@ int hostIf_DeviceInfo::set_xOpsRPC_Profile(HOSTIF_MsgData_t * stMsgData)
     return OK;
 }
 
+void triggerRPCReboot()
+{
+    char buff[1024] = { '\0' };
+    FILE* pipe = v_secure_popen("r", "sh /lib/rdk/rebootNow.sh -s hostifDeviceInfo");
+
+    if (pipe) {
+        memset(buff, 0, sizeof(buff));
+        while (fgets(buff, sizeof(buff), pipe)) {
+            // Process output if needed
+            memset(buff, 0, sizeof(buff));
+        }
+        v_secure_pclose(pipe);
+    }
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully executed reboot script\n", __FUNCTION__, __LINE__);
+}
+
 int hostIf_DeviceInfo::set_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t * stMsgData)
 {
     LOG_ENTRY_EXIT;
 
-    if (get_boolean (stMsgData->paramValue))
-    {
-        char* command = (char *)"(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &";
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Invoking 'system (\"%s\")'. %s = true\n", __FUNCTION__, command, stMsgData->paramName);
-        int ret = v_secure_system("(sleep 1; /lib/rdk/rebootNow.sh -s hostifDeviceInfo) &");
-        if (ret != 0)
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] 'system (\"%s\")' returned error code '%d'\n", __FUNCTION__, command, ret);
-            return NOK;
-        }
+    if (get_boolean(stMsgData->paramValue)) {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Invoking 'system (\"%s\")'\n", __FUNCTION__, stMsgData->paramName);
+
+        std::thread rpcThread(triggerRPCReboot);
+        rpcThread.detach();  // Detach the thread to run independently
     }
     else
     {
@@ -5014,7 +5159,6 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
-    const char *rdm_comm = "/etc/rdm/rdmBundleMgr.sh";
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
 
@@ -5023,9 +5167,9 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing command - sh %s %s & \n", __FUNCTION__ , rdm_comm, stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
 
-    ret = v_secure_system("sh %s %s &", rdm_comm, stMsgData->paramValue);
+    ret = v_secure_system("rdm -v \"%s\" &", stMsgData->paramValue);
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);

@@ -123,7 +123,7 @@
 
 #define CDL_FLASH_FILE "/opt/cdl_flashed_file_name"
 #define CURENT_FW_FILE "/tmp/currently_running_image_name"
-#define LOG_UPLOAD_SCR	"/lib/rdk/UploadLogsNow.sh &"
+#define LOG_UPLOAD_SCR	"backgroundrun /lib/rdk/UploadLogsNow.sh"
 #define CURRENT_LOG_UPLOAD_STATUS "/opt/loguploadstatus.txt"
 
 #define XRDK_BOOT_TIME                                  "Device.DeviceInfo.X_RDKCENTRAL-COM_BootTime"
@@ -178,6 +178,7 @@
 #define PARTNER_ID                                      "Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId"
 
 #define FWDNLD_DEFER_REBOOT                             "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadDeferReboot"
+#define IUI_VERSION                                     "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version"
 
 /* Profile: X_RDKCENTRAL-COM_RDKRemoteDebugger */
 #ifdef USE_REMOTE_DEBUGGER
@@ -251,7 +252,7 @@ class hostIf_DeviceInfo {
     std::string         m_strXOpsDevManageableNotification;
     std::string         m_strXOpsRPCFwDwldStartedNotification;
     bool                m_bXOpsRPCFwDwldCompletedNotification;
-
+    
     string getEstbIp();
     bool isRsshactive();
     bool isShortsEnabled();
@@ -312,6 +313,8 @@ public:
     static int sendDeviceMgtNotification(const char* source, const char* type);
 
     GHashTable* getNotifyHash();
+
+    static void setPowerConInterface( bool isPwrContEnalbe);
 
 //    void runSystemMgmtTimePathMonitor();
     /**
@@ -511,6 +514,43 @@ public:
      * @see get_Device_DeviceInfo_ProductClass.
      */
     int get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+    
+    /**
+     * @brief get_Device_DeviceInfo_Migration_MigrationStatus.
+     *
+     * This function provides the status of the migration.
+     * The Status (human readable string).
+     *
+     * @return The status of the operation.
+     *
+     * @retval OK if Device_DeviceInfo_Migration_MigrationStatus was successfully fetched.
+     * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+     *
+     * @sideeffect All necessary structures and buffers are deallocated.
+     * @execution Synchronous.
+     *
+     * @see get_Device_DeviceInfo_Migration_MigrationStatus.
+     */
+    int get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    /**
+    * @brief get_Device_DeviceInfo_IUI_Version.
+    *
+    * This function provides the IUI version
+    * The component name (human readable string).
+    *
+    * @return The status of the operation.
+    *
+    * @retval OK if get_Device_DeviceInfo_IUI_Version was successfully fetched.
+    :1
+   * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+    *
+    * @sideeffect All necessary structures and buffers are deallocated.
+    * @execution Synchronous.
+    *
+    * @see get_Device_DeviceInfo_IUI_Version.
+    */
+   int get_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t *, bool *pChanged = NULL);
 
     /**
      * @brief get_Device_DeviceInfo_AdditionalHardwareVersion.
@@ -1001,6 +1041,7 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadUseCodebig(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadDeferReboot(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t *);
 
     /**
     * @brief set_xOpsDMUploadLogsNow.

@@ -57,6 +57,7 @@ void hostIf_StorageSrvc::getLock()
 
 void hostIf_StorageSrvc::releaseLock()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(m_mutex);
 }
 

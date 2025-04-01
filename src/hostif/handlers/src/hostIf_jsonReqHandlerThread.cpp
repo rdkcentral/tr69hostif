@@ -34,7 +34,11 @@
 #include "hostIf_msgHandler.h"
 #include "hostIf_utils.h"
 #include <glib.h>
+#ifdef LIBSOUP3_ENABLE
+#include "libsoup-3.0/libsoup/soup.h"
+#else
 #include "libsoup-2.4/libsoup/soup.h"
+#endif
 #include <yajl/yajl_parse.h>
 #include <yajl/yajl_gen.h>
 extern T_ARGLIST argList;
@@ -218,7 +222,123 @@ hostIf_HTTPJsonParse(const unsigned char *message, int length)
     return context.list;
 }
 
+#ifdef LIBSOUP3_ENABLE
+void hostIf_HTTPJsonMsgHandler(
+    SoupServer        *server,
+    SoupServerMessage *msg,
+    const gchar       *path,
+    GHashTable        *query,
+    gpointer           user_data)
+{
+    GList   *params;
 
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+    SoupMessageBody *req_body = soup_server_message_get_request_body(msg);
+
+    if (!req_body ||
+            !req_body->data ||
+            !req_body->length)
+    {
+        soup_server_message_set_status(msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed due to no message data.\n", __FUNCTION__, __FILE__);
+        return;
+    }
+
+    params = hostIf_HTTPJsonParse((const unsigned char *) req_body->data, req_body->length);
+    if (!params)
+    {
+        soup_server_message_set_status(msg, SOUP_STATUS_BAD_REQUEST, "No request data.");
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting... Failed due to Parse HTTP Json messages. \n", __FUNCTION__, __FILE__);
+        return;
+    }
+
+    yajl_gen        json;
+#ifndef YAJL_V2
+    json = yajl_gen_alloc(/* &allocFuncs */ NULL, NULL);
+#else
+    json = yajl_gen_alloc(NULL);
+#endif
+    if (!json)
+    {
+        soup_server_message_set_status(msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Cannot create return object");
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to create json object\n", __FUNCTION__, __FILE__);
+        return;
+    }
+
+    yajl_gen_map_open(json);
+    yajl_gen_string(json, (const unsigned char *) "paramList", 9);
+    yajl_gen_array_open(json);
+
+    GList *l = params;
+    while (l)
+    {
+        HOSTIF_MsgData_t *param = (HOSTIF_MsgData_t *) g_malloc0(sizeof(HOSTIF_MsgData_t));
+        strncpy( param->paramName,(char *) l->data,TR69HOSTIFMGR_MAX_PARAM_LEN );
+        // requestList = g_list_append(requestList, param);
+
+        if (hostIf_GetMsgHandler(param) == OK) //We are expecting on Get call from JSON
+        {
+            yajl_gen_map_open(json);
+            yajl_gen_string(json, (const unsigned char *) "name", 4);
+            yajl_gen_string(json, (const unsigned char *) param->paramName, strlen(param->paramName));
+
+            yajl_gen_string(json, (const unsigned char *) "value", 5);
+            switch (param->paramtype) {
+            case hostIf_StringType:
+                yajl_gen_string(json, (const unsigned char*) param->paramValue, strlen((char*)param->paramValue));
+                break;
+            case hostIf_IntegerType:
+            case hostIf_UnsignedIntType:
+                yajl_gen_integer(json, get_int(param->paramValue));
+                break;
+            case hostIf_UnsignedLongType:
+                yajl_gen_integer(json, get_ulong(param->paramValue));
+                break;
+            case hostIf_BooleanType:
+                yajl_gen_bool(json, get_boolean(param->paramValue));
+                break;
+            case hostIf_DateTimeType:
+                // TODO: What to do here?  What is the actual data representation?
+                yajl_gen_string(json, (const unsigned char *) "Unknown", 7);
+                break;
+            default:
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Unknown data type: %d", param->paramtype);
+                break;
+            }
+
+            yajl_gen_map_close(json);
+        }
+        hostIf_Free_stMsgData(param);
+
+
+        l = l->next;
+    }
+    // Free the list, but do NOT deallocate the strings.  They're now in the requestList
+    g_list_free_full(params, g_free);
+    params = NULL;
+
+    // Close out the structures
+    yajl_gen_array_close(json);
+    yajl_gen_map_close(json);
+
+    // Get the string
+    const unsigned char     *buf;
+    unsigned int             len;
+    yajl_gen_get_buf(json, &buf, &len);
+
+    // TODO: What is the correct MIME type?
+    soup_server_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, (const char *) buf, len);
+    soup_server_message_set_status(msg, SOUP_STATUS_OK, NULL);
+
+    yajl_gen_free(json);
+
+    //json_t* incommingReq = NULL;
+    //json_t* outRes = NULL;
+    //	ret = hostIf_JsonReqResHandler (incommingReq, outRes);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+    return;
+}
+#else
 void hostIf_HTTPJsonMsgHandler(
     SoupServer        *server,
     SoupMessage       *msg,
@@ -334,6 +454,7 @@ void hostIf_HTTPJsonMsgHandler(
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return;
 }
+#endif
 
 /**
  * @brief This API is used to initialize and start the HTTP server process. It use to serve the
@@ -350,8 +471,11 @@ void hostIf_HttpServerStart()
 #endif
 
     if(server == NULL)
-        //server = soup_server_new (SOUP_SERVER_PORT, port, NULL);
+#ifdef LIBSOUP3_ENABLE
+        server = soup_server_new("server-header", "hostif", NULL);
+#else
         server = soup_server_new (SOUP_SERVER_SERVER_HEADER, "hostif", NULL);
+#endif
 
     if (!server)
     {

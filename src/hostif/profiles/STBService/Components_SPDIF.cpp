@@ -137,6 +137,7 @@ void hostIf_STBServiceSPDIF::getLock()
 
 void hostIf_STBServiceSPDIF::releaseLock()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_STBServiceSPDIF::m_mutex);
 }
 
