@@ -23,7 +23,18 @@ export top_srcdir=`pwd`
 RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
 
-cp ./src/integrationtest/conf/data-model-generic.xml /etc/data-model.xml
+
+
+ cp ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml /etc/data-model-tv.xml
+ cp ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml /etc/data-model-generic.xml
+ cp ./src/hostif/parodusClient/waldb/data-model/data-model-stb.xml /etc/data-model-stb.xml
+
+
+  echo "RDK_PROFILE=STB" > /etc/device.properties
+
+
+
+
 cp ./src/integrationtest/conf/mgrlist.conf /etc/
 
 mkdir -p /opt/secure/RFC/
