@@ -4351,6 +4351,14 @@
              </syntax>
          </parameter>
      </object>
+     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TextToSpeech." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="URL" access="readWrite" notification="0" maxNotification="2" >
+       <syntax>
+        <string/>
+         <default type="factory" value=""/>
+       </syntax>
+      </parameter>
+     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.EntOsAppPlatform." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="EnableDistPlatform" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
