@@ -1221,7 +1221,7 @@ string hostIf_DeviceInfo::getEstbIp()
 #if MEDIA_CLIENT
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetPrimaryInterface\"}";
 
-    string response = getJsonRPCData(postData);
+    string response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -2679,7 +2679,7 @@ int hostIf_DeviceInfo::get_PartnerId_From_Script( string& current_PartnerId )
             partnerId = "";
         }
     }
-    current_PartnerId = partnerId;
+    current_PartnerId = std::move(partnerId);
 
     return OK;
 }
@@ -3904,7 +3904,7 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFCAccountId(HOSTIF_MsgData_t *stMsgDat
         
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Account ID..\n", __FUNCTION__);
         
-    string response = getJsonRPCData(postData); 
+    string response = getJsonRPCData(std::move(postData)); 
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -5105,7 +5105,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgD
     string experience = "";
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
  
-    string resp = getJsonRPCData(postData); 
+    string resp = getJsonRPCData(std::move(postData)); 
     if(resp.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());

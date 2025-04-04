@@ -417,7 +417,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     }
 	
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWiFiSignalStrength\"}";
-    response = getJsonRPCData(postData);
+    response = getJsonRPCData(std::move(postData));
 
     if(response.c_str())
     {
