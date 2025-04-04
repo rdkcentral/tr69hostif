@@ -3041,6 +3041,141 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
     return OK;
 }
 
+/**
+ * @brief This function retrieves the MigrationReady param value from the MigrationReadyFile.
+ *
+ * @param[out] stMsgData TR-069 Host interface message request.
+ * @param[in] pChanged  Status of the operation.
+ *
+ * @return Returns the status of the operation.
+ *
+ * @retval OK if it is successful.
+ * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+ * @ingroup TR69_HOSTIF_DEVICEINFO_API
+ */
+int hostIf_DeviceInfo::get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    std::string response;
+    std::string postData;
+    std::string tokenheader;
+    std::string value;
+    int i = 0;
+    CURL *curl = curl_easy_init();
+    if(curl)
+    {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Components that are Ready..\n", __FUNCTION__);
+
+        std::string sToken = get_security_token();
+        tokenheader = "Authorization: Bearer " + sToken;
+
+        postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.MigrationPreparer.getComponentReadiness\" }";
+
+        struct curl_slist *list = NULL;
+
+        list = curl_slist_append(list, tokenheader.c_str());
+        list = curl_slist_append(list, "Content-Type: application/json");
+
+        if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_HTTPHEADER\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_POST, 1L) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POST\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str()) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POSTFIELDS\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCurlResponse) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEFUNCTION\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEDATA\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_URL, JSONRPC_URL) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d: curl setup failed for CURLOPT_URL\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+	     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
+         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+
+        CURLcode res = curl_easy_perform(curl);
+        long http_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response : %d http response code: %ld\n", __FUNCTION__, res, http_code);
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(list);
+
+        if(res == CURLE_OK)
+        {
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+            cJSON* root = cJSON_Parse(response.c_str());
+            if(root)
+            {
+                cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+
+                if (jsonObj)
+                {
+                    cJSON *ComponentList_obj = cJSON_GetObjectItem(jsonObj, "ComponentList");
+					if (ComponentList_obj != NULL && cJSON_IsArray(ComponentList_obj)) {
+						int ComponentList_obj_count = cJSON_GetArraySize(ComponentList_obj);
+						for ( ; i < ComponentList_obj_count-1; i++) {
+							cJSON *Component = cJSON_GetArrayItem(ComponentList_obj, i);
+							if (cJSON_IsString(Component)) {
+								printf(" - %s\n", Component->valuestring);
+								value = value + Component->valuestring + "_";
+							}
+						}
+						cJSON *Component = cJSON_GetArrayItem(ComponentList_obj, i);
+						value = value + Component->valuestring ;
+				     }
+					else
+					{
+					    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] componentList is not present \n", __FUNCTION__);
+						return NOK;
+					}
+                }
+                else
+                {
+                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
+                cJSON_Delete(root);
+            }
+            else
+            {
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
+            }
+        }
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+    }
+
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(value.c_str());
+    strncpy(stMsgData->paramValue, value.c_str(), stMsgData->paramLen);
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
+    return OK;
+}
+
 int hostIf_DeviceInfo::get_xOpsReverseSshArgs(HOSTIF_MsgData_t *stMsgData)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
@@ -3419,6 +3554,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComBootstrap(HOSTIF_MsgData_t * stMsgData)
 static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
 {
     const char *apparmor_profiledir = "/etc/apparmor.d";
+    const char *earlypolicy_base_dir = "/etc/apparmor/earlypolicy";
     struct dirent *entry=NULL;
     DIR *dir=NULL;
     char *files_name = NULL;
@@ -3492,12 +3628,48 @@ static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
             sub_string=strstr(files_name, subtoken);
             if(sub_string != NULL) {
                 fprintf(tmp_fptr,"%s\n",token);
-            }
-            else {
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments %s error found in the parser\n", subtoken);
-                free(files_name);
-                return FALSE;
-            }
+            } else {
+                bool profile_found = false;
+                DIR *earlypolicy_dir_ptr = opendir(earlypolicy_base_dir);
+                if (earlypolicy_dir_ptr != NULL) {
+                    struct dirent *earlypolicy_entry = NULL;
+                    while ((earlypolicy_entry = readdir(earlypolicy_dir_ptr)) != NULL) {
+                        // Skip . and .. entries
+                        if (strcmp(earlypolicy_entry->d_name, ".") == 0 || strcmp(earlypolicy_entry->d_name, "..") == 0) {
+                            continue;
+                        }
+                        // Construct the full path to the subdirectory
+                        char subdir_path[1024];
+                        snprintf(subdir_path, sizeof(subdir_path), "%s/%s", earlypolicy_base_dir, earlypolicy_entry->d_name);
+                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"snprintf args %s and %s\n", earlypolicy_base_dir, earlypolicy_entry->d_name);
+                        // Open the subdirectory to search for the profile
+                        DIR *subdir = opendir(subdir_path);
+                        if (subdir != NULL) {
+                            struct dirent *sub_entry = NULL;
+                            while ((sub_entry = readdir(subdir)) != NULL) {
+                                // Check if the file ends with .service.sp and matches subtoken
+                                if (strstr(sub_entry->d_name, subtoken) != NULL &&
+                                    strstr(sub_entry->d_name, ".service.sp") != NULL) {
+                                    profile_found = true;
+                                    break;
+                                }
+                            }
+                            closedir(subdir);
+                        }
+                        if (profile_found) {
+                            break;
+                        }
+                    }
+                    closedir(earlypolicy_dir_ptr);
+                }
+                if (profile_found) {
+                    fprintf(tmp_fptr, "%s\n", token);
+                } else {
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments %s error found in the parser\n", subtoken);
+                    free(files_name);
+                    return FALSE;
+                }
+	    }
         }
         token=strtok_r(NULL,"#",&sp);
     }

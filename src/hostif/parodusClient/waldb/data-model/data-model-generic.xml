@@ -4080,6 +4080,14 @@
         </syntax>
       </parameter>
      </object>
+     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Miracast." minEntries="0" maxEntries="1" >
+       <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+           <syntax>
+            <boolean/>
+            <default type="factory" value="true"/>
+           </syntax>
+        </parameter>
+     </object>     
      <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial." minEntries="0" maxEntries="1" >
         <parameter base="AppList" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
             <syntax>
@@ -4349,7 +4357,7 @@
         </syntax>
       </parameter>
      </object>
-     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.PersistentStore." access="readOnly" minEntries="0" maxEntries="1">
+     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CloudStore." access="readOnly" minEntries="0" maxEntries="1">
          <parameter base="Uri" access="readWrite" notification="0" maxNotification="2">
              <syntax>
                <string/>
@@ -4418,5 +4426,12 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.MigrationPreparer." access="readOnly" minEntries="0" maxEntries="1">
+      <parameter base="MigrationReady" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>    
   </model>
 </dm:document>
