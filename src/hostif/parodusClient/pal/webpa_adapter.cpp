@@ -174,7 +174,9 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
     const char *getParamList[MAX_PARAMETERNAME_LEN];
     char *param = NULL;
 
-   RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"************** processRequest *****************\n");
+    RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF," process requests payload %s\n",reqPayload);
+
+    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"************** processRequest *****************\n");
 
     wdmp_parse_request(reqPayload,&reqObj);
 
