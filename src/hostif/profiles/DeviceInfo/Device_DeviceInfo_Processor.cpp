@@ -181,7 +181,12 @@ int hostIf_DeviceProcessorInterface::get_Device_DeviceInfo_Processor_Architectur
     uname(&utsName);
 
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Get Architecture value: '%s'\n", utsName.machine);
+    size_t len = strlen(utsName.machine);
+    if (len >= sizeof(stMsgData->paramValue)) {
+        len = sizeof(stMsgData->paramValue) - 1;
+    }
     strncpy(stMsgData->paramValue, utsName.machine, strlen(utsName.machine));
+    stMsgData->paramValue[len] = '\0';  // Null-terminate the string
     if(pChanged && bCalledArchitecture && strncpy(stMsgData->paramValue,backupArchitecture,strlen(stMsgData->paramValue)))
     {
         *pChanged = true;

@@ -404,7 +404,8 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
 	if(value == NULL)
 	   return 0;
 
-	strncpy(hostIf_EthernetInterface::stEthInterface.duplexMode, value, _BUF_LEN_16);
+	strncpy(hostIf_EthernetInterface::stEthInterface.duplexMode, value, _BUF_LEN_16- 1);
+	hostIf_EthernetInterface::stEthInterface.duplexMode[_BUF_LEN_16 - 1] = '\0';
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): Interface %u DuplexMode: %s\n",
                 __FUNCTION__, ethInterfaceNum, hostIf_EthernetInterface::stEthInterface.duplexMode);
 

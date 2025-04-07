@@ -140,7 +140,8 @@ int hostIf_WiFi_EndPoint_Security::get_hostIf_WiFi_EndPoint_Security_ModesEnable
                 cJSON *securityModeObj = cJSON_GetObjectItem(jsonObj, "securityMode");
 
                 //ASSIGN TO OP HERE
-	        strncpy(stMsgData->paramValue,securityModeObj->valuestring,sizeof(stMsgData->paramValue));
+	        strncpy(stMsgData->paramValue,securityModeObj->valuestring,sizeof(stMsgData->paramValue) -1);
+		stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
                 stMsgData->paramtype = hostIf_StringType;
                 stMsgData->paramLen = strlen(stMsgData->paramValue);
 

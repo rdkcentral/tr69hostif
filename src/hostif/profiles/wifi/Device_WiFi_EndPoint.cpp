@@ -395,6 +395,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
                 cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
                 //ASSIGN TO OP HERE
 	        strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
+		SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
             }
             else
             {

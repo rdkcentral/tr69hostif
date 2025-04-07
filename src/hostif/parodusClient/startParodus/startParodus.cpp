@@ -79,8 +79,13 @@ std::string get_HWMAcAddress()
     fp = fopen(HWMAC_FILE, "r");
     if (fp != NULL)
     {
-        fread(tempMAC, 1, 17, fp);
-        fclose(fp);
+        size_t bytesRead = fread(tempMAC, 1, 17, fp);
+	if (bytesRead != 17)
+	{
+	    printf("Error reading MAC address, bytes read: %zu\n", bytesRead);
+            fclose(fp);
+            return hwAddr;
+	}
         for (srcCount = 0; dstCount < 12 && srcCount < 17; srcCount++)
         {
             if (tempMAC[srcCount] == ':')
@@ -121,8 +126,15 @@ std::string get_PartnerId()
         else
         {
             fseek(fp, 0, SEEK_SET);
-            fread(PartnerId, 1, ch_count, fp);
-            fclose(fp);
+            size_t bytesRead = fread(PartnerId, 1, ch_count, fp);
+	    if (bytesRead != (size_t)ch_count)
+	    {
+                printf("Error reading Partner ID, bytes read: %zu\n", bytesRead);
+                fclose(fp);
+                return partnerId;
+	    }
+            PartnerId[ch_count] = '\0';
+	    fclose(fp);
             fp = NULL;
             partnerId = PartnerId;
             printf("[%s:%d]PARTNERID  = [ %s ] \n", __FUNCTION__, __LINE__, PartnerId);
@@ -182,7 +194,14 @@ std::string get_RebootReason()
             rebootReasonFile = (char *)malloc(sizeof(char) * (ch_count + 1));
             if (rebootReasonFile)
             {
-                fread(rebootReasonFile, 1, ch_count, fp);
+                size_t bytesRead = fread(rebootReasonFile, 1, ch_count, fp);
+		if (bytesRead != (size_t)ch_count)
+		{
+		    printf("Error reading file, bytes read: %zu\n", bytesRead);
+                    free(rebootReasonFile);
+                    fclose(fp);
+                    return reboot_reason;
+		}
                 rebootReasonFile[ch_count] = '\0';
                 fclose(fp);
                 fp = NULL;
@@ -228,6 +247,10 @@ std::string get_FwName()
         fgets(line, 128, fp);
         token = strtok(line, ":");
         token = strtok(NULL, ":");
+	if (token != NULL) {
+            strncpy(imageName, token, sizeof(imageName) - 1);
+            imageName[sizeof(imageName) - 1] = '\0'; 
+        }
         strncpy(imageName, token, strlen(token));
         fclose(fp);
         fp = NULL;
@@ -302,7 +325,15 @@ int main(int argc, char *argv[])
 
             if (webpaCfgFile)
             {
-                fread(webpaCfgFile, 1, ch_count, fp);
+                size_t bytesRead = fread(webpaCfgFile, 1, ch_count, fp);
+		if (bytesRead != static_cast<size_t>(ch_count))
+                {
+                 printf("Error reading WebPA config file, bytes read: %zu\n", bytesRead);
+                 free(webpaCfgFile);
+                 fclose(fp);
+                 return; // or handle the error as needed
+		}
+    }  
                 webpaCfgFile[ch_count] = '\0';
                 // CID:18143 - NEGATIVE RETURNS - since ch_count cannot be negative
                 cJSON *webpa_cfg = cJSON_Parse(webpaCfgFile);
