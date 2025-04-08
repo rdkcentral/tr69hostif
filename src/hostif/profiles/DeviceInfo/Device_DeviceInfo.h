@@ -515,7 +515,26 @@ public:
      * @see get_Device_DeviceInfo_ProductClass.
      */
     int get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
-    
+   
+     /**
+     * @brief get_Device_DeviceInfo_MigrationPreparer_MigrationReady.
+     *
+     * This function provides the component list which are ready for migration.
+     * The component name (human readable string).
+     *
+     * @return The status of the operation.
+     *
+     * @retval OK if DeviceInfo_MigrationPreparer_MigrationReady was successfully fetched.
+     :1
+    * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+     *
+     * @sideeffect All necessary structures and buffers are deallocated.
+     * @execution Synchronous.
+     *
+     * @see get_Device_DeviceInfo_MigrationPreparer_MigrationReady.
+     */
+    int get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
     /**
      * @brief get_Device_DeviceInfo_Migration_MigrationStatus.
      *
