@@ -954,7 +954,13 @@ static DB_STATUS get_complete_parameter_list_from_dml_xml (
             // Check if the Object is matching with given input wild card
             if(strstr(pAttrib->Value(),top_node_name))
             {
-                appendNextObject(currentParam, pAttrib->Value());
+                 // Ensure the length of the string being copied does not exceed the buffer size
+               size_t value_length = strlen(pAttrib->Value());
+               if (value_length >= MAX_PARAMETER_LENGTH)
+               {
+                  value_length = MAX_PARAMETER_LENGTH - 1;
+               }
+                strncpy(currentParam, pAttrib->Value(), value_length);
                 std::string str = pAttrib->Value();
 
                 if (str.compare(str.size()-5,5,".{i}.") == 0) {
