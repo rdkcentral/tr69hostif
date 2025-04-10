@@ -970,8 +970,10 @@ static DB_STATUS get_complete_parameter_list_from_dml_xml (
                   value_length = MAX_PARAMETER_LENGTH - 1;
                }
                 strncpy(currentParam, pAttrib->Value(), value_length);
+                currentParam[value_length] = '\0'; // Ensure null-termination
+                // Call appendNextObject while ensuring buffer safety
+                appendNextObject(currentParam, pAttrib->Value());
                 std::string str = pAttrib->Value();
-
                 if (str.compare(str.size()-5,5,".{i}.") == 0) {
                     if(params_count < MAX_NUM_PARAMETERS)
                     {
