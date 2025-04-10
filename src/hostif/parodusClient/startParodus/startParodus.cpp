@@ -53,6 +53,7 @@
 #define PARTNERID "Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId"
 #define UNKNOWN_PARTNERID "unknown"
 #define PARTNERID_APPEND "*,"
+#define MAX_PARTNER_ID_SIZE 128
 
 #ifndef CONFIG_RES_FILE  // please update with the orginal value based on your device
 #define CONFIG_RES_FILE "/tmp/data"
@@ -95,7 +96,7 @@ std::string get_HWMAcAddress()
             HwMac[dstCount] = tempMAC[srcCount];
             dstCount++;
         }
-        HwMac[13] = '\0';
+        HwMac[dstCount] = '\0';
         fp = NULL;
         hwAddr = HwMac;
     }
@@ -152,8 +153,8 @@ std::string get_PartnerId()
         {
             printf("[%s:%d]PARTNERID RFC PARAM VALUE = [ %s ] \n", __FUNCTION__, __LINE__, param.value);
             // remove quotes arround data
-            strncpy(PartnerId, &param.value[0], dataLen);
-            PartnerId[dataLen] = '\0';
+            strncpy(PartnerId, param.value, MAX_PARTNER_ID_SIZE - 1);
+            PartnerId[MAX_PARTNER_ID_SIZE - 1] = '\0';  // Ensure null termination
         }
     }
     if (!strncmp(PartnerId, UNKNOWN_PARTNERID, sizeof(UNKNOWN_PARTNERID)))

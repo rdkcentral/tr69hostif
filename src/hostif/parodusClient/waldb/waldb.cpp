@@ -318,7 +318,9 @@ void replaceWithInstanceNumber(char *paramName, int instanceNumber)
 	    ERR_CHK(safec_rc);
     }
 #endif
-    strcpy(paramName+(strlen(paramName)-4),number);
+     size_t remainingSize = MAX_PARAMETER_LENGTH - (position - paramName);
+    strncpy(position, number, remainingSize - 1);
+    paramName[MAX_PARAMETER_LENGTH - 1] = '\0'; // Ensure null termination
 }
 
 /**
@@ -403,7 +405,12 @@ void appendNextObject(char* currentParam, const char* pAttparam)
     }
     // Copy rest of the un matching strings to currentParam
     // TO DO: Since the size of the destination buffer is not predictable using strcpy
-    strcpy(currentParam, pAttparam);
+    size_t remainingSize = MAX_PARAMETER_LENGTH - strlen(currentParam);
+    if (remainingSize > 0)
+    {
+        strncpy(currentParam, pAttparam, remainingSize - 1);
+        currentParam[MAX_PARAMETER_LENGTH - 1] = '\0'; // Ensure null termination
+    }
 }
 /**
  * @brief Get the list of parameters which is matching with paramName
@@ -537,8 +544,10 @@ static XMLNode* getList(XMLNode *pParent,char *paramName,char* currentParam,char
                             replaceWithInstanceNumber(currentParam,i);
                             sChild = getList(pChild,tparaName,currentParam,ptrParamList,pParamDataTypeList,paramCount);
                             //TO DO:Since curretParam size is not predictable using strcpy
-			    strcpy(currentParam+len, INSTANCE_NUMBER_INDICATOR);
-			    i++;
+			    size_t remainingSize = MAX_PARAMETER_LENGTH - len;
+                            strncpy(currentParam + len, INSTANCE_NUMBER_INDICATOR, remainingSize - 1);
+                            currentParam[MAX_PARAMETER_LENGTH - 1] = '\0'; // Ensure null termination
+                            i++;
                         }
                         pChild = sChild;
                         // Seems like instance count is empty
