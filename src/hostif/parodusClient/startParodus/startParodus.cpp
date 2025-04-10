@@ -525,8 +525,8 @@ int main(int argc, char *argv[])
          std::cerr << "Unknown exception occurred" << std::endl;
          return 1;
      }
-       	return 0;
+       	
  
-  }
+  
 return 0;
 }
