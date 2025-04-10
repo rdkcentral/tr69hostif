@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
 		     close(fd);
                      return 1; // or handle the error as needed
 		    }
-                 }  
+                 
                     webpaCfgFile[ch_count] = '\0';
                     // CID:18143 - NEGATIVE RETURNS - since ch_count cannot be negative
                     cJSON *webpa_cfg = cJSON_Parse(webpaCfgFile);
