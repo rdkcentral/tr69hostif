@@ -318,9 +318,11 @@ void replaceWithInstanceNumber(char *paramName, int instanceNumber)
 	    ERR_CHK(safec_rc);
     }
 #endif
-     size_t remainingSize = MAX_PARAMETER_LENGTH - (position - paramName);
-    strncpy(position, number, remainingSize - 1);
-    paramName[MAX_PARAMETER_LENGTH - 1] = '\0'; // Ensure null termination
+    size_t remainingSize = MAX_PARAMETER_LENGTH - (position - paramName);
+    if (remainingSize > 0) {
+        strncpy(position, number, remainingSize - 1);
+        position[remainingSize - 1] = '\0'; // Ensure null termination
+    }
 }
 
 /**
