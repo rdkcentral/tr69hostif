@@ -5330,7 +5330,67 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
+int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t * stMsgData)
+{
+int ret = NOK;
+    bool isenabled = false;
+    LOG_ENTRY_EXIT;
 
+    if(stMsgData->paramtype == hostIf_BooleanType)
+    {
+        isenabled = get_boolean(stMsgData->paramValue);
+
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Successfully set \"%s\" to \"%d\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, isenabled);
+
+        rbusError_t rc = RBUS_ERROR_BUS_ERROR;
+        rbusValue_t value, preValue, byVal;
+        rbusObject_t data;
+        rbusEvent_t event = {0};
+
+        rbusValue_Init(&value);
+        rbusValue_Init(&byVal);
+        rbusValue_Init(&preValue);
+        rbusValue_SetBoolean(value, isenabled);
+        rbusValue_SetBoolean(preValue, stMsgData->paramValue);
+        rbusValue_SetString(byVal, "tr69hostif");
+
+        rbusObject_Init(&data, NULL);
+        rbusObject_SetValue(data, "value", value);
+        rbusObject_SetValue(data, "oldValue", preValue);
+        rbusObject_SetValue(data, "by", byVal);
+        if(data != NULL)
+RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: Rbus Data prints : %s\n ", __FUNCTION__, __LINE__, data);
+        event.name = RDM_DOWNLOAD_EVENT1;
+        event.data = data;
+        event.type = RBUS_EVENT_VALUE_CHANGED;
+        if(event.data != NULL)
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: Rbus Data prints : %s\n", __FUNCTION__, __LINE__, event.data);
+        rc = rbusEvent_Publish(rbusHandle, &event);
+        if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT, rbusError_ToString(rc));
+            ret = NOK;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT );
+            ret = OK;
+        }
+
+        rbusValue_Release(value);
+        rbusValue_Release(preValue);
+        rbusValue_Release(byVal);
+        rbusObject_Release(data);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterType;
+        ret=NOK;
+    }
+
+    return ret;
+}
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
