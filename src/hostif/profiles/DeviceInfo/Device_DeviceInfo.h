@@ -134,6 +134,7 @@
 
 /* Profile: X_RDKCENTRAL-COM_RDKDownloadManager. */
 #define X_RDKDownloadManager_InstallPackage             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage"
+#define X_RDKDownloadManager_DownloadStatus             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus"
 /* Profile: X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging. */
 #define xOpsDMUploadLogsNow_STR                         "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMUploadLogsNow"
 #define xOpsDMLogsUploadStatus_STR                      "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMLogsUploadStatus"
@@ -1483,6 +1484,7 @@ public:
     int get_X_RDK_FirmwareName(HOSTIF_MsgData_t *);
 
     int set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *);
 };
 /* End of doxygen group */
 /**
