@@ -728,7 +728,7 @@ int hostif_InterfaceStack::addBridgeChildLayerInfo(InterfaceStackMap_t &layerInf
         {
             LayerInfo_t tempLayerInfo;
 
-            tempLayerInfo.higherLayer = bridgeHigherLayer;
+            tempLayerInfo.higherLayer =  std::move(bridgeHigherLayer);
             tempLayerInfo.lowerLayer = std::string("");
 
             layerInfo.insert( std::pair<std::string, LayerInfo_t>(ifname, tempLayerInfo));

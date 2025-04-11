@@ -215,7 +215,11 @@ void XBSStore::getAuthServicePartnerID()
             }
 
             // If partnerId3.dat is created
-            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE) && strcmp(event->name, targetFile.c_str()) == 0) {
+            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE))
+	    {    
+		event->name[event->len] = '\0'; // Ensure null-termination
+                if (strcmp(event->name, targetFile.c_str()) == 0)
+	       	{   
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, event->name);
                 partnerIdWatchAdded = true;
                 partnerFileUpdated = true;
@@ -223,6 +227,7 @@ void XBSStore::getAuthServicePartnerID()
                 // Monitor the file for close after writing
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
                 break;
+		}
             }
 
             // If partnerId3.dat is modified
