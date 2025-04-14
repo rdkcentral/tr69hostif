@@ -23,8 +23,7 @@ export top_srcdir=`pwd`
 RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
 
-
-
+apt-get install -y iproute2
  cp ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml /etc/data-model-tv.xml
  cp ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml /etc/data-model-generic.xml
  cp ./src/hostif/parodusClient/waldb/data-model/data-model-stb.xml /etc/data-model-stb.xml
@@ -33,6 +32,7 @@ mkdir -p "$RESULT_DIR"
   echo "RDK_PROFILE=STB" > /etc/device.properties
 
 
+echo "VERSION=99.99.15.07" >> /version.txt
 
 
 cp ./src/integrationtest/conf/mgrlist.conf /etc/
@@ -56,4 +56,4 @@ fi
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup_sequence.json test/functional-tests/tests/test_bootup_sequence.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communications.py
-
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/deviceip.json test/functional-tests/tests/tr69hostif_deviceip.py
