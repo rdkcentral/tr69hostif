@@ -97,6 +97,7 @@ std::string get_HWMAcAddress()
             dstCount++;
         }
         HwMac[dstCount] = '\0';
+	fclose(fp);
         fp = NULL;
         hwAddr = HwMac;
     }
@@ -257,10 +258,12 @@ std::string get_FwName()
         token = strtok(line, ":");
         token = strtok(NULL, ":");
 	if (token != NULL) {
-            strncpy(imageName, token, sizeof(imageName) - 1);
-            imageName[sizeof(imageName) - 1] = '\0'; 
+            snprintf(imageName, sizeof(imageName), "%s", token); 
         }
-        strncpy(imageName, token, strlen(token));
+        else {
+           // Handle the null case if necessary
+           printf("Error: Token is null\n");
+        }
         fclose(fp);
         fp = NULL;
         fw_name = imageName;
