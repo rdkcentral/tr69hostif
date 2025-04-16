@@ -4144,20 +4144,24 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerD
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Successfully set \"%s\" to \"%d\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, isenabled);
 
         rbusError_t rc = RBUS_ERROR_BUS_ERROR;
-        rbusValue_t value, byVal;
+        rbusValue_t value, byVal, preValue;
         rbusObject_t data;
         rbusEvent_t event = {0};
 
         rbusValue_Init(&value);
         rbusValue_Init(&byVal);
+	rbusValue_Init(&preValue);
         rbusValue_SetBoolean(value, isenabled);
+	rbusValue_SetBoolean(preValue, stMsgData->paramValue);
         rbusValue_SetString(byVal, "tr69hostif");
+	
 
 	rbusObject_Init(&data, NULL);
         rbusObject_SetValue(data, "value", value);
+	rbusObject_SetValue(data, "oldValue", preValue);
         rbusObject_SetValue(data, "by", byVal);
 
-        event.name = RDM_DOWNLOAD_EVENT;
+        event.name = RDM_DOWNLOAD_EVENT1;
         event.data = data;
         event.type = RBUS_EVENT_VALUE_CHANGED;
 
@@ -4175,6 +4179,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerD
 
         rbusValue_Release(value);
         rbusValue_Release(byVal);
+	rbusValue_Release(preValue);
         rbusObject_Release(data);
     }
     else
