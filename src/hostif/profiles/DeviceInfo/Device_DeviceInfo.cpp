@@ -4427,6 +4427,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComDABRFCEnable(HOSTIF_MsgData_t *stMsgDat
         } else {
 	    if (remove(RDKV_DAB_ENABLE_FILE) != 0) {
                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove file %s.\n", __FUNCTION__, __LINE__, RDKV_DAB_ENABLE_FILE);
+            } else {
+                  RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] File %s successfully removed.\n",__FUNCTION__, __LINE__, RDKV_DAB_ENABLE_FILE);
             }
         }
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully set \"%s\" to \"%d\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, enable);
