@@ -318,7 +318,11 @@ void replaceWithInstanceNumber(char *paramName, int instanceNumber)
 	    ERR_CHK(safec_rc);
     }
 #endif
-    strcpy(paramName+(strlen(paramName)-4),number);
+    size_t remainingSize = MAX_PARAMETER_LENGTH - (position - paramName);
+    if (remainingSize > 0) {
+        strncpy(position, number, remainingSize - 1);
+        position[remainingSize - 1] = '\0'; // Ensure null termination
+    }
 }
 
 /**
@@ -403,7 +407,12 @@ void appendNextObject(char* currentParam, const char* pAttparam)
     }
     // Copy rest of the un matching strings to currentParam
     // TO DO: Since the size of the destination buffer is not predictable using strcpy
-    strcpy(currentParam, pAttparam);
+    size_t remainingSize = MAX_PARAMETER_LENGTH - strlen(currentParam);
+    if (remainingSize > 0)
+    {
+        strncpy(currentParam, pAttparam, remainingSize - 1);
+        currentParam[MAX_PARAMETER_LENGTH - 1] = '\0'; // Ensure null termination
+    }
 }
 /**
  * @brief Get the list of parameters which is matching with paramName
@@ -537,8 +546,10 @@ static XMLNode* getList(XMLNode *pParent,char *paramName,char* currentParam,char
                             replaceWithInstanceNumber(currentParam,i);
                             sChild = getList(pChild,tparaName,currentParam,ptrParamList,pParamDataTypeList,paramCount);
                             //TO DO:Since curretParam size is not predictable using strcpy
-			    strcpy(currentParam+len, INSTANCE_NUMBER_INDICATOR);
-			    i++;
+			    size_t remainingSize = MAX_PARAMETER_LENGTH - len;
+                            strncpy(currentParam + len, INSTANCE_NUMBER_INDICATOR, remainingSize - 1);
+                            currentParam[MAX_PARAMETER_LENGTH - 1] = '\0'; // Ensure null termination
+                            i++;
                         }
                         pChild = sChild;
                         // Seems like instance count is empty
@@ -954,9 +965,17 @@ static DB_STATUS get_complete_parameter_list_from_dml_xml (
             // Check if the Object is matching with given input wild card
             if(strstr(pAttrib->Value(),top_node_name))
             {
+                 // Ensure the length of the string being copied does not exceed the buffer size
+               size_t value_length = strlen(pAttrib->Value());
+               if (value_length >= MAX_PARAMETER_LENGTH)
+               {
+                  value_length = MAX_PARAMETER_LENGTH - 1;
+               }
+                strncpy(currentParam, pAttrib->Value(), value_length);
+                currentParam[value_length] = '\0'; // Ensure null-termination
+                // Call appendNextObject while ensuring buffer safety
                 appendNextObject(currentParam, pAttrib->Value());
                 std::string str = pAttrib->Value();
-
                 if (str.compare(str.size()-5,5,".{i}.") == 0) {
                     if(params_count < MAX_NUM_PARAMETERS)
                     {

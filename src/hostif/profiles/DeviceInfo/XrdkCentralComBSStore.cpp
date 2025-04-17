@@ -196,10 +196,12 @@ void XBSStore::getAuthServicePartnerID()
                 if (foundAuthService) {
                     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
                     wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
-                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
+                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
                 } else {
                     // Add a new watch for /opt/www/authService creation
                     wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
+                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
                     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
                 }
             }
@@ -209,13 +211,18 @@ void XBSStore::getAuthServicePartnerID()
                 foundAuthService = true;
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", authServiceDir.c_str());
 
-                // Add a new watch for partnerId3.dat
+		// Add a new watch for partnerId3.dat
                 wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
             }
 
             // If partnerId3.dat is created
-            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE) && strcmp(event->name, targetFile.c_str()) == 0) {
+            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE))
+	    {    
+		event->name[event->len] = '\0'; // Ensure null-termination
+                if (strcmp(event->name, targetFile.c_str()) == 0)
+	       	{   
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, event->name);
                 partnerIdWatchAdded = true;
                 partnerFileUpdated = true;
@@ -223,6 +230,7 @@ void XBSStore::getAuthServicePartnerID()
                 // Monitor the file for close after writing
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
                 break;
+		}
             }
 
             // If partnerId3.dat is modified
