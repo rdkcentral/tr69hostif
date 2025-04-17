@@ -195,24 +195,14 @@ void XBSStore::getAuthServicePartnerID()
                 foundAuthService = fileExists(authServiceDir);
                 if (foundAuthService) {
                     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
-                    int tempWd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
-                    if (tempWd != -1) {
-                        wd = tempWd; // Update wd only if the watch is successfully added
-                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
-                    }
-                    else {
-                        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to add inotify watch on %s: %s\n", authServiceDir.c_str(), strerror(errno));
-                    }
+                    wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
                 } else {
                     // Add a new watch for /opt/www/authService creation
-                    int tempWd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
-                    if (tempWd != -1) {
-                        wd = tempWd; // Update wd only if the watch is successfully added
-                         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
-                     } 
-		    else {
-                        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to add inotify watch on %s: %s\n", wwwDir.c_str(), strerror(errno));
-                    }
+                    wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
+                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
                 }
             }
 
@@ -221,14 +211,10 @@ void XBSStore::getAuthServicePartnerID()
                 foundAuthService = true;
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", authServiceDir.c_str());
 
-                // Add a new watch for partnerId3.dat
-                 int tempWd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
-                 if (tempWd != -1) {
-                     wd = tempWd;  // Update wd only if successful
-                     RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
-                 } else {
-                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to add watch on %s: %s\n", authServiceDir.c_str(), strerror(errno));
-                 }
+		// Add a new watch for partnerId3.dat
+                wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
             }
 
             // If partnerId3.dat is created
