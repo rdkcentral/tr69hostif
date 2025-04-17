@@ -492,7 +492,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
-    string line = "NOT_STARTED";
+    string line = "NOT_NEEDED";
     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
     ifstream file_read (MigrationStatus);
     try {
