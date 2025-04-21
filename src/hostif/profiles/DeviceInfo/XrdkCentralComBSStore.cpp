@@ -44,6 +44,7 @@
 #define BSP_COMPLETE_TMP "/tmp/bspcomplete"
 #define RFC_DIRECTORY "/opt/RFC"
 #define AUTH_SERVICE_PARODUS_RESTART "/tmp/authservice_parodus_restart"
+#define MAX_FILENAME_LENGTH 256
 
 #define CURL_EASY_SETOPT(CURL , CURLoption , Value)\
     if (curl_easy_setopt(CURL , CURLoption , Value) != CURLE_OK ) {\
