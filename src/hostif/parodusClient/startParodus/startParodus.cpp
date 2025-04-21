@@ -74,7 +74,7 @@ std::string get_HWMAcAddress()
     int srcCount = 0;
     int dstCount = 0;
     char tempMAC[17] = {0};
-    char HwMac[14] = "";
+    char HwMac[13] = "";
     std::string hwAddr;
 
     fp = fopen(HWMAC_FILE, "r");
