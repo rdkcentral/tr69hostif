@@ -4161,7 +4161,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerD
 	rbusObject_SetValue(data, "oldValue", preValue);
         rbusObject_SetValue(data, "by", byVal);
 
-        event.name = RDM_DOWNLOAD_EVENT1;
+        event.name = RDM_DOWNLOAD_EVENT_MOCK;
         event.data = data;
         event.type = RBUS_EVENT_VALUE_CHANGED;
 
