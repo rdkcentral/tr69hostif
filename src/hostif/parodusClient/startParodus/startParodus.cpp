@@ -74,19 +74,14 @@ std::string get_HWMAcAddress()
     int srcCount = 0;
     int dstCount = 0;
     char tempMAC[17] = {0};
-    char HwMac[13] = "";
+    char HwMac[14] = "";
     std::string hwAddr;
 
     fp = fopen(HWMAC_FILE, "r");
     if (fp != NULL)
     {
         size_t bytesRead = fread(tempMAC, 1, 17, fp);
-	if (bytesRead != 17)
-	{
-	    printf("Error reading MAC address, bytes read: %zu\n", bytesRead);
-            fclose(fp);
-            return hwAddr;
-	}
+        RDK_LOG(RDK_LOG_INFO, "LOG.RDK.PARODUS", "fread read %zu bytes\n", bytesRead);
         for (srcCount = 0; dstCount < 12 && srcCount < 17; srcCount++)
         {
             if (tempMAC[srcCount] == ':')
@@ -96,14 +91,12 @@ std::string get_HWMAcAddress()
             HwMac[dstCount] = tempMAC[srcCount];
             dstCount++;
         }
-        HwMac[dstCount] = '\0';
-	fclose(fp);
+        HwMac[13] = '\0';
         fp = NULL;
         hwAddr = HwMac;
     }
     return hwAddr;
 }
-
 std::string get_PartnerId()
 {
     char PartnerId[128] = "";
