@@ -37,6 +37,7 @@
 
 
 #include "Device_DeviceInfo_Processor.h"
+#include "safec_lib.h"
 
 GHashTable* hostIf_DeviceProcessorInterface::ifHash = NULL;
 GMutex hostIf_DeviceProcessorInterface::m_mutex;
@@ -179,14 +180,14 @@ int hostIf_DeviceProcessorInterface::get_Device_DeviceInfo_Processor_Architectur
 {
     struct utsname  utsName;
     uname(&utsName);
+    errno_t rc = -1;
 
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Get Architecture value: '%s'\n", utsName.machine);
-    size_t len = strlen(utsName.machine);
-    if (len >= sizeof(stMsgData->paramValue)) {
-        len = sizeof(stMsgData->paramValue) - 1;
+    rc=strcpy_s(stMsgData->paramValue, strlen(utsName.machine), utsName.machine);
+    if(rc!=EOK)
+    {
+        ERR_CHK(rc);
     }
-    strncpy(stMsgData->paramValue, utsName.machine, strlen(utsName.machine));
-    stMsgData->paramValue[len] = '\0';  // Null-terminate the string
     if(pChanged && bCalledArchitecture && strncpy(stMsgData->paramValue,backupArchitecture,strlen(stMsgData->paramValue)))
     {
         *pChanged = true;
