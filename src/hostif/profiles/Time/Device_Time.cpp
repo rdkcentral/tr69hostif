@@ -170,7 +170,7 @@ int hostIf_Time::get_Device_Time_LocalTimeZone(HOSTIF_MsgData_t *stMsgData, bool
     struct tm *newtime = NULL;
     errno_t rc = -1;
 
-    char tmp[_BUF_LEN_64];
+    char tmp[_BUF_LEN_64]= {'\0'};
 
     gettimeofday(&time_now, NULL);
 
@@ -187,13 +187,13 @@ int hostIf_Time::get_Device_Time_LocalTimeZone(HOSTIF_MsgData_t *stMsgData, bool
     }
 
     bCalledLocalTimeZone = true;
-    rc=strcpy_s(stMsgData->paramValue, _BUF_LEN_64, tmp)
+    rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), tmp)
     if(rc!=EOK)
     {
         ERR_CHK(rc);
     }
     
-    rc=strcpy_s(backupLocalTimeZone, _BUF_LEN_64, tmp);
+    rc=strcpy_s(backupLocalTimeZone, sizeof(backupLocalTimeZone), tmp);
     if(rc!=EOK)
     {
         ERR_CHK(rc);
