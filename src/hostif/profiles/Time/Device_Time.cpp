@@ -187,7 +187,7 @@ int hostIf_Time::get_Device_Time_LocalTimeZone(HOSTIF_MsgData_t *stMsgData, bool
     }
 
     bCalledLocalTimeZone = true;
-    rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), tmp)
+    rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), tmp);
     if(rc!=EOK)
     {
         ERR_CHK(rc);
