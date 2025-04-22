@@ -250,13 +250,8 @@ std::string get_FwName()
         fgets(line, 128, fp);
         token = strtok(line, ":");
         token = strtok(NULL, ":");
-	if (token != NULL) {
-            snprintf(imageName, sizeof(imageName), "%s", token); 
-        }
-        else {
-           // Handle the null case if necessary
-           printf("Error: Token is null\n");
-        }
+	strncpy(imageName, token, sizeof(imageName) - 1);
+        imageName[sizeof(imageName) - 1] = '\0'; 
         fclose(fp);
         fp = NULL;
         fw_name = imageName;
