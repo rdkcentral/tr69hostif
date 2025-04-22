@@ -168,6 +168,7 @@ int hostIf_Time::get_Device_Time_LocalTimeZone(HOSTIF_MsgData_t *stMsgData, bool
 {
     struct timeval time_now;
     struct tm *newtime = NULL;
+    errno_t rc = -1;
 
     char tmp[_BUF_LEN_64];
 
@@ -186,10 +187,17 @@ int hostIf_Time::get_Device_Time_LocalTimeZone(HOSTIF_MsgData_t *stMsgData, bool
     }
 
     bCalledLocalTimeZone = true;
-    strncpy(stMsgData->paramValue,tmp,_BUF_LEN_64-1);
-    stMsgData->paramValue[_BUF_LEN_64 - 1] = '\0'; // Ensure null-termination
-    strncpy(backupLocalTimeZone,tmp,_BUF_LEN_64-1);
-     backupLocalTimeZone[_BUF_LEN_64 - 1] = '\0'; // Ensure null-termination
+    rc=strcpy_s(stMsgData->paramValue,_BUF_LEN_64-1,tmp)
+    if(rc!=EOK)
+    {
+        ERR_CHK(rc);
+    }
+    
+    rc=strcpy_s(backupLocalTimeZone,_BUF_LEN_64-1,tmp);
+    if(rc!=EOK)
+    {
+        ERR_CHK(rc);
+    }
 
 
     stMsgData->paramtype = hostIf_StringType;
