@@ -147,8 +147,10 @@ std::string get_PartnerId()
         {
             printf("[%s:%d]PARTNERID RFC PARAM VALUE = [ %s ] \n", __FUNCTION__, __LINE__, param.value);
             // remove quotes arround data
-            strncpy(PartnerId, param.value, MAX_PARTNER_ID_SIZE - 1);
-            PartnerId[MAX_PARTNER_ID_SIZE - 1] = '\0';  // Ensure null termination
+            strncpy(PartnerId, &param.value[0], sizeof(PartnerID));
+            PartnerId[sizeof(PartnerID) - 1] = '\0';
+
+
         }
     }
     if (!strncmp(PartnerId, UNKNOWN_PARTNERID, sizeof(UNKNOWN_PARTNERID)))
