@@ -147,7 +147,7 @@ std::string get_PartnerId()
         {
             printf("[%s:%d]PARTNERID RFC PARAM VALUE = [ %s ] \n", __FUNCTION__, __LINE__, param.value);
             // remove quotes arround data
-            strncpy(PartnerId, &param.value[0], sizeof(PartnerId));
+            strncpy(PartnerId, &param.value[0], sizeof(PartnerId) - 1);
             PartnerId[sizeof(PartnerId) - 1] = '\0';
 
 
@@ -252,7 +252,7 @@ std::string get_FwName()
         fgets(line, 128, fp);
         token = strtok(line, ":");
         token = strtok(NULL, ":");
-	strncpy(imageName, token, sizeof(imageName));
+	strncpy(imageName, token, sizeof(imageName) - 1);
         imageName[sizeof(imageName) - 1] = '\0'; 
         fclose(fp);
         fp = NULL;
