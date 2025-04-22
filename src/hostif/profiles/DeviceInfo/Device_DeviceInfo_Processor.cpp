@@ -180,7 +180,6 @@ int hostIf_DeviceProcessorInterface::get_Device_DeviceInfo_Processor_Architectur
 {
     struct utsname  utsName;
     uname(&utsName);
-    errno_t rc = -1;
 
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Get Architecture value: '%s'\n", utsName.machine);
     strncpy(stMsgData->paramValue, utsName.machine, sizeof(stMsgData->paramValue) - 1);
