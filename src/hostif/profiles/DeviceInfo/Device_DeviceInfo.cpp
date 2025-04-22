@@ -1757,7 +1757,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadPerce
         if (lastField != NULL) 
 	{
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): Last Field: [%s]\n", __FUNCTION__, lastField);
-	    strncpy(output, lastField,8);
+	    strncpy(output, lastField, 8);
 	    output[7] = '\0';
             firmwareDownloadPercent = strtol (output, NULL, 10);
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] FirmwareDownloadPercent = [%d]\n", __FUNCTION__, firmwareDownloadPercent);
