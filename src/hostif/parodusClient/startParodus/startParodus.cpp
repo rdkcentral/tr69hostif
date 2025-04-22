@@ -253,7 +253,7 @@ std::string get_FwName()
         token = strtok(line, ":");
         token = strtok(NULL, ":");
 	strncpy(imageName, token, sizeof(imageName) - 1);
-        imageName[sizeof(imageName) - 1] = '\0'; 
+        imageName[sizeof(imageName) - 1] = '\0';
         fclose(fp);
         fp = NULL;
         fw_name = imageName;
