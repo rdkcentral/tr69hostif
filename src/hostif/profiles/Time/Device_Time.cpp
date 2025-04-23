@@ -187,19 +187,10 @@ int hostIf_Time::get_Device_Time_LocalTimeZone(HOSTIF_MsgData_t *stMsgData, bool
     }
 
     bCalledLocalTimeZone = true;
-    rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), tmp);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
-    
-    rc=strcpy_s(backupLocalTimeZone, sizeof(backupLocalTimeZone), tmp);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
-
-
+    strncpy(stMsgData->paramValue,tmp,sizeof(stMsgData->paramValue) -1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+    strncpy(backupLocalTimeZone,tmp,sizeof(backupLocalTimeZone) -1);
+    backupLocalTimeZone[sizeof(backupLocalTimeZone) -1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
     return OK;
@@ -237,7 +228,7 @@ int hostIf_Time::get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *stMsgData, b
 {
     time_t rawtime;
     struct tm * timeinfo;
-     errno_t rc = -1;
+    errno_t rc = -1;
     char buffer [_BUF_LEN_64] = {'\0'};
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FILE__, __FUNCTION__);
     char timeZoneTmp[7];
