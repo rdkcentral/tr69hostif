@@ -168,9 +168,9 @@ int hostIf_Time::get_Device_Time_LocalTimeZone(HOSTIF_MsgData_t *stMsgData, bool
 {
     struct timeval time_now;
     struct tm *newtime = NULL;
-    errno_t rc = -1;
+    
 
-    char tmp[_BUF_LEN_64]= {'\0'};
+    char tmp[_BUF_LEN_64];
 
     gettimeofday(&time_now, NULL);
 
