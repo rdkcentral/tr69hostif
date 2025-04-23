@@ -4168,12 +4168,12 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerD
         rc = rbusEvent_Publish(rbusHandle, &event);
         if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
         {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT, rbusError_ToString(rc));
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %s !!! \n ", __FUNCTION__, __LINE__,RDM_DOWNLOAD_EVENT_MOCK , rbusError_ToString(rc));
 	    ret = NOK;
         }
         else
         {
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT );
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT_MOCK);
             ret = OK;
         }
 
