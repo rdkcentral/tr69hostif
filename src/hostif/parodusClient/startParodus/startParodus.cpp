@@ -81,7 +81,8 @@ std::string get_HWMAcAddress()
     fp = fopen(HWMAC_FILE, "r");
     if (fp != NULL)
     {
-        size_t bytesRead = fread(tempMAC, 1, 17, fp);
+        //size_t bytesRead = fread(tempMAC, 1, 17, fp);
+        fread(tempMAC, 1, 17, fp);
        // RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Bytes read: %zu\n", bytesRead);
         for (srcCount = 0; dstCount < 12 && srcCount < 17; srcCount++)
         {
