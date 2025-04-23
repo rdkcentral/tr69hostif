@@ -29,6 +29,7 @@
 #include "cJSON.h"
 #include "rfcapi.h"
 #include "hostIf_utils.h"
+#include "rdk_debug.h"
 #include "secure_wrapper.h"
 #include <signal.h>
 #include <glib.h>
