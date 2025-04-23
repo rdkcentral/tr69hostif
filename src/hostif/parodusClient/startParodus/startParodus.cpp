@@ -29,7 +29,7 @@
 #include "cJSON.h"
 #include "rfcapi.h"
 #include "hostIf_utils.h"
-#include "rdk_debug.h"
+//#include "rdk_debug.h"
 #include "secure_wrapper.h"
 #include <signal.h>
 #include <glib.h>
@@ -82,7 +82,7 @@ std::string get_HWMAcAddress()
     if (fp != NULL)
     {
         size_t bytesRead = fread(tempMAC, 1, 17, fp);
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Bytes read: %zu\n", bytesRead);
+       // RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Bytes read: %zu\n", bytesRead);
         for (srcCount = 0; dstCount < 12 && srcCount < 17; srcCount++)
         {
             if (tempMAC[srcCount] == ':')
