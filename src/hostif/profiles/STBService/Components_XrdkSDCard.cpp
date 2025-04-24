@@ -649,14 +649,13 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
                    }
                     free(healthInfo);
             }
-        else
-           {
+            else
+	    {
             // Handle memory allocation failure
                 sdCardParam->sdCardProp.iVal = -1;
-           }
+            }
        }
-        }
-    else
+       else
        {
             eSTMGRDeviceInfo deviceInfo;
             memset (&deviceInfo, 0 , sizeof(deviceInfo));
@@ -836,6 +835,7 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
                 }
             }
         }
+    }
     else
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] This platform does not have SD card\n",__FUNCTION__);
