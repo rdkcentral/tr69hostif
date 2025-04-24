@@ -5385,19 +5385,19 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *
 	rbusObject_SetValue(data, "oldValue", preValue);
         rbusObject_SetValue(data, "by", byVal);
 
-        event.name = RDM_DOWNLOAD_EVENT_MOCK;
+        event.name = RDM_DOWNLOAD_EVENT;
         event.data = data;
         event.type = RBUS_EVENT_VALUE_CHANGED;
 
         rc = rbusEvent_Publish(rbusHandle, &event);
         if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
         {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %s !!! \n ", __FUNCTION__, __LINE__,RDM_DOWNLOAD_EVENT_MOCK , rbusError_ToString(rc));
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %s !!! \n ", __FUNCTION__, __LINE__,RDM_DOWNLOAD_EVENT , rbusError_ToString(rc));
 	    ret = NOK;
         }
         else
         {
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT_MOCK);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT);
             ret = OK;
         }
 
