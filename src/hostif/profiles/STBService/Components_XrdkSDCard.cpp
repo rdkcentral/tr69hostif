@@ -836,7 +836,6 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
                 }
             }
         }
-    }
     else
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] This platform does not have SD card\n",__FUNCTION__);
