@@ -1483,6 +1483,7 @@ public:
     int get_X_RDK_FirmwareName(HOSTIF_MsgData_t *);
 
     int set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *);
 };
 /* End of doxygen group */
 /**
