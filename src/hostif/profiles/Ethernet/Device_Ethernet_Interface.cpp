@@ -270,7 +270,7 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     errno_t rc = -1;
     char cmd[BUFF_LENGTH] = {'\0'};
     int temp = 0, isEnabled = 0;
-    char ethernetInterfaceName[BUFF_LENGTH_64] ={'0'};
+    char ethernetInterfaceName[BUFF_LENGTH_64] ={'\0'};
     char *value = NULL;
 
     if(!ethInterfaceNum)
