@@ -3499,7 +3499,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComBootstrap(HOSTIF_MsgData_t * stMsgData)
 static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
 {
     const char *apparmor_profiledir = "/etc/apparmor.d";
-    const char *earlypolicy_base_dir = "/etc/apparmor/earlypolicy";
+    const char *service_profiles_dir = "/etc/apparmor/service_profiles";
     struct dirent *entry=NULL;
     DIR *dir=NULL;
     char *files_name = NULL;
@@ -3575,37 +3575,18 @@ static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
                 fprintf(tmp_fptr,"%s\n",token);
             } else {
                 bool profile_found = false;
-                DIR *earlypolicy_dir_ptr = opendir(earlypolicy_base_dir);
-                if (earlypolicy_dir_ptr != NULL) {
-                    struct dirent *earlypolicy_entry = NULL;
-                    while ((earlypolicy_entry = readdir(earlypolicy_dir_ptr)) != NULL) {
-                        // Skip . and .. entries
-                        if (strcmp(earlypolicy_entry->d_name, ".") == 0 || strcmp(earlypolicy_entry->d_name, "..") == 0) {
-                            continue;
-                        }
-                        // Construct the full path to the subdirectory
-                        char subdir_path[1024];
-                        snprintf(subdir_path, sizeof(subdir_path), "%s/%s", earlypolicy_base_dir, earlypolicy_entry->d_name);
-                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"snprintf args %s and %s\n", earlypolicy_base_dir, earlypolicy_entry->d_name);
-                        // Open the subdirectory to search for the profile
-                        DIR *subdir = opendir(subdir_path);
-                        if (subdir != NULL) {
-                            struct dirent *sub_entry = NULL;
-                            while ((sub_entry = readdir(subdir)) != NULL) {
-                                // Check if the file ends with .service.sp and matches subtoken
-                                if (strstr(sub_entry->d_name, subtoken) != NULL &&
-                                    strstr(sub_entry->d_name, ".service.sp") != NULL) {
-                                    profile_found = true;
-                                    break;
-                                }
-                            }
-                            closedir(subdir);
-                        }
-                        if (profile_found) {
+                DIR *service_profiles_dir_ptr = opendir(service_profiles_dir);
+                if (service_profiles_dir_ptr != NULL) {
+                    struct dirent *profile_entry = NULL;
+                    while ((profile_entry = readdir(service_profiles_dir_ptr)) != NULL) {
+                        // Check if the file ends with .service.sp and matches subtoken
+                        if (strstr(profile_entry->d_name, subtoken) != NULL &&
+                            strstr(profile_entry->d_name, ".service.sp") != NULL) {
+                            profile_found = true;
                             break;
                         }
                     }
-                    closedir(earlypolicy_dir_ptr);
+                    closedir(service_profiles_dir_ptr);
                 }
                 if (profile_found) {
                     fprintf(tmp_fptr, "%s\n", token);
