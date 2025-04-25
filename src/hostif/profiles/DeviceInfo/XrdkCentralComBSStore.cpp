@@ -152,6 +152,7 @@ void XBSStore::getAuthServicePartnerID()
     if (foundWWW && foundAuthService && fileExists(filePath)) {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s already exists. Monitoring for modifications...\n", __FUNCTION__, targetFile.c_str());
         wd = inotify_add_watch(inotifyFd, filePath.c_str(), IN_CLOSE_WRITE);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
         partnerIdWatchAdded = true;
 
         // Check if the BSP_COMPLETE file exists
@@ -168,10 +169,12 @@ void XBSStore::getAuthServicePartnerID()
         if (foundAuthService) {
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
             wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
             RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
         } else {
             // Add a watch on /opt/www to monitor for authService creation
             wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
         }
     }
