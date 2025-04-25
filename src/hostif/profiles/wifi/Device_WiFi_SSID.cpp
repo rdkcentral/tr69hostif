@@ -237,7 +237,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
         }
 	
         postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWifiState\"}";
-        response = getJsonRPCData(postData);
+        response = getJsonRPCData(std::move(postData));
 
         if(response.c_str())
         {
