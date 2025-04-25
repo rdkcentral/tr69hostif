@@ -270,7 +270,7 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     errno_t rc = -1;
     char cmd[BUFF_LENGTH] = {'\0'};
     int temp = 0, isEnabled = 0;
-    char ethernetInterfaceName[BUFF_LENGTH_64]; 
+    char ethernetInterfaceName[BUFF_LENGTH_64] ={'0'};
     char *value = NULL;
 
     if(!ethInterfaceNum)
@@ -371,7 +371,8 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
 	if(value == NULL)
 	   return 0;
 
-	strncpy(hostIf_EthernetInterface::stEthInterface.mACAddress, value, S_LENGTH);
+	strncpy(hostIf_EthernetInterface::stEthInterface.mACAddress, value, sizeof(hostIf_EthernetInterface::stEthInterface.mACAddress) - 1);
+        hostIf_EthernetInterface::stEthInterface.mACAddress[sizeof(hostIf_EthernetInterface::stEthInterface.mACAddress) - 1] = '\0';
 
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): Interface %u MACAddress: %s \n",
                 __FUNCTION__, ethInterfaceNum, hostIf_EthernetInterface::stEthInterface.mACAddress);
