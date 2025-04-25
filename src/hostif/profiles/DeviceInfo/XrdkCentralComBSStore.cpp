@@ -224,14 +224,12 @@ void XBSStore::getAuthServicePartnerID()
 
             // If partnerId3.dat is created
             else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE)) && strcmp(event->name, targetFile.c_str()) == 0) {
-
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, event->name);	
+                partnerIdWatchAdded = true;	
+                partnerFileUpdated = true;
                 // Monitor the file for close after writing
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
                 break;
-                }
-		else {
-                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s Ignoring file creation for %s (length mismatch, exceeds max length, or partial match with %s)\n", __FUNCTION__, event->name, targetFile.c_str());
-                }
             }
 
             // If partnerId3.dat is modified
