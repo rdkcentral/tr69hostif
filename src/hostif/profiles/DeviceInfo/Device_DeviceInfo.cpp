@@ -1264,7 +1264,7 @@ string hostIf_DeviceInfo::getEstbIp()
     }
     
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetIPSettings\", \"params\" : { \"interface\" : \"" +  ifc + "\"}}";
-    response = getJsonRPCData(postData);
+    response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
