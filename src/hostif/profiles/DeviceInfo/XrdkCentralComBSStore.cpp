@@ -180,6 +180,7 @@ void XBSStore::getAuthServicePartnerID()
     }
 
     while (true) {
+        eventBuf[eventBufSize - 1] = '\0';
         ssize_t numRead = read(inotifyFd, eventBuf, eventBufSize);
         if (numRead == -1) {
             RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to read events: %s\n", strerror(errno));
@@ -222,12 +223,7 @@ void XBSStore::getAuthServicePartnerID()
             }
 
             // If partnerId3.dat is created
-            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE)) {
-                size_t targetFileLen = targetFile.length();
-                if (event->len > 0 && event->len <= MAX_FILENAME_LENGTH && strncmp(event->name, targetFile.c_str(), event->len) == 0 && targetFileLen == event->len) {
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, event->name);
-                partnerIdWatchAdded = true;
-                partnerFileUpdated = true;
+            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE)) && strcmp(event->name, targetFile.c_str()) == 0) {
 
                 // Monitor the file for close after writing
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
