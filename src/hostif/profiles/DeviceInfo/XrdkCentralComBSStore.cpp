@@ -223,7 +223,7 @@ void XBSStore::getAuthServicePartnerID()
             }
 
             // If partnerId3.dat is created
-            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE)) && strcmp(event->name, targetFile.c_str()) == 0) {
+            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE) && strcmp(event->name, targetFile.c_str()) == 0) {
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, event->name);	
                 partnerIdWatchAdded = true;	
                 partnerFileUpdated = true;
