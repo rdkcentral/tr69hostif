@@ -378,16 +378,14 @@ int checkMatchingParameter(const char* attrValue, char* paramName, int* ret)
  */
 void appendNextObject(char* currentParam, const char* pAttparam)
 {
-  char* origCurrentParam = currentParam; // Save the original pointer
-    
     while(true)
     {
-        if(!(*currentParam == *pAttparam))
+        if(!(*currentParam == *pAttparam) )
         {
             // Skip instance numbers
             if(*pAttparam == '{')
             {
-                if(*currentParam)
+                if (*currentParam)
                 {
                     pAttparam += 3;
                     currentParam = strstr(currentParam, ".");
@@ -398,21 +396,14 @@ void appendNextObject(char* currentParam, const char* pAttparam)
             else
                 break;
         }
-        if(!*currentParam && !*pAttparam) break;
+        if(!*currentParam && !*pAttparam ) break;
 
         currentParam++;
         pAttparam++;
     }
-    
-    // Calculate remaining buffer space
-    size_t usedLength = currentParam - origCurrentParam;
-    size_t remainingSpace = MAX_PARAMETER_LENGTH - usedLength - 1; // -1 for null terminator
-    
-    // Replace strcpy with strncpy to avoid buffer overflow
-    if (remainingSpace > 0) {
-        strncpy(currentParam, pAttparam, remainingSpace);
-        currentParam[remainingSpace] = '\0'; // Ensure null termination
-    }
+    // Copy rest of the un matching strings to currentParam
+    // TO DO: Since the size of the destination buffer is not predictable using strcpy
+    strcpy(currentParam, pAttparam);
 }
 
 /**
@@ -964,10 +955,7 @@ static DB_STATUS get_complete_parameter_list_from_dml_xml (
             // Check if the Object is matching with given input wild card
             if(strstr(pAttrib->Value(),top_node_name))
             {
-                const char* valueStr = pAttrib->Value();
-                if (valueStr != NULL) {
                 appendNextObject(currentParam, pAttrib->Value());
-                }
                 std::string str = pAttrib->Value();
                 if (str.compare(str.size()-5,5,".{i}.") == 0) {
                     if(params_count < MAX_NUM_PARAMETERS)
