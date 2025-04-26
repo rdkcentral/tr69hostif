@@ -376,15 +376,9 @@ int checkMatchingParameter(const char* attrValue, char* paramName, int* ret)
  * @param[in] currentParam , Current Name of the Parameter.
  * @param[in] pAttparam , Current attribute value from xml
  */
-
-void appendNextObject(char* currentParam, const char* pAttparam, size_t bufferSize)
+void appendNextObject(char* currentParam, const char* pAttparam)
 {
-    // Check for NULL pointers
-    if (!currentParam || !pAttparam || bufferSize == 0) {
-        return; // Safety check
-    }
-
-    char* origCurrentParam = currentParam; // Save the original pointer
+  char* origCurrentParam = currentParam; // Save the original pointer
     
     while(true)
     {
@@ -397,8 +391,6 @@ void appendNextObject(char* currentParam, const char* pAttparam, size_t bufferSi
                 {
                     pAttparam += 3;
                     currentParam = strstr(currentParam, ".");
-                    // Additional safety check after strstr
-                    if (!currentParam) break;
                 }
                 else
                     break;
@@ -414,9 +406,7 @@ void appendNextObject(char* currentParam, const char* pAttparam, size_t bufferSi
     
     // Calculate remaining buffer space
     size_t usedLength = currentParam - origCurrentParam;
-    if (usedLength >= bufferSize) return; // Safety check
-    
-    size_t remainingSpace = bufferSize - usedLength - 1; // -1 for null terminator
+    size_t remainingSpace = MAX_PARAMETER_LENGTH - usedLength - 1; // -1 for null terminator
     
     // Replace strcpy with strncpy to avoid buffer overflow
     if (remainingSpace > 0) {
@@ -976,7 +966,7 @@ static DB_STATUS get_complete_parameter_list_from_dml_xml (
             {
                 const char* valueStr = pAttrib->Value();
                 if (valueStr != NULL) {
-                appendNextObject(currentParam, valueStr, MAX_PARAMETER_LENGTH);
+                appendNextObject(currentParam, pAttrib->Value());
                 }
                 std::string str = pAttrib->Value();
                 if (str.compare(str.size()-5,5,".{i}.") == 0) {
