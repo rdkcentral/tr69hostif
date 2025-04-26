@@ -223,13 +223,21 @@ void XBSStore::getAuthServicePartnerID()
             }
 
             // If partnerId3.dat is created
-            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE) && strcmp(event->name, targetFile.c_str()) == 0) {
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, event->name);	
-                partnerIdWatchAdded = true;	
-                partnerFileUpdated = true;
-                // Monitor the file for close after writing
-                RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
-                break;
+            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE)) {
+    // Create a null-terminated copy of event->name
+              char safeEventName[NAME_MAX + 1];
+              strncpy(safeEventName, event->name, NAME_MAX);
+              safeEventName[NAME_MAX] = '\0'; // Ensure null termination
+    
+              if (strcmp(safeEventName, targetFile.c_str()) == 0) {
+                  RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, safeEventName);
+                  partnerIdWatchAdded = true;
+                  partnerFileUpdated = true;
+
+                   // Monitor the file for close after writing
+                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
+                 break;
+              }
             }
 
             // If partnerId3.dat is modified
