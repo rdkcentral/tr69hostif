@@ -378,14 +378,16 @@ int checkMatchingParameter(const char* attrValue, char* paramName, int* ret)
  */
 void appendNextObject(char* currentParam, const char* pAttparam)
 {
+    char* origCurrentParam = currentParam; // Save the original pointer
+    
     while(true)
     {
-        if(!(*currentParam == *pAttparam) )
+        if(!(*currentParam == *pAttparam))
         {
             // Skip instance numbers
             if(*pAttparam == '{')
             {
-                if (*currentParam)
+                if(*currentParam)
                 {
                     pAttparam += 3;
                     currentParam = strstr(currentParam, ".");
@@ -396,14 +398,21 @@ void appendNextObject(char* currentParam, const char* pAttparam)
             else
                 break;
         }
-        if(!*currentParam && !*pAttparam ) break;
+        if(!*currentParam && !*pAttparam) break;
 
         currentParam++;
         pAttparam++;
     }
-    // Copy rest of the un matching strings to currentParam
-    // TO DO: Since the size of the destination buffer is not predictable using strcpy
-    strcpy(currentParam, pAttparam);
+    
+    // Calculate remaining buffer space
+    size_t usedLength = currentParam - origCurrentParam;
+    size_t remainingSpace = MAX_PARAMETER_LENGTH - usedLength - 1; // -1 for null terminator
+    
+    // Replace strcpy with strncpy to avoid buffer overflow
+    if (remainingSpace > 0) {
+        strncpy(currentParam, pAttparam, remainingSpace);
+        currentParam[remainingSpace] = '\0'; // Ensure null termination
+    }
 }
 /**
  * @brief Get the list of parameters which is matching with paramName
