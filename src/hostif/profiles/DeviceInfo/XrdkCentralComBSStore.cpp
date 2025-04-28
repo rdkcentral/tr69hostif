@@ -212,14 +212,19 @@ void XBSStore::getAuthServicePartnerID()
             }
 
             // If authService is created
-            else if (foundWWW && !foundAuthService && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) && strcmp(event->name, "authService") == 0) {
-                foundAuthService = true;
+            else if (foundWWW && !foundAuthService && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR)) {
+                char nameBuf[NAME_MAX +1];
+		strncpy(nameBuf, event->name, NAME_MAX);
+		nameBuf[NAME_MAX] ='\0';
+		if (strcmp(nameBuf, "authService") == 0) {
+		foundAuthService = true;
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", authServiceDir.c_str());
 
 		// Add a new watch for partnerId3.dat
                 wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
                 RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
+		}
             }
 
             // If partnerId3.dat is created
