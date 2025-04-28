@@ -180,7 +180,6 @@ void XBSStore::getAuthServicePartnerID()
     }
 
     while (true) {
-        eventBuf[eventBufSize - 1] = '\0';
         ssize_t numRead = read(inotifyFd, eventBuf, eventBufSize);
         if (numRead == -1) {
             RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to read events: %s\n", strerror(errno));
@@ -192,24 +191,29 @@ void XBSStore::getAuthServicePartnerID()
             struct inotify_event *event = (struct inotify_event *)ptr;
 
             // If www is created
-            if (!foundWWW && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) && strcmp(event->name, "www") == 0) {
-                foundWWW = true;
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", wwwDir.c_str());
+             if (!foundWWW && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) ) {
+		char nameBuf[NAME_MAX +1] = {0};
+		strncpy(nameBuf, event->name, NAME_MAX);
+                if (strcmp(event->name, "www") == 0)
+		{
+                   foundWWW = true;
+                   RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", wwwDir.c_str());
 
-                // Immediately check if authService already exists
-                foundAuthService = fileExists(authServiceDir);
-                if (foundAuthService) {
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
-                    wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
-                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
-                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
-                } else {
+                   // Immediately check if authService already exists
+                   foundAuthService = fileExists(authServiceDir);
+                   if (foundAuthService) {
+                       RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
+                       wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+                       RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                       RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
+                    } else {
                     // Add a new watch for /opt/www/authService creation
-                    wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
-                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
+                        wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
+                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
+                   }
                 }
-            }
+	     }
 
             // If authService is created
             else if (foundWWW && !foundAuthService && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR)) {
