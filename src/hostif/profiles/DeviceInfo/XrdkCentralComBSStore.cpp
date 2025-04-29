@@ -194,7 +194,7 @@ void XBSStore::getAuthServicePartnerID()
              if (!foundWWW && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) ) {
 		char nameBuf[NAME_MAX +1] = {0};
 		strncpy(nameBuf, event->name, NAME_MAX);
-                if (strcmp(event->name, "www") == 0)
+                if (strcmp(nameBuf, "www") == 0)
 		{
                    foundWWW = true;
                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", wwwDir.c_str());
