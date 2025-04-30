@@ -1221,7 +1221,7 @@ string hostIf_DeviceInfo::getEstbIp()
 #if MEDIA_CLIENT
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetPrimaryInterface\"}";
 
-    string response = getJsonRPCData(postData);
+    string response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -1264,7 +1264,7 @@ string hostIf_DeviceInfo::getEstbIp()
     }
     
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetIPSettings\", \"params\" : { \"interface\" : \"" +  ifc + "\"}}";
-    response = getJsonRPCData(postData);
+    response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -1758,6 +1758,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadPerce
 	{
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): Last Field: [%s]\n", __FUNCTION__, lastField);
 	    strncpy(output, lastField, 8);
+	    output[7] = '\0';
             firmwareDownloadPercent = strtol (output, NULL, 10);
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] FirmwareDownloadPercent = [%d]\n", __FUNCTION__, firmwareDownloadPercent);
             put_int (stMsgData->paramValue, firmwareDownloadPercent);
@@ -2679,7 +2680,7 @@ int hostIf_DeviceInfo::get_PartnerId_From_Script( string& current_PartnerId )
             partnerId = "";
         }
     }
-    current_PartnerId = partnerId;
+    current_PartnerId = std::move(partnerId);
 
     return OK;
 }
@@ -4021,7 +4022,7 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFCAccountId(HOSTIF_MsgData_t *stMsgDat
         
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Account ID..\n", __FUNCTION__);
         
-    string response = getJsonRPCData(postData); 
+    string response = getJsonRPCData(std::move(postData)); 
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -4424,7 +4425,11 @@ int hostIf_DeviceInfo::set_xRDKCentralComDABRFCEnable(HOSTIF_MsgData_t *stMsgDat
             ofstream dabStatusFile(RDKV_DAB_ENABLE_FILE);
             dabStatusFile.close();
         } else {
-            remove(RDKV_DAB_ENABLE_FILE);
+	    if (remove(RDKV_DAB_ENABLE_FILE) != 0) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove file %s.\n", __FUNCTION__, __LINE__, RDKV_DAB_ENABLE_FILE);
+            } else {
+                  RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] File %s successfully removed.\n",__FUNCTION__, __LINE__, RDKV_DAB_ENABLE_FILE);
+            }
         }
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully set \"%s\" to \"%d\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, enable);
         ret = OK;
@@ -5222,7 +5227,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgD
     string experience = "";
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
  
-    string resp = getJsonRPCData(postData); 
+    string resp = getJsonRPCData(std::move(postData)); 
     if(resp.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
