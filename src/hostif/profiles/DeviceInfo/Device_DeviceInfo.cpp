@@ -276,6 +276,7 @@ void hostIf_DeviceInfo::initMutexAttributes() {
     pthread_mutex_init(&hostIf_DeviceInfo::m_mutex, &hostIf_DeviceInfo::m_mutex_attr);
 }
 
+
 void hostIf_DeviceInfo::initMutexOnce() {
     pthread_once(&m_mutex_init_once, (void (*)(void))&hostIf_DeviceInfo::initMutexAttributes);
 }
@@ -293,11 +294,12 @@ void hostIf_DeviceInfo::getLock() {
     } else {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to lock mutex: %s\n",
                 __FUNCTION__, __LINE__, strerror(lock_result));
+
     }
 }
 
 void hostIf_DeviceInfo::releaseLock() {
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
 
     // Try to unlock and handle errors
     int unlock_result = pthread_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
