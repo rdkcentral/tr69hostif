@@ -46,7 +46,7 @@
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName" : "community",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.NetflixESNprefix" : "",
-        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl" : "https://xconf-pif.rdkcentral.com/",
+        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl" : "https://xconf-pif.rdkcentral.com",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfRecoveryUrl" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.SsrUrl" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Enable" : "False",
