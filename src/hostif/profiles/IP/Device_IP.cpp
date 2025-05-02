@@ -144,7 +144,7 @@ void hostIf_IP::getLock()
 
 void hostIf_IP::releaseLock()
 {
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_IP::m_mutex);
 }
 
