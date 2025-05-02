@@ -159,7 +159,7 @@ static void parodus_receive_wait()
             {
                 RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"parodus_receive_wait(): wait for key acquisition timed out");  //CID:119759 - checked return
             }
-	    RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+	    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
             pthread_mutex_unlock(&parodus_lock);
             continue;
         }
