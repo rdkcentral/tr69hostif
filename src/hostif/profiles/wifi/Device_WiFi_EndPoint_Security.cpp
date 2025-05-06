@@ -126,7 +126,7 @@ int hostIf_WiFi_EndPoint_Security::get_hostIf_WiFi_EndPoint_Security_ModesEnable
 
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetConnectedSSID\"}";
 
-    string response = getJsonRPCData(postData);
+    string response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -140,7 +140,8 @@ int hostIf_WiFi_EndPoint_Security::get_hostIf_WiFi_EndPoint_Security_ModesEnable
                 cJSON *securityModeObj = cJSON_GetObjectItem(jsonObj, "securityMode");
 
                 //ASSIGN TO OP HERE
-	        strncpy(stMsgData->paramValue,securityModeObj->valuestring,sizeof(stMsgData->paramValue));
+	        strncpy(stMsgData->paramValue,securityModeObj->valuestring,sizeof(stMsgData->paramValue) -1);
+		stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
                 stMsgData->paramtype = hostIf_StringType;
                 stMsgData->paramLen = strlen(stMsgData->paramValue);
 
