@@ -134,6 +134,7 @@
 
 /* Profile: X_RDKCENTRAL-COM_RDKDownloadManager. */
 #define X_RDKDownloadManager_InstallPackage             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage"
+#define X_RDKDownloadManager_DownloadStatus             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus"
 /* Profile: X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging. */
 #define xOpsDMUploadLogsNow_STR                         "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMUploadLogsNow"
 #define xOpsDMLogsUploadStatus_STR                      "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMLogsUploadStatus"
@@ -185,7 +186,6 @@
 #define RDK_REMOTE_DEBUGGER_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.Enable"
 #define RDK_REMOTE_DEBUGGER_ISSUETYPE                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType"
 #define RDK_REMOTE_DEBUGGER_WEBCFGDATA                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData"
-#define RDK_DOWNLOAD_STATUS                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.DownloadStatus"
 #endif
 
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.RebootStop */
@@ -1223,7 +1223,6 @@ public:
 
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
-    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerDownloadStatus(HOSTIF_MsgData_t *);
 #endif
     /*
       * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable
@@ -1483,6 +1482,7 @@ public:
     int get_X_RDK_FirmwareName(HOSTIF_MsgData_t *);
 
     int set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *);
 };
 /* End of doxygen group */
 /**
