@@ -5301,7 +5301,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
     return OK;
 }
-
+#ifdef USE_REMOTE_DEBUGGER
 int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
@@ -5362,7 +5362,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *
 
     return ret;
 }
-
+#endif
 /* End of doxygen group */
 /**
  * @}
