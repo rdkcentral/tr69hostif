@@ -134,6 +134,7 @@
 
 /* Profile: X_RDKCENTRAL-COM_RDKDownloadManager. */
 #define X_RDKDownloadManager_InstallPackage             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage"
+#define X_RDKDownloadManager_DownloadStatus             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus"
 /* Profile: X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging. */
 #define xOpsDMUploadLogsNow_STR                         "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMUploadLogsNow"
 #define xOpsDMLogsUploadStatus_STR                      "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMLogsUploadStatus"
@@ -252,7 +253,7 @@ class hostIf_DeviceInfo {
     std::string         m_strXOpsDevManageableNotification;
     std::string         m_strXOpsRPCFwDwldStartedNotification;
     bool                m_bXOpsRPCFwDwldCompletedNotification;
-
+    
     string getEstbIp();
     bool isRsshactive();
     bool isShortsEnabled();
@@ -313,6 +314,8 @@ public:
     static int sendDeviceMgtNotification(const char* source, const char* type);
 
     GHashTable* getNotifyHash();
+
+    static void setPowerConInterface( bool isPwrContEnalbe);
 
 //    void runSystemMgmtTimePathMonitor();
     /**
@@ -512,6 +515,43 @@ public:
      * @see get_Device_DeviceInfo_ProductClass.
      */
     int get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+   
+     /**
+     * @brief get_Device_DeviceInfo_MigrationPreparer_MigrationReady.
+     *
+     * This function provides the component list which are ready for migration.
+     * The component name (human readable string).
+     *
+     * @return The status of the operation.
+     *
+     * @retval OK if DeviceInfo_MigrationPreparer_MigrationReady was successfully fetched.
+     :1
+    * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+     *
+     * @sideeffect All necessary structures and buffers are deallocated.
+     * @execution Synchronous.
+     *
+     * @see get_Device_DeviceInfo_MigrationPreparer_MigrationReady.
+     */
+    int get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    /**
+     * @brief get_Device_DeviceInfo_Migration_MigrationStatus.
+     *
+     * This function provides the status of the migration.
+     * The Status (human readable string).
+     *
+     * @return The status of the operation.
+     *
+     * @retval OK if Device_DeviceInfo_Migration_MigrationStatus was successfully fetched.
+     * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+     *
+     * @sideeffect All necessary structures and buffers are deallocated.
+     * @execution Synchronous.
+     *
+     * @see get_Device_DeviceInfo_Migration_MigrationStatus.
+     */
+    int get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t *, bool *pChanged = NULL);
 
     /**
     * @brief get_Device_DeviceInfo_IUI_Version.
@@ -1442,6 +1482,7 @@ public:
     int get_X_RDK_FirmwareName(HOSTIF_MsgData_t *);
 
     int set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *);
 };
 /* End of doxygen group */
 /**

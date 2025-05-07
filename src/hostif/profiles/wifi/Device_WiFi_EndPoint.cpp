@@ -288,7 +288,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWifiState\"}";
 
-    string response = getJsonRPCData(postData);
+    string response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
 	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -395,6 +395,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
                 cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
                 //ASSIGN TO OP HERE
 	        strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
+		SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
             }
             else
             {
@@ -417,7 +418,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     }
 	
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWiFiSignalStrength\"}";
-    response = getJsonRPCData(postData);
+    response = getJsonRPCData(std::move(postData));
 
     if(response.c_str())
     {
