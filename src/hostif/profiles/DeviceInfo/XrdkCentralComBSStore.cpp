@@ -271,7 +271,7 @@ void XBSStore::getAuthServicePartnerID()
                     mtx.lock();
                     xbsInstance->setRawValue(TR181_PARTNER_ID_KEY, newPartnerId.c_str(), HOSTIF_SRC_DEFAULT);
                     xbsInstance->loadFromJson();
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+                    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
                     mtx.unlock();
 
                     // if BSP_COMPLETE exist it means there is a change in partnerID. Create /tmp/authservice_parodus_restart to restart parodus.service
@@ -516,11 +516,11 @@ string XBSStore::getRawValue(const string &key)
     mtx.lock();
     unordered_map<string,string>::const_iterator it = m_dict.find(key);
     if (it == m_dict.end()) {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         mtx.unlock();
         return "";
     }
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     mtx.unlock();
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "Leaving %s : Value = %s \n", __FUNCTION__, it->second.c_str());
 
@@ -693,7 +693,7 @@ faultCode_t  XBSStore::overrideValue(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unable to Set Value for given Param\n");
         stMsgData->faultCode = fcInternalError;
     }
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     mtx.unlock();
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "Leaving %s \n", __FUNCTION__);
     return stMsgData->faultCode;
@@ -785,7 +785,7 @@ bool XBSStore::init()
     mtx.lock();
     if(m_initDone)
     {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
         mtx.unlock();
         return m_initDone;
     }
@@ -794,7 +794,7 @@ bool XBSStore::init()
     m_initDone = loadBSPropertiesIntoCache();
 
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "Leaving %s \n", __FUNCTION__);
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     mtx.unlock();
     return m_initDone;
 }
