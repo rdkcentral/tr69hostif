@@ -541,16 +541,15 @@ std::string get_security_token() {
              }
              else {
                 RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
-                if (NULL != pSecurity)
-                    v_secure_pclose(pSecurity);
              }
-         }
+        }
+	v_secure_pclose(pSecurity);
      }
+     
      else {
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF,"%s: Failed to open security utility\n", __FUNCTION__);
      }
-     if (NULL != pSecurity)
-         v_secure_pclose(pSecurity);
+    
 
      return sToken;
 }
