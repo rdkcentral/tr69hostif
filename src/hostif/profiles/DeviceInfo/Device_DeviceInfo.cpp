@@ -546,6 +546,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Manufacturer(HOSTIF_MsgData_t * stM
     param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
     iarm_ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 
+    std::string temp_buf(param.buffer);
+    std::replace(temp_buf.begin(), temp_buf.end(), ' ', '_');
+    strncpy(param.buffer, temp_buf.c_str(), MAX_SERIALIZED_BUF - 1);
+    param.buffer[MAX_SERIALIZED_BUF - 1] = '\0';
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] IARM_BUS_MFRLIB_API_GetSerializedData returns params: %s with paramlen: %d.\r\n",__FUNCTION__, param.buffer, param.bufLen);
     if(iarm_ret == IARM_RESULT_SUCCESS)
     {
