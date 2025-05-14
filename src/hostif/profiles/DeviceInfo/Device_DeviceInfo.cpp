@@ -132,7 +132,7 @@ void *ResetFunc(void *);
 
 
 static char stbMacCache[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
-static int mutex_lock = 0;
+static thread_local int mutex_lock = 0;
 static string reverseSSHArgs,shortsArgs,nonShortsArgs;
 map<string,string> stunnelSSHArgs;
 const string sshCommand = "/lib/rdk/startTunnel.sh";
@@ -269,9 +269,11 @@ void hostIf_DeviceInfo::closeAllInstances()
 
 void hostIf_DeviceInfo::getLock()
 {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Attempting to lock mutex\n", __FUNCTION__, __LINE__);
     g_mutex_init(&hostIf_DeviceInfo::m_mutex);
     g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
     mutex_lock = 1;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
 }
 
 void hostIf_DeviceInfo::releaseLock()
@@ -283,7 +285,7 @@ void hostIf_DeviceInfo::releaseLock()
         g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
     }
     else {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex is not locked, cannot unlock...  \n", __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Thread attempted to unlock mutex it doesn't own\n", __FUNCTION__, __LINE__);
     }
 }
 
