@@ -152,11 +152,6 @@ rbusError_t TR_Dml_EventSubHandler(rbusHandle_t handle, rbusEventSubAction_t act
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][rbusdml] Disable Autopublish for action=%s eventName=%s", action == RBUS_EVENT_ACTION_SUBSCRIBE ? "subscribe" : "unsubscribe", __FUNCTION__, eventName);
         *autoPublish = false;
     }
-    else if(!strcmp("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.DownloadStatus", eventName))
-    {
-          RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][rbusdml] Disable Autopublish for action=%s eventName=%s", action == RBUS_EVENT_ACTION_SUBSCRIBE ? "subscribe" : "unsubscribe", __FUNCTION__, eventName);
-          *autoPublish = false;
-    }
     else
     {
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][rbusdml]: Autopublish enabled by default for all DM!\n", __FUNCTION__);
