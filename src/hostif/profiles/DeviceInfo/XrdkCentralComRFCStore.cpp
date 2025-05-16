@@ -245,7 +245,7 @@ faultCode_t XRFCStore::getValue(HOSTIF_MsgData_t *stMsgData)
         return fcInternalError;
     }
     string rawValue = getRawValue(stMsgData->paramName);
-    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "rawValue: %s\n", rawValue.c_str());
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Parameter: %s, rawValue: %s\n", stMsgData->paramName, rawValue.c_str());
     if(rawValue.length() > 0)
     {
         putValue(stMsgData, rawValue.c_str());
