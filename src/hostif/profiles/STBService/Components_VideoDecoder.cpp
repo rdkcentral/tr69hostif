@@ -120,7 +120,7 @@ void hostIf_STBServiceVideoDecoder::getLock()
 
 void hostIf_STBServiceVideoDecoder::releaseLock()
 {
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_STBServiceVideoDecoder::m_mutex);
 }
 
