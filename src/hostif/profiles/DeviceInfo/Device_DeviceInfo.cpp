@@ -527,7 +527,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
 int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     string line = "NOT_NEEDED";
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
+    RDK_LOG(RDK_LOG_TRACE,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
     ifstream file_read (MigrationStatus);
     try {
         if (file_read.is_open())
@@ -543,7 +543,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
         }
      }
      catch (const std::exception &e) {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_TRACE,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
         return NOK;
     }
     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] value:%s\n", __FUNCTION__, line.c_str());
@@ -552,7 +552,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
     strncpy(stMsgData->paramValue, line.c_str(), len);
     stMsgData->paramValue[len+1] = '\0';
     stMsgData->paramLen = len;
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
+    RDK_LOG(RDK_LOG_TRACE,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
 
