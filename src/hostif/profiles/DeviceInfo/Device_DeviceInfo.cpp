@@ -132,7 +132,7 @@ void *ResetFunc(void *);
 
 
 static char stbMacCache[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
-static thread_local int mutex_lock = 0;
+static GPrivate thread_owns_mutex = G_PRIVATE_INIT(NULL);
 static string reverseSSHArgs,shortsArgs,nonShortsArgs;
 map<string,string> stunnelSSHArgs;
 const string sshCommand = "/lib/rdk/startTunnel.sh";
@@ -272,16 +272,19 @@ void hostIf_DeviceInfo::getLock()
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Attempting to lock mutex\n", __FUNCTION__, __LINE__);
     g_mutex_init(&hostIf_DeviceInfo::m_mutex);
     g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
-    mutex_lock = 1;
+    // Store ownership in thread-local storage
+    g_private_set(&thread_owns_mutex, GINT_TO_POINTER(1));
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
 }
 
 void hostIf_DeviceInfo::releaseLock()
 {
-    if(mutex_lock == 1)
+    // Check if current thread owns the mutex
+    if (g_private_get(&thread_owns_mutex) == GINT_TO_POINTER(1))
     {
-        mutex_lock = 0;
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+        // Reset ownership flag
+        g_private_set(&thread_owns_mutex, NULL);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
         g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
     }
     else {
