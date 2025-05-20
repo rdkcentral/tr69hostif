@@ -45,5 +45,6 @@ RBUS_SUCCESS_STRING = "setvalues succeeded.."
 
 LOG_FILE = "/opt/logs/tr69hostif.log.0"
 
+PARODUS_LOG_FILE = "/opt/logs/parodus.log"
 DATA_LAKE_URL = "https://mockxconf:50051"
 DL_ADMIN_URL = "https://mockxconf:50051/adminSupport"
