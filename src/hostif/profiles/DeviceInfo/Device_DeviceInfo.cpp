@@ -125,14 +125,16 @@
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
-GMutex hostIf_DeviceInfo::m_mutex;
+
+pthread_mutex_t hostIf_DeviceInfo::m_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutexattr_t hostIf_DeviceInfo::m_mutex_attr;
+pthread_once_t hostIf_DeviceInfo::m_mutex_init_once = PTHREAD_ONCE_INIT;
 
 extern rbusHandle_t rbusHandle;
 void *ResetFunc(void *);
 
 
 static char stbMacCache[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
-static GPrivate thread_owns_mutex = G_PRIVATE_INIT(NULL);
 static string reverseSSHArgs,shortsArgs,nonShortsArgs;
 map<string,string> stunnelSSHArgs;
 const string sshCommand = "/lib/rdk/startTunnel.sh";
@@ -267,28 +269,53 @@ void hostIf_DeviceInfo::closeAllInstances()
     }
 }
 
-void hostIf_DeviceInfo::getLock()
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Attempting to lock mutex\n", __FUNCTION__, __LINE__);
-    g_mutex_init(&hostIf_DeviceInfo::m_mutex);
-    g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
-    // Store ownership in thread-local storage
-    g_private_set(&thread_owns_mutex, GINT_TO_POINTER(1));
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
+// Function to be called by pthread_once
+void hostIf_DeviceInfo::initMutexAttributes() {
+    pthread_mutexattr_init(&hostIf_DeviceInfo::m_mutex_attr);
+    pthread_mutexattr_settype(&hostIf_DeviceInfo::m_mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+    pthread_mutex_init(&hostIf_DeviceInfo::m_mutex, &hostIf_DeviceInfo::m_mutex_attr);
 }
 
-void hostIf_DeviceInfo::releaseLock()
-{
-    // Check if current thread owns the mutex
-    if (g_private_get(&thread_owns_mutex) == GINT_TO_POINTER(1))
-    {
-        // Reset ownership flag
-        g_private_set(&thread_owns_mutex, NULL);
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
-        g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+void hostIf_DeviceInfo::initMutexOnce() {
+    pthread_once(&m_mutex_init_once, (void (*)(void))&hostIf_DeviceInfo::initMutexAttributes);
+}
+
+void hostIf_DeviceInfo::getLock() {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Attempting to lock mutex\n", __FUNCTION__, __LINE__);
+
+    // Ensure mutex is initialized
+    hostIf_DeviceInfo::initMutexOnce();
+
+    // Try to lock
+    int lock_result = pthread_mutex_lock(&hostIf_DeviceInfo::m_mutex);
+    if (lock_result == 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to lock mutex: %s\n",
+                __FUNCTION__, __LINE__, strerror(lock_result));
     }
-    else {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Thread attempted to unlock mutex it doesn't own\n", __FUNCTION__, __LINE__);
+}
+
+void hostIf_DeviceInfo::releaseLock() {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
+
+    // Try to unlock and handle errors
+    int unlock_result = pthread_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+
+    if (unlock_result == 0) {
+        // Successful unlock
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully unlocked mutex\n",
+                __FUNCTION__, __LINE__);
+    } else if (unlock_result == EPERM) {
+        // Thread doesn't own the mutex
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                "[%s:%d] Thread doesn't own the mutex, skipping unlock\n",
+                __FUNCTION__, __LINE__);
+    } else {
+        // Other error
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Error unlocking mutex: %s\n",
+                __FUNCTION__, __LINE__, strerror(unlock_result));
     }
 }
 
