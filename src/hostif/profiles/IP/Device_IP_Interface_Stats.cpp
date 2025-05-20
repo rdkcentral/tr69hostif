@@ -134,7 +134,7 @@ void hostIf_IPInterfaceStats::getLock()
 
 void hostIf_IPInterfaceStats::releaseLock()
 {
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_IPInterfaceStats::m_mutex);
 }
 
