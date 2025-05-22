@@ -202,7 +202,11 @@ class hostIf_DeviceInfo {
 
     static  GHashTable  *m_notifyHash;
 
-    static GMutex m_mutex;
+    static pthread_mutex_t m_mutex;
+    static pthread_mutexattr_t m_mutex_attr;
+    static pthread_once_t m_mutex_init_once;
+    static void initMutexOnce();
+    static void initMutexAttributes();
 
     int dev_id;
 
