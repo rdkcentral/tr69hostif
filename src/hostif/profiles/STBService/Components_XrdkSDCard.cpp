@@ -504,7 +504,7 @@ int hostIf_STBServiceXSDCard::getSerialNumber(HOSTIF_MsgData_t *stMsgData)
         memset(&param, '\0', sizeof(param));
         param.eSDPropType = SD_SerialNumber;
         if(getSDCardProperties(&param) ) {
-            sprintf(stMsgData->paramValue,"%s" ,param.sdCardProp.uchVal);
+            snprintf(stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s", param.sdCardProp.uchVal);
         }
         stMsgData->paramtype=hostIf_StringType;
     }
@@ -626,28 +626,37 @@ bool getSDCardProperties(strMgrSDcardPropParam_t *sdCardParam)
     {
         if (sdCardParam->eSDPropType == SD_LifeElapsed)
         {
-            eSTMGRHealthInfo healthInfo;
-            memset (&healthInfo, 0 , sizeof(healthInfo));
-            if (RDK_STMGR_RETURN_SUCCESS == rdkStorage_getHealth (sdCardDeviceID, &healthInfo))
+            eSTMGRHealthInfo* healthInfo = (eSTMGRHealthInfo*)malloc(sizeof(eSTMGRHealthInfo));
+            if (healthInfo != NULL)
             {
-                sdCardParam->sdCardProp.iVal = -1;
-                /* FIXME: Update string from "used" to a proper proposed value */
-                for (int i = 0; i < healthInfo.m_diagnostics.m_list.m_numOfAttributes; i++)
+                memset(healthInfo, 0, sizeof(eSTMGRHealthInfo));
+                if (RDK_STMGR_RETURN_SUCCESS == rdkStorage_getHealth(sdCardDeviceID, healthInfo))
                 {
-                    if (0 == strcmp (healthInfo.m_diagnostics.m_list.m_diagnostics[i].m_name, "used"))
+                    sdCardParam->sdCardProp.iVal = -1;
+                    /* FIXME: Update string from "used" to a proper proposed value */
+                    for (int i = 0; i < healthInfo->m_diagnostics.m_list.m_numOfAttributes; i++)
                     {
-                        sdCardParam->sdCardProp.iVal = atoi (healthInfo.m_diagnostics.m_list.m_diagnostics[i].m_value);
-                        break;
+                    if (0 == strcmp(healthInfo->m_diagnostics.m_list.m_diagnostics[i].m_name, "used"))
+                        {
+                        sdCardParam->sdCardProp.iVal = atoi(healthInfo->m_diagnostics.m_list.m_diagnostics[i].m_value);
+                              break;
+                        }
                     }
                 }
+                else
+                   {
+                        sdCardParam->sdCardProp.iVal = -1;
+                   }
+                    free(healthInfo);
             }
             else
-            {
+	    {
+            // Handle memory allocation failure
                 sdCardParam->sdCardProp.iVal = -1;
             }
-        }
-        else
-        {
+       }
+       else
+       {
             eSTMGRDeviceInfo deviceInfo;
             memset (&deviceInfo, 0 , sizeof(deviceInfo));
             if (RDK_STMGR_RETURN_SUCCESS == rdkStorage_getDeviceInfo (sdCardDeviceID, &deviceInfo))

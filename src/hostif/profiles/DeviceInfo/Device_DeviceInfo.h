@@ -134,6 +134,7 @@
 
 /* Profile: X_RDKCENTRAL-COM_RDKDownloadManager. */
 #define X_RDKDownloadManager_InstallPackage             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage"
+#define X_RDKDownloadManager_DownloadStatus             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus"
 /* Profile: X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging. */
 #define xOpsDMUploadLogsNow_STR                         "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMUploadLogsNow"
 #define xOpsDMLogsUploadStatus_STR                      "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMLogsUploadStatus"
@@ -201,7 +202,11 @@ class hostIf_DeviceInfo {
 
     static  GHashTable  *m_notifyHash;
 
-    static GMutex m_mutex;
+    static pthread_mutex_t m_mutex;
+    static pthread_mutexattr_t m_mutex_attr;
+    static pthread_once_t m_mutex_init_once;
+    static void initMutexOnce();
+    static void initMutexAttributes();
 
     int dev_id;
 
@@ -514,7 +519,26 @@ public:
      * @see get_Device_DeviceInfo_ProductClass.
      */
     int get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
-    
+   
+     /**
+     * @brief get_Device_DeviceInfo_MigrationPreparer_MigrationReady.
+     *
+     * This function provides the component list which are ready for migration.
+     * The component name (human readable string).
+     *
+     * @return The status of the operation.
+     *
+     * @retval OK if DeviceInfo_MigrationPreparer_MigrationReady was successfully fetched.
+     :1
+    * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+     *
+     * @sideeffect All necessary structures and buffers are deallocated.
+     * @execution Synchronous.
+     *
+     * @see get_Device_DeviceInfo_MigrationPreparer_MigrationReady.
+     */
+    int get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
     /**
      * @brief get_Device_DeviceInfo_Migration_MigrationStatus.
      *
@@ -1462,6 +1486,7 @@ public:
     int get_X_RDK_FirmwareName(HOSTIF_MsgData_t *);
 
     int set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *);
 };
 /* End of doxygen group */
 /**

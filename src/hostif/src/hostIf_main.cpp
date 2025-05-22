@@ -194,189 +194,191 @@ bool GetFeatureEnabled(char *cmd)
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    int ch = 0;
-    errno_t rc = -1;
-#ifdef WEBPA_RFC_ENABLED
-    bool retVal=false;
-#endif
-    const char* debugConfigFile = NULL;
-    const char* webpaNotifyConfigFile = NULL;
-    //------------------------------------------------------------------------------
-    // Signal handlers:
-    //------------------------------------------------------------------------------
-    struct sigaction sigact;
-
-    while (1)
+    try
     {
-        static struct option long_options[] =
-        {
-            /* These options don't set a flag.
-                We distinguish them by their indices. */
-            {"help",    		no_argument, 0, 'h'},
-            {"logfile",     	required_argument, 0, 'l'},
-            {"conffile",     	required_argument, 0, 'c'},
-            {"port",       		required_argument, 0, 'p'},
-#ifndef NEW_HTTP_SERVER_DISABLE
-            {"httpserverport",		required_argument, 0, 's'},
-#endif
-            {"debugconfig",     required_argument, 0, 'd'},
-            {"notifyconfig",    required_argument, 0, 'w'},
-            {0, 0, 0, 0}
-        };
+        int ch = 0;
+        errno_t rc = -1;
+    #ifdef WEBPA_RFC_ENABLED
+        bool retVal=false;
+    #endif
+        const char* debugConfigFile = NULL;
+        const char* webpaNotifyConfigFile = NULL;
+        //------------------------------------------------------------------------------
+        // Signal handlers:
+        //------------------------------------------------------------------------------
+        struct sigaction sigact;
 
-        /* getopt_long stores the option index here. */
-        int option_index = 0;
-#ifndef NEW_HTTP_SERVER_DISABLE
-        ch = getopt_long (argc, argv, "hHl:c:p:s:d:w:",
-                          long_options, &option_index);
-#else
-        ch = getopt_long (argc, argv, "hHl:c:p:d:w:",
-                          long_options, &option_index);
-#endif
-        /* Detect the end of the options. */
-        if (ch == -1)
-            break;
-
-        switch (ch)
+        while (1)
         {
-        case 'c':
-            if(optarg)
+            static struct option long_options[] =
             {
-                memset(argList.confFile, '\0', 10*sizeof(argList.confFile));
-                rc=strcpy_s (argList.confFile,sizeof(argList.confFile),optarg);
-		if(rc!=EOK)
-    		{
+                /* These options don't set a flag.
+                    We distinguish them by their indices. */
+                {"help",    		no_argument, 0, 'h'},
+                {"logfile",     	required_argument, 0, 'l'},
+                {"conffile",     	required_argument, 0, 'c'},
+                {"port",       		required_argument, 0, 'p'},
+    #ifndef NEW_HTTP_SERVER_DISABLE
+                {"httpserverport",		required_argument, 0, 's'},
+    #endif
+                {"debugconfig",     required_argument, 0, 'd'},
+                {"notifyconfig",    required_argument, 0, 'w'},
+                {0, 0, 0, 0}
+            };
+
+            /* getopt_long stores the option index here. */
+            int option_index = 0;
+    #ifndef NEW_HTTP_SERVER_DISABLE
+            ch = getopt_long (argc, argv, "hHl:c:p:s:d:w:",
+                              long_options, &option_index);
+    #else
+            ch = getopt_long (argc, argv, "hHl:c:p:d:w:",
+                              long_options, &option_index);
+    #endif
+            /* Detect the end of the options. */
+            if (ch == -1)
+                break;
+
+            switch (ch)
+            {
+            case 'c':
+                if(optarg)
+                {
+                    memset(argList.confFile, '\0', 10*sizeof(argList.confFile));
+                    rc=strcpy_s (argList.confFile,sizeof(argList.confFile),optarg);
+		    if(rc!=EOK)
+    		    {
 	    		ERR_CHK(rc);
-    		}
-//                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"argList.confFile : %s optarg : %s\n", argList.confFile, optarg);
-            }
-            break;
+    		    }
+//                    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"argList.confFile : %s optarg : %s\n", argList.confFile, optarg);
+                }
+                break;
 
-        case 'd':
-            if(optarg)
-            {
-                debugConfigFile = optarg;
-            }
-            break;
-        case 'w':
-            if(optarg)
-            {
-                webpaNotifyConfigFile = optarg;
-            }
-            break;
+            case 'd':
+                if(optarg)
+                {
+                    debugConfigFile = optarg;
+                }
+                break;
+            case 'w':
+                if(optarg)
+                {
+                    webpaNotifyConfigFile = optarg;
+                } 
+                break;
 
-        case 'p':
-            if(optarg)
-            {
-                argList.httpPort = atoi(optarg);
+            case 'p':
+                if(optarg)
+                {
+                    argList.httpPort = atoi(optarg);
+                }
+                break;
+    #ifndef NEW_HTTP_SERVER_DISABLE
+            case 's':
+                if(optarg)
+                {
+                    argList.httpServerPort = atoi(optarg);
+                }
+                break;
+    #endif
+            case 'h':
+            case 'H':
+            case '?':
+            default:
+                usage();
+                exit(0);
             }
-            break;
-#ifndef NEW_HTTP_SERVER_DISABLE
-        case 's':
-            if(optarg)
-            {
-                argList.httpServerPort = atoi(optarg);
-            }
-            break;
-#endif
-        case 'h':
-        case 'H':
-        case '?':
-        default:
-            usage();
-            exit(0);
         }
-    }
 
-    /* Enable RDK logger.*/
-    if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
+        /* Enable RDK logger.*/
+        if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
 
-    if (optind < argc)
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"non-option ARGV-elements: ");
-        while (optind < argc)
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"%s ", argv[optind++]);
-        putchar ('\n');
-        usage();
-        exit (0);
-    }
+        if (optind < argc)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"non-option ARGV-elements: ");
+            while (optind < argc)
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"%s ", argv[optind++]);
+            putchar ('\n');
+            usage();
+            exit (0);
+        } 
 
-#ifdef WEBPA_RFC_ENABLED
-    retVal = GetFeatureEnabled("WEBPAXG");
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] WEBPAXG returns %d\n", __FUNCTION__, retVal);
-    if( retVal == false)
-    {
-	// Send a notification to systemd to stop the service
-        int ret = sd_pid_notify(0, SD_FINALIZING);
+    #ifdef WEBPA_RFC_ENABLED
+        retVal = GetFeatureEnabled("WEBPAXG");
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] WEBPAXG returns %d\n", __FUNCTION__, retVal);
+        if( retVal == false)
+        {
+	    // Send a notification to systemd to stop the service
+            int ret = sd_pid_notify(0, SD_FINALIZING);
 
-        if (ret < 0) 
-	{
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Error sending stop notification: %s\n", strerror(-ret));
+            if (ret < 0) 
+	    {
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Error sending stop notification: %s\n", strerror(-ret));
+                return 1;
+            }
+
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Service stop notification sent successfully.\n");
+            return ch;
+        }
+    #endif
+
+        if (sem_init(&shutdown_thread_sem, 0, 0) == -1)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] sem_init() failed\n", __FUNCTION__, __FILE__);
             return 1;
         }
 
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Service stop notification sent successfully.\n");
-        return ch;
-    }
-#endif
+        if (pthread_create(&shutdown_thread, NULL, shutdown_thread_entry, NULL) != 0)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] pthread_create() failed\n", __FUNCTION__, __FILE__);
+            return 1;
+        }
 
-    if (sem_init(&shutdown_thread_sem, 0, 0) == -1)
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] sem_init() failed\n", __FUNCTION__, __FILE__);
-        return 1;
-    }
+        // The actions for SIGINT, SIGTERM, SIGSEGV, and SIGQUIT are set
+        sigemptyset(&sigact.sa_mask);
+        sigact.sa_handler = quit_handler;
+        sigact.sa_flags = SA_ONSTACK;
 
-    if (pthread_create(&shutdown_thread, NULL, shutdown_thread_entry, NULL) != 0)
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] pthread_create() failed\n", __FUNCTION__, __FILE__);
-        return 1;
-    }
+        sigaction (SIGINT, &sigact, NULL);
+        sigaction (SIGTERM, &sigact, NULL);
+        sigaction (SIGHUP, &sigact, NULL);
+        signal (SIGPIPE, SIG_IGN);
 
-    // The actions for SIGINT, SIGTERM, SIGSEGV, and SIGQUIT are set
-    sigemptyset(&sigact.sa_mask);
-    sigact.sa_handler = quit_handler;
-    sigact.sa_flags = SA_ONSTACK;
+        setvbuf(stdout, NULL, _IOLBF, 0);
 
-    sigaction (SIGINT, &sigact, NULL);
-    sigaction (SIGTERM, &sigact, NULL);
-    sigaction (SIGHUP, &sigact, NULL);
-    signal (SIGPIPE, SIG_IGN);
+        //------------------------------------------------------------------------------
+        // Initialize the glib, g_time and logger
+        //------------------------------------------------------------------------------
+    #if GLIB_VERSION_CUR_STABLE <= GLIB_VERSION_2_32
+        if(!g_thread_supported())
+        {
+            g_thread_init(NULL);
+            RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"g_thread supported\n");
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"g_thread NOT supported\n");
+        } 
+    #endif
+        /* Enable RDK logger.*/
+        if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
 
-    setvbuf(stdout, NULL, _IOLBF, 0);
-
-    //------------------------------------------------------------------------------
-    // Initialize the glib, g_time and logger
-    //------------------------------------------------------------------------------
-#if GLIB_VERSION_CUR_STABLE <= GLIB_VERSION_2_32
-    if(!g_thread_supported())
-    {
-        g_thread_init(NULL);
-        RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"g_thread supported\n");
-    }
-    else
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"g_thread NOT supported\n");
-    }
-#endif
-    /* Enable RDK logger.*/
-    if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
-
-#if defined(USE_WIFI_PROFILE)
-    /* Perform the necessary operations to initialise the WiFi device */
-    (void)WiFiDevice::init();
-#endif
-//    g_get_current_time(&timeval);
-//    char* logoutfile = (char *)LOG_FILE;
-#if 0
-    /* Commented: Since logs are directed to /opt/logs/ folder,
-     * so no need to use separate log file */
-    char* logoutfile = (char *)argList.logFileName;
+        #if defined(USE_WIFI_PROFILE)
+            /* Perform the necessary operations to initialise the WiFi device */
+            (void)WiFiDevice::init();
+        #endif
+        //    g_get_current_time(&timeval);
+        //    char* logoutfile = (char *)LOG_FILE;
+        #if 0
+           /* Commented: Since logs are directed to /opt/logs/ folder,
+            * so no need to use separate log file */
+        char* logoutfile = (char *)argList.logFileName;
 
 
-    g_log_set_handler(G_LOG_DOMAIN, (GLogLevelFlags)(G_LOG_LEVEL_INFO | G_LOG_LEVEL_MESSAGE | \
-                      G_LOG_LEVEL_WARNING | G_LOG_LEVEL_CRITICAL | \
-                      G_LOG_LEVEL_ERROR), tr69hostIf_logger, (void *)logoutfile);
-#endif
+        g_log_set_handler(G_LOG_DOMAIN, (GLogLevelFlags)(G_LOG_LEVEL_INFO | G_LOG_LEVEL_MESSAGE | \
+                          G_LOG_LEVEL_WARNING | G_LOG_LEVEL_CRITICAL | \
+                          G_LOG_LEVEL_ERROR), tr69hostIf_logger, (void *)logoutfile);
+    #endif
     RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"Starting tr69HostIf Service\n");
 
 
@@ -387,158 +389,174 @@ int main(int argc, char *argv[])
      based on the group of configuration. */
     //if(false == hostIf_ConfigProperties_Init())
 
-    if(false == hostIf_initalize_ConfigManger())
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to hostIf_initalize_ConfigManger()\n");
-    }
+        if(false == hostIf_initalize_ConfigManger())
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to hostIf_initalize_ConfigManger()\n");
+        }
 
-#ifndef NEW_HTTP_SERVER_DISABLE
-    ifstream ifs_legacyEnabled(LEGACY_RFC_ENABLED_PATH);
-    if(!ifs_legacyEnabled.is_open())
-    {
-        setLegacyRFCEnabled(false);
-    }
-    else
-    {
-        setLegacyRFCEnabled(true);
-        ifs_legacyEnabled.close();
-    }
-#endif
+    #ifndef NEW_HTTP_SERVER_DISABLE
+        ifstream ifs_legacyEnabled(LEGACY_RFC_ENABLED_PATH);
+        if(!ifs_legacyEnabled.is_open())
+        {
+            setLegacyRFCEnabled(false);
+        }
+        else
+        {
+            setLegacyRFCEnabled(true);
+            ifs_legacyEnabled.close();
+        }
+    #endif
 
-    if(false == hostIf_IARM_IF_Start() )
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
-    }
-    MergeStatus mergeStatus = mergeDataModel();
-    if (mergeStatus != MERGE_SUCCESS) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in merging Data Model\n");
-        return DB_FAILURE; // Or handle the failure appropriately
-    } 
-    else {
-         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Successfully merged Data Model.\n");
-    }
-    /* Load the data model xml file*/
-    DB_STATUS status = loadDataModel();
-    if(status != DB_SUCCESS)
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Error in Data Model Initialization\n");
-        return DB_FAILURE;
-    }
-    else
-    {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully initialize Data Model.\n");
-    }
+        if(false == hostIf_IARM_IF_Start() )
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
+        }
+        MergeStatus mergeStatus = mergeDataModel();
+        if (mergeStatus != MERGE_SUCCESS) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in merging Data Model\n");
+            return DB_FAILURE; // Or handle the failure appropriately
+        } 
+        else {
+             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Successfully merged Data Model.\n");
+        }
+        /* Load the data model xml file*/
+        DB_STATUS status = loadDataModel();
+        if(status != DB_SUCCESS)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Error in Data Model Initialization\n");
+            return DB_FAILURE;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully initialize Data Model.\n");
+        }
 
     //------------------------------------------------------------------------------
     // hostIf_HttpServerStart: Soup HTTP Server
     //------------------------------------------------------------------------------
-    if( (hostIf_JsonIfThread = g_thread_try_new( "json_if_handler_thread", (GThreadFunc)jsonIfHandlerThread, (void *)hostIf_JsonIfMsg, &err1)) == NULL)
-    {
-        g_critical("Thread create failed: %s!!\n", err1->message );
-        g_error_free (err1);
-    }	
-#ifndef NEW_HTTP_SERVER_DISABLE
-    if(!legacyRFCEnabled())
-    {
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"legacyRFC Set to False, Starting New HTTP Server\n");
-        if((HTTPServerThread = g_thread_try_new("http_server_thread", (GThreadFunc)HTTPServerStartThread, (void *)HTTPServerName, &httpError)) == NULL)
+        if( (hostIf_JsonIfThread = g_thread_try_new( "json_if_handler_thread", (GThreadFunc)jsonIfHandlerThread, (void *)hostIf_JsonIfMsg, &err1)) == NULL)
         {
-            g_critical("New HTTP Server Thread Create failed: %s!!\n", httpError->message );
-            g_error_free (httpError);
+            g_critical("Thread create failed: %s!!\n", err1->message );
+            g_error_free (err1);
+        }	
+    #ifndef NEW_HTTP_SERVER_DISABLE
+        if(!legacyRFCEnabled())
+        {
+            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"legacyRFC Set to False, Starting New HTTP Server\n");
+            if((HTTPServerThread = g_thread_try_new("http_server_thread", (GThreadFunc)HTTPServerStartThread, (void *)HTTPServerName, &httpError)) == NULL)
+            {
+                g_critical("New HTTP Server Thread Create failed: %s!!\n", httpError->message );
+                g_error_free (httpError);
+            }
         }
+        else
+        {
+            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"legacyRFC Set to True, New HTTP Server is not started\n");
+        }
+    #endif
+
+    #ifdef PID_FILE_PATH
+    #define xstr(s) str(s)
+    #define str(s) #s
+        // write pidfile because sd_notify() does not work inside container
+        IARM_Bus_WritePIDFile(xstr(PID_FILE_PATH) "/tr69hostif.pid");
+    #endif
+
+        //------------------------------------------------------------------------------
+        // updateHandler::init :  Update handler thread for polling table profiles
+        //------------------------------------------------------------------------------
+        updateHandler::Init();
+
+     #if defined(PARODUS_ENABLE)
+        //------------------------------------------------------------------------------
+        // Initialize WebPA Module
+        //------------------------------------------------------------------------------
+
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Starting WEBPA Parodus Connections\n");
+        libpd_set_notifyConfigFile(webpaNotifyConfigFile);
+        if(0 == pthread_create(&parodus_init_tid, NULL, libpd_client_mgr, NULL))
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Initiating Connection with PARODUS success.. \n");
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parodus init thread create failed\n");
+        }
+    #endif
+
+    #if defined(WEB_CONFIG_ENABLED)
+        initWebConfigMultipartTask(0);
+    #elif defined(WEBCONFIG_LITE_ENABLE)
+        if(0 == pthread_create(&webconfig_threadId, NULL, initWebConfigTask, NULL))
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"webconfig thread created success.. \n");
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"webconfig thread created failed.. \n");
+        }
+     #endif
+
+        /* Initialized Rbus interface for TR181 Data*/
+        init_rbus_dml_provider();
+
+        // Send sd notify event after http server thread is complete.
+        if (httpServerThreadDone == false)
+        {
+            std::unique_lock<std::mutex> lck(mtx_httpServerThreadDone);
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Waiting(max 10 sec) for http server thread to be complete...\n");
+            auto sec = chrono::seconds(1);
+            cv_httpServerThreadDone.wait_for(lck, 10*sec, [] {return httpServerThreadDone;});
+        }
+    #ifdef ENABLE_SD_NOTIFY
+        sd_notifyf(0, "READY=1\n"
+                   "STATUS=tr69hostif is Successfully Initialized\n"
+                   "MAINPID=%lu", (unsigned long) getpid());
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"tr69hostif sd notify envent  is sent  Successfully, httpServerThreadDone=%d\n", httpServerThreadDone);
+    #endif
+
+        hostIf_DeviceInfo::send_DeviceManageableNotification();
+
+        main_loop = g_main_loop_new (NULL, FALSE);
+
+        if(main_loop) {
+            g_main_loop_run(main_loop);
+            g_main_loop_unref (main_loop);
+        }
+        else {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s]Fails to Create a main loop.", __FUNCTION__);
+        }
+
+        if(hostIf_JsonIfThread)
+            g_thread_join(hostIf_JsonIfThread);
+
+    #ifndef NEW_HTTP_SERVER_DISABLE
+        if(HTTPServerThread)
+            g_thread_join(HTTPServerThread);
+    #endif
+    #if defined(PARODUS_ENABLE)
+        if(parodus_init_tid)
+            pthread_join(parodus_init_tid,NULL);
+    #endif
+
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"\n\n----------------------EXITING MAIN PROGRAM----------------------\n");
+        return 0 ;
     }
-    else
+  catch (const std::bad_cast& e)
     {
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"legacyRFC Set to True, New HTTP Server is not started\n");
+        std::cerr << "Bad cast exception: " << e.what() << std::endl;
+        return 1;
     }
-#endif
-
-#ifdef PID_FILE_PATH
-#define xstr(s) str(s)
-#define str(s) #s
-    // write pidfile because sd_notify() does not work inside container
-    IARM_Bus_WritePIDFile(xstr(PID_FILE_PATH) "/tr69hostif.pid");
-#endif
-
-    //------------------------------------------------------------------------------
-    // updateHandler::init :  Update handler thread for polling table profiles
-    //------------------------------------------------------------------------------
-    updateHandler::Init();
-
-#if defined(PARODUS_ENABLE)
-    //------------------------------------------------------------------------------
-    // Initialize WebPA Module
-    //------------------------------------------------------------------------------
-
-    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Starting WEBPA Parodus Connections\n");
-    libpd_set_notifyConfigFile(webpaNotifyConfigFile);
-    if(0 == pthread_create(&parodus_init_tid, NULL, libpd_client_mgr, NULL))
+    catch (const std::exception& e)
     {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Initiating Connection with PARODUS success.. \n");
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return 1;
     }
-    else
+    catch (...)
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parodus init thread create failed\n");
+        std::cerr << "Unknown exception occurred" << std::endl;
+        return 1;
     }
-#endif
-
-#if defined(WEB_CONFIG_ENABLED)
-    initWebConfigMultipartTask(0);
-#elif defined(WEBCONFIG_LITE_ENABLE)
-    if(0 == pthread_create(&webconfig_threadId, NULL, initWebConfigTask, NULL))
-    {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"webconfig thread created success.. \n");
-    }
-    else
-    {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"webconfig thread created failed.. \n");
-    }
-#endif
-
-    /* Initialized Rbus interface for TR181 Data*/
-    init_rbus_dml_provider();
-
-    // Send sd notify event after http server thread is complete.
-    if (httpServerThreadDone == false)
-    {
-        std::unique_lock<std::mutex> lck(mtx_httpServerThreadDone);
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Waiting(max 10 sec) for http server thread to be complete...\n");
-        auto sec = chrono::seconds(1);
-        cv_httpServerThreadDone.wait_for(lck, 10*sec, [] {return httpServerThreadDone;});
-    }
-#ifdef ENABLE_SD_NOTIFY
-    sd_notifyf(0, "READY=1\n"
-               "STATUS=tr69hostif is Successfully Initialized\n"
-               "MAINPID=%lu", (unsigned long) getpid());
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"tr69hostif sd notify envent  is sent  Successfully, httpServerThreadDone=%d\n", httpServerThreadDone);
-#endif
-
-    hostIf_DeviceInfo::send_DeviceManageableNotification();
-
-    main_loop = g_main_loop_new (NULL, FALSE);
-
-    if(main_loop) {
-        g_main_loop_run(main_loop);
-        g_main_loop_unref (main_loop);
-    }
-    else {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s]Fails to Create a main loop.", __FUNCTION__);
-    }
-
-    if(hostIf_JsonIfThread)
-        g_thread_join(hostIf_JsonIfThread);
-
-#ifndef NEW_HTTP_SERVER_DISABLE
-    if(HTTPServerThread)
-        g_thread_join(HTTPServerThread);
-#endif
-#if defined(PARODUS_ENABLE)
-    if(parodus_init_tid)
-        pthread_join(parodus_init_tid,NULL);
-#endif
-
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"\n\n----------------------EXITING MAIN PROGRAM----------------------\n");
-    return 0 ;
 }
 
 //------------------------------------------------------------------------------

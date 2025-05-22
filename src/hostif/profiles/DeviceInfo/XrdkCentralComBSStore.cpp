@@ -44,6 +44,7 @@
 #define BSP_COMPLETE_TMP "/tmp/bspcomplete"
 #define RFC_DIRECTORY "/opt/RFC"
 #define AUTH_SERVICE_PARODUS_RESTART "/tmp/authservice_parodus_restart"
+#define MAX_FILENAME_LENGTH 256
 
 #define CURL_EASY_SETOPT(CURL , CURLoption , Value)\
     if (curl_easy_setopt(CURL , CURLoption , Value) != CURLE_OK ) {\
@@ -151,6 +152,7 @@ void XBSStore::getAuthServicePartnerID()
     if (foundWWW && foundAuthService && fileExists(filePath)) {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s already exists. Monitoring for modifications...\n", __FUNCTION__, targetFile.c_str());
         wd = inotify_add_watch(inotifyFd, filePath.c_str(), IN_CLOSE_WRITE);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
         partnerIdWatchAdded = true;
 
         // Check if the BSP_COMPLETE file exists
@@ -167,10 +169,12 @@ void XBSStore::getAuthServicePartnerID()
         if (foundAuthService) {
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
             wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
             RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
         } else {
             // Add a watch on /opt/www to monitor for authService creation
             wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
         }
     }
@@ -187,42 +191,62 @@ void XBSStore::getAuthServicePartnerID()
             struct inotify_event *event = (struct inotify_event *)ptr;
 
             // If www is created
-            if (!foundWWW && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) && strcmp(event->name, "www") == 0) {
-                foundWWW = true;
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", wwwDir.c_str());
+             if (!foundWWW && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) ) {
+		char nameBuf[NAME_MAX +1] = {0};
+		strncpy(nameBuf, event->name, NAME_MAX);
+                if (strcmp(nameBuf, "www") == 0)
+		{
+                   foundWWW = true;
+                   RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", wwwDir.c_str());
 
-                // Immediately check if authService already exists
-                foundAuthService = fileExists(authServiceDir);
-                if (foundAuthService) {
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
-                    wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
-                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
-                } else {
+                   // Immediately check if authService already exists
+                   foundAuthService = fileExists(authServiceDir);
+                   if (foundAuthService) {
+                       RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
+                       wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+                       RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                       RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
+                    } else {
                     // Add a new watch for /opt/www/authService creation
-                    wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
+                        wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
+                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
+                   }
                 }
-            }
+	     }
 
             // If authService is created
-            else if (foundWWW && !foundAuthService && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) && strcmp(event->name, "authService") == 0) {
-                foundAuthService = true;
+            else if (foundWWW && !foundAuthService && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR)) {
+                char nameBuf[NAME_MAX +1];
+		strncpy(nameBuf, event->name, NAME_MAX);
+		nameBuf[NAME_MAX] ='\0';
+		if (strcmp(nameBuf, "authService") == 0) {
+		foundAuthService = true;
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", authServiceDir.c_str());
 
-                // Add a new watch for partnerId3.dat
+		// Add a new watch for partnerId3.dat
                 wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
+		}
             }
 
             // If partnerId3.dat is created
-            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE) && strcmp(event->name, targetFile.c_str()) == 0) {
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, event->name);
-                partnerIdWatchAdded = true;
-                partnerFileUpdated = true;
+            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE)) {
+    // Create a null-terminated copy of event->name
+              char safeEventName[NAME_MAX + 1];
+              strncpy(safeEventName, event->name, NAME_MAX);
+              safeEventName[NAME_MAX] = '\0'; // Ensure null termination
+    
+              if (strcmp(safeEventName, targetFile.c_str()) == 0) {
+                  RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, safeEventName);
+                  partnerIdWatchAdded = true;
+                  partnerFileUpdated = true;
 
-                // Monitor the file for close after writing
-                RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
-                break;
+                   // Monitor the file for close after writing
+                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
+                 break;
+              }
             }
 
             // If partnerId3.dat is modified
