@@ -82,11 +82,11 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
         if(pMsgHandler)
+        {
             auto startTime = std::chrono::high_resolution_clock::now();
             ret = pMsgHandler->handleGetMsg(stMsgData);
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-
             // Calculate time taken in microseconds
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %ld us\n",
@@ -94,6 +94,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramName,
                 stMsgData->paramValue,
                 timeTaken);
+        }
     }
     catch (const std::exception& e)
     {
@@ -114,6 +115,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
     if(pMsgHandler)
+    {
         auto startTime = std::chrono::high_resolution_clock::now();
         ret = pMsgHandler->handleSetMsg(stMsgData);
         auto endTime = std::chrono::high_resolution_clock::now();
@@ -124,7 +126,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramName,
                 stMsgData->paramValue,
                 timeTakenset);
-
+    }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
 }
