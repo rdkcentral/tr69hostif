@@ -82,6 +82,11 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 
         if(pMsgHandler)
             ret = pMsgHandler->handleGetMsg(stMsgData);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%s] ret: %d, parameterName: %s, parameterValue: %s\n",
+            __FUNCTION__, __FILE__, ret,
+            stMsgData->paramName,
+            stMsgData->paramValue);
+
     }
     catch (const std::exception& e)
     {
@@ -103,6 +108,10 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 
     if(pMsgHandler)
         ret = pMsgHandler->handleSetMsg(stMsgData);
+     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%s] ret: %d, parameterName: %s, parameterValue: %s\n",
+            __FUNCTION__, __FILE__, ret,
+            stMsgData->paramName,
+            stMsgData->paramValue);
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
