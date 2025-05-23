@@ -89,7 +89,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
             // Calculate time taken in microseconds
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %ld us\n",
+                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
                 stMsgData->paramValue,
@@ -121,7 +121,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %ld us\n",
+                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
                 stMsgData->paramValue,
