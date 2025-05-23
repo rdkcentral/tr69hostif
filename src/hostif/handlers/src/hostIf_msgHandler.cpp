@@ -30,6 +30,7 @@
 **/
 
 #include <mutex>
+#include <chrono>
 #include "hostIf_main.h"
 #include "hostIf_msgHandler.h"
 #include "hostIf_utils.h"
