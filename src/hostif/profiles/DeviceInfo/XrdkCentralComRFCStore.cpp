@@ -265,7 +265,7 @@ faultCode_t XRFCStore::getValue(HOSTIF_MsgData_t *stMsgData)
               putValue(stMsgData, rawValue.c_str());
               stMsgData->faultCode = fcNoFault;
                
-               RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "stMsgData->paramValue = %s\n", stMsgData->paramValue);
+               RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "stMsgData->paramValue = %s\n", stMsgData->paramValue);
            }
            else
            {

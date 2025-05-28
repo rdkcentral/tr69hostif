@@ -216,7 +216,7 @@ static void HTTPRequestHandler(
     }
 
     getCurrentTime(endPtr);
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Curl Request Processing Time : %lu ms\n", timeValDiff(startPtr, endPtr));
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Curl Request Processing Time : %lu ms\n", timeValDiff(startPtr, endPtr));
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return;
 }
