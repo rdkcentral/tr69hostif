@@ -276,6 +276,7 @@ void hostIf_DeviceInfo::initMutexAttributes() {
     pthread_mutex_init(&hostIf_DeviceInfo::m_mutex, &hostIf_DeviceInfo::m_mutex_attr);
 }
 
+
 void hostIf_DeviceInfo::initMutexOnce() {
     pthread_once(&m_mutex_init_once, (void (*)(void))&hostIf_DeviceInfo::initMutexAttributes);
 }
@@ -293,11 +294,12 @@ void hostIf_DeviceInfo::getLock() {
     } else {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to lock mutex: %s\n",
                 __FUNCTION__, __LINE__, strerror(lock_result));
+
     }
 }
 
 void hostIf_DeviceInfo::releaseLock() {
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
 
     // Try to unlock and handle errors
     int unlock_result = pthread_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
@@ -525,7 +527,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
 int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     string line = "NOT_NEEDED";
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
     ifstream file_read (MigrationStatus);
     try {
         if (file_read.is_open())
@@ -541,7 +543,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
         }
      }
      catch (const std::exception &e) {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exception caught.\n", __FUNCTION__);
         return NOK;
     }
     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] value:%s\n", __FUNCTION__, line.c_str());
@@ -550,7 +552,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
     strncpy(stMsgData->paramValue, line.c_str(), len);
     stMsgData->paramValue[len+1] = '\0';
     stMsgData->paramLen = len;
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
 
