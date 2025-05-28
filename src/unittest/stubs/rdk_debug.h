@@ -43,6 +43,9 @@
         else if (( level == RDK_LOG_ERROR )) { \
             printf("ERROR: %s: ", module); \
         } \
+        else if (( level == RDK_LOG_TRACE )) { \
+            printf("ERROR: %s: ", module); \
+        } \
         printf(__VA_ARGS__); \
 } while (0)
 
