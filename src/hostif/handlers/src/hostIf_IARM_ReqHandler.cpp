@@ -96,7 +96,7 @@ void hostIf_getPwrContInterface()
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
 
     /*TODO: remove this sleep after fix METROL-1045*/
-    sleep(5);//added sleep wait for the WPEframework active.
+    sleep(10);//added sleep wait for the WPEframework active.
     msgHandler *pMsgHandler;
     pMsgHandler = DSClientReqHandler::getInstance();
     pMsgHandler->init();
