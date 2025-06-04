@@ -78,7 +78,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 
     int ret = NOK;
     getCount++;
-    if (getCount % 5 == 0) {
+    if (getCount % 10 == 0) {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] GET called %d times\n",__FUNCTION__, __LINE__, getCount);
     }
     std::lock_guard<std::mutex> lock(get_handler_mutex);
@@ -115,7 +115,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
     setCount++;
-     if (setCount % 5 == 0) {
+     if (setCount % 10 == 0) {
          RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] SET called %d times\n",__FUNCTION__, __LINE__, setCount);
      }
 
