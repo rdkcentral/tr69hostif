@@ -43,6 +43,7 @@ extern "C"
 
 #include <thread>
 #include <future>
+#include <queue>
 #include <unordered_map>
 #include <atomic>
 struct AsyncResponseContext {
@@ -124,6 +125,105 @@ public:
 
 // Global thread pool
 static SimpleThreadPool* g_thread_pool = nullptr;
+// Function to process request asynchronously
+void processRequestAsync(const std::string& request_id) {
+    AsyncResponseContext* context = nullptr;
+    
+    // Get the context
+    {
+        std::lock_guard<std::mutex> lock(g_pending_requests_mutex);
+        auto it = g_pending_requests.find(request_id);
+        if (it != g_pending_requests.end()) {
+            context = it->second;
+            g_pending_requests.erase(it);
+        }
+    }
+    
+    if (!context) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Context not found for request_id: %s\n", request_id.c_str());
+        return;
+    }
+
+    cJSON* jsonResponse = nullptr;
+    res_struct* respSt = nullptr;
+    char* buf = nullptr;
+
+    try {
+        // Process the request - THIS IS WHERE YOUR EXISTING LOGIC RUNS
+        respSt = handleRequest(context->pcCallerID, context->reqSt);
+        
+        if (respSt) {
+            jsonResponse = cJSON_CreateObject();
+            
+            if (context->method == "GET") {
+                wdmp_form_get_response(respSt, jsonResponse);
+            } else {
+                wdmp_form_set_response(respSt, jsonResponse);
+            }
+
+            // Handle status code logic (same as original)
+            int new_st_code = 0;
+            for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++) {
+                if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1) {
+                    new_st_code = respSt->retStatus[paramIndex];
+                    break;
+                }
+            }
+            cJSON* stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
+            if(stcode != NULL) {
+                cJSON_SetIntValue(stcode, new_st_code);
+            }
+            
+            buf = cJSON_Print(jsonResponse);
+        }
+
+        // Send response back to client
+#ifdef LIBSOUP3_ENABLE
+        if (buf) {
+            soup_server_message_set_response(context->msg, "application/json", SOUP_MEMORY_COPY, buf, strlen(buf));
+            soup_server_message_set_status(context->msg, SOUP_STATUS_OK, NULL);
+        } else {
+            soup_server_message_set_status(context->msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Request processing failed");
+        }
+#else
+        if (buf) {
+            soup_message_set_response(context->msg, "application/json", SOUP_MEMORY_COPY, buf, strlen(buf));
+            soup_message_set_status(context->msg, SOUP_STATUS_OK);
+        } else {
+            soup_message_set_status_full(context->msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Request processing failed");
+        }
+#endif
+
+    } catch (const std::exception& e) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Exception in async processing: %s\n", e.what());
+#ifdef LIBSOUP3_ENABLE
+        soup_server_message_set_status(context->msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Internal server error");
+#else
+        soup_message_set_status_full(context->msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Internal server error");
+#endif
+    }
+
+    // Cleanup
+    if (context->reqSt) {
+        wdmp_free_req_struct(context->reqSt);
+    }
+    if (context->jsonRequest) {
+        cJSON_Delete(context->jsonRequest);
+    }
+    if (jsonResponse) {
+        cJSON_Delete(jsonResponse);
+    }
+    if (respSt) {
+        wdmp_free_res_struct(respSt);
+    }
+    if (buf) {
+        free(buf);
+    }
+    
+    delete context;
+    
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Completed async processing for request: %s\n", request_id.c_str());
+}
 
 #ifdef LIBSOUP3_ENABLE
 static void HTTPRequestHandler(
@@ -338,57 +438,6 @@ void HttpServerStop()
         RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"SERVER: Stopped server successfully.\n");
     }
 }
-// Function to process request asynchronously
-void processRequestAsync(const std::string& request_id) {
-    AsyncResponseContext* context = nullptr;
-    
-    // Get the context
-    {
-        std::lock_guard<std::mutex> lock(g_pending_requests_mutex);
-        auto it = g_pending_requests.find(request_id);
-        if (it != g_pending_requests.end()) {
-            context = it->second;
-            g_pending_requests.erase(it);
-        }
-    }
-    
-    if (!context) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Context not found for request_id: %s\n", request_id.c_str());
-        return;
-    }
-
-    cJSON* jsonResponse = nullptr;
-    res_struct* respSt = nullptr;
-    char* buf = nullptr;
-
-    try {
-        // Process the request - THIS IS WHERE YOUR EXISTING LOGIC RUNS
-        respSt = handleRequest(context->pcCallerID, context->reqSt);
-        
-        if (respSt) {
-            jsonResponse = cJSON_CreateObject();
-            
-            if (context->method == "GET") {
-                wdmp_form_get_response(respSt, jsonResponse);
-            } else {
-                wdmp_form_set_response(respSt, jsonResponse);
-            }
-
-            // Handle status code logic (same as original)
-            int new_st_code = 0;
-            for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++) {
-                if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1) {
-                    new_st_code = respSt->retStatus[paramIndex];
-                    break;
-                }
-            }
-            cJSON* stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
-            if(stcode != NULL) {
-                cJSON_SetIntValue(stcode, new_st_code);
-            }
-            
-            buf = cJSON_Print(jsonResponse);
-        }
 
 // Initialize and cleanup functions
 void InitializeAsyncHttpServer() {
