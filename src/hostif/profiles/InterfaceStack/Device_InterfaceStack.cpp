@@ -889,7 +889,7 @@ int hostif_InterfaceStack::getIPInterfaces(IPInterfacesMap_t& interfaceList)
         int ifindexes[32];
         getIPInterfaceIDs(ifindexes);
 
-        for(ipIndex=0; ipIndex <= ipNumOfEntries; ipIndex++)
+        for(ipIndex=0; ipIndex < ipNumOfEntries; ipIndex++)
         {
             std::string ipIfName;
             hostIf_IPInterface *pIface = hostIf_IPInterface::getInstance(ifindexes[ipIndex]);
