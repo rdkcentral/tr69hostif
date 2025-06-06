@@ -78,5 +78,7 @@ make install
 
 cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
-
-ls -l /usr/bin/
+ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
+ls -l /usr/local/bin/
+ls -l /usr/local/bin/tr181
+ls -l /usr/bin/tr181Set
