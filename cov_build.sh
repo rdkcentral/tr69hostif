@@ -82,3 +82,4 @@ ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
 ls -l /usr/local/bin/
 ls -l /usr/local/bin/tr181
 ls -l /usr/bin/tr181Set
+/usr/bin/tr181Set -d  Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable
