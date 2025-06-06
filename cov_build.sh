@@ -13,6 +13,12 @@ autoreconf -i
 cd rfcapi
 make librfcapi_la_CPPFLAGS="-I/usr/include/cjson"
 make install
+cd ../tr181api
+cp /usr/include/cjson/cJSON.h  ./
+cp /usr/local/include/wdmp-c/wdmp-c.h ./
+make && make install
+cd ../utils
+make && make install
 
 #Build yajl - tr69 alone needs this specific version
 cd $ROOT 
@@ -72,3 +78,5 @@ make install
 
 cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
+
+ls -l /usr/bin/
