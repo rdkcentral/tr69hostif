@@ -859,6 +859,7 @@ void getIPInterfaceIDs(int *ifindexes) {
             char buffer[64];
             if (fgets(buffer, sizeof(buffer), ifindex_fp)) {
                 ifindexes[count++] = atoi(buffer);
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s:%d ARAVINDAN put ifindex : %d\n", __FILE__, __LINE__, ifindexes[count-1]);
             }
             pclose(ifindex_fp);
         }
@@ -892,6 +893,7 @@ int hostif_InterfaceStack::getIPInterfaces(IPInterfacesMap_t& interfaceList)
         for(ipIndex=0; ipIndex < ipNumOfEntries; ipIndex++)
         {
             std::string ipIfName;
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s:%d ARAVINDAN get ifindex : %d\n", __FILE__, __LINE__, ifindexes[ipIndex]);
             hostIf_IPInterface *pIface = hostIf_IPInterface::getInstance(ifindexes[ipIndex]);
 
             if(!pIface)
