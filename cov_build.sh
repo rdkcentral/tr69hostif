@@ -92,5 +92,6 @@ ls -l /usr/bin/
 ls -l /usr/local/bin/
 ls -l /usr/local/bin/tr181
 #ls -l /usr/bin/tr181Set
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 /usr/local/bin/tr181 -d  Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable
 ls -l /usr/local/lib/
