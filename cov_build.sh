@@ -18,9 +18,11 @@ cp /usr/include/cjson/cJSON.h  ./
 cp /usr/local/include/wdmp-c/wdmp-c.h ./
 #make AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
 make libtr181api_la_CPPFLAGS="-I/usr/include/cjson" AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
-cp .libs/libtr181api.so* /usr/local/lib
 cd ../utils
 make && make install
+cd ../tr181api/.libs/
+cp libtr181api.so*  /usr/local/lib
+
 
 #Build yajl - tr69 alone needs this specific version
 cd $ROOT 
