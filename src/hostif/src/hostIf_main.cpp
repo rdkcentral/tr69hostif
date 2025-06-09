@@ -751,7 +751,7 @@ MergeStatus mergeDataModel()  {
             }
          }
         fclose(fp);
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
         const char *generic_file = GENERIC_XML_FILE;
         const char *output_file = WEBPA_DATA_MODEL_FILE;
         if (strcmp(rdk_profile, "TV") == 0) {

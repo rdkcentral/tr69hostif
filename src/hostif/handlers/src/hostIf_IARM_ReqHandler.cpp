@@ -93,7 +93,7 @@ bool hostIf_IARM_IF_Start()
 
 void hostIf_getPwrContInterface()
 {
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
 
     /*TODO: remove this sleep after fix METROL-1045*/
     sleep(10);//added sleep wait for the WPEframework active.
