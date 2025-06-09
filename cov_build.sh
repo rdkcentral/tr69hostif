@@ -22,7 +22,8 @@ cd ../utils
 make && make install
 
 cd $ROOT
-cd rfc/tr181api/.libs/
+cd rfc
+ls -l rfc/tr181api/
 ls -l rfc/tr181api/.libs/
 cp libtr181api.so*  /usr/local/lib
 
