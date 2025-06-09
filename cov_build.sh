@@ -87,11 +87,7 @@ make install
 cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
 
-ls -l /usr/bin/
-#ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
-ls -l /usr/local/bin/
-ls -l /usr/local/bin/tr181
-#ls -l /usr/bin/tr181Set
+ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-/usr/local/bin/tr181 -d  Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable
-ls -l /usr/local/lib/
+rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true 
+/usr/bin/tr181Set -d  Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable
