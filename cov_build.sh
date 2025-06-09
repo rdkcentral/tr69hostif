@@ -19,11 +19,6 @@ cp /usr/local/include/wdmp-c/wdmp-c.h ./
 make AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
 cd ../utils
 make && make install
-ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
-ls -l /usr/local/bin/
-ls -l /usr/local/bin/tr181
-ls -l /usr/bin/tr181Set
-/usr/bin/tr181Set -d  Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable
 
 #Build yajl - tr69 alone needs this specific version
 cd $ROOT 
@@ -85,3 +80,9 @@ cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
 
 ls -l /usr/bin/
+ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
+ls -l /usr/local/bin/
+ls -l /usr/local/bin/tr181
+ls -l /usr/bin/tr181Set
+/usr/bin/tr181Set -d  Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable
+
