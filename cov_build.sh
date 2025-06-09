@@ -17,6 +17,7 @@ cd ../tr181api
 cp /usr/include/cjson/cJSON.h  ./
 cp /usr/local/include/wdmp-c/wdmp-c.h ./
 make AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
+cp .libs/libtr181api.so* /usr/local/lib
 cd ../utils
 make && make install
 
