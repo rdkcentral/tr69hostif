@@ -20,7 +20,10 @@ cp /usr/local/include/wdmp-c/wdmp-c.h ./
 make libtr181api_la_CPPFLAGS="-I/usr/include/cjson" AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
 cd ../utils
 make && make install
-cd $ROOT/rfc/tr181api/.libs/
+
+cd $ROOT
+cd rfc/tr181api/.libs/
+ls -l rfc/tr181api/.libs/
 cp libtr181api.so*  /usr/local/lib
 
 
