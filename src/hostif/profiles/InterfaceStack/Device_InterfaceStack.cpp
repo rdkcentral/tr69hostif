@@ -49,6 +49,7 @@
 #define MAX_CMD_LEN 256
 #define MAX_IFNAME_LEN 64
 #define SYS_CLASS_NET_PATH  "/sys/class/net/"
+#define MAX_IFCS 256
 
 #define IN
 #define OUT
@@ -886,10 +887,10 @@ int hostif_InterfaceStack::getIPInterfaces(IPInterfacesMap_t& interfaceList)
         ipNumOfEntries=get_int(msgData.paramValue);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s:%d ipNumOfEntries = %d\n", __FUNCTION__, __LINE__, ipNumOfEntries);
 
-        int ifindexes[32];
+        int ifindexes[MAX_IFCS];
         getIPInterfaceIDs(ifindexes);
 
-        for(ipIndex=0; ipIndex < ipNumOfEntries; ipIndex++)
+        for(ipIndex=0; ipIndex < ipNumOfEntries && ipIndex < MAX_IFCS; ipIndex++)
         {
             std::string ipIfName;
             hostIf_IPInterface *pIface = hostIf_IPInterface::getInstance(ifindexes[ipIndex]);
@@ -908,6 +909,9 @@ int hostif_InterfaceStack::getIPInterfaces(IPInterfacesMap_t& interfaceList)
                 ipIfName.append(msgData.paramValue);
                 interfaceList.insert( std::pair<std::string, int>(ipIfName, ipIndex));
             }
+        }
+        if (ipIndex >= MAX_IFCS) {
+            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"%s:%d Available interfaces exceeds max no. of interfaces (%d)\n", __FILE__, __LINE__, MAX_IFCS);
         }
     }
     return(rc);
