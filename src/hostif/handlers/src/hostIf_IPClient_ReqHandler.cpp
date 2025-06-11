@@ -486,7 +486,7 @@ void IPClientReqHandler::checkForUpdates()
     for (int i = 0; i < interfaceNumberOfEntries && i < MAX_IFCS; i++)
     {
 	
-        if (ifindexes[i] > 0) {
+        if (ifindexes[i] > 0 && ifindexes[i] < sizeof(curNumOfInterfaceIPv6Addresses)/sizeof(curNumOfInterfaceIPv6Addresses[0]) && ifindexes[i] < sizeof(curNumOfInterfaceIPv4Addresses)/sizeof(curNumOfInterfaceIPv4Addresses[0])) {
             int ipv4AddressNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv4AddressNumberOfEntries ();
             RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv4AddressNumberOfEntries = %d, curNumOfInterfaceIPv4Addresses[%d] = %d\n",
                 __FILE__, __FUNCTION__, __LINE__, ipv4AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv4Addresses[ifindexes[i]]);
