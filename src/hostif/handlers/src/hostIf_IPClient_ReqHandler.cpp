@@ -430,7 +430,6 @@ void IPClientReqHandler::registerUpdateCallback(updateCallback cb)
 
 void getIPIfcIDs(int *ifindexes) {
     int count = 0;
-    FILE *fp = popen("ls /sys/class/net", "r");
     FILE *fp = v_secure_popen("r", "ls /sys/class/net");
     if (!fp) {
       perror("popen");
