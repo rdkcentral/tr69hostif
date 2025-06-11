@@ -1,5 +1,5 @@
 /*
- * If not stated otherwise in this file or this component's LICENSE file the
+ * If not stated otherwise in this file or this component's Licenses.txt file the
  * following copyright and licenses apply:
  *
  * Copyright 2016 RDK Management
@@ -16,20 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-
 /**
  * @file hostIf_IPClient_ReqHandler.cpp
  * @brief The header file provides HostIf IP client request handler information APIs.
  */
-
 /**
 * @defgroup tr69hostif
 * @{
 * @defgroup hostif
 * @{
 **/
-
-
 //#define HAVE_VALUE_CHANGE_EVENT
 #include "hostIf_main.h"
 #include "hostIf_IPClient_ReqHandler.h"
@@ -47,7 +43,7 @@
 #include "Device_IP_Diagnostics_IPPing.h"
 #include "safec_lib.h"
 #include <mutex>
-
+#define MAX_IFCS 256
 std::mutex IPClientReqHandler::m_mutex;
 IPClientReqHandler* IPClientReqHandler::pInstance = NULL;
 updateCallback IPClientReqHandler::mUpdateCallback = NULL;
@@ -59,26 +55,21 @@ int IPClientReqHandler::curNumOfInterfaceIPv6Prefixes[100] = {0,};
 #endif // IPV6_SUPPORT
 int IPClientReqHandler::curNumOfIPv4Interface[20] = {0,};
 int IPClientReqHandler::curNumOfActivePorts[20] = {0,};
-
 IPClientReqHandler::IPClientReqHandler ()
 {
 }
-
 IPClientReqHandler::~IPClientReqHandler ()
 {
 }
-
 msgHandler* IPClientReqHandler::getInstance()
 {
     if(!pInstance)
         pInstance = new IPClientReqHandler();
     return pInstance;
 }
-
 void IPClientReqHandler::reset()
 {
     std::lock_guard<std::mutex> lg (m_mutex);
-
     curNumOfIPInterface = 0;
     memset (curNumOfInterfaceIPv4Addresses, 0, sizeof(curNumOfInterfaceIPv4Addresses));
 #ifdef IPV6_SUPPORT
@@ -88,7 +79,6 @@ void IPClientReqHandler::reset()
     memset (curNumOfIPv4Interface, 0, sizeof(curNumOfIPv4Interface));
     memset (curNumOfActivePorts, 0, sizeof(curNumOfActivePorts));
 }
-
 /**
  * @brief This function is used to initialize. Currently not implemented.
  *
@@ -104,7 +94,6 @@ bool IPClientReqHandler::init()
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return true;
 }
-
 /**
  * @brief This function is used to close all the instances of IP interface, IP interface stats
  * IPv4 Address, IPActivePort and IP.
@@ -118,17 +107,14 @@ bool IPClientReqHandler::init()
 bool IPClientReqHandler::unInit()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-
     hostIf_IPInterface::closeAllInstances();
     hostIf_IPInterfaceStats::closeAllInstances();
     hostIf_IPv4Address::closeAllInstances();
     hostIf_IPActivePort::closeAllInstances();
     hostIf_IP::closeAllInstances();
-
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return true;
 }
-
 /**
  * @brief This function is used to handle the get message request of IP interface,
  * IPv4Address, IPActivePort and IP. Gets the attribute of IP interface such as "BytesSent",
@@ -149,37 +135,25 @@ int IPClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
     const char *positionAfterInstanceNumber = 0;
     int instanceNumber = 0;
     HOSTIF_MsgData_t msgData;
-
-
     int interfaceNumberOfEntries = 0;
-
     memset(&msgData,0,sizeof(msgData));
-
     std::lock_guard<std::mutex> lg (m_mutex);
-
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s:%s:%d] Found string as %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
     
     if (matchComponent (stMsgData->paramName, "Device.IP.Interface", &positionAfterInstanceNumber, instanceNumber))
     {
         if (!instanceNumber)
             return NOK;
-
         if (hostIf_IP::get_Device_IP_InterfaceNumberOfEntries (&msgData) != OK)
         {
              return NOK;
         }
-
         interfaceNumberOfEntries = get_int (msgData.paramValue);
-
         if(instanceNumber > interfaceNumberOfEntries)
              return NOK;
-
         stMsgData->instanceNum = instanceNumber;
-
-
         const char *positionAfterSubInstanceNumber = 0;
         int subInstanceNumber;
-
         if (strncasecmp (positionAfterInstanceNumber, "Stats", strlen ("Stats")) == 0)
         {
             hostIf_IPInterfaceStats* pIfaceStats = hostIf_IPInterfaceStats::getInstance (instanceNumber);
@@ -250,10 +224,8 @@ int IPClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
          stMsgData->faultCode = fcInvalidParameterName;
          ret = NOK;
     }
-
     return ret;
 }
-
 /**
  * @brief This function is used to handle the set message request of IP interface
  * IPv4Address and IP. Gets the attribute of IP interface such as "Enable",
@@ -273,11 +245,8 @@ int IPClientReqHandler::handleSetMsg (HOSTIF_MsgData_t *stMsgData)
     int ret = NOT_HANDLED;
     const char *positionAfterInstanceNumber = 0;
     int instanceNumber;
-
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s:%s:%d] Found string as %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
-
     std::lock_guard<std::mutex> lg (m_mutex);
-
     if (matchComponent (stMsgData->paramName, "Device.IP.Interface", &positionAfterInstanceNumber, instanceNumber))
     {
         stMsgData->instanceNum = instanceNumber;
@@ -311,7 +280,6 @@ int IPClientReqHandler::handleSetMsg (HOSTIF_MsgData_t *stMsgData)
             hostIf_IPInterface *pIface = hostIf_IPInterface::getInstance (instanceNumber);
             if (!pIface)
                 return NOK;
-
             ret = pIface->handleSetMsg (positionAfterInstanceNumber, stMsgData);
         }
     }
@@ -338,21 +306,17 @@ int IPClientReqHandler::handleSetMsg (HOSTIF_MsgData_t *stMsgData)
     stMsgData->faultCode = (OK == ret)?fcNoFault:fcRequestDenied;
     return ret;
 }
-
 int IPClientReqHandler::handleGetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOT_HANDLED;
     int instanceNumber = 0;
-
     std::lock_guard<std::mutex> lg (m_mutex);
-
     hostIf_IP *pIface = hostIf_IP::getInstance(instanceNumber);
     stMsgData->instanceNum = instanceNumber;
     if(!pIface)
     {
         return NOK;
     }
-
     GHashTable* notifyhash = pIface->getNotifyHash();
     if(notifyhash != NULL)
     {
@@ -365,18 +329,14 @@ int IPClientReqHandler::handleGetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
     {
         ret = NOK;
     }
-
     return ret;
 }
-
 int IPClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOT_HANDLED;
     int instanceNumber = 0;
     errno_t rc = -1;
-
     std::lock_guard<std::mutex> lg (m_mutex);
-
     hostIf_IP *pIface = hostIf_IP::getInstance(instanceNumber);
     stMsgData->instanceNum = instanceNumber;
     if(!pIface)
@@ -388,7 +348,6 @@ int IPClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
     {
         int *notifyValuePtr;
         notifyValuePtr = (int*) malloc(1 * sizeof(int));
-
         // Inserting Notification parameter to Notify Hash Table,
         // Note that neither keys nor values are copied when inserted into the GHashTable, so they must exist for the lifetime of the GHashTable
         // There for allocating a memory for both Param name and param value. This should be freed whenever we disable Notification.
@@ -424,21 +383,42 @@ void IPClientReqHandler::registerUpdateCallback(updateCallback cb)
 {
     mUpdateCallback = cb;
 }
-
+void getIPIfcIDs(int *ifindexes) {
+    int count = 0;
+    FILE *fp = popen("ls /sys/class/net", "r");
+    if (!fp) {
+      perror("popen");
+      RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"%s:%d Failed to open /sys/class/net contents\n", __FILE__, __LINE__);
+      return;
+    }
+    char iface[256];
+    while (fgets(iface, sizeof(iface), fp)) {
+        iface[strcspn(iface, "\n")] = 0;
+        char command[512];
+        snprintf(command, sizeof(command), "cat /sys/class/net/%s/ifindex", iface);
+        FILE *ifindex_fp = popen(command, "r");
+        if (ifindex_fp) {
+            char buffer[64];
+            if (fgets(buffer, sizeof(buffer), ifindex_fp)) {
+                ifindexes[count++] = atoi(buffer);
+            }
+            pclose(ifindex_fp);
+        }
+    }
+    pclose(fp);
+}
 void IPClientReqHandler::checkForUpdates()
 {
     if (mUpdateCallback == 0)
         return;
-
     HOSTIF_MsgData_t msgData;
+    bool bChanged;
+    GList *elem;
     int index = 1;
     char objectPath[TR69HOSTIFMGR_MAX_PARAM_LEN];
     hostIf_IP::getLock();
-
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s:%d] \n",__FILE__, __FUNCTION__,__LINE__);
-
     memset(&msgData,0,sizeof(msgData));
-
     int interfaceNumberOfEntries = 0;
     if (hostIf_IP::get_Device_IP_InterfaceNumberOfEntries (&msgData) == OK)
     {
@@ -448,60 +428,45 @@ void IPClientReqHandler::checkForUpdates()
         sprintf (objectPath, "Device.IP.Interface.");
         sendAddRemoveEvents (mUpdateCallback, interfaceNumberOfEntries, curNumOfIPInterface, objectPath);
     }
-
-    for (int i = 1; i <= interfaceNumberOfEntries; i++)
+    int ifindexes[MAX_IFCS];
+    getIPIfcIDs(ifindexes);
+    for (int i = 0; i < interfaceNumberOfEntries && i < MAX_IFCS; i++)
     {
-        int ipv4AddressNumberOfEntries = hostIf_IPInterface::getInstance (i)->getIPv4AddressNumberOfEntries ();
+        int ipv4AddressNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv4AddressNumberOfEntries ();
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv4AddressNumberOfEntries = %d, curNumOfInterfaceIPv4Addresses[%d] = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, ipv4AddressNumberOfEntries, i, curNumOfInterfaceIPv4Addresses[i]);
-        sprintf (objectPath, "Device.IP.Interface.%d.IPv4Address.", i);
-        sendAddRemoveEvents (mUpdateCallback, ipv4AddressNumberOfEntries, curNumOfInterfaceIPv4Addresses[i], objectPath);
-
+                __FILE__, __FUNCTION__, __LINE__, ipv4AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv4Addresses[ifindexes[i]]);
+        sprintf (objectPath, "Device.IP.Interface.%d.IPv4Address.", ifindexes[i]);
+        sendAddRemoveEvents (mUpdateCallback, ipv4AddressNumberOfEntries, curNumOfInterfaceIPv4Addresses[ifindexes[i]], objectPath);
 #ifdef IPV6_SUPPORT
-        int ipv6AddressNumberOfEntries = hostIf_IPInterface::getInstance (i)->getIPv6AddressNumberOfEntries ();
+        int ipv6AddressNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv6AddressNumberOfEntries ();
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv6AddressNumberOfEntries = %d, curNumOfInterfaceIPv6Addresses[%d] = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, ipv6AddressNumberOfEntries, i, curNumOfInterfaceIPv6Addresses[i]);
-        sprintf (objectPath, "Device.IP.Interface.%d.IPv6Address.", i);
-        sendAddRemoveEvents (mUpdateCallback, ipv6AddressNumberOfEntries, curNumOfInterfaceIPv6Addresses[i], objectPath);
-
-        int ipv6PrefixNumberOfEntries = hostIf_IPInterface::getInstance (i)->getIPv6PrefixNumberOfEntries ();
+                __FILE__, __FUNCTION__, __LINE__, ipv6AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv6Addresses[ifindexes[i]]);
+        sprintf (objectPath, "Device.IP.Interface.%d.IPv6Address.", ifindexes[i]);
+        sendAddRemoveEvents (mUpdateCallback, ipv6AddressNumberOfEntries, curNumOfInterfaceIPv6Addresses[ifindexes[i]], objectPath);
+        int ipv6PrefixNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv6PrefixNumberOfEntries ();
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv6PrefixNumberOfEntries = %d, curNumOfInterfaceIPv6Prefixes[%d] = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, ipv6PrefixNumberOfEntries, i, curNumOfInterfaceIPv6Prefixes[i]);
-        sprintf (objectPath, "Device.IP.Interface.%d.IPv6Prefix.", i);
-        sendAddRemoveEvents (mUpdateCallback, ipv6PrefixNumberOfEntries, curNumOfInterfaceIPv6Prefixes[i], objectPath);
-
+                __FILE__, __FUNCTION__, __LINE__, ipv6PrefixNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv6Prefixes[ifindexes[i]]);
+        sprintf (objectPath, "Device.IP.Interface.%d.IPv6Prefix.", ifindexes[i]);
+        sendAddRemoveEvents (mUpdateCallback, ipv6PrefixNumberOfEntries, curNumOfInterfaceIPv6Prefixes[ifindexes[i]], objectPath);
 #endif // IPV6_SUPPORT
     }
-
     hostIf_IP::releaseLock();
-
 #ifdef HAVE_ADD_REMOVE_EVENT
-
     hostIf_IP::getLock();
-
     index = 1;
-
     memset(&msgData,0,sizeof(msgData));
-
     if (hostIf_IP::get_Device_IP_ActivePortNumberOfEntries (&msgData) == OK)
     {
         int activePortNumberOfEntries = get_int (msgData.paramValue);
         sprintf (objectPath, "Device.IP.ActivePort.");
         sendAddRemoveEvents (mUpdateCallback, activePortNumberOfEntries, curNumOfActivePorts[index], objectPath);
     }
-
     hostIf_IP::releaseLock();
-
 #endif /*HAVE_ADD_REMOVE_EVENT */
-
 #ifdef HAVE_VALUE_CHANGE_EVENT
-
     std::lock_guard<std::mutex> lg (m_mutex);
-
     int instanceNumber = 0;
     GHashTable* notifyhash = NULL;
-
-
     //Get Notify Hash from device Info
     hostIf_IP *dIface = hostIf_IP::getInstance(instanceNumber);
     if(NULL != dIface)
@@ -512,7 +477,6 @@ void IPClientReqHandler::checkForUpdates()
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] Unable to get Device IP Instance\n", __FUNCTION__, __FILE__);
     }
-
     // Iterate through Ghash Table
     if(NULL != notifyhash)
     {
@@ -522,7 +486,7 @@ void IPClientReqHandler::checkForUpdates()
         bool  bChanged;
         const char *pSetting;
         int instanceNumber;
-
+        int subInstanceNumber;
         g_hash_table_iter_init (&notifyHashIterator, notifyhash);
         while (g_hash_table_iter_next (&notifyHashIterator, &paramName, &notifyEnable))
         {
@@ -589,7 +553,6 @@ void IPClientReqHandler::checkForUpdates()
                             }
                         }
                     }
-
                     else if (strcasecmp(pSetting,"Status") == 0)
                     {
                         memset(&msgData,0,sizeof(msgData));
@@ -944,31 +907,27 @@ void IPClientReqHandler::checkForUpdates()
                                 }
                             }
                         }
-
                     }
                     memset(&msgData,0,sizeof(msgData));
                     if(pIface->get_Interface_IPv4AddressNumberOfEntries(&msgData) == OK)
                     {
                         int tmpNoDev = get_int(msgData.paramValue);
-                        char *tmp = NULL;
-                        tmp = (char *)malloc(TR69HOSTIFMGR_MAX_PARAM_LEN * sizeof(char));
+                        char tmp[TR69HOSTIFMGR_MAX_PARAM_LEN] = "";
                         snprintf(objectPath,TR69HOSTIFMGR_MAX_PARAM_LEN,"Device.IP.Interface.%d.%s",index,"IPv4AddressNumberOfEntries");
                         while(curNumOfIPv4Interface[index] > tmpNoDev)
                         {
-                            asprintf(&tmp,"%s.%d.",objectPath,tmpNoDev);
+                            snprintf(tmp,TR69HOSTIFMGR_MAX_PARAM_LEN,"%s.%d.",objectPath,tmpNoDev);
                             mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_REMOVE,tmp, NULL, hostIf_IntegerType);
                             tmpNoDev++;
                         }
                         while(curNumOfIPv4Interface[index] < tmpNoDev)
                         {
-                            asprintf(&tmp,"%s.",objectPath);
+                            snprintf(tmp,TR69HOSTIFMGR_MAX_PARAM_LEN,"%s.",objectPath);
                             mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_ADD,tmp, NULL, hostIf_IntegerType);
                             tmpNoDev--;
                         }
                         curNumOfIPv4Interface[index] = get_int(msgData.paramValue);
-                        free(tmp);
                     }
-
                 }
             }
             else if(matchComponent((const char*)paramName,"Device.IP.ActivePort",&pSetting,instanceNumber))
@@ -1041,9 +1000,7 @@ void IPClientReqHandler::checkForUpdates()
                             }
                         }
                     }
-
                 }
-
             }
             else if(matchComponent((const char*)paramName,"Device.IP",&pSetting,instanceNumber))
             {
@@ -1102,16 +1059,10 @@ void IPClientReqHandler::checkForUpdates()
                             }
                         }
                     }
-
-
                 }
-
             }
-
         }
     }
-
-
     /*
                // TODO: Device.IP.IPv6Enable
                #ifdef IPV6_SUPPORT
@@ -1125,16 +1076,7 @@ void IPClientReqHandler::checkForUpdates()
                            }
                #endif // IPV6_SUPPORT
            */
-
 #endif  /* HAVE_VALUE_CHANGE_EVENT */
 }
-
-
-
-
-
-
-
-
 /** @} */
 /** @} */
