@@ -47,6 +47,7 @@
 #include "Device_IP.h"
 #include "Device_IP_Diagnostics_IPPing.h"
 #include "safec_lib.h"
+#include "secure_wrapper.h"
 #include <mutex>
 
 #define MAX_IFCS 256
