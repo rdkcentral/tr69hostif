@@ -505,9 +505,8 @@ void IPClientReqHandler::checkForUpdates()
                 __FILE__, __FUNCTION__, __LINE__, ipv6PrefixNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv6Prefixes[ifindexes[i]]);
             sprintf (objectPath, "Device.IP.Interface.%d.IPv6Prefix.", ifindexes[i]);
             sendAddRemoveEvents (mUpdateCallback, ipv6PrefixNumberOfEntries, curNumOfInterfaceIPv6Prefixes[ifindexes[i]], objectPath);
-	}
-
 #endif // IPV6_SUPPORT
+	}
     }
 
     hostIf_IP::releaseLock();
