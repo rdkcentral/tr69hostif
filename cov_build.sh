@@ -9,10 +9,16 @@ cd $ROOT
 git clone https://github.com/rdkcentral/rfc.git
 cd rfc
 autoreconf -i
-./configure --enable-rfctool=yes --enable-tr181set=yes
+./configure --enable-rfctool=yes --enable-tr181set=yes --enable-tr69hostif=yes
 cd rfcapi
 make librfcapi_la_CPPFLAGS="-I/usr/include/cjson"
 make install
+cd ../tr181api
+cp /usr/include/cjson/cJSON.h  ./
+cp /usr/local/include/wdmp-c/wdmp-c.h ./
+make AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
+cd ../utils
+make && make install
 
 #Build yajl - tr69 alone needs this specific version
 cd $ROOT 
@@ -72,3 +78,6 @@ make install
 
 cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
+
+ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
+rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true 
