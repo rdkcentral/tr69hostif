@@ -841,7 +841,7 @@ int hostif_InterfaceStack::buildBridgeTableLayerInfo(InterfaceStackMap_t &layerI
 
 void getIPInterfaceIDs(int *ifindexes) {
     int count = 0;
-    FILE *fp = popen("ls /sys/class/net", "r");
+    FILE *fp = v_secure_popen("r", "ls /sys/class/net");
     if (!fp) {
       perror("popen");
       RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"%s:%d Failed to open /sys/class/net contents\n", __FILE__, __LINE__);
