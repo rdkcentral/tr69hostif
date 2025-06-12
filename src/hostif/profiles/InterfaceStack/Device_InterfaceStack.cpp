@@ -855,16 +855,16 @@ void getIPInterfaceIDs(int *ifindexes) {
         char command[512];
         snprintf(command, sizeof(command), "cat /sys/class/net/%s/ifindex", iface);
 
-        FILE *ifindex_fp = popen(command, "r");
+        FILE *ifindex_fp = v_secure_popen("r", command);
         if (ifindex_fp) {
             char buffer[64];
             if (fgets(buffer, sizeof(buffer), ifindex_fp)) {
                 ifindexes[count++] = atoi(buffer);
             }
-            pclose(ifindex_fp);
+            v_secure_pclose(ifindex_fp);
         }
     }
-    pclose(fp);
+    v_secure_pclose(fp);
 }
 
 /* getIPInterfaces
