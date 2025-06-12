@@ -110,7 +110,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
         if(ret == -1)
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"\n read_Device_Ethernet_Interface_Stats_Fields(): Error in readFile eBytesSent\n");
-
+           
             return 0;
         }
         break;
@@ -121,8 +121,8 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
         ret = readStatFile(cmd, hostIf_EthernetInterfaceStats::stEthInterfaceStats.bytesReceived);
         if(ret == -1)
         {
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"\n read_Device_Ethernet_Interface_Stats_Fields(): Error in readFile eBytesSent\n");
-
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"\n read_Device_Ethernet_Interface_Stats_Fields(): Error in readFile eBytesReceived\n");
+            
             return 0;
         }
         break;
