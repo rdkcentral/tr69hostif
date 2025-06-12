@@ -841,7 +841,7 @@ int hostif_InterfaceStack::buildBridgeTableLayerInfo(InterfaceStackMap_t &layerI
 
 void getIPInterfaceIDs(int *ifindexes) {
     int count = 0;
-    FILE *fp = popen("ls /sys/class/net", "r");
+    FILE *fp = v_secure_popen("r", "ls /sys/class/net");
     if (!fp) {
       perror("popen");
       RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"%s:%d Failed to open /sys/class/net contents\n", __FILE__, __LINE__);
@@ -852,19 +852,19 @@ void getIPInterfaceIDs(int *ifindexes) {
     while (fgets(iface, sizeof(iface), fp)) {
         iface[strcspn(iface, "\n")] = 0;
 
-        char command[512];
-        snprintf(command, sizeof(command), "cat /sys/class/net/%s/ifindex", iface);
+        //char command[512];
+        //snprintf(command, sizeof(command), "cat /sys/class/net/%s/ifindex", iface);
 
-        FILE *ifindex_fp = popen(command, "r");
+        FILE *ifindex_fp = v_secure_popen("r", "cat /sys/class/net/%s/ifindex", iface);
         if (ifindex_fp) {
             char buffer[64];
             if (fgets(buffer, sizeof(buffer), ifindex_fp)) {
                 ifindexes[count++] = atoi(buffer);
             }
-            pclose(ifindex_fp);
+            v_secure_pclose(ifindex_fp);
         }
     }
-    pclose(fp);
+    v_secure_pclose(fp);
 }
 
 /* getIPInterfaces
