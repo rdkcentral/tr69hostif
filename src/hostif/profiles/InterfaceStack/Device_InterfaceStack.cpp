@@ -852,10 +852,10 @@ void getIPInterfaceIDs(int *ifindexes) {
     while (fgets(iface, sizeof(iface), fp)) {
         iface[strcspn(iface, "\n")] = 0;
 
-        char command[512];
-        snprintf(command, sizeof(command), "cat /sys/class/net/%s/ifindex", iface);
+        //char command[512];
+        //snprintf(command, sizeof(command), "cat /sys/class/net/%s/ifindex", iface);
 
-        FILE *ifindex_fp = v_secure_popen("r", command);
+        FILE *ifindex_fp = v_secure_popen("r", "cat /sys/class/net/%s/ifindex", iface);
         if (ifindex_fp) {
             char buffer[64];
             if (fgets(buffer, sizeof(buffer), ifindex_fp)) {
