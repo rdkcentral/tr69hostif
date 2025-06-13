@@ -50,7 +50,7 @@ autoreconf -i
 sed -i '/#include "dsAudio.h"/d' /usr/devicesettings/rpc/cli/dsAudio.c
 sed -i '/device::HdmiInput::getInstance().isPortConnected(portId);/d' /usr/devicesettings/ds/audioOutputPort.cpp
 ./configure
-make INCLUDE_FILES="-I/usr/rdk-halif-device_settings/include -I/usr/rpc/include -I/usr/devicesettings/rpc/cli -I/usr/devicesettings/rpc/include -I/usr/iarmbus/core/include -I$WORKDIR/src/unittest/stubs -I/usr/devicesettings/rpc/srv -I/usr/rdkvhal-devicesettings-raspberrypi4" libds_la_CPPFLAGS="-I/usr/rdk-halif-device_settings/include -I/usr/devicesettings/ds/include -I$WORKDIR/src/unittest/stubs/ -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/cli/ -I/usr/devicesettings/rpc/srv -I/usr/devicesettings/ds/include -I/usr/devicesettings/ds/" CFLAGS="-fpermissive -Wnarrowing"
+make INCLUDE_FILES="-I/usr/rdk-halif-device_settings/include -I/usr/rpc/include -I/usr/devicesettings/rpc/cli -I/usr/devicesettings/rpc/include -I/usr/iarmbus/core/include -I$WORKDIR/src/unittest/stubs -I/usr/devicesettings/rpc/srv -I/usr/rdkvhal-devicesettings-raspberrypi4" libds_la_CPPFLAGS="-I/usr/rdk-halif-device_settings/include -I/usr/devicesettings/ds/include -I$WORKDIR/src/unittest/stubs/ -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/cli/ -I/usr/devicesettings/rpc/srv -I/usr/devicesettings/ds/include -I/usr/devicesettings/ds/" CFLAGS="-fpermissive -Wall -Wno-narrowing"
 make install
 
 # Build and deploy stubs for IARMBus
