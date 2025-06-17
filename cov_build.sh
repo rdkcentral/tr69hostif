@@ -9,10 +9,16 @@ cd $ROOT
 git clone https://github.com/rdkcentral/rfc.git
 cd rfc
 autoreconf -i
-./configure --enable-rfctool=yes --enable-tr181set=yes
+./configure --enable-rfctool=yes --enable-tr181set=yes --enable-tr69hostif=yes
 cd rfcapi
 make librfcapi_la_CPPFLAGS="-I/usr/include/cjson"
 make install
+cd ../tr181api
+cp /usr/include/cjson/cJSON.h  ./
+cp /usr/local/include/wdmp-c/wdmp-c.h ./
+make AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
+cd ../utils
+make && make install
 
 #Build yajl - tr69 alone needs this specific version
 cd $ROOT 
@@ -70,3 +76,8 @@ make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I
 AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus  -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lds -ldshalcli -ldshalsrv  -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER"
 make install
 
+cd ./src/hostif/parodusClient/pal/mock-parodus/
+sh mock_parodus_build.sh
+
+ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
+rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true 
