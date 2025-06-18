@@ -4325,7 +4325,7 @@
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <boolean/>
-          <default type="factory" value="false"/>
+          <default type="factory" value="true"/>
         </syntax>
       </parameter>
     </object>
@@ -4439,6 +4439,13 @@
           <string/>
         </syntax>
       </parameter>
-    </object>    
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.InactiveApplications." access="readOnly" minEntries="0" maxEntries="1">
+      <parameter base="Maximum" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+    </object> 
   </model>
 </dm:document>
