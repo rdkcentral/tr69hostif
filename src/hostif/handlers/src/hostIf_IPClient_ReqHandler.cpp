@@ -429,7 +429,7 @@ void IPClientReqHandler::registerUpdateCallback(updateCallback cb)
     mUpdateCallback = cb;
 }
 
-void getIPIfcIDs(int *ifindexes) {
+void getIPIfcIDs(unsigned int *ifindexes) {
     int count = 0;
     FILE *fp = v_secure_popen("r", "ls /sys/class/net");
     if (!fp) {
@@ -481,7 +481,7 @@ void IPClientReqHandler::checkForUpdates()
         sendAddRemoveEvents (mUpdateCallback, interfaceNumberOfEntries, curNumOfIPInterface, objectPath);
     }
 
-    int ifindexes[MAX_IFCS];
+    unsigned int ifindexes[MAX_IFCS];
     getIPIfcIDs(ifindexes);
     for (int i = 0; i < interfaceNumberOfEntries && i < MAX_IFCS; i++)
     {
