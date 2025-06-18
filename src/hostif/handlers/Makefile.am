@@ -97,6 +97,11 @@ if WIFI_CLIENT_ROAMING
 AM_CXXFLAGS += -DWIFI_CLIENT_ROAMING
 endif
 
+if IS_TELEMETRY2_ENABLED
+AM_CXXFLAGS += $(T2_EVENT_FLAG)
+AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
+endif
+
 noinst_LTLIBRARIES = libMsgHandlers.la
 libMsgHandlers_la_SOURCES =	src/hostIf_IARM_ReqHandler.cpp \
 				src/hostIf_msgHandler.cpp \
