@@ -52,6 +52,21 @@ AC_ARG_ENABLE([libsoup3],
 esac],[libsoup3=false])
 AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
 
+AC_ARG_ENABLE([t2api],
+	      AS_HELP_STRING([--enable-t2api],[enables telemetry]),
+	      [
+	        case "${enableval}" in
+                 yes) IS_TELEMETRY2_ENABLED=true
+                      T2_EVENT_FLAG=" -DT2_EVENT_ENABLED ";;
+                 no)  IS_TELEMETRY2_ENABLED=false ;;
+               *) AC_MSG_ERROR([bad value ${enableval} for --enable-t2enable]) ;;
+	       esac
+	       ],
+	   [echo "telemetry is disabled"])
+AM_CONDITIONAL([IS_TELEMETRY2_ENABLED], [test x$IS_TELEMETRY2_ENABLED = xtrue])
+AC_SUBST(T2_EVENT_FLAG)
+
+
 # Generate the Makefile
  AC_CONFIG_FILES([
     hostif/parodusClient/gtest/Makefile \
