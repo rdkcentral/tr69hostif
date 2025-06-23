@@ -45,10 +45,6 @@ else
 AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-2.4
 endif
 
-if IS_TELEMETRY2_ENABLED
-AM_CXXFLAGS += $(T2_EVENT_FLAG)
-AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
-endif
 
 
 libhttpserver_la_LIBADD = $(top_builddir)/src/hostif/parodusClient/waldb/libwaldb.la \
