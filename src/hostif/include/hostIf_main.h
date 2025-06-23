@@ -153,8 +153,8 @@ static volatile sig_atomic_t time_to_quit = 0;
 void quit_handler (int sig_received);
 void exit_gracefully (int sig_received);
 
-void t2CountNotify(char *marker, int val);
-void t2ValNotify(char *marker, char *val);
+void t2CountNotify(const char *marker, int val);
+void t2ValNotify(const char *marker, const char *val);
 
 void *tr69IfHandlerThread(void *);
 void *jsonIfHandlerThread(void *);
