@@ -101,7 +101,20 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramName,
                 stMsgData->paramValue,
                 timeTaken);
+           // Telemetry and debug log if processing time > 1 second (1,000,000 us)
+            if (timeTaken > 1000000) {
+                // Debug log
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                    "[%s:%d] Slow GET detected: paramName: %s, timeTaken: %lld ms\n",
+                    __FUNCTION__, __LINE__, stMsgData->paramName, timeTaken/1000);
+
+                // Telemetry: report paramName
+                t2ValNotify("TR69HOSTIF_GET_TIMEOUT_PARAM", stMsgData->paramName);
+                // Telemetry: count the timeout event
+                t2CountNotify("TR69HOSTIF_GET_TIMEOUT_COUNT", 1);
+            }
         }
+        
     }
     catch (const std::exception& e)
     {
