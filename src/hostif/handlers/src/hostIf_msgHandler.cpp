@@ -75,7 +75,8 @@ static int getCount = 0;
 static int setCount = 0;
 static std::atomic<int> getCountSinceBoot{0};
 static time_t bootTimeSec = 0;
-
+static std::atomic<int> setCountSinceBoot{0};
+static time_t bootTimeSecSet =0;
 
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
