@@ -30,6 +30,7 @@ import signal
 def run_module(module_path: str):
     return subprocess.run("{module_path}", shell=True)
 
+
 #tr69hostif
 def kill_module(module: str, signal: int=9):
     print(f"Recived Signal to kill {module} {signal} with pid {get_pid({module})}")
@@ -166,3 +167,14 @@ def run_shell_command(command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout.strip()
 
+def grep_paroduslogs(search: str):
+    search_result = ""
+    search_pattern = re.compile(re.escape(search), re.IGNORECASE)
+    try:
+        with open(PARODUS_LOG_FILE, 'r', encoding='utf-8', errors='ignore') as file:
+            for line_number, line in enumerate(file, start=1):
+                if search_pattern.search(line):
+                    search_result = search_result + " \n" + line
+    except Exception as e:
+        print(f"Could not read file {PARODUS_LOG_FILE}: {e}")
+    return search_result

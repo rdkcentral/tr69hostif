@@ -50,7 +50,7 @@ bool IniFile::load(const string &filename)
         if (splitterPos < line.length()) {
             string key = line.substr(0, splitterPos);
             string value = line.substr(splitterPos+1, line.length());
-            m_dict[key] = value;
+            m_dict[key] = std::move(value);
         }
     }
 
