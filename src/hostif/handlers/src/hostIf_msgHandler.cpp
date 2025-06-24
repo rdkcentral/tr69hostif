@@ -77,6 +77,10 @@ static std::atomic<int> getCountSinceBoot{0};
 static time_t bootTimeSec = 0;
 static std::atomic<int> setCountSinceBoot{0};
 static time_t bootTimeSecSet =0;
+static std::atomic<bool> loggedGet200Within1Min {false};
+static std::atomic<bool> loggedGet1000Within5Min {false};
+static std::atomic<bool> loggedSet200Within1Min {false};
+static std::atomic<bool> loggedSet1000Within5Min {false};
 
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
@@ -102,19 +106,21 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     long secondsSinceBoot = now.tv_sec - bootTimeSec;
 
     // Log if getCount reaches 200 before 1 minute from boot
-    if (getCountSinceBoot == 200 && secondsSinceBoot <= 60) {
+    if ( !loggedGet200Within1Min && getCountSinceBoot >= 200 && secondsSinceBoot <= 60) {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] GET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
         t2CountNotify("TR69HOSTIF_GET_200_WITHIN_1MIN", 1);
+        loggedGet200Within1Min = true;
     }
 
     // Log if getCount reaches 1000 before 5 minutes from boot
-    if (getCountSinceBoot == 1000 && secondsSinceBoot <= 300) {
+    if ( !loggedGet1000Within5Min && getCountSinceBoot >= 1000 && secondsSinceBoot <= 300) {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] GET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
         t2CountNotify("TR69HOSTIF_GET_1000_WITHIN_5MIN", 1);
+        loggedGet1000Within5Min =true;
     }
     try
     {
@@ -182,19 +188,21 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     long secondsSinceBoot = now.tv_sec - bootTimeSecSet;
 
     // Log if setCount reaches 200 before 1 minute from boot
-    if (setCountSinceBoot == 200 && secondsSinceBoot <= 60) {
+    if (!loggedSet200Within1Min && setCountSinceBoot >= 200 && secondsSinceBoot <= 60) {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] SET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
         t2CountNotify("TR69HOSTIF_SET_200_WITHIN_1MIN", 1);
+        loggedSet200Within1Min = true ;
     }
 
     // Log if setCount reaches 1000 before 5 minutes from boot
-    if (setCountSinceBoot == 1000 && secondsSinceBoot <= 300) {
+    if (!loggedSet200Within1Min && setCountSinceBoot == 1000 && secondsSinceBoot <= 300) {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] SET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
         t2CountNotify("TR69HOSTIF_SET_1000_WITHIN_5MIN", 1);
+        loggedSet200Within1Min = true;
     }
 
 
