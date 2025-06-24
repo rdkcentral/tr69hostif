@@ -307,7 +307,9 @@ int main(int argc, char *argv[])
 
         /* Enable RDK logger.*/
         if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
-
+        #ifdef T2_EVENT_ENABLED
+         t2_init("tr69hostif");
+        #endif
         if (optind < argc)
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"non-option ARGV-elements: ");
@@ -609,7 +611,9 @@ void exit_gracefully (int sig_received)
         if(pthread_mutex_trylock(&graceful_exit_mutex) == 0) {
             RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
             isShutdownTriggered = 1;
-
+#ifdef T2_EVENT_ENABLED
+            t2_uninit();
+#endif
 #if defined(USE_WIFI_PROFILE)
             /* Perform the necessary operations to shut down the WiFi device */
             WiFiDevice::shutdown();
