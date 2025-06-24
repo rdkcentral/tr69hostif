@@ -150,8 +150,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 
                 // Telemetry: report paramName
                 t2ValNotify("TR69HOSTIF_GET_TIMEOUT_PARAM", stMsgData->paramName);
-                // Telemetry: count the timeout event
-                t2CountNotify("TR69HOSTIF_GET_TIMEOUT_COUNT", 1);
+                
             }
         }
         
@@ -229,7 +228,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 __FUNCTION__, __LINE__, stMsgData->paramName, timeTakenset/1000);
 
             t2ValNotify("TR69HOSTIF_SET_TIMEOUT_PARAM", stMsgData->paramName);
-            t2CountNotify("TR69HOSTIF_SET_TIMEOUT_COUNT", 1);
+            
         }
     }
 
