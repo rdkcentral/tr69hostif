@@ -150,32 +150,32 @@ void XBSStore::getAuthServicePartnerID()
 
     // Check if partnerId3.dat already exists before starting
     if (foundWWW && foundAuthService && fileExists(filePath)) {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s already exists. Monitoring for modifications...\n", __FUNCTION__, targetFile.c_str());
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] File %s already exists. Monitoring for modifications...\n", __FUNCTION__, __LINE__, targetFile.c_str());
         wd = inotify_add_watch(inotifyFd, filePath.c_str(), IN_CLOSE_WRITE);
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
         partnerIdWatchAdded = true;
 
         // Check if the BSP_COMPLETE file exists
         if (!fileExists(BSP_COMPLETE)) {
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"%s File %s does not exist...creating it...\n", __FUNCTION__, BSP_COMPLETE);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] File %s does not exist...creating it...\n", __FUNCTION__, __LINE__, BSP_COMPLETE);
             createBspCompleteFiles();
         }
     }
 
     // Check for existing directories at the start
     if (foundWWW && !partnerIdWatchAdded) {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s Directory %s already exists.\n", __FUNCTION__, wwwDir.c_str());
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Directory %s already exists.\n", __FUNCTION__, __LINE__, wwwDir.c_str());
 
         if (foundAuthService) {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Directory %s already exists.\n", __FUNCTION__, __LINE__, authServiceDir.c_str());
             wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
-            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Now monitoring %s for partnerId3.dat creation and modifications...\n", __FUNCTION__, __LINE__, authServiceDir.c_str());
         } else {
             // Add a watch on /opt/www to monitor for authService creation
             wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); 
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Now monitoring %s for authService directory creation...\n", __FUNCTION__, __LINE__, wwwDir.c_str());
         }
     }
 
@@ -189,69 +189,57 @@ void XBSStore::getAuthServicePartnerID()
         bool partnerFileUpdated = false;
         for (char *ptr = eventBuf; ptr < eventBuf + numRead;) {
             struct inotify_event *event = (struct inotify_event *)ptr;
-
+	    char nameBuf[NAME_MAX +1] = {0};
+	    strncpy(nameBuf, event->name, NAME_MAX);
+	    nameBuf[NAME_MAX] ='\0';
+		
             // If www is created
-             if (!foundWWW && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) ) {
-		char nameBuf[NAME_MAX +1] = {0};
-		strncpy(nameBuf, event->name, NAME_MAX);
-                if (strcmp(nameBuf, "www") == 0)
-		{
-                   foundWWW = true;
-                   RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", wwwDir.c_str());
+             if (!foundWWW && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) && (strcmp(nameBuf, "www") == 0) ) {
+                foundWWW = true;
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Directory %s created!\n", __FUNCTION__, __LINE__, wwwDir.c_str());
 
-                   // Immediately check if authService already exists
-                   foundAuthService = fileExists(authServiceDir);
-                   if (foundAuthService) {
-                       RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s already exists.\n", authServiceDir.c_str());
-                       wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
-                       RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
-                       RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
-                    } else {
-                    // Add a new watch for /opt/www/authService creation
-                        wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
-                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
-                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Now monitoring %s for authService directory creation...\n", wwwDir.c_str());
-                   }
+                // Immediately check if authService already exists
+                foundAuthService = fileExists(authServiceDir);
+                if (foundAuthService) {
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Directory %s already exists.\n", __FUNCTION__, __LINE__, authServiceDir.c_str());
+                    wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+                    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Now monitoring %s for partnerId3.dat creation and modifications...\n", __FUNCTION__, __LINE__, authServiceDir.c_str());
+                 } else {
+                 // Add a new watch for /opt/www/authService creation
+                     wd = inotify_add_watch(inotifyFd, wwwDir.c_str(), IN_CREATE);
+                     RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Now monitoring %s for authService directory creation...\n", __FUNCTION__, __LINE__, wwwDir.c_str());
                 }
 	     }
 
             // If authService is created
-            else if (foundWWW && !foundAuthService && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR)) {
-                char nameBuf[NAME_MAX +1];
-		strncpy(nameBuf, event->name, NAME_MAX);
-		nameBuf[NAME_MAX] ='\0';
-		if (strcmp(nameBuf, "authService") == 0) {
-		foundAuthService = true;
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Directory %s created!\n", authServiceDir.c_str());
+            else if (foundWWW && !foundAuthService && (event->mask & IN_CREATE) && (event->mask & IN_ISDIR) && (strcmp(nameBuf, "authService") == 0)) {
+	       foundAuthService = true;
+               RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Directory %s created!\n", __FUNCTION__, __LINE__, authServiceDir.c_str());
 
 		// Add a new watch for partnerId3.dat
-                wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
-                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
-                RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for partnerId3.dat creation and modifications...\n", authServiceDir.c_str());
-		}
+               wd = inotify_add_watch(inotifyFd, authServiceDir.c_str(), IN_CREATE | IN_CLOSE_WRITE);
+               RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+               RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Now monitoring %s for partnerId3.dat creation and modifications...\n", __FUNCTION__, __LINE__, authServiceDir.c_str());
             }
 
             // If partnerId3.dat is created
-            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE)) {
-    // Create a null-terminated copy of event->name
-              char safeEventName[NAME_MAX + 1];
-              strncpy(safeEventName, event->name, NAME_MAX);
-              safeEventName[NAME_MAX] = '\0'; // Ensure null termination
-    
-              if (strcmp(safeEventName, targetFile.c_str()) == 0) {
-                  RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s created!\n", __FUNCTION__, safeEventName);
-                  partnerIdWatchAdded = true;
-                  partnerFileUpdated = true;
+            else if (foundAuthService && !partnerIdWatchAdded && (event->mask & IN_CREATE) && (strcmp(nameBuf, targetFile.c_str()) == 0)) {    
+               RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] File %s created!\n", __FUNCTION__, __LINE__, nameBuf);
+               partnerIdWatchAdded = true;
+               partnerFileUpdated = true;
 
-                   // Monitor the file for close after writing
-                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
-                 break;
-              }
+                // Monitor the file for close after writing
+		wd = inotify_add_watch(inotifyFd, filePath.c_str(), IN_CLOSE_WRITE);
+		RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", wd); // Log the value of wd
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Now monitoring %s for modifications...\n", __FUNCTION__, __LINE__, filePath.c_str());
+                break;
             }
 
             // If partnerId3.dat is modified
             else if (foundAuthService && partnerIdWatchAdded && (event->mask & IN_CLOSE_WRITE)) {
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s File %s is modified!\n", __FUNCTION__, targetFile.c_str());
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] File %s is modified!\n", __FUNCTION__, __LINE__, targetFile.c_str());
                 partnerFileUpdated = true;
                 break;
             }
@@ -261,13 +249,13 @@ void XBSStore::getAuthServicePartnerID()
         if (partnerFileUpdated == true) {
             string newPartnerId = "";
             int ret = hostIf_DeviceInfo::get_PartnerId_From_Script(newPartnerId);
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"%s PartnerID = %s get_PartnerId_From_Script returned %d \n", __FUNCTION__,newPartnerId.c_str(), ret);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] PartnerID = %s get_PartnerId_From_Script returned %d \n", __FUNCTION__,__LINE__,newPartnerId.c_str(), ret);
             if(ret == OK && newPartnerId.length() > 0)
             {
                 string storedPartnerId = xbsInstance->getRawValue(TR181_PARTNER_ID_KEY);
                 if (newPartnerId.compare(storedPartnerId) != 0)
                 {
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"%s partnerId has changed\n", __FUNCTION__);
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] partnerId has changed\n", __FUNCTION__,__LINE__);
                     mtx.lock();
                     xbsInstance->setRawValue(TR181_PARTNER_ID_KEY, newPartnerId.c_str(), HOSTIF_SRC_DEFAULT);
                     xbsInstance->loadFromJson();
@@ -278,17 +266,17 @@ void XBSStore::getAuthServicePartnerID()
                     if (fileExists(BSP_COMPLETE)) {
                         // Create a new file "/tmp/authservice_parodus_restart"
                         createFile(AUTH_SERVICE_PARODUS_RESTART);
-                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"BSP_COMPLETE exists. Created /tmp/authservice_parodus_restart.\n");
+                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] BSP_COMPLETE exists. Created /tmp/authservice_parodus_restart.\n", __FUNCTION__, __LINE__);
                     } else {
                         // If BSP_COMPLETE doesn't exist, create it so parodus.service can start.
                         createBspCompleteFiles();
-                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"BSP_COMPLETE did not exist. Created BSP_COMPLETE.\n");
+                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] BSP_COMPLETE did not exist. Created BSP_COMPLETE.\n", __FUNCTION__, __LINE__);
                     }
                 }
             }
             else
             {
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: partnerId not found. Continue monitoring for modifications...\n", __FUNCTION__);
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] partnerId not found. Continue monitoring for modifications...\n", __FUNCTION__, __LINE__);
             }
         }
     }
