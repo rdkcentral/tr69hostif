@@ -151,9 +151,10 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                     "[%s:%d] Slow GET detected: paramName: %s, timeTaken: %lld ms\n",
                     __FUNCTION__, __LINE__, stMsgData->paramName, timeTaken/1000);
-
+                #ifdef T2_EVENT_ENABLED
                 // Telemetry: report paramName
                 t2ValNotify("TR69HOSTIF_GET_TIMEOUT_PARAM", stMsgData->paramName);
+                #endif
                 
             }
         }
