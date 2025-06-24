@@ -166,6 +166,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         {
             auto startTime = std::chrono::high_resolution_clock::now();
             ret = pMsgHandler->handleGetMsg(stMsgData);
+            std::this_thread::sleep_for(std::chrono::microseconds(tr181getTimeout + 1000000));
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
@@ -252,6 +253,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     {
         auto startTime = std::chrono::high_resolution_clock::now();
         ret = pMsgHandler->handleSetMsg(stMsgData);
+        std::this_thread::sleep_for(std::chrono::microseconds(tr181getTimeout + 1000000));
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
@@ -262,7 +264,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramValue,
                 timeTakenset);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
-        if (timeTakenset > 5000000) {
+        if (timeTakenset > tr181getTimeout) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] Slow SET detected: paramName: %s, timeTaken: %lld ms\n",
                 __FUNCTION__, __LINE__, stMsgData->paramName, timeTakenset/1000);
