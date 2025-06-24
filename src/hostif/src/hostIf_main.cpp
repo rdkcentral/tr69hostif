@@ -308,7 +308,7 @@ int main(int argc, char *argv[])
         /* Enable RDK logger.*/
         if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
         #ifdef T2_EVENT_ENABLED
-         t2_init("tr69hostif");
+         t2_init(const_cast<char*>("tr69hostif"));
         #endif
         if (optind < argc)
         {
