@@ -4165,6 +4165,66 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     return retVal;
 }
 
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+{
+     int ret = NOK;
+
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
+
+    if((stMsgData) || strlen(stMsgData->paramValue) == 0 ) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
+    const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json %s \n", __FUNCTION__ );
+        return NOK;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    // Allocate memory for file content
+    char *buffer = (char*)malloc(filesize + 1);
+    if (!buffer) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed  %s \n", __FUNCTION__ );
+        fclose(file);
+        return NOK;
+    }
+
+    // Read file into buffer
+    size_t readlen = fread(buffer, 1, filesize, file);
+    buffer[readlen] = '\0';
+    fclose(file);
+
+    // Parse JSON
+    cJSON *json = cJSON_Parse(buffer);
+    if (!json) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(buffer);
+        return 1;
+    }
+
+    // Print formatted JSON
+    char *printed = cJSON_Print(json);
+    if (printed) {
+        printf("%s\n", printed);
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(printed);
+    }
+
+    // Cleanup
+    cJSON_Delete(json);
+    free(buffer);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
+    return OK; 
+}
+
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData (HOSTIF_MsgData_t *stMsgData)
 {
     char *issueStr = NULL;
