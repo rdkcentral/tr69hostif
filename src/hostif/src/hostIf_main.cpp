@@ -194,18 +194,16 @@ bool GetFeatureEnabled(char *cmd)
  * @param marker: use for send marker details
  * @return : void
  * */
-void t2CountNotify(const char *marker, int val) {
 #ifdef T2_EVENT_ENABLED
+void t2CountNotify(const char *marker, int val) {
     t2_event_d(marker, val);
-#endif
 }
 
 void t2ValNotify( const char *marker, const char *val )
 {
-#ifdef T2_EVENT_ENABLED
     t2_event_s(marker, val);
-#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------
