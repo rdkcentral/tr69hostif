@@ -33,6 +33,7 @@
 #include <chrono>
 #include <atomic>
 #include <time.h>
+#include <thread>
 #include "hostIf_main.h"
 #include "hostIf_msgHandler.h"
 #include "hostIf_utils.h"
