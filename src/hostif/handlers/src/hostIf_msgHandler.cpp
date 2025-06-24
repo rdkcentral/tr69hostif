@@ -110,7 +110,9 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] GET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_GET_200_WITHIN_1MIN", 1);
+        #endif
         loggedGet200Within1Min = true;
     }
 
@@ -119,7 +121,9 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] GET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_GET_1000_WITHIN_5MIN", 1);
+        #endif
         loggedGet1000Within5Min =true;
     }
     try
@@ -191,7 +195,9 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] SET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_SET_200_WITHIN_1MIN", 1);
+        #endif
         loggedSet200Within1Min = true ;
     }
 
@@ -200,7 +206,9 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] SET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_SET_1000_WITHIN_5MIN", 1);
+        #endif
         loggedSet200Within1Min = true;
     }
 
@@ -226,8 +234,9 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] Slow SET detected: paramName: %s, timeTaken: %lld ms\n",
                 __FUNCTION__, __LINE__, stMsgData->paramName, timeTakenset/1000);
-
+            #ifdef T2_EVENT_ENABLED
             t2ValNotify("TR69HOSTIF_SET_TIMEOUT_PARAM", stMsgData->paramName);
+            #endif
             
         }
     }
