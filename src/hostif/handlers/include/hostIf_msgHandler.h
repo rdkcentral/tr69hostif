@@ -100,6 +100,10 @@ void hostIf_Free_stMsgData (HOSTIF_MsgData_t *stMsgData);
 
 bool hostIf_initalize_ConfigManger();
 bool hostIf_ConfigProperties_Init();
+
+int filePresentCheck(const char* filename);
+void readTR181Timeout();
+
 class msgHandler {
 
 protected:
