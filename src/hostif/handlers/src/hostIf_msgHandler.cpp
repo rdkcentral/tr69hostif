@@ -67,6 +67,9 @@
 #endif
 #include "x_rdk_req_handler.h"
 
+
+#include <sys/stat.h>
+
 extern GHashTable* paramMgrhash;
 extern T_ARGLIST argList;
 static std::mutex get_handler_mutex;
@@ -82,8 +85,36 @@ static std::atomic<bool> loggedGet1000Within5Min {false};
 static std::atomic<bool> loggedSet200Within1Min {false};
 static std::atomic<bool> loggedSet1000Within5Min {false};
 
+int filePresentCheck(const char* filename) {
+    struct stat buffer;
+    return (stat(filename, &buffer) == 0) ? 0 : -1; // 0 for success, -1 for not found
+}
+
+
+long long tr181getTimeout = 5000000; // default 3 seconds
+
+void readTR181Timeout() {
+    if (filePresentCheck("/opt/tr69TestParams.conf") == 0) {
+        std::ifstream confFile("/opt/tr69TestParams.conf");
+        std::string line;
+        while (std::getline(confFile, line)) {
+            if (line.find("tr181getTimeout") == 0) {
+                size_t pos = line.find('=');
+                if (pos != std::string::npos) {
+                    std::string value = line.substr(pos + 1);
+                    std::stringstream ss(value);
+                    ss >> tr181getTimeout;
+                }
+            }
+        }
+    }
+}
+
+
+
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
-{
+{   
+    readTR181Timeout();
     LOG_ENTRY_EXIT;
 
     int ret = NOK;
@@ -146,7 +177,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramValue,
                 timeTaken);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
-            if (timeTaken > 5000000) {
+            if (timeTaken > tr181getTimeout) {
                 // Debug log
                 RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                     "[%s:%d] Slow GET detected: paramName: %s, timeTaken: %lld ms\n",
