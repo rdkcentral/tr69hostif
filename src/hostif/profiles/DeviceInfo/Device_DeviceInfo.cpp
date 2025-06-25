@@ -4124,6 +4124,52 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     }
 
     memset(issueStr,'\0',len);
+    
+    const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json \n", __FUNCTION__ );
+        return NOK;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    // Allocate memory for file content
+    char *buffer = (char*)malloc(filesize + 1);
+    if (!buffer) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed \n", __FUNCTION__ );
+        fclose(file);
+        return NOK;
+    }
+
+    // Read file into buffer
+    size_t readlen = fread(buffer, 1, filesize, file);
+    buffer[readlen] = '\0';
+    fclose(file);
+
+    // Parse JSON
+    cJSON *json = cJSON_Parse(buffer);
+    if (!json) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(buffer);
+        return NOK;
+    }
+
+    // Print formatted JSON
+    char *printed = cJSON_Print(json);
+    if (printed) {
+        printf("%s\n", printed);
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(printed);
+    }
+
+    // Cleanup
+    cJSON_Delete(json);
+    free(buffer);
+
 
     strncpy(issueStr, stMsgData->paramValue, len);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Issue string Value is %s \n",__FUNCTION__, issueStr);
@@ -4180,7 +4226,6 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
     const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *file = fopen(filename, "rb");
     if (!file) {
