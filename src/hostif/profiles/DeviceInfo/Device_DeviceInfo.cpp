@@ -4172,8 +4172,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
-     int ret = NOK;
-
+    
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
 
     if((stMsgData) || strlen(stMsgData->paramValue) == 0 ) {
@@ -4185,7 +4184,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *file = fopen(filename, "rb");
     if (!file) {
-	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json %s \n", __FUNCTION__ );
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json \n", __FUNCTION__ );
         return NOK;
     }
 
@@ -4197,7 +4196,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     // Allocate memory for file content
     char *buffer = (char*)malloc(filesize + 1);
     if (!buffer) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed  %s \n", __FUNCTION__ );
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed \n", __FUNCTION__ );
         fclose(file);
         return NOK;
     }
@@ -4212,7 +4211,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     if (!json) {
 	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
         free(buffer);
-        return 1;
+        return NOK;
     }
 
     // Print formatted JSON
