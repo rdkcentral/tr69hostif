@@ -203,14 +203,14 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     }
 
     // Log if setCount reaches 1000 before 5 minutes from boot
-    if (!loggedSet200Within1Min && setCountSinceBoot == 1000 && secondsSinceBoot <= 300) {
+    if (!loggedSet1000Within5Min && setCountSinceBoot >= 1000 && secondsSinceBoot <= 300) {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] SET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
         #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_SET_1000_WITHIN_5MIN", 1);
         #endif
-        loggedSet200Within1Min = true;
+        loggedSet1000Within5Min = true;
     }
 
 
