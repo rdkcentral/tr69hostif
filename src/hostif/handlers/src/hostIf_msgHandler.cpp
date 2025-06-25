@@ -81,7 +81,7 @@ static std::atomic<bool> loggedGet200Within1Min {false};
 static std::atomic<bool> loggedGet1000Within5Min {false};
 static std::atomic<bool> loggedSet200Within1Min {false};
 static std::atomic<bool> loggedSet1000Within5Min {false};
-
+long long tr181getTimeout = 5000000;
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
@@ -135,6 +135,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         {
             auto startTime = std::chrono::high_resolution_clock::now();
             ret = pMsgHandler->handleGetMsg(stMsgData);
+            std::this_thread::sleep_for(std::chrono::microseconds(tr181getTimeout + 1000000));
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
@@ -221,6 +222,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     {
         auto startTime = std::chrono::high_resolution_clock::now();
         ret = pMsgHandler->handleSetMsg(stMsgData);
+        std::this_thread::sleep_for(std::chrono::microseconds(tr181getTimeout + 1000000));
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
