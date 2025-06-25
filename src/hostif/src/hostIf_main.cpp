@@ -77,9 +77,7 @@ extern "C" {
 #include<webconfig_lite.h>
 #endif
 
-#ifdef T2_EVENT_ENABLED
-#include <telemetry_busmessage_sender.h>
-#endif
+
 
 #include "hostIf_rbus_Dml_Provider.h"
 #include "Device_DeviceInfo.h"
