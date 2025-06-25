@@ -86,36 +86,14 @@ static std::atomic<bool> loggedGet1000Within5Min {false};
 static std::atomic<bool> loggedSet200Within1Min {false};
 static std::atomic<bool> loggedSet1000Within5Min {false};
 
-int filePresentCheck(const char* filename) {
-    struct stat buffer;
-    return (stat(filename, &buffer) == 0) ? 0 : -1; // 0 for success, -1 for not found
-}
 
 
-long long tr181getTimeout = 5000000; // default 3 seconds
-
-void readTR181Timeout() {
-    if (filePresentCheck("/opt/tr69TestParams.conf") == 0) {
-        std::ifstream confFile("/opt/tr69TestParams.conf");
-        std::string line;
-        while (std::getline(confFile, line)) {
-            if (line.find("tr181getTimeout") == 0) {
-                size_t pos = line.find('=');
-                if (pos != std::string::npos) {
-                    std::string value = line.substr(pos + 1);
-                    std::stringstream ss(value);
-                    ss >> tr181getTimeout;
-                }
-            }
-        }
-    }
-}
 
 
 
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {   
-    readTR181Timeout();
+   
     LOG_ENTRY_EXIT;
 
     int ret = NOK;
@@ -142,9 +120,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] GET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
-        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_GET_200_WITHIN_1MIN", 1);
-        #endif
         loggedGet200Within1Min = true;
     }
 
@@ -153,9 +129,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] GET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
-        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_GET_1000_WITHIN_5MIN", 1);
-        #endif
         loggedGet1000Within5Min =true;
     }
     try
@@ -167,7 +141,6 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         {
             auto startTime = std::chrono::high_resolution_clock::now();
             ret = pMsgHandler->handleGetMsg(stMsgData);
-            std::this_thread::sleep_for(std::chrono::microseconds(tr181getTimeout + 1000000));
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
@@ -179,15 +152,14 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramValue,
                 timeTaken);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
-            if (timeTaken > tr181getTimeout) {
+            if (timeTaken >5000000 ) {
                 // Debug log
                 RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                     "[%s:%d] Slow GET detected: paramName: %s, timeTaken: %lld ms\n",
                     __FUNCTION__, __LINE__, stMsgData->paramName, timeTaken/1000);
-                #ifdef T2_EVENT_ENABLED
-                // Telemetry: report paramName
+            
                 t2ValNotify("TR69HOSTIF_GET_TIMEOUT_PARAM", stMsgData->paramName);
-                #endif
+                
                 
             }
         }
@@ -229,9 +201,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] SET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
-        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_SET_200_WITHIN_1MIN", 1);
-        #endif
         loggedSet200Within1Min = true ;
     }
 
@@ -240,9 +210,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
             "[%s:%d] SET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
             __FUNCTION__, __LINE__, secondsSinceBoot);
-        #ifdef T2_EVENT_ENABLED
         t2CountNotify("TR69HOSTIF_SET_1000_WITHIN_5MIN", 1);
-        #endif
         loggedSet200Within1Min = true;
     }
 
@@ -254,7 +222,6 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     {
         auto startTime = std::chrono::high_resolution_clock::now();
         ret = pMsgHandler->handleSetMsg(stMsgData);
-        std::this_thread::sleep_for(std::chrono::microseconds(tr181getTimeout + 1000000));
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
@@ -265,13 +232,12 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramValue,
                 timeTakenset);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
-        if (timeTakenset > tr181getTimeout) {
+        if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] Slow SET detected: paramName: %s, timeTaken: %lld ms\n",
                 __FUNCTION__, __LINE__, stMsgData->paramName, timeTakenset/1000);
-            #ifdef T2_EVENT_ENABLED
             t2ValNotify("TR69HOSTIF_SET_TIMEOUT_PARAM", stMsgData->paramName);
-            #endif
+         
             
         }
     }
