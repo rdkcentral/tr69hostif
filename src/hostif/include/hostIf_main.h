@@ -109,7 +109,9 @@
  #include <sys/time.h>
 #include "rdk_debug.h"
 
-
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
+#endif
 
 extern gchar *date_str;
 
