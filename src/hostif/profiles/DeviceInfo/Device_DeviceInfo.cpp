@@ -4168,7 +4168,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
         fclose(fp);
 
         // Use cat to print to console
-        system("cat /tmp/output.json");
+        v_secure_system("cat /tmp/output.json");
 
         // Optionally delete the temp file
         // remove("/tmp/output.json");
