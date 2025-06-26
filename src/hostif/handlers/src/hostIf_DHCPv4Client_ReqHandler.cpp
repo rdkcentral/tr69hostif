@@ -238,7 +238,7 @@ int DHCPv4ClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
 	   	ERR_CHK(rc);
     	    }
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
-            ret= OK;
+            ret = OK;
         }
         else
         {
