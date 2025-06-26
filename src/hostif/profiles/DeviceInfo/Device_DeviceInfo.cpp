@@ -4162,7 +4162,19 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     char *printed = cJSON_Print(json);
     if (printed) {
         printf("%s\n", printed);
-	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+	FILE *fp = fopen("/tmp/output.json", "w");
+        if (fp) {
+        fputs(printed, fp);
+        fclose(fp);
+
+        // Use cat to print to console
+        system("cat /tmp/output.json");
+
+        // Optionally delete the temp file
+        // remove("/tmp/output.json");
+    } else {
+        fprintf(stderr, "Failed to open file for writing.\n");
+    }
         free(printed);
     }
 
