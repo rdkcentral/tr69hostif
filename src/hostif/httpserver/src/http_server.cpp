@@ -78,7 +78,61 @@ static void HTTPRequestHandler(
     }
 
     SoupMessageHeaders *req_headers = soup_server_message_get_request_headers(msg);
-    const char *pcCallerID = (char *)soup_message_headers_get_one(req_headers, "CallerID");
+    const char *pcCallerID = nullptr;
+    const char *fileName = nullptr;
+    int lineNum = 0;
+
+    // Retrieve headers separately
+    const char *pcCallerIDHeader = (char *)soup_message_headers_get_one(req_headers, "CallerID");
+    const char *fileNameHeader = (char *)soup_message_headers_get_one(req_headers, "FileName");
+    const char *lineNumHeader = (char *)soup_message_headers_get_one(req_headers, "LineNum");
+
+    if (pcCallerIDHeader && strlen(pcCallerIDHeader) > 0) {
+        // If header is in format "CallerID: <callerid>", strip prefix if present
+        std::string headerStr(pcCallerIDHeader);
+        size_t prefixPos = headerStr.find("CallerID: ");
+        if (prefixPos != std::string::npos) {
+            static std::string callerIdStr;
+            callerIdStr = headerStr.substr(prefixPos + 10);
+            pcCallerID = callerIdStr.c_str();
+        } else {
+            pcCallerID = pcCallerIDHeader;
+        }
+    }
+
+    if (fileNameHeader && strlen(fileNameHeader) > 0) {
+        std::string fileNameStr(fileNameHeader);
+        size_t prefixPos = fileNameStr.find("FileName: ");
+        if (prefixPos != std::string::npos) {
+            static std::string fileNameStatic;
+            fileNameStatic = fileNameStr.substr(prefixPos + 10);
+            fileName = fileNameStatic.c_str();
+        } else {
+            fileName = fileNameHeader;
+        }
+    }
+
+    if (lineNumHeader && strlen(lineNumHeader) > 0) {
+        std::string lineNumStr(lineNumHeader);
+        size_t prefixPos = lineNumStr.find("LineNum: ");
+        if (prefixPos != std::string::npos) {
+            lineNumStr = lineNumStr.substr(prefixPos + 9);
+        }
+        try {
+            lineNum = std::stoi(lineNumStr);
+        } catch (...) {
+            lineNum = 0;
+        }
+    }
+
+    // Log the file and line if available
+    if (fileName && lineNum > 0) {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s] CallerID: %s, File: %s, Line: %d\n", __FUNCTION__, __FILE__, pcCallerID ? pcCallerID : "Unknown", fileName, lineNum);
+    } else if (fileName) {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s] CallerID: %s, File: %s\n", __FUNCTION__, __FILE__, pcCallerID ? pcCallerID : "Unknown", fileName);
+    } else {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s] CallerID: %s\n", __FUNCTION__, __FILE__, pcCallerID ? pcCallerID : "Unknown");
+    }
 
     jsonRequest = cJSON_Parse((const char *) req_body->data);
 
