@@ -56,6 +56,8 @@ else
 NEXUS_LIB =
 endif
 
+
+
 if WITH_WIFI_PROFILE
 AM_CXXFLAGS += -DUSE_WIFI_PROFILE
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/wifi
@@ -114,6 +116,11 @@ if IS_YOCTO_ENABLED
 AM_LDFLAGS += $(SYSTEMD_SDNOTIFY_LDFLAGS) -lsecure_wrapper
 else
 AM_LDFLAGS += $(SYSTEMD_SDNOTIFY_LDFLAGS)
+endif
+
+if IS_TELEMETRY2_ENABLED
+AM_CXXFLAGS += $(T2_EVENT_FLAG)
+AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
 endif
 
 bin_PROGRAMS = tr69hostif backgroundrun
