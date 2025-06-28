@@ -244,6 +244,8 @@ void XBSStore::getAuthServicePartnerID()
                   partnerFileUpdated = true;
 
                    // Monitor the file for close after writing
+		 int fileWd = inotify_add_watch(inotifyFd, filePath.c_str(), IN_CLOSE_WRITE);
+		 RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Watch descriptor (wd) value: %d\n", fileWd);
                  RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Now monitoring %s for modifications...\n", filePath.c_str());
                  break;
               }
