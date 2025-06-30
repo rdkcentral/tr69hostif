@@ -4278,7 +4278,8 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
 	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
         free(printed);
     }
-
+   stMsgData->paramLen = strlen(printed);
+   strncpy(stMsgData->paramValue,printed, stMsgData->paramLen);
     // Cleanup
     cJSON_Delete(json);
     free(buffer);
