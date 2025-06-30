@@ -4194,7 +4194,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_Init(&preValue);
     rbusValue_Init(&byVal);
     rbusValue_SetString(byVal, "tr69hostif");
-    rbusValue_SetString(value, issueStr);
+    rbusValue_SetString(value, printed);
     rbusValue_SetString(preValue, stMsgData->paramValue);
     rbusObject_Init(&data, NULL);
     rbusObject_SetValue(data, "value", value);
