@@ -84,6 +84,8 @@ AM_CXXFLAGS += -DBTMGR_ENABLE_IARM_INTERFACE
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/DeviceInfo
 endif
 
+
+
 if WITH_HWSELFTEST_PROFILE
 AM_CXXFLAGS += $(HWSELFTEST_PROFILE_FLAG)
 endif
@@ -96,6 +98,12 @@ AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus
 if WIFI_CLIENT_ROAMING
 AM_CXXFLAGS += -DWIFI_CLIENT_ROAMING
 endif
+
+if IS_TELEMETRY2_ENABLED
+AM_CXXFLAGS += $(T2_EVENT_FLAG)
+AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
+endif
+
 
 noinst_LTLIBRARIES = libMsgHandlers.la
 libMsgHandlers_la_SOURCES =	src/hostIf_IARM_ReqHandler.cpp \
