@@ -41,8 +41,10 @@ T2_REPORT_PROFILE_PARAM="Device.X_RDKCENTRAL-COM_T2.ReportProfiles"
 T2_REPORT_PROFILE_PARAM_MSG_PCK="Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack"
 T2_TEMP_REPORT_PROFILE_PARAM="Device.X_RDKCENTRAL-COM_T2.Temp_ReportProfiles"
 RBUS_EXCEPTION_STRING = "Failed to get the data"
+RBUS_SUCCESS_STRING = "setvalues succeeded.."
 
 LOG_FILE = "/opt/logs/tr69hostif.log.0"
 
+PARODUS_LOG_FILE = "/opt/logs/parodus.log"
 DATA_LAKE_URL = "https://mockxconf:50051"
 DL_ADMIN_URL = "https://mockxconf:50051/adminSupport"

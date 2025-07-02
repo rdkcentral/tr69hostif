@@ -36,7 +36,8 @@
 #include "libIBus.h"
 #include "libIARM.h"
 #include "sysMgr.h"
-#include "pwrMgr.h"
+#include "power_controller.h"
+#include <thread>
 #ifdef SNMP_ADAPTER_ENABLED
 #include "hostIf_SNMPClient_ReqHandler.h"
 #endif
@@ -46,7 +47,9 @@
 #include "safec_lib.h"
 
 #define X_RDK_RFC_DEEPSLEEP_ENABLE           "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable"
+#define RETRYSLEEP (300 * 1000) //Retry sleep
 
+static bool IsPwrCtlInt = false;
 static bool TR69_HostIf_Mgr_Init();
 static bool TR69_HostIf_Mgr_Connect();
 static bool TR69_HostIf_Mgr_Get_RegisterCall();
@@ -56,7 +59,8 @@ static IARM_Result_t _Settr69HostIfMgr(void *arg);
 static IARM_Result_t _SetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _GetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _RegisterForEventstr69HostIfMgr(void *arg);
-static void _hostIf_EventHandler(const char *, IARM_EventId_t, void *, size_t);
+static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState, void* userdata);
 //----------------------------------------------------------------------
 // hostIf_IARM_IF_Start: This shall be use to initialize and register
 // the  hostIf application to IARM bus.
@@ -73,8 +77,6 @@ bool hostIf_IARM_IF_Start()
         ret = true;
         /* Initialize Managers */
         msgHandler *pMsgHandler;
-        pMsgHandler = DSClientReqHandler::getInstance();
-        pMsgHandler->init();
         pMsgHandler = DeviceClientReqHandler::getInstance();
         pMsgHandler->init();
 
@@ -87,6 +89,39 @@ bool hostIf_IARM_IF_Start()
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 
     return ret;
+}
+
+void hostIf_getPwrContInterface()
+{
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+
+    /*TODO: remove this sleep after fix METROL-1045*/
+    sleep(10);//added sleep wait for the WPEframework active.
+    msgHandler *pMsgHandler;
+    pMsgHandler = DSClientReqHandler::getInstance();
+    pMsgHandler->init();
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Init().. \n", __FUNCTION__, __LINE__);
+    PowerController_Init();
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Init().. \n", __FUNCTION__, __LINE__);
+    while(true)
+    {
+        if(POWER_CONTROLLER_ERROR_NONE ==  PowerController_Connect())
+        {
+            hostIf_DeviceInfo::getInstance(0)->setPowerConInterface(true);
+            IsPwrCtlInt = true;
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Got the powercontroller interface.. IsPwrCtlInt = %s\n", __FUNCTION__, __FILE__ , (IsPwrCtlInt?"true":"false"));
+            break;
+        }
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Retry after %d usec..\n", __FUNCTION__, __FILE__, RETRYSLEEP);
+        usleep(RETRYSLEEP); //retry after RETRYSLEEP milli seconds.
+
+    }
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
+    PowerController_RegisterPowerModeChangedCallback(_hostIf_EventHandler, nullptr);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
+
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
 
 //----------------------------------------------------------------------
@@ -106,6 +141,18 @@ RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"##########################################
         return false;
     }
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] Success 'IARM_Bus_Init(%s)'.\n", __FUNCTION__,    IARM_BUS_TR69HOSTIFMGR_NAME);
+
+    // Get powercontroller thunder client interface in separate thread
+    std::thread pwrThread(hostIf_getPwrContInterface);
+    if(pwrThread.joinable())
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: created getPwrContInterface thread.. \n", __FUNCTION__, __LINE__);
+        pwrThread.detach();  // Detach the thread to run independently
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: Failed to create getPwrContInterface thread.. \n", __FUNCTION__, __LINE__);
+    }
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return true;
@@ -161,8 +208,6 @@ static bool TR69_HostIf_Mgr_Get_RegisterCall()
 
     /* Notification RPC:*/
     IARM_Bus_RegisterEvent(IARM_BUS_TR69HOSTIFMGR_EVENT_MAX);
-    IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, _hostIf_EventHandler);
-
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
 }
@@ -273,6 +318,25 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
     if(IARM_RESULT_SUCCESS != err)
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to IARM_Bus_Term(), return with Error code: %d\n", __FUNCTION__, err);
+    }
+
+    if (IsPwrCtlInt) 
+    {
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
+        PowerController_UnRegisterPowerModeChangedCallback(_hostIf_EventHandler);
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
+        PowerController_Term();
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
+        hostIf_DeviceInfo::getInstance(0)->setPowerConInterface(false);
+        IsPwrCtlInt = false;
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]:  setPowerConInterface flag to false. and  IsPwrCtlInt=%s\n", __FUNCTION__, __LINE__, (IsPwrCtlInt?"true":"false"));
+
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: No PowerController interface .. IsPwrCtlInt = %d\n", __FUNCTION__, __LINE__, IsPwrCtlInt);
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return err;
@@ -392,47 +456,43 @@ static IARM_Result_t _Gettr69HostIfMgr(void *arg)
 //----------------------------------------------------------------------
 //_hostIf_EventHandler: This is to listen the IARM events and handles.
 //----------------------------------------------------------------------
-static void _hostIf_EventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState, void* userdata)
 {
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-    if (0 == strcmp(owner, IARM_BUS_PWRMGR_NAME))
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+    errno_t rc = -1;
+    HOSTIF_MsgData_t stRfcData = {0};
+    rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_DEEPSLEEP_ENABLE);
+    if(rc!=EOK)
     {
-        errno_t rc = -1;
-        HOSTIF_MsgData_t stRfcData = {0};
-        rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_DEEPSLEEP_ENABLE);
-        if(rc!=EOK)
-        {
-            ERR_CHK(rc);
-        }
-        if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
-        {
-            IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
-            IARM_Bus_PWRMgr_PowerState_t curPowerState = param->data.state.curState;
-            IARM_Bus_PWRMgr_PowerState_t newPowerState = param->data.state.newState;
+        ERR_CHK(rc);
+    }
+    if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
+    {
             const char *event_time = NULL;
 
-            if((newPowerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) &&
-               (curPowerState != IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+            if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) &&
+               (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
             {
                 std::string event_time_string = std::to_string(std::time(nullptr));
                 event_time = event_time_string.c_str(); 
                 NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time);
             }
-            else if((newPowerState != IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) &&
-                   (curPowerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+            else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) &&
+                   (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
             {
                 std::string event_time_string = std::to_string(std::time(nullptr));
                 event_time = event_time_string.c_str();
                 NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-exit-deepsleep-state", event_time);
             }
-        }
-        else 
-        {
-            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending DeepSleep notification. \n",
-                 __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE );
-        }
     }
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+    else 
+    {
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending DeepSleep notification. \n",
+                 __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE );
+    }
+
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
 
 /** @} */

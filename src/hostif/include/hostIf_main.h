@@ -109,6 +109,8 @@
  #include <sys/time.h>
 #include "rdk_debug.h"
 
+
+
 extern gchar *date_str;
 
 typedef enum {
@@ -124,6 +126,8 @@ bool filter_and_merge_xml(const char *input1, const char *input2, const char *ou
 
 #define G_LOG_DOMAIN    ((gchar*) 0)
 #define LOG_TR69HOSTIF  "LOG.RDK.TR69HOSTIF"
+
+
 
 using namespace std;
 
@@ -146,6 +150,8 @@ static volatile sig_atomic_t time_to_quit = 0;
 
 void quit_handler (int sig_received);
 void exit_gracefully (int sig_received);
+
+
 
 void *tr69IfHandlerThread(void *);
 void *jsonIfHandlerThread(void *);
