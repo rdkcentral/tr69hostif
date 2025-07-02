@@ -3903,10 +3903,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
-    /*else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_GETPROFILE_DATA) == 0)
+    else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_GETPROFILE_DATA) == 0)
     {
-        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
-    }*/
+        ret = get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
+    }
 	    
 #endif
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
