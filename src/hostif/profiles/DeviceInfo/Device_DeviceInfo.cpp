@@ -4275,7 +4275,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     char *printed = cJSON_Print(json);
     if (printed) {
         printf("%s\n", printed);
-	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+	FILE *fp = fopen("/tmp/output.json", "w");
+        if (fp) {
+        fputs(printed, fp);
+        fclose(fp);
         free(printed);
     }
    stMsgData->paramLen = strlen(printed);
