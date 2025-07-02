@@ -4286,7 +4286,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         free(printed);
     }
    stMsgData->paramLen = strlen(printed);
-   strncpy(stMsgData->paramValue,printed, stMsgData->paramLen);
+   strncpy(stMsgData->paramValue,"true", 5);
     // Cleanup
     cJSON_Delete(json);
     free(buffer);
