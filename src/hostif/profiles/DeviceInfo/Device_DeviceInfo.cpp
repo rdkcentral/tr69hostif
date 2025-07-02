@@ -4279,6 +4279,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         if (fp) {
         fputs(printed, fp);
         fclose(fp);
+	}
+	else {
+        fprintf(stderr, "Failed to open file for writing.\n");
+	}
         free(printed);
     }
    stMsgData->paramLen = strlen(printed);
