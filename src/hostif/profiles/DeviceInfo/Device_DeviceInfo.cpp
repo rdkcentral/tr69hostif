@@ -4228,17 +4228,11 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     return retVal;
 }
 
-int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
     
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
-
-    if((stMsgData) || strlen(stMsgData->paramValue) == 0 ) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
-        return NOK;
-    }
-
-    const char *filename = "/etc/rrd/remote_debugger.json";
+        const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *file = fopen(filename, "rb");
     if (!file) {
 	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json \n", __FUNCTION__ );
@@ -4275,14 +4269,26 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     char *printed = cJSON_Print(json);
     if (printed) {
         printf("%s\n", printed);
-	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+	FILE *fp = fopen("/tmp/output.json", "w");
+        if (fp) {
+        fputs(printed, fp);
+        fclose(fp);
+
+        // Use cat to print to console
+        v_secure_system("cat /tmp/output.json");
+
+        // Optionally delete the temp file
+        // remove("/tmp/output.json");
+    } else {
+        fprintf(stderr, "Failed to open file for writing.\n");
+    }
         free(printed);
     }
 
     // Cleanup
     cJSON_Delete(json);
     free(buffer);
-    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
+  
     return OK; 
 }
 
