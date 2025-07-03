@@ -3905,7 +3905,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_GETPROFILE_DATA) == 0)
     {
-        ret = get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
     }
 	    
 #endif
@@ -4194,7 +4194,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_Init(&preValue);
     rbusValue_Init(&byVal);
     rbusValue_SetString(byVal, "tr69hostif");
-    rbusValue_SetString(value, printed);
+    rbusValue_SetString(value, issueStr);
     rbusValue_SetString(preValue, stMsgData->paramValue);
     rbusObject_Init(&data, NULL);
     rbusObject_SetValue(data, "value", value);
@@ -4228,16 +4228,16 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     return retVal;
 }
 
-int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
     
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
-/*
+
     if((stMsgData) || strlen(stMsgData->paramValue) == 0 ) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
         return NOK;
     }
-*/
+
     const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -4275,18 +4275,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     char *printed = cJSON_Print(json);
     if (printed) {
         printf("%s\n", printed);
-	FILE *fp = fopen("/tmp/output.json", "w");
-        if (fp) {
-        fputs(printed, fp);
-        fclose(fp);
-	}
-	else {
-        fprintf(stderr, "Failed to open file for writing.\n");
-	}
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
         free(printed);
     }
-   stMsgData->paramLen = strlen(printed);
-   strncpy(stMsgData->paramValue,"true", 5);
+
     // Cleanup
     cJSON_Delete(json);
     free(buffer);
@@ -5538,4 +5530,3 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *
 
 /** @} */
 /** @} */
-
