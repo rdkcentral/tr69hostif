@@ -4420,6 +4420,7 @@
       <parameter base="Uri" access="readWrite" notification="0" maxNotification="2">
         <syntax>
           <string/>
+          <default type="factory" value="base64:eyJ2ZXJiIjoiUE9TVCIsInVybCI6Imh0dHBzOi8vZXh0ZXJuYWwucHdydWxlcy5za3kuY29tL3BhdGhjYXQifQ=="/>
         </syntax>
       </parameter>
     </object>
