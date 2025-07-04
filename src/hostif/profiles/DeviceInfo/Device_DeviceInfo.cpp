@@ -4231,7 +4231,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
     stMsgData->paramtype = hostIf_StringType;
-    strncpy(stMsgData->paramValue, "true", sizeof("true"));
+    strncpy(stMsgData->paramValue, "true", strlen("true") + 1);
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
         const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *file = fopen(filename, "rb");
