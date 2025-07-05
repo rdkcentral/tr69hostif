@@ -3905,7 +3905,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_GETPROFILE_DATA) == 0)
     {
-        ret = get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
     }
 	    
 #endif
@@ -4228,7 +4228,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     return retVal;
 }
 
-int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
     stMsgData->paramtype = hostIf_StringType;
     //strncpy(stMsgData->paramValue, "true", strlen("true") + 1);
