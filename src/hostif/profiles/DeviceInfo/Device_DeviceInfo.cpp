@@ -4395,7 +4395,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         goto CLEAN_UP;
 
     /*--- 5.  Copy to stMsgData ---------------------------------------------------------*/
-    size_t outLen = strlen(outStr);
+    outLen = strlen(outStr);
     if(outLen >= sizeof(stMsgData->paramValue))
         outLen = sizeof(stMsgData->paramValue) - 1;
 
