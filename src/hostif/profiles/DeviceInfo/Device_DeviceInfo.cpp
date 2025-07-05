@@ -4321,6 +4321,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     cJSON *root          = nullptr;
     cJSON *filtered      = nullptr;
     char  *outStr        = nullptr;
+    size_t outLen = 0;
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,
             "[%s] Entering …\n", __FUNCTION__);
