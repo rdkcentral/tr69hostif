@@ -4227,7 +4227,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
 
     return retVal;
 }
-/*
+
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
     stMsgData->paramtype = hostIf_StringType;
@@ -4276,8 +4276,8 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
 	FILE *fp = fopen("/tmp/output.json", "w");
         if (fp) {
         fputs(printed, fp);
-	stMsgData->paramLen = strlen(printed);
-	strncpy((char*)stMsgData->paramValue, printed, stMsgData->paramLen);
+	//stMsgData->paramLen = strlen(printed);
+	//strncpy((char*)stMsgData->paramValue, printed, stMsgData->paramLen);
         fclose(fp);
 
         // Use cat to print to console
@@ -4297,19 +4297,13 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     
     return OK; 
 }
-*/
 
-/***********************************************************************
- *  Function : set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData
- *  Purpose  : Return a map of category‑>issueType names, ignoring the
- *             inner “Commands”, “Timeout”, … fields.  Example result:
- *             {"Audio":["AudioStatus"],"Video":["VideoStatus"],"Process":
- *              ["ProcessStatus","ServiceStatus"],"Sanity":["Check"], ... }
- ************************************************************************/
 
+
+/*
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
-    /*--- 0.  Initialise ----------------------------------------------------------------*/
+   
     stMsgData->paramtype = hostIf_StringType;
     int  retStatus       = NOK;
 
@@ -4326,7 +4320,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,
             "[%s] Entering …\n", __FUNCTION__);
 
-    /*--- 1.  Open and read the JSON file ----------------------------------------------*/
+   
     fp = fopen(filename, "rb");
     if(!fp)
     {
@@ -4356,7 +4350,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     fileBuf[bytesRead] = '\0';
     fclose(fp); fp = nullptr;
 
-    /*--- 2.  Parse JSON ----------------------------------------------------------------*/
+  
     root = cJSON_Parse(fileBuf);
     if(!root)
     {
@@ -4366,7 +4360,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         goto CLEAN_UP;
     }
 
-    /*--- 3.  Build {"TopKey":[ "child1", "child2" ]} object ----------------------------*/
+   
     filtered = cJSON_CreateObject();
     if(!filtered)
         goto CLEAN_UP;
@@ -4374,7 +4368,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     for(cJSON *top = root->child; top; top = top->next)
     {
         if(top->type != cJSON_Object)
-            continue;                          /* skip scalars/arrays */
+            continue;                          
 
         cJSON *arr = cJSON_CreateArray();
         if(!arr)
@@ -4386,15 +4380,15 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         if(cJSON_GetArraySize(arr) > 0)
             cJSON_AddItemToObject(filtered, top->string, arr);
         else
-            cJSON_Delete(arr);                 /* no children; discard */
+            cJSON_Delete(arr);                
     }
 
-    /*--- 4.  Serialise compactly -------------------------------------------------------*/
+   
     outStr = cJSON_PrintUnformatted(filtered);
     if(!outStr)
         goto CLEAN_UP;
 
-    /*--- 5.  Copy to stMsgData ---------------------------------------------------------*/
+    
     outLen = strlen(outStr);
     if(outLen >= sizeof(stMsgData->paramValue))
         outLen = sizeof(stMsgData->paramValue) - 1;
@@ -4403,12 +4397,11 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     stMsgData->paramValue[outLen] = '\0';
     stMsgData->paramLen           = outLen;
 
-    /*  Optional: log or dump result for debugging
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+   
+   RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s] Extracted profile map: %s\n", __FUNCTION__, outStr);
-    */
 
-    retStatus = OK;   /* success */
+    retStatus = OK;   
 
 CLEAN_UP:
     if(fp)          fclose(fp);
@@ -4424,7 +4417,7 @@ CLEAN_UP:
     return retStatus;
 }
 
-
+*/
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData (HOSTIF_MsgData_t *stMsgData)
 {
     char *issueStr = NULL;
