@@ -518,6 +518,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_SerialNumber(stMsgData);
         }
+	else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.SerialNumber") == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
+        }
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.HardwareVersion") == 0)
         {
             ret = pIface->get_Device_DeviceInfo_HardwareVersion(stMsgData);
