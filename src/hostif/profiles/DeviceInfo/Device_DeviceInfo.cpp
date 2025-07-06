@@ -4297,6 +4297,75 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     
     return OK; 
 }
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    //strncpy(stMsgData->paramValue, "true", strlen("true") + 1);
+    //    const char *desc = "TR-181, TR-135 and Comcast specific Datamodel Configuration";
+    //snprintf((char *)stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1, "%s", desc);
+    //stMsgData->paramLen = strlen(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
+        const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json \n", __FUNCTION__ );
+        return NOK;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    // Allocate memory for file content
+    char *buffer = (char*)malloc(filesize + 1);
+    if (!buffer) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed \n", __FUNCTION__ );
+        fclose(file);
+        return NOK;
+    }
+
+    // Read file into buffer
+    size_t readlen = fread(buffer, 1, filesize, file);
+    buffer[readlen] = '\0';
+    fclose(file);
+
+    // Parse JSON
+    cJSON *json = cJSON_Parse(buffer);
+    if (!json) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(buffer);
+        return NOK;
+    }
+
+    // Print formatted JSON
+    char *printed = cJSON_Print(json);
+    if (printed) {
+        printf("%s\n", printed);
+	FILE *fp = fopen("/tmp/output.json", "w");
+        if (fp) {
+        fputs(printed, fp);
+	//stMsgData->paramLen = strlen(printed);
+	//strncpy((char*)stMsgData->paramValue, printed, stMsgData->paramLen);
+        fclose(fp);
+
+        // Use cat to print to console
+        v_secure_system("cat /tmp/output.json");
+
+        // Optionally delete the temp file
+        // remove("/tmp/output.json");
+    } else {
+        fprintf(stderr, "Failed to open file for writing.\n");
+    }
+        free(printed);
+    }
+
+    // Cleanup
+    cJSON_Delete(json);
+    free(buffer);
+    
+    return OK; 
+}
 
 
 
