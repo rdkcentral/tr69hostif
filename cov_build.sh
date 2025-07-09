@@ -70,6 +70,14 @@ cd $WORKDIR
 sed -i '/PKG_CHECK_MODULES(\[PROCPS\], \[libproc >= 3.2.8\])/s/^/#/' ./configure.ac
 rm -f ./src/unittest/stubs/rdk_debug.h
 autoreconf -i
+#Flags to print Compiler Warnings
+DEBUG_CFLAGS="-Wall -Werror -Wextra"
+
+#Flags to print function call traces
+DEBUG_CFLAGS="${DEBUG_CFLAGS} -g -pg"
+
+export LDFLAGS="-L/usr/lib/x86_64-linux-gnu -lglib-2.0 -pg"
+export CXXFLAGS="-g -pg"
 ./configure  --enable-libsoup3=yes --enable-IPv6=yes
 
 make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I/usr/include/cjson -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/handlers/include -I$WORKDIR/src/hostif/parodusClient/waldb -I$WORKDIR/src/hostif/profiles/DeviceInfo -I/usr/include/cjson -I$WORKDIR/src/hostif/profiles/Time -I$WORKDIR/src/hostif/profiles/Device -I/usr/include/libsoup-3.0 -I/usr/include/yajl -I$WORKDIR/src/hostif/profiles/STBService -I$WORKDIR/src/unittest/stubs/ds -I/usr/devicesettings/ds -I/usr/local/include -I$WORKDIR/src/hostif/profiles/IP -I$WORKDIR/src/hostif/profiles/Ethernet -I/usr/local/include/rbus -I$WORKDIR/src/hostif/parodusClient/pal -I/usr/rdk-halif-device_settings/include -I/usr/local/include/libparodus -I/usr/local/include -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/local/include/ -I/usr/include/yajl -I/usr/tinyxml2 -I/usr/devicesettings/ds -I/$WORKDIR/src/hostif/httpserver/include -I/usr/remote_debugger/src/ -DLIBSOUP3_ENABLE -DIPV6_SUPPORT" \
