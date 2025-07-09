@@ -3556,6 +3556,7 @@
       <parameter base="getProfileData" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
+          <default type="factory" value="True"/>
         </syntax>
       </parameter>    
     </object>
