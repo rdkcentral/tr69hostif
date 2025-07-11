@@ -4205,11 +4205,14 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     fileBuf = (char*)malloc((size_t)fileSz + 1);
     if(!fileBuf)
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s] malloc(%ld) failed\n", __FUNCTION__, fileSz + 1);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] malloc(%ld) failed\n", __FUNCTION__, fileSz + 1);
         goto CLEAN_UP;
     }
-
+    if(fileSz < 0 )
+    {
+	RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fileSz is being negative, Returning....\n", __FUNCTION__, fileSz + 1);
+	goto CLEAN_UP;
+    }
     bytesRead       = fread(fileBuf, 1U, (size_t)fileSz, fp);
     fileBuf[bytesRead] = '\0';
     fclose(fp); fp = nullptr;
