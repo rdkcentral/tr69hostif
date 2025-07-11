@@ -4232,8 +4232,9 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
             goto CLEAN_UP;
 	}
         for(cJSON *sub = top->child; sub; sub = sub->next)
+	{
             cJSON_AddItemToArray(arr, cJSON_CreateString(sub->string));
-
+	}
         if(cJSON_GetArraySize(arr) > 0)
 	{
             cJSON_AddItemToObject(filtered, top->string, arr);
