@@ -4210,7 +4210,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     }
     if(fileSz < 0 )
     {
-	RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fileSz is being negative, Returning....\n", __FUNCTION__, fileSz + 1);
+	RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fileSz is being negative, Returning....\n", __FUNCTION__);
 	goto CLEAN_UP;
     }
     bytesRead       = fread(fileBuf, 1U, (size_t)fileSz, fp);
