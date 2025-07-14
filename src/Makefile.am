@@ -123,6 +123,9 @@ AM_CXXFLAGS += $(T2_EVENT_FLAG)
 AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
 endif
 
+AM_CXXFLAGS += -O0 -g -pg
+AM_LDFLAGS += -pg
+
 bin_PROGRAMS = tr69hostif backgroundrun
 tr69hostif_SOURCES = $(top_srcdir)/src/hostif/src/hostIf_main.cpp $(top_srcdir)/src/hostif/src/hostIf_utils.cpp
 tr69hostif_SOURCES += $(top_srcdir)/src/hostif/src/IniFile.cpp
