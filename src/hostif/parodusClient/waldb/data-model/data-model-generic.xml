@@ -224,13 +224,13 @@
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl." access="readOnly" minEntries="1" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Service." access="readOnly" minEntries="1" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Service.Discovery." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Subsystem." access="readOnly" minEntries="1" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Subsystem.RICS." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
