@@ -28,7 +28,8 @@ COMMON_CPPFLAGS = -std=c++11  -I$(TOP_DIR)/src/unittest/stubs -I/usr/include -I/
 COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl
 
 # Define the compiler flags
-COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) -fprofile-arcs -ftest-coverage
+COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) -fprofile-arcs -ftest-coverage -g -pg
+COMMON_LDFLAGS = -pg
 
 # Define the source files
 dm_gtest_SOURCES = dm_test.cpp $(TOP_DIR)/src/hostif/parodusClient/waldb/waldb.cpp $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/src/unittest/stubs/secure_wrapper.c $(TOP_DIR)/src/unittest/stubs/dm_stubs.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFCStore.cpp
@@ -37,4 +38,4 @@ dm_gtest_SOURCES = dm_test.cpp $(TOP_DIR)/src/hostif/parodusClient/waldb/waldb.c
 dm_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 dm_gtest_LDADD = $(COMMON_LDADD)
 dm_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
-
+dm_gtest_LDFLAGS = $(COMMON_LDFLAGS)
