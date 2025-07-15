@@ -45,7 +45,7 @@ updateCallback XREClientReqHandler::mUpdateCallback = NULL;
 GMutex XREClientReqHandler::m_mutex;
 int XREClientReqHandler::numOfEntries = 0;
 
-#define XCONF_CHECKNOW_SCRIPT_CMD "sh /lib/rdk/swupdate_utility.sh 0 3 >> /opt/logs/swupdate.log &"
+#define XCONF_CHECKNOW_SCRIPT_CMD "/usr/bin/rdkvfwupgrader 0 3 >> /opt/logs/swupdate.log &"
 
 msgHandler* XREClientReqHandler::getInstance()
 {
