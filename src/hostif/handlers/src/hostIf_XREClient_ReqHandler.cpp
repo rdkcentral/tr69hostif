@@ -45,7 +45,7 @@ updateCallback XREClientReqHandler::mUpdateCallback = NULL;
 GMutex XREClientReqHandler::m_mutex;
 int XREClientReqHandler::numOfEntries = 0;
 
-#define XCONF_CHECKNOW_SCRIPT_CMD "/usr/bin/rdkvfwupgrader 0 3 >> /opt/logs/swupdate.log &"
+#define XCONF_CHECKNOW_SCRIPT_CMD "backgroundrun /usr/bin/rdkvfwupgrader 0 3 >> /opt/logs/swupdate.log"
 
 msgHandler* XREClientReqHandler::getInstance()
 {
@@ -480,7 +480,7 @@ int set_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stM
     FILE *file = fopen("/tmp/xconfchecknow_val", "w");
     if (file == NULL) {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: Error opening file for write.\n",__FILE__,__FUNCTION__,__LINE__);
-        return OK;
+        return NOK;
     }
     fprintf(file, "%s", stMsgData->paramValue);
     fclose(file);
