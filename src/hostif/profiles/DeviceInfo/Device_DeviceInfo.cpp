@@ -4239,12 +4239,12 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart
 {
     int startTime = 0;
     int retVal = NOK;
-    RDK_LOG(RDK_LOG_TRACE,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
     startTime = atoi(stMsgData->paramValue);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Start Time Value is %d \n",__FUNCTION__, startTime);
     retVal = OK;
 
-    RDK_LOG(RDK_LOG_TRACE,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return retVal;
 }
 
@@ -4252,12 +4252,12 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (
 {
     int endTime = 0;
     int retVal = NOK;
-    RDK_LOG(RDK_LOG_TRACE,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
     endTime = atoi(stMsgData->paramValue);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] End Time Value is %d \n",__FUNCTION__, endTime);
     retVal = OK;
 
-    RDK_LOG(RDK_LOG_TRACE,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return retVal;
 }
 
