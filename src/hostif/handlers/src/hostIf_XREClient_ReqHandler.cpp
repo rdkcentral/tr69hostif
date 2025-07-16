@@ -492,7 +492,7 @@ int set_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stM
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: Running checkNow script failed.\n",__FILE__,__FUNCTION__,__LINE__);
 
-            return OK;
+            return NOK;
         }
 
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: CheckNow Running... \n",__FILE__,__FUNCTION__,__LINE__);
@@ -509,9 +509,9 @@ int get_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stM
     FILE *file = fopen("/tmp/xconfchecknow_val", "r");
     if (file == NULL) {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: Error opening file for read.\n",__FILE__,__FUNCTION__,__LINE__);
-        return OK;
+        return NOK;
     }
-    fscanf(file, "%99s", stMsgData->paramValue);
+    fscanf(file, "%9s", stMsgData->paramValue);
     fclose(file);
     return OK;
 }
