@@ -18,7 +18,7 @@ jobs:
 
       - name: Run unit tests with coverage flags enabled
         run: |
-          sh unit_test.sh --enable-cov
+          sh run_ut.sh --enable-cov
       - name: Caculate the code coverage summary
         run: |
           cd unittest/
