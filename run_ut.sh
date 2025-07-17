@@ -81,9 +81,8 @@ echo "********************"
 
 
 if [ "$ENABLE_COV" = true ]; then
-    echo "Generating coverage report"
     lcov --capture --directory . --output-file coverage.info
     lcov --remove coverage.info '/usr/*' --output-file coverage.info
     lcov --list coverage.info
-    genhtml coverage.filtered.info --output-directory out
+    genhtml coverage.info --output-directory out
 fi
