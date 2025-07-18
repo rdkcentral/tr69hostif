@@ -224,13 +224,13 @@
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl." access="readOnly" minEntries="1" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Service." access="readOnly" minEntries="1" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Service.Discovery." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Subsystem." access="readOnly" minEntries="1" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Subsystem.RICS." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
@@ -511,6 +511,14 @@
         </syntax>
       </parameter>
     </object>
+     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.apps." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="watchdogmode" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <boolean/>
+             <default type="factory" value=""/>
+        </syntax>
+      </parameter>
+     </object>
      <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ForwardSSH." access="readOnly" minEntries="0" maxEntries="unbounded" >
        <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
          <syntax>
@@ -4415,6 +4423,7 @@
       <parameter base="Uri" access="readWrite" notification="0" maxNotification="2">
         <syntax>
           <string/>
+          <default type="factory" value="base64:eyJ2ZXJiIjoiUE9TVCIsInVybCI6Imh0dHBzOi8vZXh0ZXJuYWwucHdydWxlcy5za3kuY29tL3BhdGhjYXQifQ=="/>
         </syntax>
       </parameter>
     </object>
