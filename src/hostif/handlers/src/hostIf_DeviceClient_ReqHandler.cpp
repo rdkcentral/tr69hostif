@@ -30,7 +30,7 @@
 **/
 //#define HAVE_VALUE_CHANGE_EVENT
 
-
+#include <iostream>
 #include "hostIf_main.h"
 #include "hostIf_DeviceClient_ReqHandler.h"
 #include "hostIf_utils.h"
@@ -126,6 +126,7 @@ bool DeviceClientReqHandler::unInit()
  */
 int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
 {
+    std::cout << "akshay DeviceClientReqHandler::handleSetMsg called for " << stMsgData->paramName << std::endl;
     int ret = NOT_HANDLED;
     int instanceNumber = 0;  //CID:84325 - UNINIT
     hostIf_DeviceInfo::getLock();
@@ -253,8 +254,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         }
         else if (strstr(stMsgData->paramName,TR181_RFC_PREFIX) != NULL)
         {
-            RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n", __FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
+            RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] akshay parameter %s is being set with value %s \n", __FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
+            std::cout << "akshay inside ReqHandlerTR181 RFC parameter set: " << stMsgData->paramName << " = " << stMsgData->paramValue << std::endl;
             ret = pIface->set_xRDKCentralComRFC(stMsgData);
+            std::cout << "akshay after ReqHandlerTR181 RFC parameter set: " << stMsgData->paramName << " = " << stMsgData->paramValue << std::endl;
         }
 #ifdef USE_XRDK_BT_PROFILE
         else if(strncasecmp(stMsgData->paramName,X_BT_ROOT_OBJ,strlen(X_BT_ROOT_OBJ))==0)
