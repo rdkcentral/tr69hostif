@@ -205,7 +205,11 @@ void t2ValNotify( const char *marker, const char *val )
 }
 #endif
 
-
+void TestMemLeak() {
+        int *x = (int*)malloc(sizeof(int));
+        *x = 8;
+}
+saveHeapwalk("b");
 //------------------------------------------------------------------------------
 // main: HostIfMgr main
 //------------------------------------------------------------------------------
@@ -225,6 +229,8 @@ int main(int argc, char *argv[])
         //------------------------------------------------------------------------------
         struct sigaction sigact;
 
+	saveHeapwalk("a");
+        TestMemLeak();
         while (1)
         {
             static struct option long_options[] =
