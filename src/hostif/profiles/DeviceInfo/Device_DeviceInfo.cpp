@@ -3903,6 +3903,11 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
+    else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_GETPROFILE_DATA) == 0)
+    {
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
+    }
+	    
 #endif
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
     {
@@ -4127,6 +4132,64 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     }
 
     memset(issueStr,'\0',len);
+    
+    const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json \n", __FUNCTION__ );
+        return NOK;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    // Allocate memory for file content
+    char *buffer = (char*)malloc(filesize + 1);
+    if (!buffer) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed \n", __FUNCTION__ );
+        fclose(file);
+        return NOK;
+    }
+
+    // Read file into buffer
+    size_t readlen = fread(buffer, 1, filesize, file);
+    buffer[readlen] = '\0';
+    fclose(file);
+
+    // Parse JSON
+    cJSON *json = cJSON_Parse(buffer);
+    if (!json) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(buffer);
+        return NOK;
+    }
+
+    // Print formatted JSON
+    char *printed = cJSON_Print(json);
+    if (printed) {
+        printf("%s\n", printed);
+	FILE *fp = fopen("/tmp/output.json", "w");
+        if (fp) {
+        fputs(printed, fp);
+        fclose(fp);
+
+        // Use cat to print to console
+        v_secure_system("cat /tmp/output.json");
+
+        // Optionally delete the temp file
+        // remove("/tmp/output.json");
+    } else {
+        fprintf(stderr, "Failed to open file for writing.\n");
+    }
+        free(printed);
+    }
+
+    // Cleanup
+    cJSON_Delete(json);
+    free(buffer);
+
 
     strncpy(issueStr, stMsgData->paramValue, len);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Issue string Value is %s \n",__FUNCTION__, issueStr);
@@ -4172,6 +4235,267 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
 
     return retVal;
 }
+/*
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    //strncpy(stMsgData->paramValue, "true", strlen("true") + 1);
+    //    const char *desc = "TR-181, TR-135 and Comcast specific Datamodel Configuration";
+    //snprintf((char *)stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1, "%s", desc);
+    //stMsgData->paramLen = strlen(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
+        const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json \n", __FUNCTION__ );
+        return NOK;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    // Allocate memory for file content
+    char *buffer = (char*)malloc(filesize + 1);
+    if (!buffer) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed \n", __FUNCTION__ );
+        fclose(file);
+        return NOK;
+    }
+
+    // Read file into buffer
+    size_t readlen = fread(buffer, 1, filesize, file);
+    buffer[readlen] = '\0';
+    fclose(file);
+
+    // Parse JSON
+    cJSON *json = cJSON_Parse(buffer);
+    if (!json) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(buffer);
+        return NOK;
+    }
+
+    // Print formatted JSON
+    char *printed = cJSON_Print(json);
+    if (printed) {
+        printf("%s\n", printed);
+	FILE *fp = fopen("/tmp/output.json", "w");
+        if (fp) {
+        fputs(printed, fp);
+	//stMsgData->paramLen = strlen(printed);
+	//strncpy((char*)stMsgData->paramValue, printed, stMsgData->paramLen);
+        fclose(fp);
+
+        // Use cat to print to console
+        v_secure_system("cat /tmp/output.json");
+
+        // Optionally delete the temp file
+        // remove("/tmp/output.json");
+    } else {
+        fprintf(stderr, "Failed to open file for writing.\n");
+    }
+        free(printed);
+    }
+
+    // Cleanup
+    cJSON_Delete(json);
+    free(buffer);
+    
+    return OK; 
+}
+*/
+
+/*
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    //strncpy(stMsgData->paramValue, "true", strlen("true") + 1);
+    //    const char *desc = "TR-181, TR-135 and Comcast specific Datamodel Configuration";
+    //snprintf((char *)stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1, "%s", desc);
+    //stMsgData->paramLen = strlen(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
+        const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error opening file /etc/rrd/remote_debugger.json \n", __FUNCTION__ );
+        return NOK;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    // Allocate memory for file content
+    char *buffer = (char*)malloc(filesize + 1);
+    if (!buffer) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Memory allocation failed \n", __FUNCTION__ );
+        fclose(file);
+        return NOK;
+    }
+
+    // Read file into buffer
+    size_t readlen = fread(buffer, 1, filesize, file);
+    buffer[readlen] = '\0';
+    fclose(file);
+
+    // Parse JSON
+    cJSON *json = cJSON_Parse(buffer);
+    if (!json) {
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Error parsing JSON:  %s \n", __FUNCTION__ , cJSON_GetErrorPtr());
+        free(buffer);
+        return NOK;
+    }
+
+    // Print formatted JSON
+    char *printed = cJSON_Print(json);
+    if (printed) {
+        printf("%s\n", printed);
+	FILE *fp = fopen("/tmp/output.json", "w");
+        if (fp) {
+        fputs(printed, fp);
+	//stMsgData->paramLen = strlen(printed);
+	//strncpy((char*)stMsgData->paramValue, printed, stMsgData->paramLen);
+        fclose(fp);
+
+        // Use cat to print to console
+        v_secure_system("cat /tmp/output.json");
+
+        // Optionally delete the temp file
+        // remove("/tmp/output.json");
+    } else {
+        fprintf(stderr, "Failed to open file for writing.\n");
+    }
+        free(printed);
+    }
+
+    // Cleanup
+    cJSON_Delete(json);
+    free(buffer);
+    
+    return OK; 
+}
+*/
+
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+{
+   
+    stMsgData->paramtype = hostIf_StringType;
+    int  retStatus       = NOK;
+
+    const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE  *fp            = nullptr;
+    char  *fileBuf       = nullptr;
+    long   fileSz        = 0;
+    size_t bytesRead     = 0;
+    cJSON *root          = nullptr;
+    cJSON *filtered      = nullptr;
+    char  *outStr        = nullptr;
+    size_t outLen = 0;
+
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,
+            "[%s] Entering …\n", __FUNCTION__);
+
+   
+    fp = fopen(filename, "rb");
+    if(!fp)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Cannot open %s\n", __FUNCTION__, filename);
+        goto CLEAN_UP;
+    }
+
+    if(fseek(fp, 0L, SEEK_END) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] fseek failed\n", __FUNCTION__);
+        goto CLEAN_UP;
+    }
+    fileSz = ftell(fp);
+    rewind(fp);
+
+    fileBuf = (char*)malloc((size_t)fileSz + 1);
+    if(!fileBuf)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] malloc(%ld) failed\n", __FUNCTION__, fileSz + 1);
+        goto CLEAN_UP;
+    }
+
+    bytesRead       = fread(fileBuf, 1U, (size_t)fileSz, fp);
+    fileBuf[bytesRead] = '\0';
+    fclose(fp); fp = nullptr;
+
+  
+    root = cJSON_Parse(fileBuf);
+    if(!root)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] JSON parse error: %s\n",
+                __FUNCTION__, cJSON_GetErrorPtr());
+        goto CLEAN_UP;
+    }
+
+   
+    filtered = cJSON_CreateObject();
+    if(!filtered)
+        goto CLEAN_UP;
+
+    for(cJSON *top = root->child; top; top = top->next)
+    {
+        if(top->type != cJSON_Object)
+            continue;                          
+
+        cJSON *arr = cJSON_CreateArray();
+        if(!arr)
+            goto CLEAN_UP;
+
+        for(cJSON *sub = top->child; sub; sub = sub->next)
+            cJSON_AddItemToArray(arr, cJSON_CreateString(sub->string));
+
+        if(cJSON_GetArraySize(arr) > 0)
+            cJSON_AddItemToObject(filtered, top->string, arr);
+        else
+            cJSON_Delete(arr);                
+    }
+
+   
+    outStr = cJSON_PrintUnformatted(filtered);
+    if(!outStr)
+        goto CLEAN_UP;
+
+    
+    outLen = strlen(outStr);
+    if(outLen >= sizeof(stMsgData->paramValue))
+        outLen = sizeof(stMsgData->paramValue) - 1;
+
+    memcpy(stMsgData->paramValue, outStr, outLen);
+    stMsgData->paramValue[outLen] = '\0';
+    stMsgData->paramLen           = outLen;
+
+   
+   RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s] Extracted profile map: %s\n", __FUNCTION__, outStr);
+
+    retStatus = OK;   
+
+CLEAN_UP:
+    if(fp)          fclose(fp);
+    if(fileBuf)     free(fileBuf);
+    cJSON_Delete(root);
+    cJSON_Delete(filtered);
+    if(outStr)      free(outStr);
+
+    RDK_LOG((retStatus == OK) ? RDK_LOG_TRACE1 : RDK_LOG_ERROR,
+            LOG_TR69HOSTIF, "[%s] Leaving with %s\n",
+            __FUNCTION__, (retStatus == OK) ? "OK" : "NOK");
+
+    return retStatus;
+}
+
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData (HOSTIF_MsgData_t *stMsgData)
 {
@@ -5443,4 +5767,3 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *
 
 /** @} */
 /** @} */
-
