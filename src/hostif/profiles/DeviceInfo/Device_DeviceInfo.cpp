@@ -38,6 +38,7 @@
 **/
 
 
+#include <iostream>
 #include <cmath>
 #include <cstring>
 #include <sys/stat.h>
@@ -3510,6 +3511,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComApparmorBlocklist(HOSTIF_MsgData_t *stM
 
 int hostIf_DeviceInfo::sendDeviceMgtNotification(const char* source, const char* type)
 {
+    std::cout << "akshay inside tr69hostif sendDeviceMgtNotification" << std::endl;
     int ret = NOK;
     errno_t rc = -1;
     IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t DeviceMgtData;
@@ -3528,7 +3530,9 @@ int hostIf_DeviceInfo::sendDeviceMgtNotification(const char* source, const char*
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Broadcasting IARM event %s %d for Device Management Update with %s %s %d\n",__FUNCTION__, IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, DeviceMgtData.source, DeviceMgtData.type, DeviceMgtData.status);
     if (IARM_Bus_BroadcastEvent(IARM_BUS_SYSMGR_NAME, (IARM_EventId_t) IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, (void *)&DeviceMgtData, sizeof(DeviceMgtData)) == IARM_RESULT_SUCCESS)
     {
+	
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] onDeviceMgtUpdateReceived IARM event broadcast successfull for source: %s\n",__FUNCTION__, DeviceMgtData.source);
+	std::cout << "akshay onDeviceMgtUpdateReceived IARM event broadcast successfull for source: " << DeviceMgtData.source << std::endl;
         ofstream deviceUpdatefile(RFC_DEVICE_UPDATE_FILE);
         if (!deviceUpdatefile.is_open()) {
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] ERROR: Could not create or open the %s file!\n",__FUNCTION__, RFC_DEVICE_UPDATE_FILE);
@@ -3595,7 +3599,9 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
                 RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Calling reloadCache in New RFC Store I/O\n",__FUNCTION__);
                 m_rfcStore->reloadCache();
                 stMsgData->faultCode = fcNoFault;
+		std::cout << "akshay calling sendDeviceMgtNotification for rfc initial" << std::endl;
                 sendDeviceMgtNotification("rfc", "initial");
+		std::cout << "akshay after sendDeviceMgtNotification for rfc initial" << std::endl;
             }
             else
             {
@@ -3753,11 +3759,13 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         ret = set_xRDKCentralComRFC_hwHealthTest_ResultFilter_ResultsFiltered(stMsgData);
     }
 #endif /* USE_HWSELFTEST_PROFILE */
+    std::cout << "akshay returing sendDeviceMgtNotification" << std::endl;
     return ret;
 }
 
 int hostIf_DeviceInfo::set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *stMsgData)
 {
+    std::cout << "akshay inside tr69hostif set_xRDKCentralComRFC" << std::endl;
     int ret = NOK;
     bool enable;
     LOG_ENTRY_EXIT;
