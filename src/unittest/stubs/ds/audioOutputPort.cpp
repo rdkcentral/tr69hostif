@@ -10,7 +10,6 @@ typedef enum {
 namespace device {
 
 dsError_t AudioOutputPort::enableLEConfig(const bool enable) {
-    leConfigEnabled = enable;
     std::cout << "[AudioOutputPort] LE config is now " << (enable ? "ENABLED" : "DISABLED") << std::endl;
     return dsERR_NONE;  // Always return success for stub
 }
