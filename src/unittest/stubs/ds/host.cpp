@@ -2,11 +2,6 @@
 
 namespace device {
 
-// Define static singleton instance
-Host& Host::getInstance() {
-    static Host instance;
-    return instance;
-}
 
 // Constructor and destructor
 Host::Host() {}
