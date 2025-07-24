@@ -18,15 +18,15 @@
  # SPDX-License-Identifier: Apache-2.0
  ############################################################################
 
-# ENABLE_COV=true
+ENABLE_COV=false
 
-#if [ "x$1" = "x--enable-cov" ]; then
-#      echo "Enabling coverage options"
-#      export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-#      export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-#      export LDFLAGS="-lgcov --coverage"
-#      ENABLE_COV=true
-#fi
+if [ "x$1" = "x--enable-cov" ]; then
+      echo "Enabling coverage options"
+      export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+      export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+      export LDFLAGS="-lgcov --coverage"
+      ENABLE_COV=true
+fi
 
 #export TOP_DIR=`pwd`
 
