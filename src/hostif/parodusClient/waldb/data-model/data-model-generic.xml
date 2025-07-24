@@ -4325,7 +4325,7 @@
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <boolean/>
-          <default type="factory" value="true"/>
+          <default type="factory" value="false"/>
         </syntax>
       </parameter>
     </object>
