@@ -18,6 +18,9 @@
  # SPDX-License-Identifier: Apache-2.0
  ############################################################################
 
+make clean
+make VERBOSE=1
+
 ENABLE_COV=false
 
 if [ "x$1" = "x--enable-cov" ]; then
