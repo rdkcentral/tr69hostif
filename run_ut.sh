@@ -76,6 +76,7 @@ echo "********************"
 echo "**** Compiling DeviceInfo gtest ****"
 cd $TOP_DIR/src/hostif/profiles/DeviceInfo/gtest
 rm devieInfo_gtest
+make clean
 make
 ./devieInfo_gtest
 echo "********************"
