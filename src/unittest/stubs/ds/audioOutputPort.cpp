@@ -4,8 +4,8 @@
 namespace device {
 
 // Constructor
-AudioOutputPort::AudioOutputPort() : leConfigEnabled(false) {
-    std::cout << "[AudioOutputPort] Initialized with LE config OFF" << std::endl;
+AudioOutputPort::AudioOutputPort() {
+    std::cout << "[AudioOutputPort] Constructed" << std::endl;
 }
 
 // Destructor
