@@ -27,7 +27,7 @@ if [ "x$1" = "x--enable-cov" ]; then
       ENABLE_COV=true
 fi
 
-export TOP_DIR=`pwd`
+#export TOP_DIR=`pwd`
 
 apt-get update
 apt-get -y install libtinyxml2-dev
@@ -70,7 +70,7 @@ echo "********************"
 
 
 
-cd $TOP_DIR
+#cd $TOP_DIR
 
 echo "**** Compiling DeviceInfo gtest ****"
 cd $TOP_DIR/src/hostif/profiles/DeviceInfo/gtest

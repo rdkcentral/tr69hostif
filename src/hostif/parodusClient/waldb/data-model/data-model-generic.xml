@@ -511,6 +511,14 @@
         </syntax>
       </parameter>
     </object>
+     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.apps." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="watchdogmode" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <boolean/>
+             <default type="factory" value=""/>
+        </syntax>
+      </parameter>
+     </object>
      <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ForwardSSH." access="readOnly" minEntries="0" maxEntries="unbounded" >
        <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
          <syntax>
@@ -3551,6 +3559,18 @@
       <parameter base="WebCfgData" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="wakeUpStart" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="wakeUpEnd" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
         </syntax>
       </parameter>
     </object>
