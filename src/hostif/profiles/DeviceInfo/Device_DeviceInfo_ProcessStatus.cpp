@@ -221,7 +221,9 @@ int hostIf_DeviceProcessStatusInterface::getProcessStatusCPUUsage() {
  */
 int hostIf_DeviceProcessStatusInterface::get_Device_DeviceInfo_ProcessStatus_CPUUsage(HOSTIF_MsgData_t *stMsgData,bool *pChanged)
 {
+    saveHeapwalk("a");
     int uiCpuUsage = getProcessStatusCPUUsage();
+    saveHeapwalk("b");
     if (uiCpuUsage < 0)
         uiCpuUsage = 0;
 

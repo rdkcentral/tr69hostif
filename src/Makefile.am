@@ -129,6 +129,7 @@ tr69hostif_SOURCES += $(top_srcdir)/src/hostif/src/IniFile.cpp
 backgroundrun_SOURCES = $(top_srcdir)/src/backgroundrun.c
 
 tr69hostif_LDADD = $(top_builddir)/src/hostif/handlers/libMsgHandlers.la
+tr69hostif_LDADD += /usr/local/lib/libmemfnswrap.so
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/STBService/libstbservice.la
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/IP/libhostIfIP.la
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/Time/libhostIfTime.la

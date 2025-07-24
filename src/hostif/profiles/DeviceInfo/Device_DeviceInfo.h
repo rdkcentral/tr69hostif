@@ -100,6 +100,16 @@
 * @{
 **/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int saveHeapwalk(char*);
+void saveHeapWalkAtExit();
+
+#ifdef __cplusplus
+}
+#endif
 
 #include <string>
 #ifndef DEVICE_DEVICEINFO_H_
