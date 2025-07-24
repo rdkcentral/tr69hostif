@@ -1,23 +1,18 @@
 #include "audioOutputPort.hpp"
 #include <iostream>
 
+typedef enum {
+    dsERR_NONE = 0,
+    dsERR_GENERAL = 1
+    // Add more codes if needed
+} dsError_t;
+
 namespace device {
 
-// Constructor
-AudioOutputPort::AudioOutputPort() {
-    std::cout << "[AudioOutputPort] Constructed" << std::endl;
-}
-
-// Destructor
-AudioOutputPort::~AudioOutputPort() {
-    std::cout << "[AudioOutputPort] Destroyed" << std::endl;
-}
-
-// Stub implementation of enableLEConfig
-bool AudioOutputPort::enableLEConfig(bool enable) {
+dsError_t AudioOutputPort::enableLEConfig(const bool enable) {
     leConfigEnabled = enable;
-    std::cout << "[AudioOutputPort] LE Config set to: " << (enable ? "Enabled" : "Disabled") << std::endl;
-    return true;  // Always returns success for testing
+    std::cout << "[AudioOutputPort] LE config is now " << (enable ? "ENABLED" : "DISABLED") << std::endl;
+    return dsERR_NONE;  // Always return success for stub
 }
 
 }
