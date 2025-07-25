@@ -148,6 +148,10 @@ long timeValDiff(struct timespec *starttime, struct timespec *finishtime);
 void setLegacyRFCEnabled(bool value);
 bool legacyRFCEnabled();
 #endif
+#ifdef T2_EVENT_ENABLED
+void t2CountNotify(const char *marker, int val);
+void t2ValNotify(const char *marker, const char *val);
+#endif
 HostIf_Source_Type_t getBSUpdateEnum(const char *bsUpdate);
 
 bool isWebpaReady();

@@ -405,6 +405,7 @@ void appendNextObject(char* currentParam, const char* pAttparam)
     // TO DO: Since the size of the destination buffer is not predictable using strcpy
     strcpy(currentParam, pAttparam);
 }
+
 /**
  * @brief Get the list of parameters which is matching with paramName
  *
@@ -538,7 +539,7 @@ static XMLNode* getList(XMLNode *pParent,char *paramName,char* currentParam,char
                             sChild = getList(pChild,tparaName,currentParam,ptrParamList,pParamDataTypeList,paramCount);
                             //TO DO:Since curretParam size is not predictable using strcpy
 			    strcpy(currentParam+len, INSTANCE_NUMBER_INDICATOR);
-			    i++;
+                            i++;
                         }
                         pChild = sChild;
                         // Seems like instance count is empty
@@ -956,7 +957,6 @@ static DB_STATUS get_complete_parameter_list_from_dml_xml (
             {
                 appendNextObject(currentParam, pAttrib->Value());
                 std::string str = pAttrib->Value();
-
                 if (str.compare(str.size()-5,5,".{i}.") == 0) {
                     if(params_count < MAX_NUM_PARAMETERS)
                     {

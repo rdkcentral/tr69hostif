@@ -514,7 +514,7 @@ void init_rbus_dml_provider()
                                 DataModelParam dmParam = {0};
                                 if (getParamInfoFromDataModel(dataBaseHandle, dataElements[rbus_param_counter].name, &dmParam) == 0)
                                 {
-                                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s][rbusdml] Parameter not found. \n ", __FUNCTION__);
+                                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][rbusdml] Parameter not found: %s\n", __FUNCTION__, dataElements[rbus_param_counter].name);
                                 }
                                 else
                                 {

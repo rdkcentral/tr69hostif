@@ -45,6 +45,8 @@ else
 AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-2.4
 endif
 
+
+
 libhttpserver_la_LIBADD = $(top_builddir)/src/hostif/parodusClient/waldb/libwaldb.la \
                              $(top_builddir)/src/hostif/handlers/libMsgHandlers.la 
 
