@@ -20,7 +20,7 @@ jobs:
           sh run_ut.sh --enable-cov 
       - name: Caculate the code coverage summary
         run: |
-          lcov --list tr69hosif_coverage.info | grep "Lines\|Total" > /tmp/coverage_summary.txt
+          lcov --list tr69hostif_coverage.info | grep "Lines\|Total" > /tmp/coverage_summary.txt
           cd -
         
       - name: Update the coverage report to Pull request using actions
