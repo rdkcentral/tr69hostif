@@ -192,6 +192,10 @@
 #define RDK_REBOOTSTOP_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable"
 
 #define APPARMOR_BLOCKLIST_PROCESS                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonRootSupport.ApparmorBlocklist"
+/* Profile: X_RDKCENTRAL-COM_RFC.Canary */
+#define CANARY_START_TIME                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart"
+#define CANARY_END_TIME                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"
+
 /**
  * @brief This class provides the interface for getting device information.
  * @ingroup TR69_HOSTIF_DEVICEINFO_CLASSES
@@ -1229,6 +1233,23 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
     int get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *);
 #endif
+
+    /*
+      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryStartTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryEndTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryExtendTime
+      *
+      * This method is to get the Issuetype from QA.
+      * with following TR-069 definition:
+      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart,
+      *                   Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd,
+      *   Data type: String - Arguments Start/End Time
+      *
+      * @retval OK if it is successful.
+      * @retval NOK if operation fails.
+      */
+
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(HOSTIF_MsgData_t *);
+
     /*
       * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable
       *

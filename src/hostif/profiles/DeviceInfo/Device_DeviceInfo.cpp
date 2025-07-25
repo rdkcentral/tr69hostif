@@ -3904,6 +3904,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
 #endif
+    else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
+    {
+	ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName,CANARY_END_TIME) == 0)
+    {
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(stMsgData);
+    }
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(stMsgData);
@@ -4347,6 +4355,32 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     return retVal;
 }
 #endif
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart (HOSTIF_MsgData_t *stMsgData)
+{
+    int startTime = 0;
+    int retVal = NOK;
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
+    startTime = atoi(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Start Time Value is %d \n",__FUNCTION__, startTime);
+    retVal = OK;
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+    return retVal;
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (HOSTIF_MsgData_t *stMsgData)
+{
+    int endTime = 0;
+    int retVal = NOK;
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
+    endTime = atoi(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] End Time Value is %d \n",__FUNCTION__, endTime);
+    retVal = OK;
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+    return retVal;
+}
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(HOSTIF_MsgData_t *stMsgData)
 {
