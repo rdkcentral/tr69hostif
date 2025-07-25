@@ -1,8 +1,8 @@
 name: Code Coverage
 
 on:
-  push:
-    branches: [ feature/RDKEMW-6193 ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   execute-unit-code-coverage-report-on-release:
@@ -31,7 +31,7 @@ jobs:
             const lcov_result = fs.readFileSync('/tmp/coverage_summary.txt', 'utf8'); 
           
             github.issues.createComment({
-              #issue_number: context.issue.number,
+              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 
@@ -43,8 +43,7 @@ jobs:
             });
       - name: Generate the html report
         run: |
-          cd ./src/unittest
-          genhtml coverage.info --output-directory /tmp/coverage_report
+          genhtml tr69hostif_coverage.info --output-directory /tmp/coverage_report
           cd -
       - name: Upload the coverage report to Pull request using actions
         uses: actions/upload-artifact@v4
