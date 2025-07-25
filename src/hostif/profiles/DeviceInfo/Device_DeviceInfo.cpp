@@ -76,6 +76,11 @@
 
 #ifdef USE_REMOTE_DEBUGGER
 #include "rrdInterface.h"
+#include "rdm_types.h"
+#include "rdm.h"
+#include "rdm_utils.h"
+#include "rdm_jsonquery.h"
+#include "rdm_download.h"
 #endif
 
 #include "secure_wrapper.h"
@@ -5358,7 +5363,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
         return NOK;
     }
-
+/*
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
 
     ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", stMsgData->paramValue);
@@ -5367,6 +5372,45 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
         return NOK;
     }
+*/
+
+    RDMAPPDetails *pApp_det = malloc(sizeof(RDMAPPDetails));
+    RDMHandle *prdmHandle = malloc(sizeof(RDMHandle));
+    int ret, download_status = 0;
+
+   // Parse app_name and version (e.g., "foo:1.2.3")
+   char *app_name = stMsgData->paramValue;
+   char result[20];
+   char *ver = strchr(app_name, ':');
+   if (ver != NULL) {
+    strncpy(pApp_det->pkg_ver, ver + 1, sizeof(pApp_det->pkg_ver) - 1);
+    pApp_det->pkg_ver[sizeof(pApp_det->pkg_ver) - 1] = '\0';
+   }
+   sscanf(app_name, "%[^:]", result);
+   strncpy(pApp_det->app_name, result, sizeof(pApp_det->app_name) - 1);
+   pApp_det->app_name[sizeof(pApp_det->app_name) - 1] = '\0';
+   snprintf(pApp_det->pkg_name, sizeof(pApp_det->pkg_name), "%s_%s-signed.tar", result, pApp_det->pkg_ver);
+   pApp_det->is_versioned_app = 1;
+
+   // Initialize RDM handle
+   ret = rdmInit(prdmHandle);
+
+// Update App paths
+   rdmUpdateAppDetails(prdmHandle, pApp_det, /*is_broadband*/ 0);
+
+// Print App details
+rdmPrintAppDetails(pApp_det);
+
+// Download the app
+ret = rdmDownloadApp(pApp_det, &download_status);
+if (!ret) {
+    t2ValNotify("RDM_INFO_AppDownloadComplete", pApp_det->app_name );
+}
+
+// Cleanup
+rdmUnInit(prdmHandle);
+free(prdmHandle);
+free(pApp_det);    
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
     return OK;
