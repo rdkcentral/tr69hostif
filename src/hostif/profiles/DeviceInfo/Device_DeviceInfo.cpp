@@ -4388,7 +4388,7 @@ CLEAN_UP:
     RDK_LOG((retStatus == OK) ? RDK_LOG_TRACE1 : RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with %s\n", __FUNCTION__, (retStatus == OK) ? "OK" : "NOK");
     return retStatus;
 }
-
+*/
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData (HOSTIF_MsgData_t *stMsgData)
 {
     char *issueStr = NULL;
@@ -4449,7 +4449,6 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
 
     return retVal;
 }
-*/
 #endif
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(HOSTIF_MsgData_t *stMsgData)
