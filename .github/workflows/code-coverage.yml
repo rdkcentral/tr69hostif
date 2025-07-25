@@ -21,8 +21,8 @@ jobs:
           
       - name: Caculate the code coverage summary
         run: |
-          cd ./src/unittest
-          lcov --list coverage.info | grep "Lines\|Total" > /tmp/coverage_summary.txt
+                #cd ./src/unittest
+          lcov --list tr69hosif_coverage.info | grep "Lines\|Total" > /tmp/coverage_summary.txt
           cd -
         
       - name: Update the coverage report to Pull request using actions

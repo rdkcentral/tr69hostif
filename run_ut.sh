@@ -79,8 +79,8 @@ cd $TOP_DIR
 
 if [ "$ENABLE_COV" = true ]; then
     lcov --capture --directory . --output-file coverage.info
-    lcov --remove coverage.info '/usr/*' --output-file coverage.info
-    lcov --list coverage.info
-    genhtml coverage.info --output-directory out
+    lcov --remove coverage.info '/usr/*' '*/gtest/*' '*/mocks/*' --output-file filtered.info
+    lcov --extract filtered.info '*/src/hostif*' --output-file tr69hostif_coverage.info
+    lcov --list tr69hostif_coverage.info
 fi
  
