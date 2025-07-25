@@ -201,10 +201,6 @@ int XREClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
     {
         ret = get_Device_X_COMCAST_COM_Xcalibur_Client_XRE_xreEnable(stMsgData);
     }
-    else if(strcasecmp(stMsgData->paramName,"Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow") == 0)
-    {
-        ret = get_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(stMsgData);
-    }
     else if(strcasecmp(stMsgData->paramName,"Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreStatus") == 0)
     {
         ret = get_Device_X_COMCAST_COM_Xcalibur_Client_XRE_xreStatus(stMsgData);
@@ -502,18 +498,6 @@ int set_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stM
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: \"%s\" Invalid Input. Valid Input is \"TRUE\" \n",__FILE__,__FUNCTION__,__LINE__,stMsgData->paramValue);
         return NOK;	    
     }
-    return OK;
-}
-
-int get_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stMsgData)
-{
-    FILE *file = fopen("/tmp/xconfchecknow_val", "r");
-    if (file == NULL) {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: Error opening file for read.\n",__FILE__,__FUNCTION__,__LINE__);
-        return NOK;
-    }
-    fscanf(file, "%9s", stMsgData->paramValue);
-    fclose(file);
     return OK;
 }
 
