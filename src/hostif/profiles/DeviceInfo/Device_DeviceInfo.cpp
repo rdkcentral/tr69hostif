@@ -4169,7 +4169,6 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
 {
     stMsgData->paramtype = hostIf_StringType;
     int retStatus = NOK;
-
     const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *fp = nullptr;
     char *fileBuf = nullptr;
@@ -4179,93 +4178,99 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     cJSON *filtered = nullptr;
     char *outStr = nullptr;
     size_t outLen = 0;
-
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering …\n", __FUNCTION__);
-
     fp = fopen(filename, "rb");
-    if (!fp) {
+    if (!fp) 
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open %s\n", __FUNCTION__, filename);
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
         return retStatus;
     }
-
-    if (fseek(fp, 0L, SEEK_END) != 0) {
+    if (fseek(fp, 0L, SEEK_END) != 0) 
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fseek failed\n", __FUNCTION__);
         fclose(fp);
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
         return retStatus;
     }
-
     fileSz = ftell(fp);
     rewind(fp);
-    if (fileSz < 0) {
+    if (fileSz < 0) 
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fileSz is negative, Returning....\n", __FUNCTION__);
         fclose(fp);
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
         return retStatus;
     }
-
     fileBuf = (char*)malloc((size_t)fileSz + 1);
-    if (!fileBuf) {
+    if (!fileBuf) 
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] malloc(%ld) failed\n", __FUNCTION__, fileSz + 1);
         fclose(fp);
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
         return retStatus;
     }
-
     bytesRead = fread(fileBuf, 1U, (size_t)fileSz, fp);
     fileBuf[bytesRead] = '\0';
     fclose(fp); fp = nullptr;
-
     root = cJSON_Parse(fileBuf);
-    if (!root) {
+    if (!root) 
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] JSON parse error: %s\n", __FUNCTION__, cJSON_GetErrorPtr());
         free(fileBuf);
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
         return retStatus;
     }
-
     filtered = cJSON_CreateObject();
-    if (!filtered) {
+    if (!filtered) 
+    {
         free(fileBuf);
         cJSON_Delete(root);
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
         return retStatus;
     }
 
-    for (cJSON *top = root->child; top; top = top->next) {
-        if (top->type != cJSON_Object) {
+    for (cJSON *top = root->child; top; top = top->next) 
+    {
+        if (top->type != cJSON_Object) 
+	{
             continue;
         }
         cJSON *arr = cJSON_CreateArray();
-        if (!arr) {
+        if (!arr) 
+	{
             free(fileBuf);
             cJSON_Delete(root);
             cJSON_Delete(filtered);
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
             return retStatus;
         }
-        for (cJSON *sub = top->child; sub; sub = sub->next) {
+        for (cJSON *sub = top->child; sub; sub = sub->next) 
+	{
             cJSON_AddItemToArray(arr, cJSON_CreateString(sub->string));
         }
-        if (cJSON_GetArraySize(arr) > 0) {
+        if (cJSON_GetArraySize(arr) > 0) 
+	{
             cJSON_AddItemToObject(filtered, top->string, arr);
-        } else {
+        } 
+	else 
+	{
             cJSON_Delete(arr);
         }
     }
 
     outStr = cJSON_PrintUnformatted(filtered);
-    if (!outStr) {
+    if (!outStr) 
+    {
         free(fileBuf);
         cJSON_Delete(root);
         cJSON_Delete(filtered);
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
         return retStatus;
     }
-
     outLen = strlen(outStr);
-    if (outLen >= sizeof(stMsgData->paramValue)) {
+    if (outLen >= sizeof(stMsgData->paramValue)) 
+    {
         outLen = sizeof(stMsgData->paramValue) - 1;
     }
     memcpy(stMsgData->paramValue, outStr, outLen);
@@ -4273,12 +4278,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     stMsgData->paramLen = outLen;
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Extracted profile map: %s\n", __FUNCTION__, outStr);
     retStatus = OK;
-
     free(fileBuf);
     cJSON_Delete(root);
     cJSON_Delete(filtered);
     free(outStr);
-
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Leaving with OK\n", __FUNCTION__);
     return retStatus;
 }
