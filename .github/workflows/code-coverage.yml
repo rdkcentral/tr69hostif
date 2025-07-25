@@ -17,11 +17,9 @@ jobs:
 
       - name: Run unit tests with coverage flags enabled
         run: |
-          sh run_ut.sh --enable-cov
-          
+          sh run_ut.sh --enable-cov 
       - name: Caculate the code coverage summary
         run: |
-                #cd ./src/unittest
           lcov --list tr69hosif_coverage.info | grep "Lines\|Total" > /tmp/coverage_summary.txt
           cd -
         
