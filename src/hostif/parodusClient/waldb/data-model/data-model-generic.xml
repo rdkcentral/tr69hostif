@@ -358,6 +358,14 @@
        </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BTR.DebugMode." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+       <syntax>
+         <boolean/>
+          <default type="factory" value="false"/>
+       </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BTSplitAudio." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>

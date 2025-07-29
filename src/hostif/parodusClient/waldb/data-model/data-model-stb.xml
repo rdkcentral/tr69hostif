@@ -461,6 +461,14 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.TR069support." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <boolean/>
+      <default type="factory" value="false"/>
+        </syntax>
+      </parameter>
+    </object>
     <object base="Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="ProfileLevelNumberOfEntries" access="readOnly"  notification="0" maxNotification="2" >
         <syntax>
