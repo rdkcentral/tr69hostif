@@ -50,6 +50,7 @@
 #include "hostIf_msgHandler.h"
 #include "hostIf_updateHandler.h"
 #include "hostIf_main.h"
+#include "secure_wrapper.h"
 
 /**
  * @brief This class provides the interface for getting XRE request handler information.
@@ -78,6 +79,8 @@ public:
     static msgHandler* getInstance();
 };
 
+int set_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stMsgData);
+int get_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stMsgData);
 #endif /* HOSTIF_XRECLIENT_REQHANDLER_H_ */
 /* End of HOSTIF_XRECLIENT_REQHANDLER_H_ doxygen group */
 /**

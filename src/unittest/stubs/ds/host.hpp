@@ -83,7 +83,7 @@ public:
     AudioOutputPort &getAudioOutputPort(const std::string &name){};
     AudioOutputPort &getAudioOutputPort(int id){};
     void notifyPowerChange(const  int mode);
-    float getCPUTemperature();
+    float getCPUTemperature() { return 42.5f; };
     uint32_t  getVersion(void);
     void setVersion(uint32_t versionNumber);
     void getHostEDID(std::vector<uint8_t> &edid) const;
