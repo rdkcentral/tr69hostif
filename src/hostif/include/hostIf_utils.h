@@ -96,7 +96,7 @@ bool matchComponent(const char* pParam, const char *pKey, const char **pSetting,
 
 int get_int(const char *ptr);
 
-void put_int(char *ptr, int val);
+void put_int(char *ptr, long unsigned int val);
 
 uint get_uint(char *ptr);
 
