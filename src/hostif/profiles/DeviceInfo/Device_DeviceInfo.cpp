@@ -4118,6 +4118,143 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Param Value is %s \n",__FUNCTION__, stMsgData->paramValue);
 
+    int retStatus = NOK;
+const char *filename = "/etc/rrd/remote_debugger.json";
+FILE *fp = nullptr;
+char *fileBuf = nullptr;
+long fileSz = 0;
+size_t bytesRead = 0;
+cJSON *root = nullptr;
+RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering ...\n", __FUNCTION__);
+
+// Open file
+fp = fopen(filename, "rb");
+if (!fp) 
+{
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open %s\n", __FUNCTION__, filename);
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+    return retStatus;
+}
+
+// Get file size
+if (fseek(fp, 0L, SEEK_END) != 0) 
+{
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fseek failed\n", __FUNCTION__);
+    fclose(fp);
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+    return retStatus;
+}
+fileSz = ftell(fp);
+rewind(fp);
+if (fileSz < 0) 
+{
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fileSz is negative, Returning....\n", __FUNCTION__);
+    fclose(fp);
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+    return retStatus;
+}
+
+// Read file into buffer
+fileBuf = (char*)malloc((size_t)fileSz + 1);
+if (!fileBuf) 
+{
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] malloc(%ld) failed\n", __FUNCTION__, fileSz + 1);
+    fclose(fp);
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+    return retStatus;
+}
+bytesRead = fread(fileBuf, 1U, (size_t)fileSz, fp);
+fileBuf[bytesRead] = '\0';
+fclose(fp); fp = nullptr;
+
+// Parse JSON
+root = cJSON_Parse(fileBuf);
+if (!root) 
+{
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] JSON parse error: %s\n", __FUNCTION__, cJSON_GetErrorPtr());
+    free(fileBuf);
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+    return retStatus;
+}
+
+// Extract key(s) from paramValue
+char paramCopy[256];
+strncpy(paramCopy, stMsgData->paramValue, sizeof(paramCopy)-1);
+paramCopy[sizeof(paramCopy)-1] = '\0';
+
+char *firstKey = strtok(paramCopy, ".");
+char *secondKey = strtok(NULL, ".");
+
+RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Looking for firstKey: %s\n", __FUNCTION__, firstKey);
+if (secondKey) {
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Looking for secondKey: %s\n", __FUNCTION__, secondKey);
+}
+
+cJSON *found = nullptr;
+if (firstKey && secondKey) {
+    cJSON *firstObj = cJSON_GetObjectItem(root, firstKey);
+    if (firstObj) {
+        RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Found firstKey: %s\n", __FUNCTION__, firstKey);
+        if (firstObj->type == cJSON_Object) {
+            cJSON *secondObj = cJSON_GetObjectItem(firstObj, secondKey);
+            if (secondObj) {
+                RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Found secondKey: %s under firstKey: %s\n", __FUNCTION__, secondKey, firstKey);
+                found = secondObj;
+            } else {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Did NOT find secondKey: %s under firstKey: %s\n", __FUNCTION__, secondKey, firstKey);
+            }
+        } else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] firstKey: %s is not an object\n", __FUNCTION__, firstKey);
+        }
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Did NOT find firstKey: %s\n", __FUNCTION__, firstKey);
+    }
+} else if (firstKey) {
+    cJSON *firstObj = cJSON_GetObjectItem(root, firstKey);
+    if (firstObj) {
+        RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Found firstKey: %s\n", __FUNCTION__, firstKey);
+        found = firstObj;
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Did NOT find firstKey: %s\n", __FUNCTION__, firstKey);
+    }
+}
+
+// Now decide what to return based on `found`
+if (found && found->type == cJSON_Object) {
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Found valid object for lookup\n", __FUNCTION__);
+    // Optionally, you can print or process 'found' here, e.g.:
+    char *outStr = cJSON_PrintUnformatted(found);
+    if (outStr) {
+        size_t outLen = strlen(outStr);
+        if (outLen >= sizeof(stMsgData->paramValue)) {
+            outLen = sizeof(stMsgData->paramValue) - 1;
+        }
+        memcpy(stMsgData->paramValue, outStr, outLen);
+        stMsgData->paramValue[outLen] = '\0';
+        stMsgData->paramLen = outLen;
+        free(outStr);
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] cJSON_PrintUnformatted failed\n", __FUNCTION__);
+        free(fileBuf);
+        cJSON_Delete(root);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    retStatus = OK;
+} else {
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Key(s) not found or not an object\n", __FUNCTION__);
+    free(fileBuf);
+    cJSON_Delete(root);
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+    return retStatus;
+}
+
+// Cleanup
+free(fileBuf);
+cJSON_Delete(root);
+
+
+
     len = strlen(stMsgData->paramValue) + 1;
     issueStr = (char *)malloc(len);
     if(issueStr == NULL)
