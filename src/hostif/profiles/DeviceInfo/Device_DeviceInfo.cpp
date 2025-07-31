@@ -4242,22 +4242,40 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerE
     stMsgData->paramtype = hostIf_StringType;
     int retStatus = NOK;
 
+    // Initialize path to empty
+    path[0] = '\0';
+
     // Run the command
     fp = popen("systemctl is-active remote-debugger", "r");
     if (fp == NULL) {
         printf("Failed to run command.\n");
+        strncpy(stMsgData->paramValue, "unknown", sizeof(stMsgData->paramValue) - 1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
         return retStatus;
     }
 
     // Read the output
-    while (fgets(path, sizeof(path)-1, fp) != NULL) {
+    if (fgets(path, sizeof(path)-1, fp) != NULL) {
+        // Remove trailing newline, if any
+        size_t len = strlen(path);
+        if (len > 0 && path[len-1] == '\n') {
+            path[len-1] = '\0';
+        }
         if (strstr(path, "active") != NULL) {
             active = 1;
-            break;
         }
+    } else {
+        strncpy(path, "unknown", sizeof(path) - 1);
+        path[sizeof(path) - 1] = '\0';
     }
 
     pclose(fp);
+
+    // Save the value of path to stMsgData
+    strncpy(stMsgData->paramValue, path, sizeof(stMsgData->paramValue) - 1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
 
     // Check status
     if (active) {
