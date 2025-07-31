@@ -372,7 +372,7 @@ int hostIf_EthernetInterfaceStats::get_Device_Ethernet_Interface_Stats_BytesSent
     backupBytesSent = stEthInterfaceStats.bytesSent;
     snprintf(stMsgData->paramValue, sizeof(stMsgData->paramValue), "%lu", stEthInterfaceStats.bytesSent );
     stMsgData->paramtype = hostIf_UnsignedLongType;
-    stMsgData->paramLen = 4;
+    stMsgData->paramLen = strlen(stMsgData->paramValue); 
 
     return OK;
 }
@@ -400,7 +400,7 @@ int hostIf_EthernetInterfaceStats::get_Device_Ethernet_Interface_Stats_BytesRece
     backupBytesReceived = stEthInterfaceStats.bytesReceived;
     snprintf(stMsgData->paramValue, sizeof(stMsgData->paramValue), "%lu", stEthInterfaceStats.bytesReceived);
     stMsgData->paramtype = hostIf_UnsignedLongType;
-    stMsgData->paramLen = 4;
+    stMsgData->paramLen = strlen(stMsgData->paramValue); 
 
     return OK;
 }
