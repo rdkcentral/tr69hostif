@@ -152,8 +152,7 @@ int get_int(const char* ptr)
 
 void put_int(char *ptr, int val)
 {
-    int *tmp = (int *)ptr;
-    *tmp = val;
+  sprintf(ptr, "%d", val);
 }
 
 uint get_uint(char *ptr)
