@@ -494,6 +494,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType(stMsgData);
         }
+	else if(strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.Enable") == 0)
+	{
+            ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(stMsgData);
+	}
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.Manufacturer") == 0)
         {
             ret = pIface->get_Device_DeviceInfo_Manufacturer(stMsgData);
