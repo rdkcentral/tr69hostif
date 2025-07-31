@@ -4233,6 +4233,41 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
 
     return retVal;
 }
+
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    FILE *fp;
+    char path[1035];
+    int active = 0;
+    stMsgData->paramtype = hostIf_StringType;
+    int retStatus = NOK;
+
+    // Run the command
+    fp = popen("systemctl is-active remote-debugger", "r");
+    if (fp == NULL) {
+        printf("Failed to run command.\n");
+        return retStatus;
+    }
+
+    // Read the output
+    while (fgets(path, sizeof(path)-1, fp) != NULL) {
+        if (strstr(path, "active") != NULL) {
+            active = 1;
+            break;
+        }
+    }
+
+    pclose(fp);
+
+    // Check status
+    if (active) {
+        printf("Remote debugger is active.\n");
+    } else {
+        printf("Remote debugger is NOT active.\n");
+    }
+    retStatus = OK;
+    return retStatus;
+}
 #endif
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart (HOSTIF_MsgData_t *stMsgData)
