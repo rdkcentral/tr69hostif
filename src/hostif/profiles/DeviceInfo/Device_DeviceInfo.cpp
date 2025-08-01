@@ -4222,24 +4222,6 @@ if (firstKey && secondKey) {
 // Now decide what to return based on `found`
 if (found && found->type == cJSON_Object) {
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Found valid object for lookup\n", __FUNCTION__);
-    // Optionally, you can print or process 'found' here, e.g.:
-    char *outStr = cJSON_PrintUnformatted(found);
-    if (outStr) {
-        size_t outLen = strlen(outStr);
-        if (outLen >= sizeof(stMsgData->paramValue)) {
-            outLen = sizeof(stMsgData->paramValue) - 1;
-        }
-        memcpy(stMsgData->paramValue, outStr, outLen);
-        stMsgData->paramValue[outLen] = '\0';
-        stMsgData->paramLen = outLen;
-        free(outStr);
-    } else {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] cJSON_PrintUnformatted failed\n", __FUNCTION__);
-        free(fileBuf);
-        cJSON_Delete(root);
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
-        return retStatus;
-    }
     retStatus = OK;
 } else {
     RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Key(s) not found or not an object\n", __FUNCTION__);
