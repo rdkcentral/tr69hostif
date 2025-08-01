@@ -139,7 +139,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
             // Calculate time taken in microseconds
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, stMsgData->paramName,timeTaken);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] ret: %d, paramName: %s, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, stMsgData->paramName,timeTaken);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
                 // Debug log
@@ -219,7 +219,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, stMsgData->paramName,timeTakenset);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] ret: %d, paramName: %s, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, stMsgData->paramName,timeTakenset);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
