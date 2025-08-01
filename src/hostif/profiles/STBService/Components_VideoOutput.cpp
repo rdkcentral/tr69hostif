@@ -71,8 +71,12 @@ hostIf_STBServiceVideoOutput* hostIf_STBServiceVideoOutput::getInstance(int dev_
         try {
             // TODO: We only create 1 videooutput currently. Fix this to return a count from ds.
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "strVideoPort: %s\n", strVideoPort.c_str());
             std::string videoPortName = strVideoPort.substr(0, strVideoPort.size()-1);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "videoPortName: %s\n", videoPortName.c_str());
             pRet = new hostIf_STBServiceVideoOutput(dev_id, device::Host::getInstance().getVideoOutputPort(videoPortName.append(int_to_string(dev_id-1))));
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "videoPortName after append: %s\n", appendedName.c_str());
+
             g_hash_table_insert(ifHash, (gpointer)dev_id, pRet);
         } 
         catch (const device::IllegalArgumentException &e)
