@@ -137,13 +137,51 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             ret = pMsgHandler->handleGetMsg(stMsgData);
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+            char paramValueStr[128] = {0};
+            switch (stMsgData->paramtype) {
+            case hostIf_StringType:
+                snprintf(paramValueStr, sizeof(paramValueStr), "%s", stMsgData->paramValue);
+                break;
+            case hostIf_IntegerType: {
+                 int val = 0;
+                 memcpy(&val, stMsgData->paramValue, sizeof(val));
+                 snprintf(paramValueStr, sizeof(paramValueStr), "%d", val);
+                 break;
+            }
+            case hostIf_UnsignedIntType: {
+                 unsigned int val = 0;
+                 memcpy(&val, stMsgData->paramValue, sizeof(val));
+                 snprintf(paramValueStr, sizeof(paramValueStr), "%u", val);
+                 break;
+            }
+            case hostIf_BooleanType: {
+                 bool val = false;
+                 memcpy(&val, stMsgData->paramValue, sizeof(val));
+                 snprintf(paramValueStr, sizeof(paramValueStr), "%s", val ? "true" : "false");
+                break;
+            }
+            case hostIf_DateTimeType:
+                 snprintf(paramValueStr, sizeof(paramValueStr), "%s", stMsgData->paramValue);
+                 break;
+            case hostIf_UnsignedLongType: {
+                 unsigned long val = 0;
+                 memcpy(&val, stMsgData->paramValue, sizeof(val));
+                 snprintf(paramValueStr, sizeof(paramValueStr), "%lu", val);
+                 break;
+            }
+            default:
+                   snprintf(paramValueStr, sizeof(paramValueStr), "<unknown or unsupported type>");
+                   break;
+            }
+
+            
 
             // Calculate time taken in microseconds
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
-                stMsgData->paramValue,
+                paramValueStr,
                 timeTaken);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
@@ -224,11 +262,50 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
+        char paramValueStr[128] = {0};
+        switch (stMsgData->paramtype) {
+        case hostIf_StringType:
+             snprintf(paramValueStr, sizeof(paramValueStr), "%s", stMsgData->paramValue);
+        break;
+        case hostIf_IntegerType: {
+            int val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, sizeof(paramValueStr), "%d", val);
+            break;
+        }
+        case hostIf_UnsignedIntType: {
+             unsigned int val = 0;
+             memcpy(&val, stMsgData->paramValue, sizeof(val));
+             snprintf(paramValueStr, sizeof(paramValueStr), "%u", val);
+             break;
+        }
+        case hostIf_BooleanType: {
+             bool val = false;
+             memcpy(&val, stMsgData->paramValue, sizeof(val));
+             snprintf(paramValueStr, sizeof(paramValueStr), "%s", val ? "true" : "false");
+             break;
+        }
+        case hostIf_DateTimeType:
+              snprintf(paramValueStr, sizeof(paramValueStr), "%s", stMsgData->paramValue);
+              break;
+        case hostIf_UnsignedLongType: {
+            unsigned long val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, sizeof(paramValueStr), "%lu", val);
+            break;
+        }
+        default:
+            snprintf(paramValueStr, sizeof(paramValueStr), "<unknown or unsupported type>");
+        break;
+        }
+
+
+
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
-                stMsgData->paramValue,
+                paramValueStr,
                 timeTakenset);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
