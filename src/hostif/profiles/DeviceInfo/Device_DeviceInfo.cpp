@@ -4239,14 +4239,15 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerE
     FILE *fp;
     char path[1035];
     int active = 0;
-    stMsgData->paramtype = hostIf_StringType;
+    //stMsgData->paramtype = hostIf_StringType;
     int retStatus = NOK;
 
     // Initialize path to empty
     path[0] = '\0';
 
     // Run the command
-    fp = popen("systemctl is-active remote-debugger", "r");
+    //fp = popen("systemctl is-active remote-debugger", "r");
+    fp = v_secure_popen("r", "systemctl is-active remote-debugger");
     if (fp == NULL) {
         printf("Failed to run command.\n");
         strncpy(stMsgData->paramValue, "unknown", sizeof(stMsgData->paramValue) - 1);
@@ -4273,15 +4274,21 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerE
     pclose(fp);
 
     // Save the value of path to stMsgData
-    strncpy(stMsgData->paramValue, path, sizeof(stMsgData->paramValue) - 1);
-    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    //strncpy(stMsgData->paramValue, path, sizeof(stMsgData->paramValue) - 1);
+    //stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+    //stMsgData->paramLen = strlen(stMsgData->paramValue);
 
     // Check status
     if (active) {
         printf("Remote debugger is active.\n");
+	strncpy(stMsgData->paramValue, "true", sizeof(stMsgData->paramValue) - 1);
+	stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
     } else {
         printf("Remote debugger is NOT active.\n");
+	strncpy(stMsgData->paramValue, "false", sizeof(stMsgData->paramValue) - 1);
+	stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
     }
     retStatus = OK;
     return retStatus;
