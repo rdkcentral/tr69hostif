@@ -4233,7 +4233,21 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
 
     return retVal;
 }
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
+{
+int retStatus = NOK;
+if (access("/tmp/rrd_enabled", F_OK) == 0) 
+{
+    put_boolean(stMsgData->paramValue, true);
+}
+else
+{
+    put_boolean(stMsgData->paramValue, false);
+}
+return retStatus;
+}
 
+/*
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
 {
     FILE *fp;
@@ -4293,6 +4307,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerE
     retStatus = OK;
     return retStatus;
 }
+*/
 #endif
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart (HOSTIF_MsgData_t *stMsgData)
