@@ -265,7 +265,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         char paramValueStr[128] = {0};
         switch (stMsgData->paramtype) {
         case hostIf_StringType:
-             snprintf(paramValueStr, sizeof(paramValueStr), "%s", stMsgData->paramValue);
+            snprintf(paramValueStr, sizeof(paramValueStr), "%.*s", (int)sizeof(paramValueStr) - 1, stMsgData->paramValue);
         break;
         case hostIf_IntegerType: {
             int val = 0;
@@ -286,7 +286,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
              break;
         }
         case hostIf_DateTimeType:
-              snprintf(paramValueStr, sizeof(paramValueStr), "%s", stMsgData->paramValue);
+              snprintf(paramValueStr, sizeof(paramValueStr), "%.*s", (int)sizeof(paramValueStr) - 1, stMsgData->paramValue);
               break;
         case hostIf_UnsignedLongType: {
             unsigned long val = 0;
