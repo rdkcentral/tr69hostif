@@ -4235,7 +4235,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
 }
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
 {
-int retStatus = NOK;
+int retStatus = OK;
 if (access("/tmp/rrd_enabled", F_OK) == 0) 
 {
     put_boolean(stMsgData->paramValue, true);
