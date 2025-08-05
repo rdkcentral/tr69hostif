@@ -71,8 +71,8 @@ hostIf_STBServiceVideoOutput* hostIf_STBServiceVideoOutput::getInstance(int dev_
         try {
 
            auto ports = device::Host::getInstance().getVideoOutputPorts();
-            for (size_t i = 0; i < ports.size(); ++i) {
-                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Video Output Port %zu: %s\n", i+1, ports[i].getName().c_str());
+           for (size_t i = 0; i < ports.size(); ++i) {
+               RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Video Output Port %zu: %s\n", i+1, ports.at(i).getName().c_str());
             }
             // TODO: We only create 1 videooutput currently. Fix this to return a count from ds.
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
