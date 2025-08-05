@@ -29,6 +29,15 @@
 #define RDK_LOG_WARN 4
 #define RDK_LOG_ERROR 5
 
+typedef struct rdk_logger_ext_config_t
+ {
+     char fileName[32];
+     char logdir[32];
+     long maxSize;
+     long maxCount;
+ }rdk_logger_ext_config_t;
+
+rdk_Error rdk_logger_ext_init(rdk_logger_ext_config_t* config);
 #define rdk_logger_init(DEBUG_INI_NAME) ;
 
 // The macro to convert RDK_LOG to printf
