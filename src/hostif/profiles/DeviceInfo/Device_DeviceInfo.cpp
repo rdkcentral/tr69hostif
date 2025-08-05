@@ -81,6 +81,7 @@
 #include "rdm_utils.h"
 #include "rdm_jsonquery.h"
 #include "rdm_download.h"
+#include "rdm_downloadutils.h"
 #endif
 
 #include "secure_wrapper.h"
