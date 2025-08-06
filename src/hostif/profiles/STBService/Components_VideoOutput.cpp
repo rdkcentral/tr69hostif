@@ -71,6 +71,7 @@ hostIf_STBServiceVideoOutput* hostIf_STBServiceVideoOutput::getInstance(int dev_
         try {
 
            auto ports = device::Host::getInstance().getVideoOutputPorts();
+           RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Number of Video Output Ports: %zu\n", ports.size());
            for (size_t i = 0; i < ports.size(); ++i) {
                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Video Output Port %zu: %s\n", i+1, ports.at(i).getName().c_str());
             }
