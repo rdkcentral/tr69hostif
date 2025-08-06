@@ -34,7 +34,7 @@ $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLA
 -I=/usr/include/rbus/ \
 -I$(PKG_CONFIG_SYSROOT_DIR)${includedir}/rdm/
 
-AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lcurl -lrfcapi -lrbus
+AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lcurl -lrfcapi -lrbus -lrdmagent
 
 if IS_YOCTO_ENABLED
 AM_LDFLAGS += -lsecure_wrapper
