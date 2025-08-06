@@ -5375,8 +5375,10 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
     }
 */
 
-    RDMAPPDetails *pApp_det = malloc(sizeof(RDMAPPDetails));
-    RDMHandle *prdmHandle = malloc(sizeof(RDMHandle));
+    //RDMAPPDetails *pApp_det = malloc(sizeof(RDMAPPDetails));
+    RDMAPPDetails *pApp_det = (RDMAPPDetails*)malloc(sizeof(RDMAPPDetails));
+    //RDMHandle *prdmHandle = malloc(sizeof(RDMHandle));
+    RDMHandle *prdmHandle = (RDMHandle*)malloc(sizeof(RDMHandle));
     int download_status = 0;
 
    // Parse app_name and version (e.g., "foo:1.2.3")
@@ -5405,7 +5407,8 @@ rdmPrintAppDetails(pApp_det);
 // Download the app
 ret = rdmDownloadApp(pApp_det, &download_status);
 if (!ret) {
-    t2ValNotify("RDM_INFO_AppDownloadComplete", pApp_det->app_name );
+    //t2ValNotify("RDM_INFO_AppDownloadComplete", pApp_det->app_name );
+   t2ValNotify((char*)"RDM_INFO_AppDownloadComplete", pApp_det->app_name);
 }
 
 // Cleanup
