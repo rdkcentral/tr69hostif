@@ -82,6 +82,8 @@ static std::atomic<bool> loggedGet1000Within5Min {false};
 static std::atomic<bool> loggedSet200Within1Min {false};
 static std::atomic<bool> loggedSet1000Within5Min {false};
 
+#define PARAM_VALUE_STR_SIZE 128
+
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
@@ -137,40 +139,42 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             ret = pMsgHandler->handleGetMsg(stMsgData);
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-            char paramValueStr[128] = {0};
+            char paramValueStr[PARAM_VALUE_STR_SIZE] = {0};
             switch (stMsgData->paramtype) {
             case hostIf_StringType:
-                snprintf(paramValueStr, sizeof(paramValueStr), "%.*s", (int)sizeof(paramValueStr) - 1, stMsgData->paramValue);
+                snprintf(paramValueStr, PARAM_VALUE_STR_SIZE, "%s", stMsgData->paramValue);
+                //snprintf(paramValueStr, sizeof(paramValueStr), "%.*s", (int)sizeof(paramValueStr) - 1, stMsgData->paramValue);
                 break;
             case hostIf_IntegerType: {
                  int val = 0;
                  memcpy(&val, stMsgData->paramValue, sizeof(val));
-                 snprintf(paramValueStr, sizeof(paramValueStr), "%d", val);
+                 snprintf(paramValueStr, PARAM_VALUE_STR_SIZE, "%d", val);
                  break;
             }
             case hostIf_UnsignedIntType: {
                  unsigned int val = 0;
                  memcpy(&val, stMsgData->paramValue, sizeof(val));
-                 snprintf(paramValueStr, sizeof(paramValueStr), "%u", val);
+                 snprintf(paramValueStr, PARAM_VALUE_STR_SIZE, "%u", val);
                  break;
             }
             case hostIf_BooleanType: {
                  bool val = false;
                  memcpy(&val, stMsgData->paramValue, sizeof(val));
-                 snprintf(paramValueStr, sizeof(paramValueStr), "%s", val ? "true" : "false");
+                 snprintf(paramValueStr, PARAM_VALUE_STR_SIZE, "%s", val ? "true" : "false");
                 break;
             }
             case hostIf_DateTimeType:
-                 snprintf(paramValueStr, sizeof(paramValueStr), "%.*s", (int)sizeof(paramValueStr) - 1, stMsgData->paramValue);
+                 //snprintf(paramValueStr, sizeof(paramValueStr), "%.*s", (int)sizeof(paramValueStr) - 1, stMsgData->paramValue);
+                 snprintf(paramValueStr, PARAM_VALUE_STR_SIZE, "%s", stMsgData->paramValue);
                  break;
             case hostIf_UnsignedLongType: {
                  unsigned long val = 0;
                  memcpy(&val, stMsgData->paramValue, sizeof(val));
-                 snprintf(paramValueStr, sizeof(paramValueStr), "%lu", val);
+                 snprintf(paramValueStr, PARAM_VALUE_STR_SIZE, "%lu", val);
                  break;
             }
             default:
-                   snprintf(paramValueStr, sizeof(paramValueStr), "<unknown or unsupported type>");
+                   snprintf(paramValueStr, PARAM_VALUE_STR_SIZE, "<unknown or unsupported type>");
                    break;
             }
 
