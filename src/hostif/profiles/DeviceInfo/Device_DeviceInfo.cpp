@@ -5377,7 +5377,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
 
     RDMAPPDetails *pApp_det = malloc(sizeof(RDMAPPDetails));
     RDMHandle *prdmHandle = malloc(sizeof(RDMHandle));
-    int ret, download_status = 0;
+    int download_status = 0;
 
    // Parse app_name and version (e.g., "foo:1.2.3")
    char *app_name = stMsgData->paramValue;
