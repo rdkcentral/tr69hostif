@@ -72,3 +72,4 @@ AM_CXXFLAGS += $(BLE_TILE_PROFILE)
 endif
 
 libdeviceinfo_la_CXXFLAGS = $(AM_CXXFLAGS) -std=c++0x
+libdeviceinfo_la_LDFLAGS = $(AM_LDFLAGS)
