@@ -3951,6 +3951,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xOpsDeviceMgmt_hwHealthTest_DramThreshold(stMsgData);
     }
+     else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest"))
+    {
+        ret = set_xOpsDeviceMgmt_hwHealthTest_ExecuteTest(stMsgData);
+    }
     else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTestWAN.WANTestEndPointURL"))
     {
         ret = set_RFC_hwHealthTestWAN_WANEndPointURL(stMsgData);
@@ -3971,6 +3975,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFC_hwHealthTest_ResultFilter_ResultsFiltered(stMsgData);
     }
+
 #endif /* USE_HWSELFTEST_PROFILE */
     return ret;
 }
