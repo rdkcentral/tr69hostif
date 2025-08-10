@@ -4234,10 +4234,56 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     return retVal;
 }
 
-int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
 {
+    bool val = get_boolean(stMsgData->paramValue);
+	const char *filePath = "/tmp/rrd_enabled";
+    FILE *fp = fopen(filePath, "w");
+	if (fp) 
+	{
+	    if(val)
+	    {
+		    fprintf(fp, "true\n");
+	    }
+	    else
+	    {
+		    fprintf(fp, "false\n");
+	    }
+		fclose(fp);
+	}
+	else 
+	{
+        RDK_LOG(RDK_LOG_ERROR, LOG_REMDEBUG, "[%s:%d]: Failed to touch file %s\n", __FUNCTION__, __LINE__, filePath);
+    }
     return OK;
 }
+
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
+{
+	bool param;
+	const char *filePath = "/tmp/rrd_enabled";
+    char buffer[16] = {0};
+    bool isEnabled = false;
+
+    FILE *fp = fopen(filePath, "r");
+    if (fp) {
+        if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+            // Remove newline and make lowercase for comparison
+            buffer[strcspn(buffer, "\n")] = '\0';
+            for (char *p = buffer; *p; ++p) *p = tolower(*p);
+            if (strcmp(buffer, "true") == 0) {
+                isEnabled = true;
+            }
+        }
+        fclose(fp);
+    } 
+	else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_REMDEBUG, "[%s:%d]: Failed to open file %s\n", __FUNCTION__, __LINE__, filePath);
+    }
+	put_boolean(stMsgData->paramValue, isEnabled);
+	return OK;
+}
+
 /*
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
 {
