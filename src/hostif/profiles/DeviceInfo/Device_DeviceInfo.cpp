@@ -3903,6 +3903,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
+	else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_ENABLE) == 0)
+	{
+		ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(stMsgData);
+	}
 #endif
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
     {
@@ -4260,7 +4264,6 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerE
 
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
 {
-	bool param;
 	const char *filePath = "/tmp/rrd_enabled";
     char buffer[16] = {0};
     bool isEnabled = false;
