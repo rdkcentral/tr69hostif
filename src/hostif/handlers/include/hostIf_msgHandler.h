@@ -98,6 +98,8 @@ void hostIf_Print_msgData(HOSTIF_MsgData_t *stMsgData);
 
 void hostIf_Free_stMsgData (HOSTIF_MsgData_t *stMsgData);
 
+void paramValueToString(const HOSTIF_MsgData_t *stMsgData, char *paramValueStr, size_t strSize);
+
 bool hostIf_initalize_ConfigManger();
 bool hostIf_ConfigProperties_Init();
 class msgHandler {
