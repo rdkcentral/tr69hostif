@@ -4266,7 +4266,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerE
 {
 	const char *filePath = "/tmp/rrd_enabled";
     char buffer[16] = {0};
-    bool isEnabled = false;
+    bool isEnabled = true;
 
     FILE *fp = fopen(filePath, "r");
     if (fp) {
@@ -4274,8 +4274,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerE
             // Remove newline and make lowercase for comparison
             buffer[strcspn(buffer, "\n")] = '\0';
             for (char *p = buffer; *p; ++p) *p = tolower(*p);
-            if (strcmp(buffer, "true") == 0) {
-                isEnabled = true;
+            if (strcmp(buffer, "false") == 0) {
+                isEnabled = false;
             }
         }
         fclose(fp);
