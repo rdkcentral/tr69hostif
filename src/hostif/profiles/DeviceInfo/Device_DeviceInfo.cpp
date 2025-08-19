@@ -5381,8 +5381,15 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
     RDMHandle* prdmHandle = (RDMHandle*)malloc(sizeof(RDMHandle));
     int download_status = 0;
 
-   // Parse app_name and version (e.g., "foo:1.2.3")
    char *app_name = stMsgData->paramValue;
+   memset(pApp_det, 0, sizeof(RDMAPPDetails));
+
+   // Initialize RDM handle
+   ret = rdmInit(prdmHandle);
+	
+   pApp_det = prdmHandle->pApp_det;
+
+
    char result[20];
    char *ver = strchr(app_name, ':');
    if (ver != NULL) {
@@ -5395,8 +5402,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
    snprintf(pApp_det->pkg_name, sizeof(pApp_det->pkg_name), "%s_%s-signed.tar", result, pApp_det->pkg_ver);
    pApp_det->is_versioned_app = 1;
 
-   // Initialize RDM handle
-   ret = rdmInit(prdmHandle);
+   
 
 // Update App paths
    rdmUpdateAppDetails(prdmHandle, pApp_det, /*is_broadband*/ 0);
