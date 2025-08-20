@@ -28,6 +28,10 @@
 #include <algorithm>
 #include "hostIf_msgHandler.h"
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 using namespace std;
 
 typedef struct _BS_JournalData_t
@@ -73,6 +77,12 @@ private:
     bool loadJournalRecordsIntoCache();
     string getBuildTime();
     string getTime();
+
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(bsStoreJournalTest, getBuildTime);
+    FRIEND_TEST(bsStoreJournalTest, resetClearRfc);
+    FRIEND_TEST(bsStoreJournalTest, clearRfcAndGetDefaultValue);
+#endif  
 };
 
 #endif //XRDKCENTRALCOMBSSTOREJOURNAL_H

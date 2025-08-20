@@ -23,6 +23,10 @@
 #include <unordered_map>
 #include <string>
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 using namespace std;
 
 #define XRFC_VAR_STORE_RELOADCACHE     "RFC_CONTROL_RELOADCACHE"

@@ -337,7 +337,10 @@ void rbusValue_Swap(rbusValue_t* v1, rbusValue_t* v2);
  *  @param str A string representation of the data which will be coerced to the type specified by the type param and assigned to the value.
  *  @return bool true if this function succeeds to coerce the type and set the value or false if it fails
  */
-bool rbusValue_SetFromString(rbusValue_t value, rbusValueType_t type, const char* str);
+static inline bool rbusValue_SetFromString(rbusValue_t value, rbusValueType_t type, const char* str)
+{ 
+    return true;
+}
 
 /** @fn void rbusValue_fwrite(rbusValue_t obj, int depth, FILE* fout)
  *  @brief A debug utility function to write the value as a string to a file stream.

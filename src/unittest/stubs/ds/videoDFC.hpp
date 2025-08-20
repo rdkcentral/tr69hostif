@@ -76,8 +76,8 @@ public:
 	static const VideoDFC & getInstance(int id);
 	static const VideoDFC & getInstance(const std::string &name);
 
-	VideoDFC(int id);
-	virtual ~VideoDFC();
+	VideoDFC(int id) {}
+	virtual ~VideoDFC() {}
 };
 
 }

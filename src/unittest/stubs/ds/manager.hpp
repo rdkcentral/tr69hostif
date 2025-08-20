@@ -166,8 +166,8 @@ class Manager {
 	Manager();
 	virtual ~Manager();
 public:
-	static void Initialize();
-	static void DeInitialize();
+	static void Initialize() {}
+	static void DeInitialize() {}
 	static int IsInitialized;   //!< Indicates the application has initialized with devicettings modules.
 };
 

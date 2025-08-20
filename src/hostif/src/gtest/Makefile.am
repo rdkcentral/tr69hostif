@@ -21,7 +21,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = src_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -std=c++11  -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include -I$(TOP_DIR)/src/hostif/handlers/include -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/hostif/httpserver/include -I$(TOP_DIR)/src/hostif/handlers/src -I/usr/include/rbus -I/usr/local/include/rbus
+COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DPARODUS -DUNIT_TEST -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include -I$(TOP_DIR)/src/hostif/handlers/include -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/hostif/httpserver/include -I$(TOP_DIR)/src/hostif/handlers/src -I/usr/include/rbus -I/usr/local/include/rbus
 
 if LIBSOUP3_ENABLE
 COMMON_CPPFLAGS +=  -I/usr/include/libsoup-3.0 -DLIBSOUP3_ENABLE
@@ -41,7 +41,7 @@ COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) $(SOUP_LIBS) -fprofile-arcs -ftest-cover
 
 
 # Define the source files
-src_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/src/hostif/src/IniFile.cpp $(TOP_DIR)/src/unittest/stubs/secure_wrapper.c $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFCStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFC.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStoreJournal.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp $(TOP_DIR)/src/hostif/handlers/src/hostIf_NotificationHandler.cpp $(TOP_DIR)/src/hostif/parodusClient/pal/webpa_notification.cpp $(TOP_DIR)/src/unittest/stubs/dm_stubs.cpp $(TOP_DIR)/src/hostif/parodusClient/waldb/waldb.cpp $(TOP_DIR)/src/unittest/stubs/wdmp-c.c $(TOP_DIR)/src/unittest/stubs/wdmp_internal.c $(TOP_DIR)/src/hostif/httpserver/src/http_server.cpp $(TOP_DIR)/src/hostif/httpserver/src/request_handler.cpp $(TOP_DIR)/src/hostif/httpserver/src/XrdkCentralComRFCVar.cpp $(TOP_DIR)/src/hostif/src/gtest/gtest_src.cpp
+src_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/src/hostif/src/IniFile.cpp $(TOP_DIR)/src/unittest/stubs/secure_wrapper.c $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFCStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFC.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStoreJournal.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp $(TOP_DIR)/src/hostif/handlers/src/hostIf_NotificationHandler.cpp $(TOP_DIR)/src/hostif/parodusClient/pal/webpa_notification.cpp $(TOP_DIR)/src/unittest/stubs/dm_stubs.cpp $(TOP_DIR)/src/hostif/parodusClient/waldb/waldb.cpp $(TOP_DIR)/src/unittest/stubs/wdmp-c.c $(TOP_DIR)/src/unittest/stubs/wdmp_internal.c $(TOP_DIR)/src/hostif/httpserver/src/http_server.cpp $(TOP_DIR)/src/hostif/httpserver/src/request_handler.cpp $(TOP_DIR)/src/hostif/httpserver/src/XrdkCentralComRFCVar.cpp $(TOP_DIR)/src/unittest/stubs/file_writer.cpp $(TOP_DIR)/src/hostif/src/gtest/gtest_src.cpp
 
 # Apply common properties to each program
 src_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)

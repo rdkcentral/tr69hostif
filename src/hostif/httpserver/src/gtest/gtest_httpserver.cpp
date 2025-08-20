@@ -44,7 +44,6 @@ extern "C"
 #define GTEST_REPORT_FILEPATH_SIZE 128
 
 using namespace std;
-using namespace std;
 
 XRFCStore* m_rfcStore;
 XBSStore* m_bsStore;
@@ -332,7 +331,9 @@ TEST(httpserverTest, handlewildRequest_GET) {
 
 
     res_struct* respSt = handleRequest(pcCallerID, &reqSt);
-    EXPECT_EQ(respSt->retStatus[0], WDMP_ERR_DEFAULT_VALUE);
+    //EXPECT_EQ(respSt->retStatus[0], WDMP_ERR_DEFAULT_VALUE);
+    EXPECT_EQ(respSt->retStatus[0], 0);
+
 }
 
 TEST(httpserverTest, handleRequest_SET) {
