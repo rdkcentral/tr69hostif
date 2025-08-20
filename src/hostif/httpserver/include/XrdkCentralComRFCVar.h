@@ -49,6 +49,10 @@ private:
 
     void initRFCVarFileName();
     bool loadRFCVarIntoCache();
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(httpserverTest, initRFCVarFileName);
+    FRIEND_TEST(httpserverTest, loadRFCVarIntoCache);
+#endif
 };
 
 #endif // XRDKCENTRALCOMRFCVARSTORE_H

@@ -69,8 +69,11 @@ AC_SUBST(T2_EVENT_FLAG)
 
 # Generate the Makefile
  AC_CONFIG_FILES([
-    hostif/parodusClient/gtest/Makefile \
-    hostif/profiles/DeviceInfo/gtest/Makefile])
+    hostif/parodusClient/gtest/Makefile
+    hostif/httpserver/src/gtest/Makefile
+    hostif/src/gtest/Makefile
+    hostif/profiles/DeviceInfo/gtest/Makefile
+    ])
 
 # Generate the configure script
 AC_OUTPUT
