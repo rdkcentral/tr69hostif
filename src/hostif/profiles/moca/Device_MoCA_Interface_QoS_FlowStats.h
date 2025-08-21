@@ -80,7 +80,7 @@
  *                         soap message, e.g. ::get_Device_MoCA_Interface_QoS_FlowStats_FlowID.
  *                         In this case, the path is "Device.MoCA.Interface.{i}.QoS.FlowStats.{j}.FlowID".
  *  @param[in]   *type     Data type of parameter defined for TR-069. This is same as the
- *                         data type used in thedata-model.xml file.
+ *                         data type used in the data-model.xml file.
  *                         (see parameter.h)
  *  @param[out]  *value    This is the value of the parameter requested by the ACS.
  *                         (see paramaccess.h)

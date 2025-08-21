@@ -55,7 +55,7 @@
 *
 *  The Device.Moca.Interface.QoS object provides information on MoCA parameterized QoS for this interface.
 *
-*  @todo    The Device.Moca.Interface.QoS object is not specified in the Xi3
+*  @todo    The Device.Moca.Interface.QoS object is not specified in the 
 *           data-model.xml file.
 *
 */
