@@ -82,6 +82,52 @@ static std::atomic<bool> loggedGet1000Within5Min {false};
 static std::atomic<bool> loggedSet200Within1Min {false};
 static std::atomic<bool> loggedSet1000Within5Min {false};
 
+#define PARAM_VALUE_STR_SIZE 128
+
+
+void paramValueToString(const HOSTIF_MsgData_t *stMsgData, char *paramValueStr, size_t strSize)
+{
+    if (!stMsgData || !paramValueStr || strSize == 0) {
+        if (paramValueStr && strSize > 0)
+            snprintf(paramValueStr, strSize, "<invalid input>");
+        return;
+    }
+
+    switch (stMsgData->paramtype) {
+        case hostIf_StringType:
+        case hostIf_DateTimeType:
+            snprintf(paramValueStr, strSize, "%s", (const char*)stMsgData->paramValue);
+            break;
+        case hostIf_IntegerType: {
+            int val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%d", val);
+            break;
+        }
+        case hostIf_UnsignedIntType: {
+            unsigned int val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%u", val);
+            break;
+        }
+        case hostIf_BooleanType: {
+            bool val = false;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%s", val ? "true" : "false");
+            break;
+        }
+        case hostIf_UnsignedLongType: {
+            unsigned long val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%lu", val);
+            break;
+        }
+        default:
+            snprintf(paramValueStr, strSize, "<unknown or unsupported type>");
+            break;
+    }
+}
+
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
@@ -137,13 +183,16 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             ret = pMsgHandler->handleGetMsg(stMsgData);
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+            char paramValueStr[PARAM_VALUE_STR_SIZE] = {0};
+            paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
+            
 
             // Calculate time taken in microseconds
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
-                stMsgData->paramValue,
+                paramValueStr,
                 timeTaken);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
@@ -224,11 +273,14 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
+        char paramValueStr[128] = {0};
+        paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
+
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
-                stMsgData->paramValue,
+                paramValueStr,
                 timeTakenset);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
