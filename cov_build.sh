@@ -18,8 +18,8 @@ make install
 #cp /usr/include/cjson/cJSON.h  ./
 #cp /usr/local/include/wdmp-c/wdmp-c.h ./
 #make AM_CXXFLAGS="-DUSE_TR69HOSTIF" && make install
-cd ../utils
-make && make install
+#cd ../utils
+#make && make install
 
 #Build yajl - tr69 alone needs this specific version
 cd $ROOT 
