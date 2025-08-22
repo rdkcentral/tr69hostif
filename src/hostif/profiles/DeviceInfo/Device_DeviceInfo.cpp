@@ -153,7 +153,8 @@ XRFCStorage hostIf_DeviceInfo::m_rfcStorage;
 #else
 XRFCStorage hostIf_DeviceInfo::m_rfcStorage;
 #endif
-XBSStore* hostIf_DeviceInfo::m_bsStore;
+XBSStore* hostIf_DeviceInfo::m_bsStore; 
+
 string hostIf_DeviceInfo::m_xrPollingAction = "0";
 
 static bool bPowerControllerEnable;
