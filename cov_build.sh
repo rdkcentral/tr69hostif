@@ -11,7 +11,7 @@ cd rfc
 autoreconf -i
 ./configure --enable-rfctool=yes --enable-tr181set=yes --enable-tr69hostif=yes
 cd rfcapi
-make librfcapi_la_CPPFLAGS="-I/usr/include/cjson"
+make librfcapi_la_CPPFLAGS="-I/usr/include/cjson -DUSE_IARMBUS"
 make install
 cd ../tr181api
 cp /usr/include/cjson/cJSON.h  ./
