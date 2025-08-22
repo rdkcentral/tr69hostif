@@ -1,8 +1,8 @@
 name: Build Component in Native Environment
 
 on:
-  pull_request:
-    branches: [ develop  ]
+  push:
+    branches: [ feature/testrelease  ]
     paths: ['**/*.c', '**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.h', '**/*.hpp']
 env:
   AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME }}
