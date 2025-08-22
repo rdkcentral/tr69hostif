@@ -439,9 +439,9 @@ static WDMP_STATUS GetParamInfo (const char *pParameterName, param_t ***paramete
                 {
                     converttohostIfType (dmParam.dataType, &(Param.paramtype));  //CID:18170 - FORWARD NULL
                 }
-                freeDataModelParam(dmParam);
                 Param.instanceNum = 0;
                 ret = get_ParamValues_tr69hostIf (&Param, &dmParam);
+                freeDataModelParam(dmParam);
                 if (ret == WDMP_SUCCESS)
                 {
                     int iParamValSize = MAX_PARAM_LENGTH;
