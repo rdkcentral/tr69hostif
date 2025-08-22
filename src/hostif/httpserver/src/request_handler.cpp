@@ -37,7 +37,7 @@ extern "C"
 #define MAX_NUM_PARAMETERS 2048
 #define DEVICE_REBOOT_PARAM          "Device.X_CISCO_COM_DeviceControl.RebootDevice"
 
-static DATA_TYPE getWdmpDataType(char *dmParamDataType)
+static DATA_TYPE getWdmpDataType(char *dmParamDataType )
 {
     DATA_TYPE wdmpDataType = WDMP_NONE;
 
