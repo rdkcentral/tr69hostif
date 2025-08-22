@@ -663,6 +663,8 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
         if (dmParam->defaultValue)
         {
             retStatus = WDMP_SUCCESS;
+            RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"[%s:%d] return status success - inside if check : %d\n", __FUNCTION__, __LINE__, retStatus);
+            return retStatus;
         }
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Get Message Handler : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
         retStatus =(WDMP_STATUS) convertFaultCodeToWalStatus(ptrParam->faultCode); // returning appropriate fault code for get
