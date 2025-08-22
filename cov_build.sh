@@ -76,6 +76,8 @@ make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I
 AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus -lglib-2.0 -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lds -ldshalcli -ldshalsrv  -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER"
 make install
 
+cd /usr
+which tr69hostif
 cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
 
