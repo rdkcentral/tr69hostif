@@ -77,3 +77,10 @@ AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdklogger
 make install
 cd /usr/local
 which tr69hostif
+
+cd $WORKDIR
+cd ./src/hostif/parodusClient/pal/mock-parodus/
+sh mock_parodus_build.sh
+
+ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
+rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true 
