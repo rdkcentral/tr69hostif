@@ -38,7 +38,7 @@
 /*                             Function Prototypes                            */
 /*----------------------------------------------------------------------------*/
 static WDMP_STATUS GetParamInfo (const char *pParameterName, param_t ***parametervalPtrPtr, int *paramCountPtr,int paramIndex);
-static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam);
+static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataModelParam *dmParam);
 int isWildCardParam(const char *paramName);
 static void converttohostIfType(char *ParamDataType,HostIf_ParamType_t* pParamType);
 static void converttoWalType(HostIf_ParamType_t paramType,WAL_DATA_TYPE* pwalType);
@@ -358,7 +358,7 @@ static WDMP_STATUS GetParamInfo (const char *pParameterName, param_t ***paramete
                     (*parametervalPtrPtr)[index][wc_cnt].value = NULL;
 
                     // Convert Param.paramtype to ParamVal.type
-                    getRet = get_ParamValues_tr69hostIf (&Param);
+                    getRet = get_ParamValues_tr69hostIf (&Param, NULL);
                     // Fill Only if we can able to get Proper value
                     if(WDMP_SUCCESS == getRet)
                     {
@@ -441,7 +441,7 @@ static WDMP_STATUS GetParamInfo (const char *pParameterName, param_t ***paramete
                 }
                 freeDataModelParam(dmParam);
                 Param.instanceNum = 0;
-                ret = get_ParamValues_tr69hostIf (&Param);
+                ret = get_ParamValues_tr69hostIf (&Param, &dmParam);
                 if (ret == WDMP_SUCCESS)
                 {
                     int iParamValSize = MAX_PARAM_LENGTH;
@@ -652,7 +652,7 @@ static WAL_STATUS SetParamInfo(ParamVal paramVal, char * transactionID)
 /**
  * generic Api for get HostIf parameters
  **/
-static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam)
+static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataModelParam *dmParam)
 {
     int status = -1;
     ptrParam->reqType = HOSTIF_GET;
@@ -660,6 +660,10 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam)
     status = hostIf_GetMsgHandler(ptrParam);
 
     if(status != 0) {
+        if (dmParam->defaultValue)
+        {
+            retStatus = WDMP_SUCCESS;
+        }
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Get Message Handler : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
         retStatus =(WDMP_STATUS) convertFaultCodeToWalStatus(ptrParam->faultCode); // returning appropriate fault code for get
         RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"[%s:%d] return status of fault code: %d\n", __FUNCTION__, __LINE__, retStatus);
