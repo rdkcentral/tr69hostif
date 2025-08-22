@@ -50,7 +50,7 @@ static bool legacyRFC = false;
 #endif
 
 const char* ntp_time_received_file="/tmp/timeReceivedNTP";
-const char *webpa_start_tm_file ="/tmp/webpa/start_time";
+const char *webpa_start_tm_file ="/tmp/webpa/start_time"; 
 
 EntryExitLogger::EntryExitLogger (const char* func, const char* file) :
     func (func), file (file)
