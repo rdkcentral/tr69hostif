@@ -661,9 +661,7 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
 
     if(status != 0) {
         if (dmParam->defaultValue)
-        {
-            retStatus = WDMP_SUCCESS;
-            RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"[%s:%d] Default value present in datamodel : %d\n", __FUNCTION__, __LINE__, dmParam->defaultValue);
+        {            
             return WDMP_SUCCESS;
         }
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Get Message Handler : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
