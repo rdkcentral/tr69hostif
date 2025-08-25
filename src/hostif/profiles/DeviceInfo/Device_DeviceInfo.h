@@ -186,6 +186,7 @@
 #define RDK_REMOTE_DEBUGGER_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.Enable"
 #define RDK_REMOTE_DEBUGGER_ISSUETYPE                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType"
 #define RDK_REMOTE_DEBUGGER_WEBCFGDATA                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData"
+#define RDK_REMOTE_DEBUGGER_GETPROFILE_DATA             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.getProfileData"
 #endif
 
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.RebootStop */
@@ -1231,6 +1232,8 @@ public:
 
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData);
+    //int get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData);
 #endif
 
     /*
