@@ -281,7 +281,7 @@ int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
 	        }
 
                 //ASSIGN TO OP HERE
-		cJSON *result = cJSON_GetObjectItem(interface, "isEnabled");
+		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
 		put_boolean(stMsgData->paramValue, result->type);
                 stMsgData->paramtype = hostIf_BooleanType;
                 stMsgData->paramLen=1;
