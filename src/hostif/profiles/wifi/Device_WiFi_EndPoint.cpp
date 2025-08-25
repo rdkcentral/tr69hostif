@@ -309,7 +309,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
 	        }
 
                 //ASSIGN TO OP HERE
-		cJSON *result = cJSON_GetObjectItem(interface, "isEnabled");
+		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
 		Enable = result->type;
 
 		cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
