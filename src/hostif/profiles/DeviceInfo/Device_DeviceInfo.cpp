@@ -3903,6 +3903,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
+	else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_ENABLE) == 0)
+	{
+		ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(stMsgData);
+	}
 #endif
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
     {
@@ -4232,6 +4236,55 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
 
     return retVal;
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    bool val = get_boolean(stMsgData->paramValue);
+	const char *filePath = "/tmp/rrd_enabled";
+    FILE *fp = fopen(filePath, "w");
+	if (fp) 
+	{
+	    if(val)
+	    {
+		    fprintf(fp, "true\n");
+	    }
+	    else
+	    {
+		    fprintf(fp, "false\n");
+	    }
+		fclose(fp);
+	}
+	else 
+	{
+        RDK_LOG(RDK_LOG_ERROR, LOG_REMDEBUG, "[%s:%d]: Failed to touch file %s\n", __FUNCTION__, __LINE__, filePath);
+    }
+    return OK;
+}
+
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerEnable(HOSTIF_MsgData_t *stMsgData)
+{
+	const char *filePath = "/tmp/rrd_enabled";
+    char buffer[16] = {0};
+    bool isEnabled = false;
+
+    FILE *fp = fopen(filePath, "r");
+    if (fp) {
+        if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+            // Remove newline and make lowercase for comparison
+            buffer[strcspn(buffer, "\n")] = '\0';
+            for (char *p = buffer; *p; ++p) *p = tolower(*p);
+            if (strcmp(buffer, "true") == 0) {
+                isEnabled = true;
+            }
+        }
+        fclose(fp);
+    } 
+	else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_REMDEBUG, "[%s:%d]: Failed to open file %s\n", __FUNCTION__, __LINE__, filePath);
+    }
+	put_boolean(stMsgData->paramValue, isEnabled);
+	return OK;
 }
 #endif
 
