@@ -38,6 +38,9 @@
 #include <stdint.h>
 
 #include "dsTypes.h"
+#include "videoResolution.hpp"
+#include "frameRate.hpp"
+#include "videoOutputPortType.hpp"
 
 /**
  * @file videoOutputPort.hpp
@@ -105,7 +108,7 @@ public:
     	Display() :_handle(0), _productCode(0), _serialNumber(0), _manufacturerYear(0), _manufacturerWeek(0),_aspectRatio(0),_hdmiDeviceType(true), _isSurroundCapable(false), _isDeviceRepeater(false),
 		_physicalAddressA(1),_physicalAddressB(0),_physicalAddressC(0),_physicalAddressD(0){};
     	Display(VideoOutputPort &vPort);
-    	virtual ~Display();
+    	virtual ~Display() {}
 
 
 /**
@@ -154,7 +157,7 @@ public:
  */
         int getConnectedDeviceType() const {return _hdmiDeviceType;};
         bool isConnectedDeviceRepeater() const {return _isDeviceRepeater;};
-        void getEDIDBytes(std::vector<uint8_t> &edid) const;
+        void getEDIDBytes(std::vector<uint8_t> &edid) const { edid.clear(); }
 
 /**
  * @fn int hasSurround() const
@@ -198,12 +201,20 @@ public:
 		 physicalAddressC = _physicalAddressC;physicalAddressD = _physicalAddressD;};
     };
 
- 	static VideoOutputPort & getInstance(int id);
+ 	static VideoOutputPort & getInstance(int id)
+	{
+	    static VideoOutputPort port(0, 0, 0, 0, "1080p60");
+            return port;	    
+	}
  	static VideoOutputPort & getInstance(const std::string &name);
  	VideoOutputPort(const int type, const int index, const int id, int audioPortId, const std::string &resolution);
-	virtual ~VideoOutputPort();
+	virtual ~VideoOutputPort() {}
 
-	const VideoOutputPortType &getType() const;
+	const VideoOutputPortType &getType() const
+	{
+	    static VideoOutputPortType portType(0);
+            return portType;	    
+	}
 
 
 /**
@@ -234,13 +245,25 @@ public:
 	int getIndex() const {return _index; };
 
 	AudioOutputPort &getAudioOutputPort();
-	const VideoResolution &getResolution() ;
-	const VideoResolution &getDefaultResolution() const;
+	const VideoResolution &getResolution()
+	{
+	    static VideoResolution videoRes(0, "1080p60", 1, 1, 0, FrameRate::k60, false, true);
+	    return videoRes;
+	}
+	const VideoResolution &getDefaultResolution() const
+	{
+	    static VideoResolution videoRes(0, "1080p60", 1, 1, 0, 5, false, true);
+            return videoRes;	    
+	}
 
-    	const VideoOutputPort::Display &getDisplay();
-	bool isDisplayConnected() const;
+    	const VideoOutputPort::Display &getDisplay()
+	{
+	    static Display display;
+            return display;	    
+	}
+	bool isDisplayConnected() const { return true; }
 	bool isContentProtected() const;
-	bool isEnabled() const;
+	bool isEnabled() const { return true; }
 	bool isActive() const;
 	bool isDynamicResolutionSupported() const;
 
@@ -253,11 +276,11 @@ public:
  * @return None.
  */
 	void setAudioPort(int id) { _aPortId = id; };
-	void setResolution(const std::string &resolution, bool persist = true, bool isIgnoreEdid=false);
+	void setResolution(const std::string &resolution, bool persist = true, bool isIgnoreEdid=false) {}
 	void setDisplayConnected(const bool connected);
-	void enable();
-	void disable();
-	int getHDCPStatus();
+	void enable() {}
+	void disable() {}
+	int getHDCPStatus() { return 1; }
 	int getHDCPProtocol();
 	int getHDCPReceiverProtocol();
 	int getHDCPCurrentProtocol();
@@ -280,6 +303,7 @@ public:
 	const unsigned int getPreferredColorDepth(bool persist = true) ;
 	void setPreferredColorDepth(const unsigned int colordepth, bool persist = true);
 	void getColorDepthCapabilities (unsigned int *capabilities) const;
+	VideoOutputPort(const std::string& name) {}
 
 private:
 	Display _display;

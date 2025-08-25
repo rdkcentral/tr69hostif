@@ -18,7 +18,20 @@
  # SPDX-License-Identifier: Apache-2.0
  ############################################################################
 
+WORKDIR=`pwd`
+sh dependent_rdk_pkg_installer.sh
+export ROOT=/usr
 
+cd $ROOT
+rm -rf remote_debugger
+rm -rf rdk-halif-device_settings
+rm -rf rdkvhal-devicesettings-raspberrypi4
+git clone https://github.com/rdkcentral/remote_debugger.git
+git clone https://github.com/rdkcentral/rdk-halif-device_settings.git
+git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
+
+cd $WORKDIR
+ls -l /usr/local/include/libparodus/
 ENABLE_COV=false
 
 if [ "x$1" = "x--enable-cov" ]; then
@@ -32,6 +45,9 @@ fi
 apt-get update
 apt-get -y install libtinyxml2-dev
 apt-get -y install libsoup-3.0-dev
+apt-get -y install libprocps-dev
+apt-get -y install libnanomsg-dev
+apt-get -y install iproute2
 
 sed '/<\/model>/d; /<\/dm:document>/d' ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml > ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
 sed '/<?xml/,/<model/ d' ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml >> ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
@@ -43,12 +59,25 @@ cp ./src/unittest/stubs/rfcdefaults.ini /tmp/rfcdefaults.ini
 
 mkdir /opt/secure
 mkdir /opt/secure/RFC
+mkdir -p /opt/secure/reboot/
+mkdir -p /opt/www/authService/
+mkdir -p /tmp/webpa
+mkdir -p /opt/persistent/
+mkdir -p /etc/rfcdefaults
+mkdir -p /etc/apparmor.d
 cp ./src/unittest/stubs/tr181store.ini /opt/secure/RFC/tr181store.ini
+cp ./src/integrationtest/conf/bootstrap.ini /opt/secure/RFC/
+cp ./src/integrationtest/conf/rfcVariable.ini /opt/secure/RFC/
 cp partners_defaults.json /etc/partners_defaults.json
 cp ./src/unittest/stubs/partners_defaults_device.json /etc/partners_defaults_device.json
 cp ./src/unittest/stubs/fwdnldstatus.txt  /opt/fwdnldstatus.txt
+touch /tmp/timeReceivedNTP
+touch /tmp/webpa/start_time 
+touch /opt/persistent/firstNtpTime
 
-export TOP_DIR=`pwd`
+
+
+export TOP_DIR=$WORKDIR
 cd ./src/
 
 automake --add-missing
@@ -64,13 +93,59 @@ echo "TOP_DIR = $TOP_DIR"
 echo "**** Compiling data model gtest ****"
 cd $TOP_DIR/src/hostif/parodusClient/gtest
 rm dm_gtest
+sed -i '/getCurrentTime/,/^ *}/d' ../../src/hostIf_utils.cpp
 make
 ./dm_gtest
 echo "********************"
 
+echo "**** Compiling httpserver gtest ****"
+cd $TOP_DIR/src/hostif/httpserver/src/gtest
+rm httpserver_gtest
+sed -i '$a void getCurrentTime(struct timespec *timer)\n{\n    clock_gettime(CLOCK_REALTIME, timer);\n}' ../../../src/hostIf_utils.cpp
+make clean
+make
+./httpserver_gtest
+echo "********************"
+
+echo "**** Compiling src gtest ****"
+cd $TOP_DIR/src/hostif/src/gtest
+rm src_gtest
+make clean
+make
+./src_gtest
+echo "********************"
+
+echo "**** Compiling DHCPv4 gtest ****"
+cd $TOP_DIR/src/hostif/profiles/DHCPv4/gtest
+rm dhcpv4_gtest
+make
+./dhcpv4_gtest
+echo "********************"
+
+echo "**** Compiling Device gtest ****"
+cd $TOP_DIR/src/hostif/profiles/Device/gtest
+rm device_gtest
+make
+./device_gtest
+echo "********************"
+
+echo "**** Compiling Ethernet gtest ****"
+cd $TOP_DIR/src/hostif/profiles/Ethernet/gtest
+rm ethernet_gtest
+make
+./ethernet_gtest
+echo "********************"
+
+echo "**** Compiling Time gtest ****"
+cd $TOP_DIR/src/hostif/profiles/Time/gtest
+rm time_gtest
+make
+./time_gtest
+echo "********************"
+
 echo "**** Compiling DeviceInfo gtest ****"
 cd $TOP_DIR/src/hostif/profiles/DeviceInfo/gtest
-rm devieInfo_gtest
+rm devieInfo_gtest /opt/www/authService/partnerId3.dat
 make
 ./devieInfo_gtest
 echo "********************"
@@ -80,7 +155,7 @@ cd $TOP_DIR
 if [ "$ENABLE_COV" = true ]; then
     lcov --capture --directory . --output-file coverage.info
     lcov --remove coverage.info '/usr/*' '*/gtest/*' '*/mocks/*' --output-file filtered.info
-    lcov --extract filtered.info '*/src/hostif*' --output-file tr69hostif_coverage.info
+    lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' --output-file tr69hostif_coverage.info
     lcov --list tr69hostif_coverage.info
 fi
  

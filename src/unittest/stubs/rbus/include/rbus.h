@@ -938,12 +938,21 @@ rbusError_t rbus_get(
  *  RBUS_ERROR_ELEMENT_DOES_NOT_EXIST: Data Element was not previously registered.
  *  RBUS_ERROR_DESTINATION_NOT_REACHABLE: Destination element was not reachable.
  */
-rbusError_t rbus_getExt(
+static inline rbusError_t rbus_getExt(
     rbusHandle_t handle,
     int paramCount,
     char const** paramNames,
     int *numProps,
-    rbusProperty_t* properties);
+    rbusProperty_t* properties)
+{
+    (void)handle;
+    (void)paramCount;
+    (void)paramNames;
+    (void)numProps;
+    (void)properties;
+
+    return RBUS_ERROR_SUCCESS;
+}
 
 /** @fn rbusError_t rbus_getBoolean(
  *          rbusHandle_t handle,

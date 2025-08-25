@@ -54,6 +54,16 @@
 #define BUFF_LENGTH_1024 1024
 #define BUFF_LENGTH BUFF_LENGTH_1024
 
+#ifdef RDKV_TR69
+static const char* NOT_IMPLEMENTED = "Not Implemented";
+
+static const char* STATE_UP = "Up";
+static const char* STATE_DOWN = "Down";
+
+static const char* TIME_UNKNOWN = "0001-01-01T00:00:00Z";
+static const char* TIME_INFINITY = "9999-12-31T23:59:59Z";
+#endif
+
 typedef enum __eSTBResetState
 {
     NoReset = 0,
@@ -124,11 +134,13 @@ unsigned long string_to_ulong(const char *value);
 
 bool string_to_bool(const char *value);
 
+std::string bool_to_string(bool value);
+
 std::string getStringValue(HOSTIF_MsgData_t *stMsgData);
 
 void putValue(HOSTIF_MsgData_t *stMsgData, const std::string &value);
 
-bool set_GatewayConnStatus();
+void set_GatewayConnStatus( bool enabled);
 bool get_GatewayConnStatus();
 
 /**

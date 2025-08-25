@@ -106,6 +106,10 @@
 #include "hostIf_utils.h"
 #include "hostIf_updateHandler.h"
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 #define MAX_IF_LEN 256 //Length of interface. http://www.broadband-forum.org/cwmp/tr-181-2-8-0.html#D.Device:2.Device.DHCPv4.Client.{i}.Interface
 #define MAX_DNS_SERVER_LEN 256 //Length of DNS servers. http://www.broadband-forum.org/cwmp/tr-181-2-8-0.html#D.Device:2.Device.DHCPv4.Client.{i}.DNSServers
 #define MAX_IP_ROUTER_LEN 256 //Length of IP Routers. http://www.broadband-forum.org/cwmp/tr-181-2-8-0.html#D.Device:2.Device.DHCPv4.Client.{i}.IPRouters 
@@ -174,7 +178,12 @@ class hostIf_DHCPv4Client {
         static void getLock();
         static void releaseLock();
         static GHashTable* getNotifyHash();
-        
+    
+    #if defined(GTEST_ENABLE)
+        FRIEND_TEST(dhcpv4Test, isValidIPAddr);
+        FRIEND_TEST(dhcpv4Test, getInterfaceName);
+        FRIEND_TEST(dhcpv4Test, isIfnameInroutetoDNSServer);
+    #endif        
 };
 #endif
 

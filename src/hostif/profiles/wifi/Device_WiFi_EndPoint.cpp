@@ -39,9 +39,15 @@
 #include "Device_WiFi_EndPoint.h"
 #include <mutex>
 #include "safec_lib.h"
+#ifdef RDKV_NM
+extern "C" {
+#include "wifiSrvMgrIarmIf.h"
+};
+#else
 #include <curl/curl.h>
 #include "cJSON.h"
 #include "hostIf_utils.h"
+#endif
 
 GHashTable* hostIf_WiFi_EndPoint::ifHash = NULL;
 
@@ -268,6 +274,55 @@ int hostIf_WiFi_EndPoint::get_Device_WiFi_EndPoint_Stats_Retransmissions (HOSTIF
 /**
 * @brief Refreshes the cache of Device.WiFi.EndPoint. parameters
 */
+#ifdef RDKV_NM
+int hostIf_WiFi_EndPoint::refreshCache()
+{
+    LOG_ENTRY_EXIT;
+    static time_t time_of_last_successful_query = 0;
+    static int last_call_status = NOK;
+    static std::mutex m;
+    std::lock_guard<std::mutex> lg (m);
+    // Using a 1-second cache.
+    if ((last_call_status == OK ) && (time (0) <= time_of_last_successful_query + 1))
+    {
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Cache not stale. last call status is SUCCESS, Refresh not required.\n", __FUNCTION__);
+        return OK;
+    }
+
+    IARM_BUS_WiFi_DiagsPropParam_t param;
+    IARM_Result_t retVal = IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getEndPointProps, (void *) &param, sizeof(param));
+    if (IARM_RESULT_SUCCESS != retVal)
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cache refresh failed. IARM_Bus_Call to netsrvmgr returned [%d]\n", __FUNCTION__, retVal);
+        last_call_status = NOK;
+        return NOK;
+    }
+
+    time_of_last_successful_query = time (0);
+
+    Enable = param.data.endPointInfo.enable;
+    strncpy (Status, param.data.endPointInfo.status, BUFF_LENGTH_64);
+    strncpy (Alias, param.data.endPointInfo.alias, BUFF_LENGTH_64);
+    strncpy (ProfileReference, param.data.endPointInfo.ProfileReference, BUFF_LENGTH_256);
+    strncpy (SSIDReference, param.data.endPointInfo.SSIDReference, BUFF_LENGTH_256);
+    ProfileNumberOfEntries = param.data.endPointInfo.ProfileNumberOfEntries;
+    stats.LastDataDownlinkRate = param.data.endPointInfo.stats.lastDataDownlinkRate;
+    stats.LastDataUplinkRate = param.data.endPointInfo.stats.lastDataUplinkRate;
+    stats.SignalStrength = param.data.endPointInfo.stats.signalStrength;
+    stats.Retransmissions = param.data.endPointInfo.stats.retransmissions;
+
+    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Cache refreshed.\n", __FUNCTION__);
+
+    if (false == param.data.endPointInfo.enable) // "Disabled" endpoint
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] EndPoint is disabled\n", __FUNCTION__);
+        last_call_status = NOK;
+        return OK;
+    }
+    last_call_status = OK;
+    return OK;
+}
+#else
 int hostIf_WiFi_EndPoint::refreshCache()
 {
     LOG_ENTRY_EXIT;
@@ -309,7 +364,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
 	        }
 
                 //ASSIGN TO OP HERE
-		cJSON *result = cJSON_GetObjectItem(interface, "isEnabled");
+		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
 		Enable = result->type;
 
 		cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
@@ -471,5 +526,5 @@ int hostIf_WiFi_EndPoint::refreshCache()
     last_call_status = OK;
     return OK;
 }
-
+#endif
 #endif /* #ifdef USE_WIFI_PROFILE */
