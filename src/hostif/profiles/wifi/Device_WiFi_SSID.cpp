@@ -212,7 +212,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
         	    {
             	        ERR_CHK(rc);
         	    }
-		    cJSON *isEnabled = cJSON_GetObjectItem(interface, "isEnabled");
+		    cJSON *isEnabled = cJSON_GetObjectItem(interface, "enabled");
 		    enable=isEnabled->type;
 		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
                 }
