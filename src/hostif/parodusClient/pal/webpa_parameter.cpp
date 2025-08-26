@@ -661,7 +661,9 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
 
     if(status != 0) {
         if (dmParam->defaultValue)
-        {            
+        {    
+            strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
+            ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
             return WDMP_SUCCESS;
         }
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Get Message Handler : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
