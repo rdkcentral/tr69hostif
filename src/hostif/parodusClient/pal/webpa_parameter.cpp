@@ -666,7 +666,7 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
         {    
             strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
             ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
-            paramValueToString(ptrParam, paramValue, sizeof(paramValue));
+            paramValueToString(ptrParam, ptrParam->paramValue, sizeof(ptrParam->paramValue));
             //(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print : \n", dmParam.defaultValue, __LINE__);
             return WDMP_SUCCESS;
         }
