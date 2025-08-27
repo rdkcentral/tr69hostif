@@ -430,16 +430,18 @@ static WDMP_STATUS GetParamInfo (const char *pParameterName, param_t ***paramete
             if (getParamInfoFromDataModel(dataBaseHandle, const_cast<char*> (pParameterName), &dmParam))
             {
                 RDK_LOG (RDK_LOG_DEBUG, LOG_PARODUS_IF, "Valid Parameter..! \n ");
+                RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Debug print : %d\n", dmParam->defaultValue , dmParam.defaultValue, __LINE__, status);
                 strncpy (Param.paramName, pParameterName, MAX_PARAM_LENGTH - 1);
                 Param.paramName[MAX_PARAM_LENGTH - 1] = '\0';
                 Param.requestor = HOSTIF_SRC_WEBPA;
                 Param.bsUpdate = getBSUpdateEnum(dmParam.bsUpdate);
-
+                RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Debug print : %d\n", dmParam->defaultValue , dmParam.defaultValue, __LINE__, status);
                 if(dmParam.dataType != NULL)
                 {
                     converttohostIfType (dmParam.dataType, &(Param.paramtype));  //CID:18170 - FORWARD NULL
                 }
                 Param.instanceNum = 0;
+                RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Debug print : %d\n", dmParam->defaultValue , dmParam.defaultValue, __LINE__, status);
                 ret = get_ParamValues_tr69hostIf (&Param, &dmParam);
                 freeDataModelParam(dmParam);
                 if (ret == WDMP_SUCCESS)
@@ -664,6 +666,7 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
         {    
             strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
             ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
+            RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Debug print : %d\n", dmParam->defaultValue , dmParam.defaultValue, __LINE__, status);
             return WDMP_SUCCESS;
         }
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Get Message Handler : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
