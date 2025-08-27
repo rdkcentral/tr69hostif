@@ -660,13 +660,13 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
     ptrParam->reqType = HOSTIF_GET;
     WDMP_STATUS retStatus = WDMP_FAILURE;
     status = hostIf_GetMsgHandler(ptrParam);
-
+    RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print : \n", dmParam->defaultValue, __LINE__);
     if(status != 0) {
         if (dmParam->defaultValue)
         {    
             strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
             ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
-            RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print : \n", dmParam.defaultValue, __LINE__);
+           // RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print : \n", dmParam.defaultValue, __LINE__);
             return WDMP_SUCCESS;
         }
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Get Message Handler : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
