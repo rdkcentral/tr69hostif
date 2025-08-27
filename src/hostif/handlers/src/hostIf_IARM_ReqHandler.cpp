@@ -335,7 +335,7 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Failed to IARM_Bus_Term(), return with Error code: %d\n", __FUNCTION__, err);
     }
-    #ifndef RDKV-TR69
+    #ifndef RDKV_TR69
     if (IsPwrCtlInt) 
     {
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
