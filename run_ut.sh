@@ -64,6 +64,8 @@ echo "TOP_DIR = $TOP_DIR"
 echo "**** Compiling data model gtest ****"
 cd $TOP_DIR/src/hostif/parodusClient/gtest
 rm dm_gtest
+DEBUG_CFLAGS="${DEBUG_CFLAGS} -g -pg"
+export LDFLAGS="-L/usr/lib/x86_64-linux-gnu -lglib-2.0 -pg"
 make
 ./dm_gtest
 echo "********************"
