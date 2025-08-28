@@ -1654,8 +1654,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename(H
                     ERR_CHK(rc);
                 }
                 char * pch = NULL;
-		pch = strstr (cstr,":");
-		pch++;
+		        pch = strstr (cstr,":");
+		        pch++;
 
                 while(isspace(*pch)) {
                     pch++;
