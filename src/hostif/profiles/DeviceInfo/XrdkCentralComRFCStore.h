@@ -27,6 +27,10 @@
 
 using namespace std;
 
+#if defined(GTEST_ENABLE)
+bool init_rfcdefaults();
+#endif
+
 class XRFCStore
 {
 public:

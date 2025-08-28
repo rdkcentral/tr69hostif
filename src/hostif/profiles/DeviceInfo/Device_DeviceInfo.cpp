@@ -1654,8 +1654,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename(H
                     ERR_CHK(rc);
                 }
                 char * pch = NULL;
-                pch = strstr (cstr,":");
-                pch++;
+		        pch = strstr (cstr,":");
+		        pch++;
 
                 while(isspace(*pch)) {
                     pch++;
@@ -2803,7 +2803,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportEna
 
 
 
-    snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s", status);
+    snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s", status);
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
 
@@ -2837,7 +2837,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
                 }
             }
             remoteInterface_file.close();
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",ipAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
         }
         else
         {
@@ -2849,7 +2849,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
             {
                 ERR_CHK(rc);
             }
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",ipAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -2890,7 +2890,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
                 }
             }
             remoteInterface_file.close();
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",macAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
         }
         else
         {
@@ -2902,7 +2902,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
             {
                 ERR_CHK(rc);
             }
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",macAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -2919,7 +2919,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] XRPollingAction = %s\n", __FUNCTION__, m_xrPollingAction.c_str());
-    snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s", m_xrPollingAction.c_str());
+    snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s", m_xrPollingAction.c_str());
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
 
@@ -4343,7 +4343,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     else
     {
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RRD_WEBCFG_ISSUE_EVENT);
-	retVal = NOK;
+	retVal = OK;
     }
     rbusValue_Release(value);
     rbusValue_Release(preValue);

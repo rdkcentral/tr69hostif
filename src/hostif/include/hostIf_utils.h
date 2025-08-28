@@ -124,11 +124,13 @@ unsigned long string_to_ulong(const char *value);
 
 bool string_to_bool(const char *value);
 
+std::string bool_to_string(bool value);
+
 std::string getStringValue(HOSTIF_MsgData_t *stMsgData);
 
 void putValue(HOSTIF_MsgData_t *stMsgData, const std::string &value);
 
-bool set_GatewayConnStatus();
+void set_GatewayConnStatus( bool enabled);
 bool get_GatewayConnStatus();
 
 /**

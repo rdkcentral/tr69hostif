@@ -65,8 +65,8 @@ public:
     static const PixelResolution & getInstance(int id);
     static const PixelResolution & getInstance(const std::string &name);
 
-    PixelResolution(int id);
-    virtual ~PixelResolution();
+    PixelResolution(int id) {}
+    virtual ~PixelResolution() {}
 };
 
 }

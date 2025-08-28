@@ -63,8 +63,11 @@ public:
     static const int kPowerOff;
     static const int kPowerStandby;
 
-	bool setPowerMode(int mode);
-	int getPowerMode();
+	bool setPowerMode(int mode)
+	{
+	   return true;	
+	}
+	int getPowerMode() { return 10; }
     SleepMode getPreferredSleepMode();
     int setPreferredSleepMode(const SleepMode);
     List <SleepMode> getAvailableSleepModes();
@@ -77,8 +80,18 @@ public:
 
     List<VideoOutputPort> getVideoOutputPorts();
     List<AudioOutputPort> getAudioOutputPorts(){};
-    List<VideoDevice> getVideoDevices();
-    VideoOutputPort &getVideoOutputPort(const std::string &name);
+    List<VideoDevice> getVideoDevices()
+    {
+         List<VideoDevice> devices;
+         devices.push_back(VideoDevice(1));
+         devices.push_back(VideoDevice(2));
+	 return devices;
+    }
+    VideoOutputPort &getVideoOutputPort(const std::string &name)
+    {
+	 static VideoOutputPort vPort(name);
+         return vPort; 	 
+    }
     VideoOutputPort &getVideoOutputPort(int id);
     AudioOutputPort &getAudioOutputPort(const std::string &name){};
     AudioOutputPort &getAudioOutputPort(int id){};
@@ -99,7 +112,7 @@ public:
     void setSecondaryLanguage(const std::string sLang);
     void getSecondaryLanguage(std::string &sLang);
     bool isHDMIOutPortPresent();
-    std::string getDefaultVideoPortName();
+    std::string getDefaultVideoPortName() { return "port"; }
     std::string getDefaultAudioPortName();
     void getCurrentAudioFormat(dsAudioFormat_t &audioFormat);
     void getMS12ConfigDetails(std::string &configType);

@@ -269,6 +269,7 @@ std::string get_FwName()
     return fw_name;
 }
 
+#ifndef GTEST_ENABLE
 int main(int argc, char *argv[])
 {
     try
@@ -530,3 +531,4 @@ int main(int argc, char *argv[])
   
 return 0;
 }
+#endif

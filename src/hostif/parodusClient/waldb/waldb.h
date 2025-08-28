@@ -84,6 +84,14 @@ DB_STATUS getChildParamNamesFromDataModel(void *dbhandle,char *paramName,char **
 int getParamInfoFromDataModel(void *handle,const char *paramName,DataModelParam *dmParam);
 
 DB_STATUS get_complete_param_list (char **out_param_list, int *out_param_count);
+
+#if defined(GTEST_ENABLE)
+int isParamEndsWithInstance(const char* paramName);
+int getNumberOfDigitsInInstanceNumber(const char* paramName,int position);
+int getNumberofInstances(const char* paramName);
+int checkMatchingParameter(const char* attrValue, char* paramName, int* ret);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
