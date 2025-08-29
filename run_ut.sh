@@ -150,6 +150,27 @@ make
 ./devieInfo_gtest
 echo "********************"
 
+cd $TOP_DIR/src/hostif/parodusClient/startParodus
+gcov -b -c handlers_gtest-startParodus.gcno
+
+cat startParodus.cpp.gcov
+echo "********************"
+
+cd $TOP_DIR/src/hostif/parodusClient/waldb
+gcov -b -c httpserver_gtest-waldb.gcno
+
+cat waldb.cpp.gcov
+echo "********************"
+cd $TOP_DIR/src/hostif/parodusClient/pal
+gcov -b -c handlers_gtest-webpa_parameter.gcno
+gcov -b -c httpserver_gtest-webpa_notification.gcno
+gcov -b -c dm_gtest-webpa_attribute.gcno
+
+cat webpa_parameter.cpp.gcov
+cat webpa_notification.cpp.gcov
+cat webpa_attribute.cpp.gcov
+
+
 cd $TOP_DIR
 
 if [ "$ENABLE_COV" = true ]; then
