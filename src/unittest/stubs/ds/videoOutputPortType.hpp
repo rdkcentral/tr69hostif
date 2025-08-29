@@ -50,6 +50,7 @@
  */
 namespace device {
 
+class VideoOutputPort;
 
 /**
  * @class VideoOutputPortType
@@ -83,15 +84,20 @@ public:
 	static VideoOutputPortType & getInstance(const std::string &name);
 
 
-	VideoOutputPortType(const int id);
-	virtual ~VideoOutputPortType();
+	VideoOutputPortType(const int id) {}
+	virtual ~VideoOutputPortType() {}
 
 	int  getTypeId() const;
 	bool isDTCPSupported() const;
 	bool isHDCPSupported() const;
 	bool isDynamicResolutionsSupported() const;
 	int getRestrictedResolution() const ;
-	const List<VideoResolution>  getSupportedResolutions() const;
+	const List<VideoResolution>  getSupportedResolutions() const
+	{
+	    List<VideoResolution> supportedResolutions;
+            supportedResolutions.push_back(VideoResolution(0, "1080p60", 1, 1, 0, 5, false, true));
+            return supportedResolutions;
+	}
     const VideoResolution & getOutputResolution(const VideoResolution &inputResolution) const;
 	const List<VideoOutputPort> getPorts() const;
 

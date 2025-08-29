@@ -51,17 +51,17 @@ namespace device {
 class AudioEncoding : public DSConstant {
 
 public:
-	static const int kNone;    //!< Value indicating encoding type None.
-	static const int kDisplay; //!< Value indicating digital audio encoding format.
-	static const int kPCM;     //!< Value indicating PCM digital audio encoding format.
-	static const int kAC3;     //!< Value indicating AC3 digital audio encoding format.
-	static const int kMax;     //!< Indicates the maximum encoding formats supported.
+	static constexpr int kNone = 0;    //!< Value indicating encoding type None.
+	static constexpr int kDisplay = 1; //!< Value indicating digital audio encoding format.
+	static constexpr int kPCM = 2;     //!< Value indicating PCM digital audio encoding format.
+	static constexpr int kAC3 = 3;     //!< Value indicating AC3 digital audio encoding format.
+	static constexpr int kMax = 4;     //!< Indicates the maximum encoding formats supported.
 
 	static const AudioEncoding & getInstance(int id);
 	static const AudioEncoding & getInstance(const std::string &name);
 
-	AudioEncoding(int id);
-	virtual ~AudioEncoding();
+	AudioEncoding(int id) {}
+	virtual ~AudioEncoding() {}
 
 };
 

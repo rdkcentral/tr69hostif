@@ -24,6 +24,7 @@
 #include "rbus.h"
 #include "power_controller.h"
 
+#ifdef PARODUS
 rbusHandle_t rbusHandle = NULL;
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
@@ -54,6 +55,9 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
  * for wildcards request where it represents the number of param/value pairs retrieved for the particular wildcard parameter.
  * @param[out] retStatus List of Return status.
  */
+#endif
+
+#ifdef UNIT_TEST
 void getValues (const char *paramName[], const unsigned int paramCount, param_t ***paramValArr,size_t **retValCount, WDMP_STATUS **retStatus)
 {
 
@@ -69,7 +73,7 @@ void setValues(const ParamVal paramVal[], const unsigned int paramCount, const W
 {
 
 }
-
+#endif
 IARM_Result_t IARM_Bus_BroadcastEvent(const char *ownerName, IARM_EventId_t eventId, void *arg, size_t argLen)
 {
     return IARM_RESULT_SUCCESS;

@@ -796,3 +796,43 @@ static void converttoWalType(HostIf_ParamType_t paramType,WAL_DATA_TYPE* pwalTyp
     }
 }
 
+#ifdef GTEST_ENABLE
+WDMP_STATUS (*GetParamInfoFunc()) (const char *pParameterName, param_t ***parametervalPtrPtr, int *paramCountPtr,int paramIndex)
+{
+    return &GetParamInfo;
+}
+
+rbusValueType_t (*getRbusDataTypefromWebPAFunc())(WAL_DATA_TYPE type)
+{
+    return &getRbusDataTypefromWebPA;
+}
+
+DATA_TYPE (*mapRbusDataTypeToWebPAFunc()) (rbusValueType_t type)
+{
+    return &mapRbusDataTypeToWebPA;
+}
+WDMP_STATUS (*get_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam)
+{
+    return &get_ParamValues_tr69hostIf;
+}
+
+WAL_STATUS (*set_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam)
+{
+    return &set_ParamValues_tr69hostIf;
+}
+
+WAL_STATUS (*convertFaultCodeToWalStatusFunc())(faultCode_t faultCode)
+{
+    return &convertFaultCodeToWalStatus;
+}
+
+void (*converttohostIfTypeFunc())(char *ParamDataType,HostIf_ParamType_t* pParamType)
+{
+    return &converttohostIfType;
+}
+
+void (*converttoWalTypeFunc())(HostIf_ParamType_t paramType,WAL_DATA_TYPE* pwalType)
+{
+    &converttoWalType;
+}
+#endif

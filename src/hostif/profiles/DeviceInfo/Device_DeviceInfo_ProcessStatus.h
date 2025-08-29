@@ -59,6 +59,10 @@
 #include "hostIf_utils.h"
 #include "hostIf_updateHandler.h"
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 #define PARAM_LEN 256
 
 /**
@@ -82,6 +86,10 @@ class hostIf_DeviceProcessStatusInterface
 
     unsigned int getNumOfProcessEntries();
     int getProcessStatusCPUUsage();
+
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(processTest, getProcessStatusCPUUsage);
+#endif
 
 public:
 
