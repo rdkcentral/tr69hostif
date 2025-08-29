@@ -664,9 +664,8 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
     if(status != 0) {
         if (dmParam->defaultValue)
         {    
-            ptrParam->paramValue = strdup(dmParam->defaultValue);
-            //strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
-            //ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
+            strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
+            ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
             //paramValueToString(ptrParam, ptrParam->paramValue, sizeof(ptrParam->paramValue));
             RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print : \n", ptrParam->paramValue, __LINE__);
             status = WDMP_ERR_DEFAULT_VALUE;
