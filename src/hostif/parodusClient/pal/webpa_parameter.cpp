@@ -666,10 +666,11 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
         {    
             strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
             ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
-            RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print dmparam type : \n", dmParam->dataType, __LINE__);
-            RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print ptrParam type : \n", ptrParam->paramtype, __LINE__);
-            strncpy(ptrParam->paramtype, dmParam->dataType, MAX_PARAM_LENGTH - 1);
-            ptrParam->paramtype[MAX_PARAM_LENGTH - 1] = '\0';
+            RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%d:%d] Debug print dmparam type : \n", dmParam->dataType, __LINE__);
+            RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%d:%d] Debug print ptrParam type : \n", ptrParam->paramtype, __LINE__);
+            //strncpy(ptrParam->paramtype, dmParam->dataType, MAX_PARAM_LENGTH - 1);
+            //ptrParam->paramtype[MAX_PARAM_LENGTH - 1] = '\0';
+            ptrParam->paramtype = dmParam->dataType
             paramValueToString(ptrParam, ptrParam->paramValue, sizeof(ptrParam->paramValue));
             RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%d] Debug print : \n", ptrParam->paramValue, __LINE__);
             status = WDMP_ERR_DEFAULT_VALUE;
