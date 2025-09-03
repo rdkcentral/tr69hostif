@@ -67,19 +67,32 @@ class VideoResolution : public DSConstant {
 
 public:
 
-	static const VideoResolution & getInstance(int id);
+	static const VideoResolution & getInstance(int id) {}
 	static const VideoResolution & getInstance(const std::string &name, bool isIgnoreEdid=false);
 
 
 	VideoResolution(const int id, const std::string &name,
 					int resolutionId, int ratioid, int ssModeId,
-					int frameRateId, bool interlacedId, bool enabled = true);
-	virtual ~VideoResolution();
-	const PixelResolution & getPixelResolution() const;
+					int frameRateId, bool interlacedId, bool enabled = true)
+	{	
+	}
+	virtual ~VideoResolution() {}
+	const PixelResolution & getPixelResolution() const
+	{
+	    static PixelResolution pixelRes(0);
+            return pixelRes;	    
+	}
 	const AspectRatio & getAspectRatio() const;
 	const StereoScopicMode & getStereoscopicMode()const;
-	const FrameRate & getFrameRate() const;
-	bool isInterlaced() const;
+	const FrameRate & getFrameRate() const
+	{
+	    static FrameRate frameRate(FrameRate::k60);
+            return frameRate;	    
+	}
+	bool isInterlaced() const
+	{
+	    return true;	
+	}
 	bool isEnabled() const;
 };
 

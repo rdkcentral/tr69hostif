@@ -341,5 +341,9 @@ WAL_STATUS sendIoTMessage(const void *msg);
 
 void getCurrentTime(struct timespec *timer);
 
+#ifdef GTEST_ENABLE
+void notificationCallBack();
+#endif
+
 #endif /* _WEBPA_ADAPTER_H_ */
 

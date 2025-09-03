@@ -45,6 +45,9 @@
 #include "hostIf_updateHandler.h"
 #include "XrdkCentralComBSStore.h"
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
 
 #define X_RDK_PREFIX_STR                            "Device.X_RDK_"
 #define X_RDK_WebPA_SERVER_URL_STPRING              "Device.X_RDK_WebPA_Server.URL"
@@ -78,6 +81,14 @@ private:
     int set_WebConfig_URL(HOSTIF_MsgData_t *);
     int set_WebPA_DNSText_URL(HOSTIF_MsgData_t *);
     int set_WebConfig_SupplementaryServiceUrls_Telemetry(HOSTIF_MsgData_t *);
+
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(DeviceTest, set_WebPA_DNSText_URL);
+    FRIEND_TEST(DeviceTest, get_WebPA_Server_URL);
+    FRIEND_TEST(DeviceTest, get_WebPA_TokenServer_URL);
+    FRIEND_TEST(DeviceTest, get_WebPA_DNSText_URL);
+#endif
+
 public:
     static X_rdk_profile *getInstance();
     static void closeInstance();
