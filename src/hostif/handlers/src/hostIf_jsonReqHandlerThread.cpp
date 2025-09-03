@@ -506,12 +506,16 @@ void hostIf_HttpServerStart()
  */
 void hostIf_HttpServerStop()
 {
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"SERVER: Preparing to stop server...\n");
     if(server) {
         soup_server_disconnect(server);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"SERVER: Stopped server successfully.\n");
+        server = NULL;
+    } else {
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"SERVER: No server instance to stop.\n");
     }
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"SERVER: Shutdown routine complete.\n");
 }
-
 
 
 /** @} */
