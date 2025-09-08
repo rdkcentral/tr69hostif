@@ -1654,8 +1654,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename(H
                     ERR_CHK(rc);
                 }
                 char * pch = NULL;
-                pch = strstr (cstr,":");
-                pch++;
+		        pch = strstr (cstr,":");
+		        pch++;
 
                 while(isspace(*pch)) {
                     pch++;
@@ -2803,7 +2803,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportEna
 
 
 
-    snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s", status);
+    snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s", status);
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
 
@@ -2837,7 +2837,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
                 }
             }
             remoteInterface_file.close();
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",ipAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
         }
         else
         {
@@ -2849,7 +2849,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
             {
                 ERR_CHK(rc);
             }
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",ipAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -2890,7 +2890,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
                 }
             }
             remoteInterface_file.close();
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",macAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
         }
         else
         {
@@ -2902,7 +2902,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
             {
                 ERR_CHK(rc);
             }
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",macAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -2919,7 +2919,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] XRPollingAction = %s\n", __FUNCTION__, m_xrPollingAction.c_str());
-    snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s", m_xrPollingAction.c_str());
+    snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s", m_xrPollingAction.c_str());
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
 
@@ -4173,6 +4173,127 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     return retVal;
 }
 
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    int retStatus = NOK;
+    const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *fp = nullptr;
+    char *fileBuf = nullptr;
+    long fileSz = 0;
+    size_t bytesRead = 0;
+    cJSON *root = nullptr;
+    cJSON *filtered = nullptr;
+    char *outStr = nullptr;
+    size_t outLen = 0;
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering …\n", __FUNCTION__);
+    fp = fopen(filename, "rb");
+    if (!fp) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open %s\n", __FUNCTION__, filename);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    if (fseek(fp, 0L, SEEK_END) != 0) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fseek failed\n", __FUNCTION__);
+        fclose(fp);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    fileSz = ftell(fp);
+    rewind(fp);
+    if (fileSz < 0) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fileSz is negative, Returning....\n", __FUNCTION__);
+        fclose(fp);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    fileBuf = (char*)malloc((size_t)fileSz + 1);
+    if (!fileBuf) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] malloc(%ld) failed\n", __FUNCTION__, fileSz + 1);
+        fclose(fp);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    bytesRead = fread(fileBuf, 1U, (size_t)fileSz, fp);
+    fileBuf[bytesRead] = '\0';
+    fclose(fp); fp = nullptr;
+    root = cJSON_Parse(fileBuf);
+    if (!root) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] JSON parse error: %s\n", __FUNCTION__, cJSON_GetErrorPtr());
+        free(fileBuf);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    filtered = cJSON_CreateObject();
+    if (!filtered) 
+    {
+        free(fileBuf);
+        cJSON_Delete(root);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+
+    for (cJSON *top = root->child; top; top = top->next) 
+    {
+        if (top->type != cJSON_Object) 
+	{
+            continue;
+        }
+        cJSON *arr = cJSON_CreateArray();
+        if (!arr) 
+	{
+            free(fileBuf);
+            cJSON_Delete(root);
+            cJSON_Delete(filtered);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+            return retStatus;
+        }
+        for (cJSON *sub = top->child; sub; sub = sub->next) 
+	{
+            cJSON_AddItemToArray(arr, cJSON_CreateString(sub->string));
+        }
+        if (cJSON_GetArraySize(arr) > 0) 
+	{
+            cJSON_AddItemToObject(filtered, top->string, arr);
+        } 
+	else 
+	{
+            cJSON_Delete(arr);
+        }
+    }
+
+    outStr = cJSON_PrintUnformatted(filtered);
+    if (!outStr) 
+    {
+        free(fileBuf);
+        cJSON_Delete(root);
+        cJSON_Delete(filtered);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    outLen = strlen(outStr);
+    if (outLen >= sizeof(stMsgData->paramValue)) 
+    {
+        outLen = sizeof(stMsgData->paramValue) - 1;
+    }
+    memcpy(stMsgData->paramValue, outStr, outLen);
+    stMsgData->paramValue[outLen] = '\0';
+    stMsgData->paramLen = outLen;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Extracted profile map: %s\n", __FUNCTION__, outStr);
+    retStatus = OK;
+    free(fileBuf);
+    cJSON_Delete(root);
+    cJSON_Delete(filtered);
+    free(outStr);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Leaving with OK\n", __FUNCTION__);
+    return retStatus;
+}
+
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData (HOSTIF_MsgData_t *stMsgData)
 {
     char *issueStr = NULL;
@@ -4222,7 +4343,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     else
     {
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RRD_WEBCFG_ISSUE_EVENT);
-	retVal = NOK;
+	retVal = OK;
     }
     rbusValue_Release(value);
     rbusValue_Release(preValue);
