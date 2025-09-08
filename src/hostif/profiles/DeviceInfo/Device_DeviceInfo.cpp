@@ -3535,7 +3535,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComBootstrap(HOSTIF_MsgData_t * stMsgData)
 
 static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
 {
-    const char *apparmor_profiledir = "/etc/apparmor.d";
+    const char *apparmor_profiledir = "/etc/apparmor/txttmp";
     const char *earlypolicy_base_dir = "/etc/apparmor/earlypolicy";
     struct dirent *entry=NULL;
     DIR *dir=NULL;
