@@ -1535,6 +1535,52 @@ void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
  * @retval NOK if not able to fetch data from the device.
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
+
+#ifdef RDKV_NM
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
+    IARM_Result_t err;
+    int ret = NOK;
+    const char *pwrState = "PowerOFF";
+    int str_len = 0;
+    IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+    memset(&param, 0, sizeof(param));
+    IARM_Result_t iarm_ret = IARM_RESULT_IPCCORE_FAIL;
+
+    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                        IARM_BUS_PWRMGR_API_GetPowerState,
+                        (void *)&param,
+                        sizeof(param));
+    if(err == IARM_RESULT_SUCCESS)
+    {
+        pwrState = (param.curState==IARM_BUS_PWRMGR_POWERSTATE_OFF)?"PowerOFF":(param.curState==IARM_BUS_PWRMGR_POWERSTATE_ON)?"PowerON":"Standby";
+
+//        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",param.curState, pwrState);
+        str_len = strlen(pwrState);
+        try
+        {
+            strncpy((char *)stMsgData->paramValue, pwrState, str_len);
+            stMsgData->paramValue[str_len+1] = '\0';
+            stMsgData->paramLen = str_len;
+            stMsgData->paramtype = hostIf_StringType;
+            ret = OK;
+        } catch (const std::exception e)
+        {
+            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
+            ret = NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in IARM_Bus_Call() for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, ret);
+        ret = NOK;
+    }
+
+    //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
+    return ret;
+}
+#else
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
@@ -1580,6 +1626,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return ret;
 }
+#endif
 
 /**
  * @brief Get the filename of the firmware currently running on the device.
