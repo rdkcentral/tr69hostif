@@ -118,7 +118,10 @@ public:
     static GList* getAllAssociateDevs();
     static void closeInstance(hostIf_WiFi_Radio *);
     static void closeAllInstances();
-
+    #ifdef RDKV_NM
+    int get_Device_WiFi_Radio_Props_Fields(int radioIndex);
+    void checkWifiRadioFetch(int radioIndex);
+    #endif
     bool Enable;
     char Status[BUFF_LENGTH_64];
     char Alias[BUFF_LENGTH_64];
