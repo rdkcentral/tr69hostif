@@ -627,7 +627,7 @@ void exit_gracefully (int sig_received)
 #endif
 
             /*Stop libSoup server and exit Json Thread */
-            hostIf_HttpServerStop();
+            //hostIf_HttpServerStop();
 
             updateHandler::stop();
             XBSStore::getInstance()->stop();
