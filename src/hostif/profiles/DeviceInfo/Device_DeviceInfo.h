@@ -196,6 +196,11 @@
 #define CANARY_START_TIME                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart"
 #define CANARY_END_TIME                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"
 
+
+/* Profile: X_RDKCENTRAL-COM_RFC.Feature.xMemInsight */
+#define X_MEMINSIGHT_ENABLE                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable"
+#define X_MEMINSIGHT_ARGS    
+
 /**
  * @brief This class provides the interface for getting device information.
  * @ingroup TR69_HOSTIF_DEVICEINFO_CLASSES
@@ -1248,6 +1253,21 @@ public:
 
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(HOSTIF_MsgData_t *);
+
+     /*
+      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable
+      *
+      * This method is used to enable/disable the xmeminsight memory & CPU Analysis Tool.
+      * with following TR-069 definition:
+      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable
+      *   Data type: boolean - Enable (True)/ disable (False) xmeminsight tool.
+      *
+      * @retval OK if it is successful.
+      * @retval NOK if operation fails.
+      */
+
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *);
+
 
     /*
       * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable
