@@ -1248,7 +1248,121 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_MAC(HOSTIF_MsgDat
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
     return ret;
 }
-
+#ifdef RDKV_NM
+string hostIf_DeviceInfo::getEstbIp()
+{
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
+    string retAddr;
+#if MEDIA_CLIENT
+    IARM_Result_t ret = IARM_RESULT_SUCCESS;
+    IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+    memset(&param, 0, sizeof(param));
+    try
+    {
+        ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME,IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param));
+        if (ret != IARM_RESULT_SUCCESS )
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] IARM_BUS_NETSRVMGR_API_getActiveInterface failed \n", __FUNCTION__, __LINE__);
+        }
+        retAddr=param.activeIfaceIpaddr;
+    }
+    //Legacy way of getting estb ip.
+#else
+    struct ifaddrs *ifAddrStr = NULL;
+    struct ifaddrs * ifa = NULL;
+    void * tmpAddrPtr = NULL;
+    char tmp_buff[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
+    const char *ipv6_fileName = "/tmp/estb_ipv6";
+    const char *Wifi_Enable_file = "/tmp/wifi-on";
+    try {
+        /*check for ipv6 file*/
+        bool ipv6Enabled = (!access (ipv6_fileName, F_OK))?true:false;
+        bool isWifiEnabled = (!access (Wifi_Enable_file, F_OK))?true:false;
+        const char* ip_if = NULL;
+//#ifdef MEDIA_CLIENT
+        /* Get configured moca interface */
+//        ip_if = "MOCA_INTERFACE";
+//#else
+        ip_if = "DEFAULT_ESTB_INTERFACE";
+//#endif
+        char *ethIf = getenvOrDefault (ip_if, "");
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] ipv6Enabled : %d; isWifiEnabled : %d ethIf : %s\n",
+                __FUNCTION__, __LINE__, ipv6Enabled, isWifiEnabled, ethIf);
+        if(getifaddrs(&ifAddrStr))
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s():%d] Failed in getifaddrs().\n", __FUNCTION__, __LINE__);
+            return retAddr;
+        }
+        bool found = false;
+        for (ifa = ifAddrStr; ifa != NULL; ifa = ifa->ifa_next)
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] if name : %s; family : %d %s \n", __FUNCTION__, __LINE__,
+                    ifa->ifa_name,
+                    ifa ->ifa_addr->sa_family,
+                    (ifa ->ifa_addr->sa_family == AF_PACKET) ? " (AF_PACKET)" :
+                    (ifa ->ifa_addr->sa_family == AF_INET) ?   " (AF_INET)" :
+                    (ifa ->ifa_addr->sa_family == AF_INET6) ?  " (AF_INET6)" : "" );
+            if (ifa->ifa_addr == NULL) continue;
+            if (ipv6Enabled)
+            {
+                /* Check for IP6 */
+                if ((ifa ->ifa_addr->sa_family == AF_INET6))
+                {
+                    tmpAddrPtr=&((struct sockaddr_in6  *)ifa->ifa_addr)->sin6_addr;
+                    inet_ntop(AF_INET6, tmpAddrPtr, tmp_buff, INET6_ADDRSTRLEN);
+                    if(isWifiEnabled && (!(IN6_IS_ADDR_LINKLOCAL(tmpAddrPtr)))) {
+                        if(!strcmp(ifa->ifa_name, "wlan0")) {
+                            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(!strcmp(ifa->ifa_name, ethIf) && (!(IN6_IS_ADDR_LINKLOCAL(tmpAddrPtr))))  {
+                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            else {
+                /* Check for IP4 */
+                if (ifa ->ifa_addr->sa_family == AF_INET) {
+                    tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+                    inet_ntop(AF_INET, tmpAddrPtr, tmp_buff, INET_ADDRSTRLEN);
+                    if(isWifiEnabled) {
+                        if(!strcmp(ifa->ifa_name, "wlan0")) {
+                            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
+                            found = true;
+                            break;
+                        }
+                    }
+                    else if (strcmp(ifa->ifa_name, ethIf)==0) {
+                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (ifAddrStr!=NULL) {
+            freeifaddrs(ifAddrStr);
+        }
+        if (!found) {
+            return retAddr;
+        }
+        else {
+            retAddr = tmp_buff;
+        }
+    }
+#endif
+    catch (const std::exception &e)
+    {
+        RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s()]Exception caught %s\n", __FUNCTION__, e.what());
+    }
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
+    return retAddr;
+}
+#else
 string hostIf_DeviceInfo::getEstbIp()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
@@ -1447,6 +1561,7 @@ string hostIf_DeviceInfo::getEstbIp()
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return retAddr;
 }
+#endif
 
 bool hostIf_DeviceInfo::isRsshactive()
 {
@@ -1489,6 +1604,8 @@ bool hostIf_DeviceInfo::isRsshactive()
  * @retval ERR_INTERNAL_ERROR if not able to fetch data from the device.
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
+#ifdef RDKV_NM
+
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
@@ -1516,6 +1633,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return OK;
 }
+
+
 
 void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
 {
