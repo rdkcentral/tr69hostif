@@ -43,9 +43,18 @@
 #include "Device_WiFi.h"
 #include <string.h>
 #include <math.h>
+#ifdef RDKV_NM
+extern "C" {
+    /* #include "c_only_header.h"*/
+#include "wifi_client_hal.h"
+#include "wifiSrvMgrIarmIf.h"
+#include "netsrvmgrIarm.h"
+};
+#else
 #include <curl/curl.h>
 #include "cJSON.h"
 #include "hostIf_utils.h"
+#endif
 
 //char *moca_interface = NULL;
 GHashTable* WiFiDevice::devHash = NULL;
@@ -226,7 +235,64 @@ void hostIf_WiFi::closeAllInstances()
 /****************************************************************************************************************************************************/
 // Device.WiFi. Profile. Getters:
 /****************************************************************************************************************************************************/
+#ifdef RDKV_NM
+int hostIf_WiFi::get_Device_WiFi_RadioNumberOfEntries(HOSTIF_MsgData_t *stMsgData)
+{
+    ULONG       radioNumOfEntries = 0;
+    IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+    IARM_BUS_WiFi_DiagsPropParam_t param;
+    int ret = OK;
 
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+
+    param.numEntry=IARM_BUS_WIFI_MGR_RadioEntry;
+//    ret = wifi_getRadioNumberOfEntries(&radioNumOfEntries);
+
+    retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getSSIDProps, (void *)&param, sizeof(param));
+    if (IARM_RESULT_SUCCESS != retVal)
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] IARM BUS CALL failed with  : %d.\n", __FILE__, __FUNCTION__, retVal);
+        return NOK;
+    }
+    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] param.data.radioNumberOfEntries  returned %d radioNumOfEntries:%lu\n",
+             __FUNCTION__, __FILE__, ret, param.data.radioNumberOfEntries);
+    radioNumOfEntries=param.data.radioNumberOfEntries;
+    put_int(stMsgData->paramValue,radioNumOfEntries);
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(radioNumOfEntries);
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+
+    return ret;
+}
+
+int hostIf_WiFi::get_Device_WiFi_SSIDNumberOfEntries(HOSTIF_MsgData_t *stMsgData)
+{
+    ULONG ssidNumOfEntries = 0;
+    IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+    int ret = OK;
+    IARM_BUS_WiFi_DiagsPropParam_t param;
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+    param.numEntry=IARM_BUS_WIFI_MGR_SSIDEntry;
+
+    retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getSSIDProps, (void *)&param, sizeof(param));
+    if (IARM_RESULT_SUCCESS != retVal)
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] IARM BUS CALL failed with  : %d.\n", __FILE__, __FUNCTION__, retVal);
+        return NOK;
+    }
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering.. param.data.ssidNumberOfEntries %d \n", __FUNCTION__, __FILE__,param.data.ssidNumberOfEntries);
+    ssidNumOfEntries=param.data.ssidNumberOfEntries;
+    put_int(stMsgData->paramValue,ssidNumOfEntries);
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = 4;
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+
+    return ret;
+}
+#endif
 int hostIf_WiFi::get_Device_WiFi_AccessPointNumberOfEntries(HOSTIF_MsgData_t *stMsgData)
 {
     unsigned int accessPointNumOfEntries = 1;
@@ -307,7 +373,49 @@ int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
     }
     return OK;
 }
+#ifdef RDKV_NM
+int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
+{
+    LOG_ENTRY_EXIT;
 
+    IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
+    snprintf (param.setInterface, INTERFACE_SIZE, "WIFI");
+    IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param));
+    put_boolean(stMsgData->paramValue, param.isInterfaceEnabled);
+    stMsgData->paramtype = hostIf_BooleanType;
+    stMsgData->paramLen=1;
+    return OK;
+}
+
+	@@ -319,48 +340,29 @@ int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
+        return NOK;
+    }
+
+    IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+    snprintf (iarmData.setInterface, INTERFACE_SIZE, "WIFI");
+    iarmData.isInterfaceEnabled = get_boolean(stMsgData->paramValue);
+    iarmData.persist = true; // set interface control persistence = true, whether WiFi is asked to be enabled or not
+
+    if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME,
+            IARM_BUS_NETSRVMGR_API_setInterfaceEnabled,
+            (void*)&iarmData, sizeof(iarmData)))
+    {
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s] IARM call succeeded %s %s (interface = %s enabled = %d persist = %d)\n",
+                __FUNCTION__, IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled,
+                iarmData.setInterface, iarmData.isInterfaceEnabled, iarmData.persist);
+        return OK;
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] IARM call failed %s %s (interface = %s enabled = %d persist = %d)\n",
+                __FUNCTION__, IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled,
+                iarmData.setInterface, iarmData.isInterfaceEnabled, iarmData.persist);
+        return NOK;
+    }
+}
+#else
 int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
@@ -362,6 +470,7 @@ int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
     }
     return OK;
 }
+#endif
 
 #endif
 /* End of doxygen group */
