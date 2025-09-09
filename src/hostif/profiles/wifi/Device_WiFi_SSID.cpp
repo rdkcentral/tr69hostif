@@ -43,6 +43,13 @@
 #ifdef USE_WIFI_PROFILE
 
 #include "Device_WiFi_SSID.h"
+#ifdef RDKV_NM
+extern "C" {
+    /* #include "c_only_header.h"*/
+#include "wifi_common_hal.h"
+#include "wifiSrvMgrIarmIf.h"
+};
+#endif
 
 static time_t firstExTime = 0;
 
@@ -123,7 +130,61 @@ hostIf_WiFi_SSID::hostIf_WiFi_SSID(int dev_id):
     memset(MACAddress,0, sizeof(MACAddress));
     memset(SSID,0, sizeof(SSID));  //CID:103108 - OVERRUN
 }
+#ifdef RDKV_NM
+int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
+{
+    errno_t rc = -1;
+    IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+    IARM_BUS_WiFi_DiagsPropParam_t param = {0};
+    int ret;
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
 
+    hostIf_WiFi_SSID *pDev = hostIf_WiFi_SSID::getInstance(dev_id);
+    if (pDev)
+    {
+        retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getSSIDProps, (void *)&param, sizeof(param));
+        if (IARM_RESULT_SUCCESS != retVal)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] IARM BUS CALL failed with  : %d.\n", __FILE__, __FUNCTION__, retVal);
+            return NOK;
+        }
+        rc=strcpy_s(name,sizeof(name),param.data.ssid.params.name);
+	if(rc!=EOK)
+    	{
+	    ERR_CHK(rc);
+    	}
+        rc=strcpy_s(BSSID,sizeof(BSSID),param.data.ssid.params.bssid);
+	if(rc!=EOK)
+        {
+            ERR_CHK(rc);
+        }
+        rc=strcpy_s(MACAddress,sizeof(MACAddress),param.data.ssid.params.macaddr);
+	if(rc!=EOK)
+    	{
+	    ERR_CHK(rc);
+    	}
+        rc=strcpy_s(SSID,sizeof(SSID),param.data.ssid.params.ssid);
+	if(rc!=EOK)
+        {
+            ERR_CHK(rc);
+        }
+        rc=strcpy_s(status,sizeof(status),param.data.ssid.params.status);
+	if(rc!=EOK)
+        {
+            ERR_CHK(rc);
+        }
+        enable=param.data.ssid.params.enable;
+        firstExTime = time (NULL);
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+        return OK;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
+        return NOK;
+    }
+}
+#else
 int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 {
     errno_t rc = -1;
@@ -332,6 +393,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
         return NOK;
     }
 }
+#endif
 
 void hostIf_WiFi_SSID::checkWifiSSIDFetch(int ssidIndex)
 {
