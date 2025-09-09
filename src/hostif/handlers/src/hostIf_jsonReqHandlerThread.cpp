@@ -506,12 +506,15 @@ void hostIf_HttpServerStart()
  */
 void hostIf_HttpServerStop()
 {
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[DEBUG] Entering hostIf_HttpServerStop. server ptr: %p\n", server);
     if(server) {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[DEBUG] server is valid, calling soup_server_disconnect.\n");
         soup_server_disconnect(server);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"SERVER: Stopped server successfully.\n");
+    } else {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[DEBUG] server is NULL in hostIf_HttpServerStop.\n");
     }
 }
-
 
 
 /** @} */
