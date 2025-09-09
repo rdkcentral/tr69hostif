@@ -39,6 +39,14 @@
  *****************************************************************************/
 #include "Device_WiFi_Radio.h"
 
+#ifdef RDKV_NM
+extern "C" {
+    /* #include "c_only_header.h"*/
+#include "wifi_client_hal.h"
+#include "wifiSrvMgrIarmIf.h"
+};
+#endif
+
 GHashTable* hostIf_WiFi_Radio::ifHash = NULL;
 
 /*hostIf_WiFi_Radio::hostIf_WiFi_Radio(int dev_id):dev_id(dev_id)
