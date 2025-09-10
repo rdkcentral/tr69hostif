@@ -4256,7 +4256,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     for (cJSON *top = root->child; top; top = top->next) 
     {
         if (top->type != cJSON_Object) 
-	{
+	    {
             continue;
         }
         cJSON *arr = cJSON_CreateArray();
