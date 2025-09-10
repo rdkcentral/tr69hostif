@@ -38,7 +38,7 @@
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DefaultSupportedLocales" : ""
    },
    "community" : {
-        "Device.Time.NTPServer1" : "time.com",
+        "Device.Time.NTPServer1" : "time.google.com",
         "Device.Time.NTPServer2" : "time1.com",
         "Device.Time.NTPServer3" : "time2.com",
         "Device.Time.NTPServer4" : "time3.com",
