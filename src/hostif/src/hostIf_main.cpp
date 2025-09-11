@@ -218,8 +218,6 @@ int main(int argc, char *argv[])
     #ifdef WEBPA_RFC_ENABLED
         bool retVal=false;
     #endif
-        const char* debugConfigFile = NULL;
-        const char* webpaNotifyConfigFile = NULL;
         //------------------------------------------------------------------------------
         // Signal handlers:
         //------------------------------------------------------------------------------
@@ -238,8 +236,6 @@ int main(int argc, char *argv[])
     #ifndef NEW_HTTP_SERVER_DISABLE
                 {"httpserverport",		required_argument, 0, 's'},
     #endif
-                {"debugconfig",     required_argument, 0, 'd'},
-                {"notifyconfig",    required_argument, 0, 'w'},
                 {0, 0, 0, 0}
             };
 
@@ -271,19 +267,6 @@ int main(int argc, char *argv[])
                 }
                 break;
 
-            case 'd':
-                if(optarg)
-                {
-                    debugConfigFile = optarg;
-                }
-                break;
-            case 'w':
-                if(optarg)
-                {
-                    webpaNotifyConfigFile = optarg;
-                } 
-                break;
-
             case 'p':
                 if(optarg)
                 {
@@ -308,7 +291,7 @@ int main(int argc, char *argv[])
         }
 
         /* Enable RDK logger.*/
-        if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
+        if(rdk_logger_init(0 == access("/opt/debug.ini", R_OK) ? "/opt/debug.ini" : "/etc/debug.ini") == 0) rdk_logger_enabled = 1;
         #ifdef T2_EVENT_ENABLED
          t2_init(const_cast<char*>("tr69hostif"));
         #endif
@@ -379,8 +362,6 @@ int main(int argc, char *argv[])
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"g_thread NOT supported\n");
         } 
     #endif
-        /* Enable RDK logger.*/
-        if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
 
         #if defined(USE_WIFI_PROFILE)
             /* Perform the necessary operations to initialise the WiFi device */
@@ -492,7 +473,7 @@ int main(int argc, char *argv[])
         //------------------------------------------------------------------------------
 
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Starting WEBPA Parodus Connections\n");
-        libpd_set_notifyConfigFile(webpaNotifyConfigFile);
+        libpd_set_notifyConfigFile(0 == access("/opt/notify_webpa_cfg.json", R_OK) ? "/opt/notify_webpa_cfg.json" : "/etc/notify_webpa_cfg.json");
         if(0 == pthread_create(&parodus_init_tid, NULL, libpd_client_mgr, NULL))
         {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Initiating Connection with PARODUS success.. \n");
