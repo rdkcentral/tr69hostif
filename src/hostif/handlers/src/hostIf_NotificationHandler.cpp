@@ -128,77 +128,87 @@ void NotificationHandler::pushNotification(const char* destination, const char* 
 
 void NotificationHandler::pushValueChangeNotification(IARM_Bus_tr69HostIfMgr_EventData_t& event)
 {
-    cJSON* notifyPayload = cJSON_CreateObject ();
-    cJSON_AddStringToObject(notifyPayload, "device_id", getNotifySource ()); // Device ID and Notification source are same
+    cJSON* notifyPayload = cJSON_CreateObject();
+    if (notifyPayload) {
+        cJSON_AddStringToObject(notifyPayload, "device_id", getNotifySource());
 
-    WAL_DATA_TYPE pwalType;
-    converttoWalType(event.paramtype, &pwalType);
+        WAL_DATA_TYPE pwalType;
+        converttoWalType(event.paramtype, &pwalType);
 
-    cJSON_AddNumberToObject(notifyPayload, "datatype", pwalType);
-    cJSON_AddStringToObject(notifyPayload, "paramName", event.paramName);
-    cJSON_AddStringToObject(notifyPayload, "notificationType", "VALUE_CHANGE_NOTIFICATION");
-    addToJsonObject (notifyPayload, "paramValue", event.paramValue, pwalType);
+        cJSON_AddNumberToObject(notifyPayload, "datatype", pwalType);
+        cJSON_AddStringToObject(notifyPayload, "paramName", event.paramName);
+        cJSON_AddStringToObject(notifyPayload, "notificationType", "VALUE_CHANGE_NOTIFICATION");
+        addToJsonObject(notifyPayload, "paramValue", event.paramValue, pwalType);
 
-    char* payload = cJSON_PrintUnformatted (notifyPayload);
-    cJSON_Delete (notifyPayload);
-    RDK_LOG (RDK_LOG_DEBUG, LOG_PARODUS_IF, "%s: Generated payload: %s\n", __FUNCTION__, payload);
+        char* payload = cJSON_PrintUnformatted(notifyPayload);
+        cJSON_Delete(notifyPayload);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF, "%s: Generated payload: %s\n", __FUNCTION__, payload);
 
-    NotificationHandler::getInstance()->pushNotification("event:VALUE_CHANGE_NOTIFICATION", payload);
+        NotificationHandler::getInstance()->pushNotification("event:VALUE_CHANGE_NOTIFICATION", payload);
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to create notifyPayload JSON object\n", __FUNCTION__);
+    }
 }
 
 void NotificationHandler::pushKeyValueNotification(const char* destination, const char* key, const char* value)
 {
-    cJSON* notifyPayload = cJSON_CreateObject ();
-    cJSON_AddStringToObject(notifyPayload, "device_id", getNotifySource ()); // Device ID and Notification source are same
+    cJSON* notifyPayload = cJSON_CreateObject();
+    if (notifyPayload) {
+        cJSON_AddStringToObject(notifyPayload, "device_id", getNotifySource());
+        if (key && value)
+            cJSON_AddStringToObject(notifyPayload, key, value);
 
-    cJSON_AddStringToObject(notifyPayload, key, value);
+        char* payload = cJSON_PrintUnformatted(notifyPayload);
+        cJSON_Delete(notifyPayload);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF, "%s: Generated payload: %s\n", __FUNCTION__, payload);
 
-    char* payload = cJSON_PrintUnformatted (notifyPayload);
-    cJSON_Delete (notifyPayload);
-    RDK_LOG (RDK_LOG_DEBUG, LOG_PARODUS_IF, "%s: Generated payload: %s\n", __FUNCTION__, payload);
-
-    NotificationHandler::getInstance()->pushNotification(destination, payload);
+        NotificationHandler::getInstance()->pushNotification(destination, payload);
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to create notifyPayload JSON object\n", __FUNCTION__);
+    }
 }
 
 
 void addToJsonObject (cJSON* json, const char* key, const char* value, const WAL_DATA_TYPE type)
 {
+    if (!json) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: NULL json object for key '%s'\n", __FUNCTION__, key ? key : "(null)");
+        return;
+    }
     switch (type)
     {
     case WAL_STRING:
-    {
-        cJSON_AddStringToObject(json, key, value);
+        if (key && value)
+            cJSON_AddStringToObject(json, key, value);
         break;
-    }
     case WAL_INT:
-    {
-        const int* paramNewValue = (const int*) ((value));
-        cJSON_AddNumberToObject(json, key, *paramNewValue);
+        if (key && value) {
+            const int* paramNewValue = (const int*) ((value));
+            cJSON_AddNumberToObject(json, key, *paramNewValue);
+        }
         break;
-    }
     case WAL_UINT:
-    {
-        const unsigned int* paramNewValue = (const unsigned int*) ((value));
-        cJSON_AddNumberToObject(json, key, *paramNewValue);
+        if (key && value) {
+            const unsigned int* paramNewValue = (const unsigned int*) ((value));
+            cJSON_AddNumberToObject(json, key, *paramNewValue);
+        }
         break;
-    }
     case WAL_BOOLEAN:
-    {
-        const bool* paramNewValue = (const bool*) ((value));
-        cJSON_AddBoolToObject(json, key, *paramNewValue);
+        if (key && value) {
+            const bool* paramNewValue = (const bool*) ((value));
+            cJSON_AddBoolToObject(json, key, *paramNewValue);
+        }
         break;
-    }
     case WAL_ULONG:
-    {
-        const unsigned long *paramNewValue = (const unsigned long *) ((value));
-        cJSON_AddNumberToObject(json, key, *paramNewValue);
+        if (key && value) {
+            const unsigned long *paramNewValue = (const unsigned long *) ((value));
+            cJSON_AddNumberToObject(json, key, *paramNewValue);
+        }
         break;
-    }
     default:
-    {
-        cJSON_AddStringToObject(json, key, value);
+        if (key && value)
+            cJSON_AddStringToObject(json, key, value);
         break;
-    }
     }
 }
 

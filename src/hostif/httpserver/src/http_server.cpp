@@ -81,7 +81,6 @@ static void HTTPRequestHandler(
     const char *pcCallerID = (char *)soup_message_headers_get_one(req_headers, "CallerID");
 
     jsonRequest = cJSON_Parse((const char *) req_body->data);
-
     if(jsonRequest)
     {
         reqSt = (req_struct *)malloc(sizeof(req_struct));
@@ -108,23 +107,25 @@ static void HTTPRequestHandler(
             if(respSt)
             {
                 jsonResponse = cJSON_CreateObject();
-                wdmp_form_get_response(respSt, jsonResponse);
+                if(jsonResponse) {
+                    wdmp_form_get_response(respSt, jsonResponse);
 
-                // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
-                int new_st_code = 0;
+                    // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
+                    int new_st_code = 0;
 
-                for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
-                {
-                    if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1)
+                    for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
                     {
-                        new_st_code =  respSt->retStatus[paramIndex];
-                        break;
+                        if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1)
+                        {
+                            new_st_code =  respSt->retStatus[paramIndex];
+                            break;
+                        }
                     }
-                }
-                cJSON * stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
-                if( NULL != stcode)
-                {
-                    cJSON_SetIntValue(stcode, new_st_code);
+                    cJSON * stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
+                    if( NULL != stcode)
+                    {
+                        cJSON_SetIntValue(stcode, new_st_code);
+                    }
                 }
             }
             else
@@ -153,22 +154,24 @@ static void HTTPRequestHandler(
             if(respSt)
             {
                 jsonResponse = cJSON_CreateObject();
-                wdmp_form_set_response(respSt, jsonResponse);
-                // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
-                int new_st_code = 0;
+                if(jsonResponse) {
+                    wdmp_form_set_response(respSt, jsonResponse);
+                    // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
+                    int new_st_code = 0;
 
-                for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
-                {
-                    if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1)
+                    for(size_t paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
                     {
-                        new_st_code =  respSt->retStatus[paramIndex];
-                        break;
+                        if(respSt->retStatus[paramIndex] != 0 || paramIndex == respSt->paramCnt-1)
+                        {
+                            new_st_code =  respSt->retStatus[paramIndex];
+                            break;
+                        }
                     }
-                }
-                cJSON * stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
-                if( NULL != stcode)
-                {
-                    cJSON_SetIntValue(stcode, new_st_code);
+                    cJSON * stcode = cJSON_GetObjectItem(jsonResponse, "statusCode");
+                    if( NULL != stcode)
+                    {
+                        cJSON_SetIntValue(stcode, new_st_code);
+                    }
                 }
             }
             else
@@ -189,7 +192,10 @@ static void HTTPRequestHandler(
             return;
         }
 
-        char *buf = cJSON_Print(jsonResponse);
+        char *buf = NULL;
+        if(jsonResponse) {
+            buf = cJSON_Print(jsonResponse);
+        }
 
         if(buf) {
             soup_server_message_set_response(msg, (const char *) "application/json", SOUP_MEMORY_COPY, buf, strlen(buf));
@@ -199,7 +205,7 @@ static void HTTPRequestHandler(
         wdmp_free_req_struct(reqSt);
         reqSt = NULL;
         cJSON_Delete(jsonRequest);
-        cJSON_Delete(jsonResponse);
+        if(jsonResponse) cJSON_Delete(jsonResponse);
         wdmp_free_res_struct(respSt);
         respSt = NULL;
 
