@@ -314,6 +314,8 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, NewNtpEnable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCDisable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCInvalidtype);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComApparmorBlocklist);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldCompletedNotification);
@@ -328,6 +330,7 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComNewNtpEnable);
+    FRIEND_TEST(deviceTest, NewNtpEnable_Disable);
     FRIEND_TEST(deviceTest, findLocalPortAvailable);
     FRIEND_TEST(deviceTest, get_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldStartedNotification);
@@ -336,6 +339,15 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
     FRIEND_TEST(deviceTest, set_xOpsDeviceMgmtRPCRebootNow);
     FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCEnable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCDisable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCInvalidtype);
+    FRIEND_TEST(deviceTest, get_xOpsRPCDevManageableNotification);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRoamTrigger);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_InvalidType);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCAutoRebootEnable_Invalidtype);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable_FileRemoved);
+    FRIEND_TEST(deviceTest, NewNtpEnable_Disable_FileRemoved);
+    FRIEND_TEST(deviceTest, get_xRDKCentralComRFCAccountId);
 #endif
 
 public:

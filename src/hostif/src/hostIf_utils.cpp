@@ -643,5 +643,11 @@ string getJsonRPCData(std::string postData)
     }
 }
 
+#ifdef GTEST_ENABLE
+size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, std::string stream) {
+    return &writeCurlResponse;
+}
+#endif
+
 /** @} */
 /** @} */

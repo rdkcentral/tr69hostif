@@ -160,6 +160,64 @@ TEST(DeviceTest, set_WebPA_DNSText_URL) {
     }
 }
 
+TEST(DeviceTest, handleGetMsg_WebPA_Server_URL) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.X_RDK_WebPA_Server.URL", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_WEBPA;
+    param.paramtype = hostIf_StringType;
+    param.paramLen = sizeof(hostIf_StringType);
+
+    X_rdk_profile* profile = X_rdk_profile::getInstance();
+    if(profile)
+    {
+       int ret = profile->handleGetMsg(&param);
+       std::string value = getStringValue(&param);
+       EXPECT_EQ(ret, OK);
+       EXPECT_EQ(value, "");
+    }
+}
+
+TEST(DeviceTest, handleSetMsg_InvalidParam) {
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy (param.paramName, "Device.FriendlyName.URL", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_WEBPA;
+
+    X_rdk_profile* profile = X_rdk_profile::getInstance();
+    if(profile)
+    {
+       int ret = profile->handleSetMsg(&param);
+       EXPECT_EQ(ret, NOK);
+       EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+    }
+}
+
+TEST(DeviceTest, handleGetMsg_InvalidParam) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.FriendlyName.URL", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_WEBPA;
+    param.paramtype = hostIf_StringType;
+    param.paramLen = sizeof(hostIf_StringType);
+
+    X_rdk_profile* profile = X_rdk_profile::getInstance();
+    if(profile)
+    {
+       int ret = profile->handleGetMsg(&param);
+       EXPECT_EQ(ret, NOK);
+       EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+    }
+    profile->closeInstance();
+}
+
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
     char buffer[GTEST_REPORT_FILEPATH_SIZE];

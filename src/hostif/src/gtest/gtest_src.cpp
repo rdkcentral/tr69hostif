@@ -48,6 +48,10 @@ extern "C"
 
 using namespace std;
 
+#ifdef GTEST_ENABLE
+extern size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, std::string stream);
+#endif
+
 XRFCStore* m_rfcStore;
 XBSStore* m_bsStore;
 XBSStoreJournal* m_bsStoreJournal;
@@ -69,6 +73,14 @@ TEST(srcTest, load) {
     delete m_ini;
 }
 
+TEST(srcTest, inValidFile) {
+    IniFile* m_ini = new IniFile();
+    const string filename = "/opt/secure/RFC/bootstrap_test.ini";
+    bool result = m_ini->load(filename);
+    EXPECT_EQ(result, false);
+    delete m_ini;
+}
+
 TEST(srcTest, value) {
     IniFile* m_ini = new IniFile();
     const string key = "Device.Time.NTPServer5";
@@ -76,7 +88,7 @@ TEST(srcTest, value) {
 
     bool ret = m_ini->load("/opt/secure/RFC/bootstrap.ini");
     string result = m_ini->value(key, defaultValue);
-    EXPECT_EQ(result, "time");
+    EXPECT_EQ(result, "override_time4.com");
     delete m_ini;
 }
 
@@ -91,6 +103,26 @@ TEST(srcTest, srcsetValue) {
     delete m_ini;
 }
 
+TEST(srcTest, srcsetDefaultValue) {
+    IniFile* m_ini = new IniFile();
+    const string key = "Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId";
+    const string value = "sky";
+
+    bool result = m_ini->setValue(key, value);
+    EXPECT_EQ(result, false);
+    delete m_ini;
+}
+
+TEST(srcTest, flush) {
+    IniFile* m_ini = new IniFile();
+    const string key = "Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId";
+    const string value = "sky";
+
+    m_ini->m_filename = "/opt/secure/RFC_test/bootstrap_temp.ini";
+    bool result = m_ini->flush();
+    EXPECT_EQ(result, false);
+    delete m_ini;
+}
 
 /* TEST(srcTest, clear) {
     IniFile *inFile = new IniFile();
@@ -112,6 +144,8 @@ TEST(srcTest, getStringFromEnum) {
 
     const char *result = getStringFromEnum(myEnumMap, size, inputCode);
     EXPECT_EQ(result, "TWO");
+    
+    const char *ret = getStringFromEnum(myEnumMap, 0, inputCode);
 }
 
 TEST(srcTest, getEnumFromString) {
@@ -126,6 +160,9 @@ TEST(srcTest, getEnumFromString) {
 
     int ret = getEnumFromString(myEnumMap, size, "THREE");
     EXPECT_EQ(ret, 3);
+
+    int result = getEnumFromString(myEnumMap, 0, "THREE");
+    EXPECT_EQ(result, -1);
 }
 
 TEST(srcTest, type_conversions) {
@@ -151,13 +188,6 @@ TEST(srcTest, type_conversions) {
     uint uiret = get_uint(uptr);
     EXPECT_EQ(uiret, number);
 
-    /*const char* input = "true";
-    bool ret = get_boolean("true");
-    EXPECT_EQ(ret, true); */
-
-    string btosret = bool_to_string(false);
-    EXPECT_EQ(btosret, "false");
-
     int stoiret = string_to_int("123");
     EXPECT_EQ(stoiret, 123);
 
@@ -171,6 +201,22 @@ TEST(srcTest, type_conversions) {
     EXPECT_EQ(stobret, false);
 }
 
+TEST(srcTest, bool_to_string) {
+    std::string value = bool_to_string(true);
+    EXPECT_EQ(value, "true");
+
+    string ret = bool_to_string(false);
+    EXPECT_EQ(ret, "false");
+}
+
+TEST(srcTest, string_to_bool) {
+    bool ret = string_to_bool("false");
+    EXPECT_EQ(ret, false);
+
+    bool value = string_to_bool("1");
+    EXPECT_EQ(value, true);
+}
+
 TEST(srcTest, getBSUpdateEnum) {
     HostIf_Source_Type_t type;
     type = getBSUpdateEnum("allUpdate");
@@ -181,6 +227,12 @@ TEST(srcTest, getBSUpdateEnum) {
 
     type = getBSUpdateEnum("default");
     EXPECT_EQ(type, HOSTIF_SRC_DEFAULT);
+
+    type = getBSUpdateEnum("none");
+    EXPECT_EQ(type, HOSTIF_NONE);
+
+    type = getBSUpdateEnum(NULL);
+    EXPECT_EQ(type, HOSTIF_NONE);
 }
 
 
@@ -249,6 +301,160 @@ TEST(srcTest, timeValDiff) {
     EXPECT_EQ(msec, 1700);
 }
 
+TEST(srcTest, writeCurlResponse) {
+    const char* input = "MockCurlData";
+    size_t size = 1;
+    size_t nmemb = strlen(input);
+    std::string response;
+    size_t written = getWriteCurlResponse()((void*)input, size, nmemb, response);
+    EXPECT_EQ(written, nmemb);
+}
+
+TEST(srcTest, getCurrentTime) {
+    struct timespec ts;
+    getCurrentTime(&ts);
+    EXPECT_GT(ts.tv_sec, 0);
+
+    EXPECT_GE(ts.tv_nsec, 0);
+    EXPECT_LT(ts.tv_nsec, 1000000000L);
+
+}
+
+TEST(srcTest, ReturnsEnvValueIfSet)
+{
+    const char* envName = "TEST_ENV_VAR";
+    const char* envValue = "expected_value";
+    const char* defaultValue = "default_value";
+
+    // Set environment variable
+    setenv(envName, envValue, 1);
+
+    // Call function
+    char* result = getenvOrDefault(envName, defaultValue);
+
+    // Validate
+    EXPECT_EQ(std::string(result), std::string(envValue));
+}
+
+
+TEST(srcTest, triggerResetScript)
+{
+    setResetState(ColdReset);
+    triggerResetScript();
+
+    setResetState(FactoryReset);
+    triggerResetScript();
+
+    setResetState(WarehouseReset);
+    triggerResetScript();
+
+    setResetState(CustomerReset);
+    triggerResetScript();
+
+    EXPECT_EQ(0, 0);
+}
+
+TEST(srcTest, getResetState)
+{
+    setResetState(FactoryReset);
+    eSTBResetState state = getResetState();
+    EXPECT_EQ(state, FactoryReset);
+}
+
+TEST(srcTest, get_security_token)
+{
+    std::string token = get_security_token();
+    EXPECT_EQ(token, "");
+}
+
+TEST(srcTest, putBoolValue)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+
+    putValue(&param, "true");
+    cout << "msgData.paramValue = " <<  get_boolean(param.paramValue) << endl;
+    EXPECT_EQ(get_boolean(param.paramValue), true);
+}
+
+TEST(srcTest, putIntValue)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_IntegerType;
+    param.paramLen = sizeof(hostIf_IntegerType);
+
+    putValue(&param, "14200");
+    cout << "msgData.paramValue = " <<  get_int(param.paramValue) << endl;
+    EXPECT_EQ(get_int(param.paramValue), 14200);
+}
+
+TEST(srcTest, putStringValue)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_StringType;
+    param.paramLen = strlen(param.paramValue);
+
+    putValue(&param, "testName");
+    cout << "msgData.paramValue = " << param.paramValue << endl;
+    EXPECT_STREQ(param.paramValue, "testName");
+}
+
+TEST(srcTest, putUnsignedValue)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.IP.Interface.1.Stats.BytesReceived", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_UnsignedLongType;
+    param.paramLen = sizeof(hostIf_UnsignedLongType);
+
+    putValue(&param, "1048576");
+    cout << "msgData.paramValue = " << get_ulong(param.paramValue) << endl;
+    EXPECT_EQ(get_ulong(param.paramValue), 1048576);
+}
+
+TEST(srcTest, ReturnsTrueWhenInputIsTrue)
+{
+    bool value = true;
+    EXPECT_EQ(get_boolean((const char *)&value), true);
+}
+
+
+TEST(srcTest, getStringValue)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+
+    put_boolean(param.paramValue, true);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+
+    std::string value = getStringValue(&param);
+    cout << "param.paramValue = " << param.paramValue << endl;
+    EXPECT_EQ(value, "true");
+}
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];

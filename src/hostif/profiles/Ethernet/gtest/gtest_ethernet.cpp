@@ -178,6 +178,19 @@ TEST(EthernetTest, set_Device_Ethernet_Interface_Enable) {
     }
 }
 
+TEST(EthernetTest, InterfaceLock_ReleaseLock) {
+    int instanceNumber = 0;
+    hostIf_EthernetInterface *ethernetIf= hostIf_EthernetInterface::getInstance(instanceNumber);
+    if(ethernetIf)
+    {
+      ethernetIf->getLock();
+      ethernetIf->releaseLock();
+      EXPECT_EQ(0, 0);
+    }
+    ethernetIf->closeInstance(ethernetIf);
+    ethernetIf->closeAllInstances();
+}
+
 TEST(EthernetTest, get_Device_Ethernet_Interface_Stats_BytesSent) {
     int instanceNumber = 1;
     HOSTIF_MsgData_t param = { 0 };
@@ -393,6 +406,19 @@ TEST(EthernetTest, get_Device_Ethernet_Interface_Stats_UnknownProtoPacketsReceiv
        int ret = ethernetIfStats->get_Device_Ethernet_Interface_Stats_UnknownProtoPacketsReceived(&param, &pChanged);
        EXPECT_EQ(ret, OK);
     }
+}
+
+TEST(EthernetTest, Lock_ReleaseLock) {
+    int instanceNumber = 0;
+    hostIf_EthernetInterfaceStats *ethernetIfStats = hostIf_EthernetInterfaceStats::getInstance(instanceNumber);
+    if(ethernetIfStats)
+    {
+      ethernetIfStats->getLock();
+      ethernetIfStats->releaseLock();
+      EXPECT_EQ(0, 0);
+    }
+    ethernetIfStats->closeInstance(ethernetIfStats);
+    ethernetIfStats->closeAllInstances();
 }
 
 GTEST_API_ int main(int argc, char *argv[]){

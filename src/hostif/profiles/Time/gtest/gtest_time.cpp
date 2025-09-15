@@ -123,6 +123,36 @@ TEST(TimeTest, get_Device_Time_CurrentUTCTime) {
     }
 }
 
+TEST(TimeTest, releaseLock) {
+    int instanceNumber = 0;
+    bool pChanged = false;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+
+    hostIf_Time *hostIfTime= hostIf_Time::getInstance(instanceNumber);
+    if(hostIfTime)
+    {
+       hostIfTime->getLock();
+       gboolean locked = g_mutex_trylock(&hostIfTime->m_mutex);
+       EXPECT_EQ(locked, false);
+       hostIfTime->releaseLock();
+    }
+}
+
+TEST(TimeTest, closeInstance) {
+    int instanceNumber = 0;
+    bool pChanged = false;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+
+    hostIf_Time *hostIfTime= hostIf_Time::getInstance(instanceNumber);
+    if(hostIfTime)
+    {
+       hostIf_Time::closeInstance(hostIfTime);
+       hostIfTime->closeAllInstances();
+    }
+}
+
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
     char buffer[GTEST_REPORT_FILEPATH_SIZE];

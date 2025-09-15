@@ -23,6 +23,10 @@
 #include <string>
 #include <map>
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 class IniFile
 {
 public:
@@ -36,6 +40,10 @@ public:
 private:
     std::string m_filename;
     std::map<std::string, std::string> m_dict;
+
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(srcTest, flush);
+#endif
 };
 
 #endif /* INIFILE_H_ */

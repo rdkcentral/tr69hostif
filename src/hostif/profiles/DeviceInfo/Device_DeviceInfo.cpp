@@ -1647,31 +1647,25 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename(H
             }
 
             if(line.length()) {
-                char * cstr = new char [line.length()+1];
-                rc=strcpy_s (cstr,(line.length()+1), line.c_str());
-                if(rc!=EOK)
+		std::string::size_type pos = line.find(':');
+	        if (pos == std::string::npos)
                 {
-                    ERR_CHK(rc);
+                   return NOK;
                 }
-                char * pch = NULL;
-		        pch = strstr (cstr,":");
-		        pch++;
-
-                while(isspace(*pch)) {
-                    pch++;
-                }
-                delete[] cstr;
-
-                if(bCalledX_COMCAST_COM_FirmwareFilename && pChanged && strncmp(pch,backupX_COMCAST_COM_FirmwareFilename,_BUF_LEN_64 ))
+	        std::string value = line.substr(pos + 1);
+	        value.erase(0, value.find_first_not_of(" \t"));  	
+                
+                if(bCalledX_COMCAST_COM_FirmwareFilename && pChanged && strncmp(value.c_str(),backupX_COMCAST_COM_FirmwareFilename,_BUF_LEN_64 ))
                 {
                     *pChanged =  true;
                 }
 
                 bCalledX_COMCAST_COM_FirmwareFilename = true;
-                strncpy(backupX_COMCAST_COM_FirmwareFilename,pch,sizeof(backupX_COMCAST_COM_FirmwareFilename) -1);  //CID:136569 - Buffer size
+                strncpy(backupX_COMCAST_COM_FirmwareFilename,value.c_str(),sizeof(backupX_COMCAST_COM_FirmwareFilename) -1);  //CID:136569 - Buffer size
                 backupX_COMCAST_COM_FirmwareFilename[sizeof(backupX_COMCAST_COM_FirmwareFilename) -1] = '\0';
-                strncpy(stMsgData->paramValue,pch,_BUF_LEN_64 );
-                strncpy((char *) stMsgData->paramValue, pch, stMsgData->paramLen +1 );
+                strncpy((char *) stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+		stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+		stMsgData->paramLen = value.length();
             }
         }
 
@@ -5552,6 +5546,13 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *
     }
 
     return ret;
+}
+#endif
+
+#ifdef GTEST_ENABLE
+bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr)
+{
+    return &ValidateInput_Arguments;
 }
 #endif
 /* End of doxygen group */

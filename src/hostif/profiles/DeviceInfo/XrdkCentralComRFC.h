@@ -48,6 +48,7 @@ private:
 
 #if defined(GTEST_ENABLE)
     FRIEND_TEST(rfcStorageTest, init);
+    FRIEND_TEST(StoreClearTest, init);
 #endif
 };
 
