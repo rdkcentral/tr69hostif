@@ -90,6 +90,8 @@ int hostIf_SetAttributesMsgHandler(HOSTIF_MsgData_t *stMsgData);
 
 int hostIf_GetAttributesMsgHandler(HOSTIF_MsgData_t *stMsgData);
 
+void paramValueToString(const HOSTIF_MsgData_t *stMsgData, char *paramValueStr, size_t strSize);
+
 int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData);
 
 void hostIf_Init_Dummy_stMsgData (HOSTIF_MsgData_t **stMsgData);
