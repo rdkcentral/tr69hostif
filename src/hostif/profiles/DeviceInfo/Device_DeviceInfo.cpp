@@ -1248,12 +1248,18 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_MAC(HOSTIF_MsgDat
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
     return ret;
 }
-#ifdef RDKV_NM
+
 string hostIf_DeviceInfo::getEstbIp()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
+    #ifdef RDKV_TR69
     string retAddr;
+    #else
+    string retAddr = "";
+    string ifc = "";
+    #endif
 #if MEDIA_CLIENT
+    #ifdef RDKV_TR69
     IARM_Result_t ret = IARM_RESULT_SUCCESS;
     IARM_BUS_NetSrvMgr_Iface_EventData_t param;
     memset(&param, 0, sizeof(param));
@@ -1266,109 +1272,7 @@ string hostIf_DeviceInfo::getEstbIp()
         }
         retAddr=param.activeIfaceIpaddr;
     }
-    //Legacy way of getting estb ip.
-#else
-    struct ifaddrs *ifAddrStr = NULL;
-    struct ifaddrs * ifa = NULL;
-    void * tmpAddrPtr = NULL;
-    char tmp_buff[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
-    const char *ipv6_fileName = "/tmp/estb_ipv6";
-    const char *Wifi_Enable_file = "/tmp/wifi-on";
-    try {
-        /*check for ipv6 file*/
-        bool ipv6Enabled = (!access (ipv6_fileName, F_OK))?true:false;
-        bool isWifiEnabled = (!access (Wifi_Enable_file, F_OK))?true:false;
-        const char* ip_if = NULL;
-//#ifdef MEDIA_CLIENT
-        /* Get configured moca interface */
-//        ip_if = "MOCA_INTERFACE";
-//#else
-        ip_if = "DEFAULT_ESTB_INTERFACE";
-//#endif
-        char *ethIf = getenvOrDefault (ip_if, "");
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] ipv6Enabled : %d; isWifiEnabled : %d ethIf : %s\n",
-                __FUNCTION__, __LINE__, ipv6Enabled, isWifiEnabled, ethIf);
-        if(getifaddrs(&ifAddrStr))
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s():%d] Failed in getifaddrs().\n", __FUNCTION__, __LINE__);
-            return retAddr;
-        }
-        bool found = false;
-        for (ifa = ifAddrStr; ifa != NULL; ifa = ifa->ifa_next)
-        {
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] if name : %s; family : %d %s \n", __FUNCTION__, __LINE__,
-                    ifa->ifa_name,
-                    ifa ->ifa_addr->sa_family,
-                    (ifa ->ifa_addr->sa_family == AF_PACKET) ? " (AF_PACKET)" :
-                    (ifa ->ifa_addr->sa_family == AF_INET) ?   " (AF_INET)" :
-                    (ifa ->ifa_addr->sa_family == AF_INET6) ?  " (AF_INET6)" : "" );
-            if (ifa->ifa_addr == NULL) continue;
-            if (ipv6Enabled)
-            {
-                /* Check for IP6 */
-                if ((ifa ->ifa_addr->sa_family == AF_INET6))
-                {
-                    tmpAddrPtr=&((struct sockaddr_in6  *)ifa->ifa_addr)->sin6_addr;
-                    inet_ntop(AF_INET6, tmpAddrPtr, tmp_buff, INET6_ADDRSTRLEN);
-                    if(isWifiEnabled && (!(IN6_IS_ADDR_LINKLOCAL(tmpAddrPtr)))) {
-                        if(!strcmp(ifa->ifa_name, "wlan0")) {
-                            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
-                            found = true;
-                            break;
-                        }
-                    }
-                    if(!strcmp(ifa->ifa_name, ethIf) && (!(IN6_IS_ADDR_LINKLOCAL(tmpAddrPtr))))  {
-                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            else {
-                /* Check for IP4 */
-                if (ifa ->ifa_addr->sa_family == AF_INET) {
-                    tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-                    inet_ntop(AF_INET, tmpAddrPtr, tmp_buff, INET_ADDRSTRLEN);
-                    if(isWifiEnabled) {
-                        if(!strcmp(ifa->ifa_name, "wlan0")) {
-                            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
-                            found = true;
-                            break;
-                        }
-                    }
-                    else if (strcmp(ifa->ifa_name, ethIf)==0) {
-                        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] Got ipaddress \'%s\' for (%s), breaking loop.\n", __FUNCTION__, __LINE__, tmp_buff, ifa->ifa_name);
-                        found = true;
-                        break;
-                    }
-                }
-            }
-        }
-        if (ifAddrStr!=NULL) {
-            freeifaddrs(ifAddrStr);
-        }
-        if (!found) {
-            return retAddr;
-        }
-        else {
-            retAddr = tmp_buff;
-        }
-    }
-#endif
-    catch (const std::exception &e)
-    {
-        RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s()]Exception caught %s\n", __FUNCTION__, e.what());
-    }
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
-    return retAddr;
-}
-#else
-string hostIf_DeviceInfo::getEstbIp()
-{
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
-    string retAddr = "";
-    string ifc = "";
-#if MEDIA_CLIENT
+    #else
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetPrimaryInterface\"}";
 
     string response = getJsonRPCData(std::move(postData));
@@ -1412,7 +1316,7 @@ string hostIf_DeviceInfo::getEstbIp()
     {
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData failed\n", __FUNCTION__);
     }
-    
+
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetIPSettings\", \"params\" : { \"interface\" : \"" +  ifc + "\"}}";
     response = getJsonRPCData(std::move(postData));
     if(response.c_str())
@@ -1455,7 +1359,8 @@ string hostIf_DeviceInfo::getEstbIp()
     {
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData failed\n", __FUNCTION__);
     }
-    //Legacy way of getting estb ip.
+    #endif
+////Legacy way of getting estb ip.
 #else
 
     struct ifaddrs *ifAddrStr = NULL;
@@ -1604,7 +1509,7 @@ bool hostIf_DeviceInfo::isRsshactive()
  * @retval ERR_INTERNAL_ERROR if not able to fetch data from the device.
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
-#ifdef RDKV_NM
+
 
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
@@ -1635,11 +1540,13 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
 }
 
 
-
+#ifndef RDKV_TR69
 void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
 {
     bPowerControllerEnable = isPwrContEnalbe;
+
 }
+#endif
 
 /**
  * @brief The X_COMCAST_COM_PowerStatus as get parameter results in the power status
@@ -1655,7 +1562,7 @@ void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
 
-#ifdef RDKV_NM
+#ifdef RDKV_TR69
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
@@ -3152,40 +3059,104 @@ int hostIf_DeviceInfo::findLocalPortAvailable()
     }
     return -1;
 }
+#ifdef RDKV_TR69
+  //This is a placeholder function that has been copied from RDK-49540 in RDK-E
+//Please delete this reference when we are bringing RDK-49540 changes to RDK-V
+#ifdef PRIVACYMODES_CONTROL
+size_t static writeCurlResponse_privacy(void *ptr, size_t size, size_t nmemb, string stream)
+{
+    size_t realsize = size * nmemb;
+    string temp(static_cast<const char*>(ptr), realsize);
+    stream.append(temp);
+    return realsize;
+}
+
+string getJsonRPCData(std::string postData)
+{
+    std::string tokenheader;
+    string response;
+
+    CURL *curl = curl_easy_init();
+    if(curl)
+    {
+        std::string sToken = get_security_token();
+	tokenheader = "Authorization: Bearer " + sToken;
+
+	struct curl_slist *list = NULL;
+	list = curl_slist_append(list, tokenheader.c_str());
+        list = curl_slist_append(list, "Content-Type: application/json");
+
+        if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_HTTPHEADER\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_POST, 1L) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POST\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str()) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POSTFIELDS\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCurlResponse_privacy) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEFUNCTION\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEDATA\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_URL, JSONRPC_URL) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d: curl setup failed for CURLOPT_URL\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d: curl setup failed for CURLOPT_CONNECTTIMEOUT\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d: curl setup failed for CURLOPT_TIMEOUT\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return response;
+        }
+
+        CURLcode res = curl_easy_perform(curl);
+        long http_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response : %d http response code: %ld\n", __FUNCTION__, res, http_code);
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(list);
+
+        return response;
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+        return response;
+    }
+}
+#endif
+#endif
 
 int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
-#ifdef PRIVACYMODES_CONTROL
-    string privacyModeValue; 
-    string queryJsonPrivacy = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.System.getPrivacyMode\" }";
-    string response = getJsonRPCData(queryJsonPrivacy);
-    //string response = '{"jsonrpc":"2.0","id":3,"result":{"privacyMode":"SHARE","success":true}}';
-    if(response.c_str())
-    {
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
-            if (jsonObj){
-                cJSON* privacyMode = cJSON_GetObjectItem(jsonObj, "privacyMode");
-                if(privacyMode){
-                    privacyModeValue = privacyMode->valuestring;
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: PrivacyMode is %s\n", __FUNCTION__, privacyModeValue.c_str());
-                    if (privacyModeValue.compare("DO_NOT_SHARE") == 0){
-                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: Revssh is disabled\n", __FUNCTION__);
-                        cJSON_Delete(root);
-                        return NOK;
-                    }
-                }
-            }
-            cJSON_Delete(root);
-        }
-        else{
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: Response from the rdkservices is not valid \n", __FUNCTION__);
-        }
-    }  
-#endif
+
     string inputStr(stMsgData->paramValue);
     const string startShorts = "start shorts";
     bool trigger = strncmp(inputStr.c_str(),"start",strlen("start")) == 0;
@@ -4547,7 +4518,110 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return retVal;
 }
+#ifdef RDKV_TR69
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    bool is_xmem_enabled = false;
 
+    if (!stMsgData)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] NULL parameter passed\n", __FUNCTION__, __LINE__);
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_BooleanType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Invalid parameter type for %s. Expected boolean(0/1)\n", __FUNCTION__, __LINE__, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    is_xmem_enabled = get_boolean(stMsgData->paramValue);
+
+    if (is_xmem_enabled)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Enabling MemInsight feature\n", __FUNCTION__, __LINE__);
+
+        std::ofstream enableFile(MEMINSIGHT_ENABLE_FILE);
+        if (enableFile.is_open())
+        {
+            enableFile.close();
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully enabled MemInsight. File created: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+            ret = OK;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to create MemInsight enable file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE, strerror(errno));
+            stMsgData->faultCode = fcInternalError;
+            ret = NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Disabling MemInsight feature\n", __FUNCTION__, __LINE__);
+
+        std::ifstream checkFile(MEMINSIGHT_ENABLE_FILE);
+        if (checkFile.is_open())
+        {
+            checkFile.close();
+            if (remove(MEMINSIGHT_ENABLE_FILE) == 0)
+            {
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully disabled MemInsight. File removed: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+                ret = OK;
+
+                int sysRet = v_secure_system("systemctl is-active %s", MEMINSIGHT_SERVICE);
+
+                if (sysRet == 0)
+                {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] %s is currently active\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    sysRet = v_secure_system("systemctl stop %s", MEMINSIGHT_SERVICE);
+
+                    if (sysRet == 0)
+                    {
+                        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] %s stopped successfully\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                    else
+                    {
+                        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to stop %s. Return code: %d\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE, sysRet);
+                    }
+                    sysRet = v_secure_system("systemctl is-active %s", MEMINSIGHT_SERVICE);
+
+                    if (sysRet != 0)
+                    {
+                        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Confirmed: %s is now inactive\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                    else
+                    {
+                        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Warning: %s appears to still be active after stop command\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                }
+                else
+                {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight service %s is already inactive\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                }
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove MemInsight enable file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE, strerror(errno));
+                stMsgData->faultCode = fcInternalError;
+                ret = NOK;
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight is already disabled. File not found: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+            ret = OK;
+        }
+    }
+
+    if (ret == OK)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully set MemInsight enable to %s\n", __FUNCTION__, __LINE__, is_xmem_enabled ? "true" : "false");
+    }
+    return ret;
+}
+#endif
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
@@ -5520,7 +5594,138 @@ void hostIf_DeviceInfo::systemMgmtTimePathMonitorThr()
     }
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s]Exiting...\n", __FUNCTION__);
 }
+#ifdef RDKV_NM
+int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgData)
+{
+    string resp="";
+    string experience = "";
+    std::string postData;
+    std::string tokenheader;
 
+    CURL *curl = curl_easy_init();
+
+    if(NULL == curl)
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]Failed at curl_easy_init.\n", __FUNCTION__);
+        return NOK;
+    }
+
+    if(curl)
+    {
+        std::string sToken = get_security_token();
+        tokenheader = "Authorization: Bearer " + sToken;
+
+        postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
+
+        struct curl_slist *list = NULL;
+
+        list = curl_slist_append(list, tokenheader.c_str());
+        list = curl_slist_append(list, "Content-Type: application/json");
+
+        if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_HTTPHEADER\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_POST, 1L) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POST\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str()) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POSTFIELDS\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCurlResponse) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEFUNCTION\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEDATA\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+        if(curl_easy_setopt(curl, CURLOPT_URL, JSONRPC_URL) != CURLE_OK){
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_URL\n", __FUNCTION__, __LINE__);
+            curl_easy_cleanup(curl);
+            curl_slist_free_all(list);
+            return NOK;
+        }
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+
+        CURLcode res = curl_easy_perform(curl);
+
+        long http_code = 0;
+
+        if(res == CURLE_OK)
+        {
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response : %d http response code: %ld\n", __FUNCTION__, res, http_code);
+        }
+
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(list);
+
+        if(res == CURLE_OK && http_code == HTTP_OK )
+        {
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
+
+            cJSON* root = cJSON_Parse(resp.c_str());
+
+            if(root)
+            {
+                cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+
+                if (jsonObj)
+                {
+                    cJSON *experienceObj = cJSON_GetObjectItem(jsonObj, "experience");
+
+                    if(experienceObj && experienceObj->type == cJSON_String && experienceObj->valuestring && (strlen(experienceObj->valuestring) > 0))
+                    {
+                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s]The parameter [%s] value is [%s].\n", __FUNCTION__, stMsgData->paramName, experienceObj->valuestring);
+                        experience = experienceObj->valuestring;
+                    }
+                    else
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"experience\" in the output from Thunder plugin\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                }
+                else
+                {
+                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
+
+                cJSON_Delete(root);
+            }
+            else
+            {
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
+                return NOK;
+            }
+        }
+    }
+
+    if(!experience.empty()) {
+        strncpy(stMsgData->paramValue, experience.c_str(), TR69HOSTIFMGR_MAX_PARAM_LEN-1 );
+    }
+    else {
+        return NOK;
+    }
+    return OK;
+}
+#else
 int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgData)
 {
     string experience = "";
@@ -5577,6 +5782,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgD
 
     return OK;
 }
+#endif
 
 /**
  * @brief This function identifying the imagename of the running image

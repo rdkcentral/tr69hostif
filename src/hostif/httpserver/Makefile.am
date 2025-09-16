@@ -21,12 +21,8 @@ noinst_LTLIBRARIES=libhttpserver.la
                                                                        
 libhttpserver_la_SOURCES=src/http_server.cpp src/request_handler.cpp src/XrdkCentralComRFCVar.cpp
 
-libhttpserver_la_LDFLAGS = -lrdkloggers -lwdmp-c $(SOUP_LIBS) -lcjson 
-if LIBSOUP3_ENABLE
-libhttpserver_la_LDFLAGS += -lsoup-3.0
-else
-libhttpserver_la_LDFLAGS += -lsoup-2.4
-endif
+libhttpserver_la_LDFLAGS = -lrdkloggers -lwdmp-c $(SOUP_LIBS) -lcjson -lsoup-3.0
+
 
 AM_CXXFLAGS = "-std=c++11" $(SOUP_CFLAGS) -I$(top_srcdir)/src/hostif/httpserver/include \
               -I$(top_srcdir)/src/hostif/include \
@@ -38,12 +34,9 @@ AM_CXXFLAGS = "-std=c++11" $(SOUP_CFLAGS) -I$(top_srcdir)/src/hostif/httpserver/
 	      	  -I${PKG_CONFIG_SYSROOT_DIR}$(libdir)/glib-2.0/include \
               -I$(top_srcdir)/src/hostif/parodusClient/waldb \
               -I$(top_srcdir)/src/hostif/parodusClient/pal
+              -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/libsoup-3.0
 
-if LIBSOUP3_ENABLE
-AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-3.0 -DLIBSOUP3_ENABLE
-else
-AM_CXXFLAGS += -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/libsoup-2.4
-endif
+
 
 
 
