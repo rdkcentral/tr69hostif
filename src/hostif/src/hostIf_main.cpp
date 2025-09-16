@@ -105,7 +105,7 @@ static void usage();
 T_ARGLIST argList = {{'\0'}, 0};
 static int isShutdownTriggered = 0;
 
-#ifdef RDKV_TR69
+#ifndef RDKV_TR69
 #define DEVICE_PROPS_FILE "/etc/device.properties"
 #define GENERIC_XML_FILE "/etc/data-model-generic.xml"
 #define STB_XML_FILE "/etc/data-model-stb.xml"
@@ -694,7 +694,7 @@ static void usage()
 #endif
 }
 
-#ifdef RDKV_TR69
+#ifndef RDKV_TR69
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r"); 
     FILE *in_fp2 = fopen(input2, "r"); 
