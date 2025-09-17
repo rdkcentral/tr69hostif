@@ -28,7 +28,17 @@
 #include <XrdkCentralComBSStoreJournal.h>
 #include "cJSON.h"
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 using namespace std;
+
+#if defined(GTEST_ENABLE)
+void createFile(const char* path);
+bool createBspCompleteFiles();
+bool createDirectory(const char* path);
+#endif
 
 class XBSStore
 {
@@ -69,6 +79,14 @@ private:
     bool loadFromJson();
     bool clearRfcValues();
     static void getAuthServicePartnerID();
+
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(bsStoreTest, getRawValue);
+    FRIEND_TEST(bsStoreTest, setRawValue);
+    FRIEND_TEST(bsStoreTest, initBSPropertiesFileName);
+    FRIEND_TEST(bsClearTest, resetCacheAndStore);
+    FRIEND_TEST(bsClearTest, clearRfcValues);
+#endif
 };
 
 #endif // XRDKCENTRALCOMBSSTORE_H

@@ -112,6 +112,10 @@
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_utils.h"
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 #ifndef NEW_HTTP_SERVER_DISABLE
 #include "XrdkCentralComRFCStore.h"
 #include "XrdkCentralComRFC.h"
@@ -192,6 +196,12 @@
 #define RDK_REBOOTSTOP_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable"
 
 #define APPARMOR_BLOCKLIST_PROCESS                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonRootSupport.ApparmorBlocklist"
+/* Profile: X_RDKCENTRAL-COM_RFC.Canary */
+#define CANARY_START_TIME                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart"
+#define CANARY_END_TIME                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"
+
+char* getLastField(char* line, char delimiter);
+
 /**
  * @brief This class provides the interface for getting device information.
  * @ingroup TR69_HOSTIF_DEVICEINFO_CLASSES
@@ -298,6 +308,35 @@ class hostIf_DeviceInfo {
     int set_xOpsRPCFwDwldCompletedNotification(HOSTIF_MsgData_t*);
     int set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t*);
     static void systemMgmtTimePathMonitorThr();
+    
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(deviceTest, getEstbIp);
+    FRIEND_TEST(deviceTest, NewNtpEnable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
+    FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComApparmorBlocklist);
+    FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldCompletedNotification);
+    FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldStartedNotification);
+    FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
+    FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
+    FRIEND_TEST(deviceInfoTest, findLocalPortAvailable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRetrieveNow);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
+    FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
+    FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
+    FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComNewNtpEnable);
+    FRIEND_TEST(deviceTest, findLocalPortAvailable);
+    FRIEND_TEST(deviceTest, get_xOpsRPCRebootPendingNotification);
+    FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldStartedNotification);
+    FRIEND_TEST(deviceTest, ScheduleAutoReboot);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCAutoRebootEnable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
+    FRIEND_TEST(deviceTest, set_xOpsDeviceMgmtRPCRebootNow);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCEnable);
+#endif
 
 public:
 
@@ -1227,7 +1266,25 @@ public:
 
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
+    int get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *);
 #endif
+
+    /*
+      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryStartTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryEndTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryExtendTime
+      *
+      * This method is to get the Issuetype from QA.
+      * with following TR-069 definition:
+      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart,
+      *                   Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd,
+      *   Data type: String - Arguments Start/End Time
+      *
+      * @retval OK if it is successful.
+      * @retval NOK if operation fails.
+      */
+
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(HOSTIF_MsgData_t *);
+
     /*
       * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable
       *

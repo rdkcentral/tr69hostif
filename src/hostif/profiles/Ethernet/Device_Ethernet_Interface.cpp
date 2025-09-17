@@ -894,3 +894,9 @@ int hostIf_EthernetInterface::set_Device_Ethernet_Interface_DuplexMode(HOSTIF_Ms
 
 /** @} */
 /** @} */
+
+#ifdef GTEST_ENABLE
+int (*EthernetInterfaceName(void))(unsigned int, char*) {
+    return &getEthernetInterfaceName;
+}
+#endif
