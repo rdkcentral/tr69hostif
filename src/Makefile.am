@@ -99,8 +99,9 @@ AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	-lIARMBus -lrdkloggers\ -lrbus
 	-lds -ldshalcli
 endif
-
+#ifdef RDKV_TR69
 AM_LDFLAGS += -lWPEFrameworkPowerController
+#endif
 
 AM_CFLAGS =  $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
 AM_CPPFLAGS =  $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
