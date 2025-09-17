@@ -89,10 +89,10 @@ bool hostIf_IARM_IF_Start()
         #ifdef RDKV_TR69
         pMsgHandler = DSClientReqHandler::getInstance();
         pMsgHandler->init();
-        #else
+        #endif
         pMsgHandler = DeviceClientReqHandler::getInstance();
         pMsgHandler->init();
-        #endif
+        
 
 #ifdef SNMP_ADAPTER_ENABLED
         pMsgHandler = SNMPClientReqHandler::getInstance();
