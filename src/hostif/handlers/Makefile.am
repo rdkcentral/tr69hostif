@@ -44,7 +44,7 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
         -I=/usr/include/rdk/ds/ \
         -I=/usr/include/rdk/ds-hal/ \
 	$(XRDK_RF4CE_PROFILE_FLAG) \
-        -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/
+        -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/ 
 		-I=/usr/include/libsoup-3.0/
 
 AM_CXXFLAGS += "-std=c++11" $(PROCPS_CFLAGS)
@@ -89,7 +89,7 @@ if WITH_SNMP_ADAPTER
 AM_CXXFLAGS += -DSNMP_ADAPTER_ENABLED -I$(top_srcdir)/src/hostif/snmpAdapter
 endif
 
-AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 lsoup-3.0 -lgobject-2.0 -lsecure_wrapper
+AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lsoup-3.0 -lgobject-2.0 -lsecure_wrapper
 if WIFI_CLIENT_ROAMING
 AM_CXXFLAGS += -DWIFI_CLIENT_ROAMING
 endif

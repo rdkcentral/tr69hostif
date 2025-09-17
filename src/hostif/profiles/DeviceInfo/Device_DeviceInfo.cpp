@@ -118,6 +118,8 @@
 #define MIN_PORT_RANGE 3000
 #define MAX_PORT_RANGE 3020
 
+#define MEMINSIGHT_SERVICE                 "meminsight-runner.service"
+#define MEMINSIGHT_ENABLE_FILE             "/opt/.enable_meminsight"
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
@@ -4049,6 +4051,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(stMsgData);
     }
+    else if (strcasecmp(stMsgData->paramName, X_MEMINSIGHT_ENABLE) == 0)
+    {
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(stMsgData);
+    }
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(stMsgData);
@@ -4518,7 +4524,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return retVal;
 }
-#ifdef RDKV_TR69
+
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
@@ -4621,7 +4627,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable
     }
     return ret;
 }
-#endif
+
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
