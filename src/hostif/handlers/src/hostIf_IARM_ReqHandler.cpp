@@ -36,7 +36,6 @@
 #include "libIBus.h"
 #include "libIARM.h"
 #include "sysMgr.h"
-#include "power_controller.h"
 #ifdef RDKV_TR69
 #include "pwrMgr.h"
 #else
