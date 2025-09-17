@@ -124,11 +124,13 @@ unsigned long string_to_ulong(const char *value);
 
 bool string_to_bool(const char *value);
 
+std::string bool_to_string(bool value);
+
 std::string getStringValue(HOSTIF_MsgData_t *stMsgData);
 
 void putValue(HOSTIF_MsgData_t *stMsgData, const std::string &value);
 
-bool set_GatewayConnStatus();
+void set_GatewayConnStatus( bool enabled);
 bool get_GatewayConnStatus();
 
 /**
@@ -147,6 +149,10 @@ long timeValDiff(struct timespec *starttime, struct timespec *finishtime);
 
 void setLegacyRFCEnabled(bool value);
 bool legacyRFCEnabled();
+#endif
+#ifdef T2_EVENT_ENABLED
+void t2CountNotify(const char *marker, int val);
+void t2ValNotify(const char *marker, const char *val);
 #endif
 HostIf_Source_Type_t getBSUpdateEnum(const char *bsUpdate);
 

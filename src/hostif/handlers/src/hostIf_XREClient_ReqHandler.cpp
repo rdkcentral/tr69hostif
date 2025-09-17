@@ -45,6 +45,8 @@ updateCallback XREClientReqHandler::mUpdateCallback = NULL;
 GMutex XREClientReqHandler::m_mutex;
 int XREClientReqHandler::numOfEntries = 0;
 
+#define XCONF_CHECKNOW_SCRIPT_CMD "backgroundrun /usr/bin/rdkvfwupgrader 0 3 >> /opt/logs/swupdate.log"
+
 msgHandler* XREClientReqHandler::getInstance()
 {
 
@@ -198,6 +200,10 @@ int XREClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
     if(strcasecmp(stMsgData->paramName,"Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable") == 0)
     {
         ret = get_Device_X_COMCAST_COM_Xcalibur_Client_XRE_xreEnable(stMsgData);
+    }
+    else if(strcasecmp(stMsgData->paramName,"Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow") == 0)
+    {
+        ret = get_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(stMsgData);
     }
     else if(strcasecmp(stMsgData->paramName,"Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreStatus") == 0)
     {
@@ -467,6 +473,48 @@ int XREClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
 void XREClientReqHandler::registerUpdateCallback(updateCallback cb)
 {
     mUpdateCallback = cb;
+}
+
+int set_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stMsgData)
+{
+    FILE *file = fopen("/tmp/xconfchecknow_val", "w");
+    if (file == NULL) {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: Error opening file for write.\n",__FILE__,__FUNCTION__,__LINE__);
+        return NOK;
+    }
+    fprintf(file, "%s", stMsgData->paramValue);
+    fclose(file);
+    if(0 == strncasecmp("TRUE",stMsgData->paramValue ,strlen("TRUE")) || 0 == strncasecmp("CANARY",stMsgData->paramValue ,strlen("CANARY")))
+    {
+        /*On setting xconfCheckNow,results the device to connect with the XCONF server
+            for the purpose of firmware and configuration checks.*/
+        if(-1 == v_secure_system(XCONF_CHECKNOW_SCRIPT_CMD))
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: Running checkNow script failed.\n",__FILE__,__FUNCTION__,__LINE__);
+
+            return NOK;
+        }
+
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: CheckNow Running... \n",__FILE__,__FUNCTION__,__LINE__);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: \"%s\" Invalid Input. Valid Input is \"TRUE\" \n",__FILE__,__FUNCTION__,__LINE__,stMsgData->paramValue);
+        return NOK;	    
+    }
+    return OK;
+}
+
+int get_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stMsgData)
+{
+    FILE *file = fopen("/tmp/xconfchecknow_val", "r");
+    if (file == NULL) {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: Error opening file for read.\n",__FILE__,__FUNCTION__,__LINE__);
+        return NOK;
+    }
+    fscanf(file, "%9s", stMsgData->paramValue);
+    fclose(file);
+    return OK;
 }
 
 void XREClientReqHandler::checkForUpdates()

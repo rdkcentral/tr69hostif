@@ -450,3 +450,15 @@ static long timeValDiff(struct timespec *starttime, struct timespec *finishtime)
     msec+=(finishtime->tv_nsec-starttime->tv_nsec)/1000000;
     return msec;
 }
+
+#ifdef GTEST_ENABLE
+void (*get_parodus_urlFunc())(char *parodus_url, char *client_url)
+{
+    return &get_parodus_url;
+}
+
+long (*timeValDiffFunc()) (struct timespec *starttime, struct timespec *finishtime)
+{
+    return &timeValDiff;
+}
+#endif

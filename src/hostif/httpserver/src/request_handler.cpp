@@ -738,3 +738,36 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"Leaving... %s\n", __FUNCTION__);
     return respSt;
 }
+
+#ifdef GTEST_ENABLE
+DATA_TYPE (*getWdmpDataTypeFunc())(char * )
+{
+    return &getWdmpDataType;
+}
+
+HostIf_ParamType_t (*getHostIfParamTypeFunc())(DATA_TYPE wdmpDataType)
+{
+    return &getHostIfParamType;
+}
+
+bool (*validateParamValueFunc())(const string &paramValue, HostIf_ParamType_t dataType)
+{
+    return &validateParamValue;
+}
+
+WDMP_STATUS (*handleRFCRequestFunc())(REQ_TYPE reqType, param_t *param)
+{
+    return &handleRFCRequest;
+}
+
+WDMP_STATUS (*invokeHostIfAPIFunc())(REQ_TYPE reqType, param_t *param, HostIf_Source_Type_t bsUpdate, const char *pcCallerID)
+{
+    return &invokeHostIfAPI;
+}
+
+WDMP_STATUS (*validateAgainstDataModelFunc())(REQ_TYPE reqType, char* paramName, const char* paramValue, DATA_TYPE *dataType, char **
+defaultValue, HostIf_Source_Type_t *bsUpdate)
+{
+    return &validateAgainstDataModel;
+}
+#endif

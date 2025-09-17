@@ -49,6 +49,7 @@
 #define MAX_CMD_LEN 256
 #define MAX_IFNAME_LEN 64
 #define SYS_CLASS_NET_PATH  "/sys/class/net/"
+#define MAX_IFCS 256
 
 #define IN
 #define OUT
@@ -728,7 +729,7 @@ int hostif_InterfaceStack::addBridgeChildLayerInfo(InterfaceStackMap_t &layerInf
         {
             LayerInfo_t tempLayerInfo;
 
-            tempLayerInfo.higherLayer = bridgeHigherLayer;
+            tempLayerInfo.higherLayer =  std::move(bridgeHigherLayer);
             tempLayerInfo.lowerLayer = std::string("");
 
             layerInfo.insert( std::pair<std::string, LayerInfo_t>(ifname, tempLayerInfo));
@@ -834,6 +835,38 @@ int hostif_InterfaceStack::buildBridgeTableLayerInfo(InterfaceStackMap_t &layerI
     return(rc);
 }
 
+/* getIPInterfaceIDs
+ * This function populates interface ID Array for all available IP interfaces
+ */
+
+void getIPInterfaceIDs(int *ifindexes) {
+    int count = 0;
+    FILE *fp = v_secure_popen("r", "ls /sys/class/net");
+    if (!fp) {
+      perror("popen");
+      RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"%s:%d Failed to open /sys/class/net contents\n", __FILE__, __LINE__);
+      return;
+    }
+
+    char iface[256];
+    while (fgets(iface, sizeof(iface), fp)) {
+        iface[strcspn(iface, "\n")] = 0;
+
+        //char command[512];
+        //snprintf(command, sizeof(command), "cat /sys/class/net/%s/ifindex", iface);
+
+        FILE *ifindex_fp = v_secure_popen("r", "cat /sys/class/net/%s/ifindex", iface);
+        if (ifindex_fp) {
+            char buffer[64];
+            if (fgets(buffer, sizeof(buffer), ifindex_fp)) {
+                ifindexes[count++] = atoi(buffer);
+            }
+            v_secure_pclose(ifindex_fp);
+        }
+    }
+    v_secure_pclose(fp);
+}
+
 /* getIPInterfaces
 *  This function builds up a map for all the available IP interfaces.
 */
@@ -854,10 +887,13 @@ int hostif_InterfaceStack::getIPInterfaces(IPInterfacesMap_t& interfaceList)
         ipNumOfEntries=get_int(msgData.paramValue);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s:%d ipNumOfEntries = %d\n", __FUNCTION__, __LINE__, ipNumOfEntries);
 
-        for(ipIndex=1; ipIndex <= ipNumOfEntries; ipIndex++)
+        int ifindexes[MAX_IFCS];
+        getIPInterfaceIDs(ifindexes);
+
+        for(ipIndex=0; ipIndex < ipNumOfEntries && ipIndex < MAX_IFCS; ipIndex++)
         {
             std::string ipIfName;
-            hostIf_IPInterface *pIface = hostIf_IPInterface::getInstance(ipIndex);
+            hostIf_IPInterface *pIface = hostIf_IPInterface::getInstance(ifindexes[ipIndex]);
 
             if(!pIface)
             {
@@ -873,6 +909,9 @@ int hostif_InterfaceStack::getIPInterfaces(IPInterfacesMap_t& interfaceList)
                 ipIfName.append(msgData.paramValue);
                 interfaceList.insert( std::pair<std::string, int>(ipIfName, ipIndex));
             }
+        }
+        if (ipIndex >= MAX_IFCS) {
+            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"%s:%d Available interfaces exceeds max no. of interfaces (%d)\n", __FILE__, __LINE__, MAX_IFCS);
         }
     }
     return(rc);

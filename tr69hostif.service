@@ -18,7 +18,7 @@
 ##########################################################################
 [Unit]
 Description=TR69 Host Interface Daemon
-After=lighttpd.service securemount.service dsmgr.service
+After=lighttpd.service securemount.service iarmbusd.service
 
 [Service]
 Type=notify
@@ -30,6 +30,7 @@ ExecStart=/usr/bin/tr69hostif -c /etc/mgrlist.conf -p 10999 -s 11999 -d $DEBUGIN
 ExecStop=/bin/kill -15 $MAINPID
 RestartSec=10s
 Restart=always
+TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target

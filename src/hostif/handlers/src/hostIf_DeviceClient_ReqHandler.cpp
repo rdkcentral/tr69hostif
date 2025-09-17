@@ -232,6 +232,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_xRDKDownloadManager_InstallPackage(stMsgData);
         }
+	else if (strcasecmp(stMsgData->paramName,X_RDKDownloadManager_DownloadStatus) == 0)
+        {
+            ret = pIface->set_xRDKDownloadManager_DownloadStatus(stMsgData);
+        } 
         else if (strcasecmp(stMsgData->paramName,IPREMOTE_SUPPORT) == 0)
         {
             ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportEnable(stMsgData);
@@ -486,6 +490,11 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_BootStatus(stMsgData);
         }
+
+        else if(strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.getProfileData") == 0)
+	{
+            ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(stMsgData);
+	}
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_PreferredGatewayType") == 0)
         {
             ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType(stMsgData);
@@ -522,6 +531,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_SoftwareVersion(stMsgData);
         }
+	else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.MigrationPreparer.MigrationReady") == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_MigrationPreparer_MigrationReady(stMsgData);
+        }	
 	else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.Migration.MigrationStatus") == 0)
         {
             ret = pIface->get_Device_DeviceInfo_Migration_MigrationStatus(stMsgData);

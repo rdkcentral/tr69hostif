@@ -121,18 +121,20 @@
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
-#define MigrationStatus "/opt/MigrationStatus"
+#define MigrationStatus "/opt/secure/persistent/MigrationStatus"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
-GMutex hostIf_DeviceInfo::m_mutex;
+
+pthread_mutex_t hostIf_DeviceInfo::m_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutexattr_t hostIf_DeviceInfo::m_mutex_attr;
+pthread_once_t hostIf_DeviceInfo::m_mutex_init_once = PTHREAD_ONCE_INIT;
 
 extern rbusHandle_t rbusHandle;
 void *ResetFunc(void *);
 
 
 static char stbMacCache[TR69HOSTIFMGR_MAX_PARAM_LEN] = {'\0'};
-static int mutex_lock = 0;
 static string reverseSSHArgs,shortsArgs,nonShortsArgs;
 map<string,string> stunnelSSHArgs;
 const string sshCommand = "/lib/rdk/startTunnel.sh";
@@ -267,23 +269,53 @@ void hostIf_DeviceInfo::closeAllInstances()
     }
 }
 
-void hostIf_DeviceInfo::getLock()
-{
-    g_mutex_init(&hostIf_DeviceInfo::m_mutex);
-    g_mutex_lock(&hostIf_DeviceInfo::m_mutex);
-    mutex_lock = 1;
+// Function to be called by pthread_once
+void hostIf_DeviceInfo::initMutexAttributes() {
+    pthread_mutexattr_init(&hostIf_DeviceInfo::m_mutex_attr);
+    pthread_mutexattr_settype(&hostIf_DeviceInfo::m_mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+    pthread_mutex_init(&hostIf_DeviceInfo::m_mutex, &hostIf_DeviceInfo::m_mutex_attr);
 }
 
-void hostIf_DeviceInfo::releaseLock()
-{
-    if(mutex_lock == 1)
-    {
-        mutex_lock = 0;
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
-        g_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+void hostIf_DeviceInfo::initMutexOnce() {
+    pthread_once(&m_mutex_init_once, (void (*)(void))&hostIf_DeviceInfo::initMutexAttributes);
+}
+
+void hostIf_DeviceInfo::getLock() {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Attempting to lock mutex\n", __FUNCTION__, __LINE__);
+
+    // Ensure mutex is initialized
+    hostIf_DeviceInfo::initMutexOnce();
+
+    // Try to lock
+    int lock_result = pthread_mutex_lock(&hostIf_DeviceInfo::m_mutex);
+    if (lock_result == 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to lock mutex: %s\n",
+                __FUNCTION__, __LINE__, strerror(lock_result));
     }
-    else {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Mutex is not locked, cannot unlock...  \n", __FUNCTION__, __LINE__);
+}
+
+void hostIf_DeviceInfo::releaseLock() {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
+
+    // Try to unlock and handle errors
+    int unlock_result = pthread_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
+
+    if (unlock_result == 0) {
+        // Successful unlock
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully unlocked mutex\n",
+                __FUNCTION__, __LINE__);
+    } else if (unlock_result == EPERM) {
+        // Thread doesn't own the mutex
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                "[%s:%d] Thread doesn't own the mutex, skipping unlock\n",
+                __FUNCTION__, __LINE__);
+    } else {
+        // Other error
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Error unlocking mutex: %s\n",
+                __FUNCTION__, __LINE__, strerror(unlock_result));
     }
 }
 
@@ -492,8 +524,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t * 
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
-    string line = "NOT_STARTED";
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
+    string line = "NOT_NEEDED";
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()] Entering..\n", __FUNCTION__ );
     ifstream file_read (MigrationStatus);
     try {
         if (file_read.is_open())
@@ -518,7 +550,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Migration_MigrationStatus(HOSTIF_Ms
     strncpy(stMsgData->paramValue, line.c_str(), len);
     stMsgData->paramValue[len+1] = '\0';
     stMsgData->paramLen = len;
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
 
@@ -546,6 +578,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Manufacturer(HOSTIF_MsgData_t * stM
     param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
     iarm_ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 
+    std::string temp_buf(param.buffer);
+    std::replace(temp_buf.begin(), temp_buf.end(), ' ', '_');
+    strncpy(param.buffer, temp_buf.c_str(), MAX_SERIALIZED_BUF - 1);
+    param.buffer[MAX_SERIALIZED_BUF - 1] = '\0';
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] IARM_BUS_MFRLIB_API_GetSerializedData returns params: %s with paramlen: %d.\r\n",__FUNCTION__, param.buffer, param.bufLen);
     if(iarm_ret == IARM_RESULT_SUCCESS)
     {
@@ -1221,7 +1257,7 @@ string hostIf_DeviceInfo::getEstbIp()
 #if MEDIA_CLIENT
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetPrimaryInterface\"}";
 
-    string response = getJsonRPCData(postData);
+    string response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -1264,7 +1300,7 @@ string hostIf_DeviceInfo::getEstbIp()
     }
     
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetIPSettings\", \"params\" : { \"interface\" : \"" +  ifc + "\"}}";
-    response = getJsonRPCData(postData);
+    response = getJsonRPCData(std::move(postData));
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -1618,8 +1654,8 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename(H
                     ERR_CHK(rc);
                 }
                 char * pch = NULL;
-                pch = strstr (cstr,":");
-                pch++;
+		        pch = strstr (cstr,":");
+		        pch++;
 
                 while(isspace(*pch)) {
                     pch++;
@@ -1758,6 +1794,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadPerce
 	{
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): Last Field: [%s]\n", __FUNCTION__, lastField);
 	    strncpy(output, lastField, 8);
+	    output[7] = '\0';
             firmwareDownloadPercent = strtol (output, NULL, 10);
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] FirmwareDownloadPercent = [%d]\n", __FUNCTION__, firmwareDownloadPercent);
             put_int (stMsgData->paramValue, firmwareDownloadPercent);
@@ -2679,7 +2716,7 @@ int hostIf_DeviceInfo::get_PartnerId_From_Script( string& current_PartnerId )
             partnerId = "";
         }
     }
-    current_PartnerId = partnerId;
+    current_PartnerId = std::move(partnerId);
 
     return OK;
 }
@@ -2766,7 +2803,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportEna
 
 
 
-    snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s", status);
+    snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s", status);
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
 
@@ -2800,7 +2837,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
                 }
             }
             remoteInterface_file.close();
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",ipAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
         }
         else
         {
@@ -2812,7 +2849,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
             {
                 ERR_CHK(rc);
             }
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",ipAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -2853,7 +2890,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
                 }
             }
             remoteInterface_file.close();
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",macAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
         }
         else
         {
@@ -2865,7 +2902,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
             {
                 ERR_CHK(rc);
             }
-            snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s",macAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -2882,7 +2919,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] XRPollingAction = %s\n", __FUNCTION__, m_xrPollingAction.c_str());
-    snprintf((char *)stMsgData->paramValue, strlen(stMsgData->paramValue)-1, "%s", m_xrPollingAction.c_str());
+    snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s", m_xrPollingAction.c_str());
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
 
@@ -3038,6 +3075,86 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
         v_secure_system("backgroundrun /lib/rdk/startTunnel.sh %s", arg.c_str());
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+    return OK;
+}
+
+/**
+ * @brief This function retrieves the MigrationReady param value from the MigrationReadyFile.
+ *
+ * @param[out] stMsgData TR-069 Host interface message request.
+ * @param[in] pChanged  Status of the operation.
+ *
+ * @return Returns the status of the operation.
+ *
+ * @retval OK if it is successful.
+ * @retval ERR_INTERNAL_ERROR if not able to fetch from device.
+ * @ingroup TR69_HOSTIF_DEVICEINFO_API
+ */
+int hostIf_DeviceInfo::get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    std::string response;
+    std::string postData;
+    std::string value;
+    int i = 0;
+
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Components that are Ready..\n", __FUNCTION__);
+
+    postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.MigrationPreparer.getComponentReadiness\" }";
+    response = getJsonRPCData(postData); 
+
+    if(response.c_str())
+    {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+        cJSON* root = cJSON_Parse(response.c_str());
+        if(root)
+        {
+            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+            if (jsonObj)
+            {
+                cJSON *ComponentList_obj = cJSON_GetObjectItem(jsonObj, "ComponentList");
+    		if (ComponentList_obj != NULL && cJSON_IsArray(ComponentList_obj)) 
+		{
+		    int ComponentList_obj_count = cJSON_GetArraySize(ComponentList_obj);
+		    for ( ; i < ComponentList_obj_count-1; i++) 
+		    {
+		        cJSON *Component = cJSON_GetArrayItem(ComponentList_obj, i);
+    	 	        if (cJSON_IsString(Component)) 
+			{
+			    printf(" - %s\n", Component->valuestring);
+    			    value = value + Component->valuestring + "_";
+   		        }
+   	   	    }
+   		    cJSON *Component = cJSON_GetArrayItem(ComponentList_obj, i);
+  		    value = value + Component->valuestring ;
+	        }
+    	        else
+	        {
+	            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] componentList is not present \n", __FUNCTION__);
+		    return NOK;
+  	        }
+            }
+            else
+            {
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+                cJSON_Delete(root);
+                return NOK;
+            }
+            cJSON_Delete(root);
+        }
+        else
+        {
+             RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
+        }
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+    }
+
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(value.c_str());
+    strncpy(stMsgData->paramValue, value.c_str(), stMsgData->paramLen);
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s()] Exiting..\n", __FUNCTION__ );
     return OK;
 }
 
@@ -3419,6 +3536,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComBootstrap(HOSTIF_MsgData_t * stMsgData)
 static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
 {
     const char *apparmor_profiledir = "/etc/apparmor.d";
+    const char *earlypolicy_base_dir = "/etc/apparmor/earlypolicy";
     struct dirent *entry=NULL;
     DIR *dir=NULL;
     char *files_name = NULL;
@@ -3492,12 +3610,48 @@ static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
             sub_string=strstr(files_name, subtoken);
             if(sub_string != NULL) {
                 fprintf(tmp_fptr,"%s\n",token);
-            }
-            else {
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments %s error found in the parser\n", subtoken);
-                free(files_name);
-                return FALSE;
-            }
+            } else {
+                bool profile_found = false;
+                DIR *earlypolicy_dir_ptr = opendir(earlypolicy_base_dir);
+                if (earlypolicy_dir_ptr != NULL) {
+                    struct dirent *earlypolicy_entry = NULL;
+                    while ((earlypolicy_entry = readdir(earlypolicy_dir_ptr)) != NULL) {
+                        // Skip . and .. entries
+                        if (strcmp(earlypolicy_entry->d_name, ".") == 0 || strcmp(earlypolicy_entry->d_name, "..") == 0) {
+                            continue;
+                        }
+                        // Construct the full path to the subdirectory
+                        char subdir_path[1024];
+                        snprintf(subdir_path, sizeof(subdir_path), "%s/%s", earlypolicy_base_dir, earlypolicy_entry->d_name);
+                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"snprintf args %s and %s\n", earlypolicy_base_dir, earlypolicy_entry->d_name);
+                        // Open the subdirectory to search for the profile
+                        DIR *subdir = opendir(subdir_path);
+                        if (subdir != NULL) {
+                            struct dirent *sub_entry = NULL;
+                            while ((sub_entry = readdir(subdir)) != NULL) {
+                                // Check if the file ends with .service.sp and matches subtoken
+                                if (strstr(sub_entry->d_name, subtoken) != NULL &&
+                                    strstr(sub_entry->d_name, ".service.sp") != NULL) {
+                                    profile_found = true;
+                                    break;
+                                }
+                            }
+                            closedir(subdir);
+                        }
+                        if (profile_found) {
+                            break;
+                        }
+                    }
+                    closedir(earlypolicy_dir_ptr);
+                }
+                if (profile_found) {
+                    fprintf(tmp_fptr, "%s\n", token);
+                } else {
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments %s error found in the parser\n", subtoken);
+                    free(files_name);
+                    return FALSE;
+                }
+	    }
         }
         token=strtok_r(NULL,"#",&sp);
     }
@@ -3750,6 +3904,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
 #endif
+    else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
+    {
+	ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName,CANARY_END_TIME) == 0)
+    {
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(stMsgData);
+    }
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(stMsgData);
@@ -3900,7 +4062,7 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFCAccountId(HOSTIF_MsgData_t *stMsgDat
         
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Account ID..\n", __FUNCTION__);
         
-    string response = getJsonRPCData(postData); 
+    string response = getJsonRPCData(std::move(postData)); 
     if(response.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
@@ -4011,6 +4173,127 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     return retVal;
 }
 
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    int retStatus = NOK;
+    const char *filename = "/etc/rrd/remote_debugger.json";
+    FILE *fp = nullptr;
+    char *fileBuf = nullptr;
+    long fileSz = 0;
+    size_t bytesRead = 0;
+    cJSON *root = nullptr;
+    cJSON *filtered = nullptr;
+    char *outStr = nullptr;
+    size_t outLen = 0;
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering …\n", __FUNCTION__);
+    fp = fopen(filename, "rb");
+    if (!fp) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open %s\n", __FUNCTION__, filename);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    if (fseek(fp, 0L, SEEK_END) != 0) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fseek failed\n", __FUNCTION__);
+        fclose(fp);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    fileSz = ftell(fp);
+    rewind(fp);
+    if (fileSz < 0) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] fileSz is negative, Returning....\n", __FUNCTION__);
+        fclose(fp);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    fileBuf = (char*)malloc((size_t)fileSz + 1);
+    if (!fileBuf) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] malloc(%ld) failed\n", __FUNCTION__, fileSz + 1);
+        fclose(fp);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    bytesRead = fread(fileBuf, 1U, (size_t)fileSz, fp);
+    fileBuf[bytesRead] = '\0';
+    fclose(fp); fp = nullptr;
+    root = cJSON_Parse(fileBuf);
+    if (!root) 
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] JSON parse error: %s\n", __FUNCTION__, cJSON_GetErrorPtr());
+        free(fileBuf);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    filtered = cJSON_CreateObject();
+    if (!filtered) 
+    {
+        free(fileBuf);
+        cJSON_Delete(root);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+
+    for (cJSON *top = root->child; top; top = top->next) 
+    {
+        if (top->type != cJSON_Object) 
+	{
+            continue;
+        }
+        cJSON *arr = cJSON_CreateArray();
+        if (!arr) 
+	{
+            free(fileBuf);
+            cJSON_Delete(root);
+            cJSON_Delete(filtered);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+            return retStatus;
+        }
+        for (cJSON *sub = top->child; sub; sub = sub->next) 
+	{
+            cJSON_AddItemToArray(arr, cJSON_CreateString(sub->string));
+        }
+        if (cJSON_GetArraySize(arr) > 0) 
+	{
+            cJSON_AddItemToObject(filtered, top->string, arr);
+        } 
+	else 
+	{
+            cJSON_Delete(arr);
+        }
+    }
+
+    outStr = cJSON_PrintUnformatted(filtered);
+    if (!outStr) 
+    {
+        free(fileBuf);
+        cJSON_Delete(root);
+        cJSON_Delete(filtered);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Leaving with NOK\n", __FUNCTION__);
+        return retStatus;
+    }
+    outLen = strlen(outStr);
+    if (outLen >= sizeof(stMsgData->paramValue)) 
+    {
+        outLen = sizeof(stMsgData->paramValue) - 1;
+    }
+    memcpy(stMsgData->paramValue, outStr, outLen);
+    stMsgData->paramValue[outLen] = '\0';
+    stMsgData->paramLen = outLen;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Extracted profile map: %s\n", __FUNCTION__, outStr);
+    retStatus = OK;
+    free(fileBuf);
+    cJSON_Delete(root);
+    cJSON_Delete(filtered);
+    free(outStr);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Leaving with OK\n", __FUNCTION__);
+    return retStatus;
+}
+
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData (HOSTIF_MsgData_t *stMsgData)
 {
     char *issueStr = NULL;
@@ -4060,7 +4343,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     else
     {
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RRD_WEBCFG_ISSUE_EVENT);
-	retVal = NOK;
+	retVal = OK;
     }
     rbusValue_Release(value);
     rbusValue_Release(preValue);
@@ -4072,6 +4355,32 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     return retVal;
 }
 #endif
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart (HOSTIF_MsgData_t *stMsgData)
+{
+    int startTime = 0;
+    int retVal = NOK;
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
+    startTime = atoi(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Start Time Value is %d \n",__FUNCTION__, startTime);
+    retVal = OK;
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+    return retVal;
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (HOSTIF_MsgData_t *stMsgData)
+{
+    int endTime = 0;
+    int retVal = NOK;
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
+    endTime = atoi(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] End Time Value is %d \n",__FUNCTION__, endTime);
+    retVal = OK;
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+    return retVal;
+}
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(HOSTIF_MsgData_t *stMsgData)
 {
@@ -4249,7 +4558,11 @@ int hostIf_DeviceInfo::set_xRDKCentralComDABRFCEnable(HOSTIF_MsgData_t *stMsgDat
             ofstream dabStatusFile(RDKV_DAB_ENABLE_FILE);
             dabStatusFile.close();
         } else {
-            remove(RDKV_DAB_ENABLE_FILE);
+	    if (remove(RDKV_DAB_ENABLE_FILE) != 0) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove file %s.\n", __FUNCTION__, __LINE__, RDKV_DAB_ENABLE_FILE);
+            } else {
+                  RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] File %s successfully removed.\n",__FUNCTION__, __LINE__, RDKV_DAB_ENABLE_FILE);
+            }
         }
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Successfully set \"%s\" to \"%d\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, enable);
         ret = OK;
@@ -5047,7 +5360,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgD
     string experience = "";
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
  
-    string resp = getJsonRPCData(postData); 
+    string resp = getJsonRPCData(std::move(postData)); 
     if(resp.c_str())
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
@@ -5169,7 +5482,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
 
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
 
-    ret = v_secure_system("rdm -v \"%s\" &", stMsgData->paramValue);
+    ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", stMsgData->paramValue);
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
@@ -5179,6 +5492,68 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
     return OK;
 }
+#ifdef USE_REMOTE_DEBUGGER
+int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t * stMsgData)
+{
+    int ret = NOK;
+    bool isenabled = false;
+    LOG_ENTRY_EXIT;
+
+    if(stMsgData->paramtype == hostIf_BooleanType)
+    {
+        isenabled = get_boolean(stMsgData->paramValue);
+
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%d] Successfully set \"%s\" to \"%d\". \n", __FUNCTION__, __LINE__, stMsgData->paramName, isenabled);
+
+        rbusError_t rc = RBUS_ERROR_BUS_ERROR;
+        rbusValue_t value, byVal, preValue;
+        rbusObject_t data;
+        rbusEvent_t event = {0};
+
+        rbusValue_Init(&value);
+        rbusValue_Init(&byVal);
+	rbusValue_Init(&preValue);
+        rbusValue_SetBoolean(value, isenabled);
+	rbusValue_SetBoolean(preValue, stMsgData->paramValue);
+        rbusValue_SetString(byVal, "tr69hostif");
+	
+
+	rbusObject_Init(&data, NULL);
+        rbusObject_SetValue(data, "value", value);
+	rbusObject_SetValue(data, "oldValue", preValue);
+        rbusObject_SetValue(data, "by", byVal);
+
+        event.name = RDM_DOWNLOAD_EVENT;
+        event.data = data;
+        event.type = RBUS_EVENT_VALUE_CHANGED;
+
+        rc = rbusEvent_Publish(rbusHandle, &event);
+        if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %s !!! \n ", __FUNCTION__, __LINE__,RDM_DOWNLOAD_EVENT , rbusError_ToString(rc));
+	    ret = NOK;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event success for %s !!! \n ", __FUNCTION__, __LINE__, RDM_DOWNLOAD_EVENT);
+            ret = OK;
+        }
+
+        rbusValue_Release(value);
+        rbusValue_Release(byVal);
+	rbusValue_Release(preValue);
+        rbusObject_Release(data);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterType;
+        ret=NOK;
+    }
+
+    return ret;
+}
+#endif
 /* End of doxygen group */
 /**
  * @}
