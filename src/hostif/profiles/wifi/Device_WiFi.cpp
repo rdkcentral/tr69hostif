@@ -319,7 +319,20 @@ int hostIf_WiFi::get_Device_WiFi_EndPointNumberOfEntries(HOSTIF_MsgData_t *stMsg
 
     return OK;
 }
+#ifdef RDKV_NM
+int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
+{
+    LOG_ENTRY_EXIT;
 
+    IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
+    snprintf (param.setInterface, INTERFACE_SIZE, "WIFI");
+    IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param));
+    put_boolean(stMsgData->paramValue, param.isInterfaceEnabled);
+    stMsgData->paramtype = hostIf_BooleanType;
+    stMsgData->paramLen=1;
+    return OK;
+}
+#else
 int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
@@ -373,21 +386,15 @@ int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
     }
     return OK;
 }
+#endif
 #ifdef RDKV_NM
-int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
+int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
-
-    IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
-    snprintf (param.setInterface, INTERFACE_SIZE, "WIFI");
-    IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param));
-    put_boolean(stMsgData->paramValue, param.isInterfaceEnabled);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen=1;
-    return OK;
-}
-
-	@@ -319,48 +340,29 @@ int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
+    if (stMsgData->paramtype != hostIf_BooleanType)
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterType;
         return NOK;
     }
 
