@@ -39,8 +39,10 @@
 #include "power_controller.h"
 #ifdef RDKV_TR69
 #include "pwrMgr.h"
-#endif
+#else
+#include "power_controller.h"
 #include <thread>
+#endif
 #ifdef SNMP_ADAPTER_ENABLED
 #include "hostIf_SNMPClient_ReqHandler.h"
 #endif
@@ -87,9 +89,10 @@ bool hostIf_IARM_IF_Start()
         #ifdef RDKV_TR69
         pMsgHandler = DSClientReqHandler::getInstance();
         pMsgHandler->init();
-        #endif
+        #else
         pMsgHandler = DeviceClientReqHandler::getInstance();
         pMsgHandler->init();
+        #endif
 
 #ifdef SNMP_ADAPTER_ENABLED
         pMsgHandler = SNMPClientReqHandler::getInstance();
