@@ -1476,7 +1476,7 @@ string hostIf_DeviceInfo::getEstbIp()
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Exception getting IP\n",__FUNCTION__);
     }
 #endif
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
+    //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return retAddr;
 }
 
