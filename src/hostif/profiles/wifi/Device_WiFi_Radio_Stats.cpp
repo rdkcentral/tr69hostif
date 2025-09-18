@@ -44,6 +44,9 @@ extern "C" {
 #endif
 
 GHashTable* hostIf_WiFi_Radio_Stats::ifHash = NULL;
+#ifdef RDKV_NM
+static time_t radioFirstExTime = 0;
+#endif
 
 hostIf_WiFi_Radio_Stats *hostIf_WiFi_Radio_Stats::getInstance(int dev_id)
 {

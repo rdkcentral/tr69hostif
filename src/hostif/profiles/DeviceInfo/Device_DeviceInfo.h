@@ -361,8 +361,9 @@ public:
     static int sendDeviceMgtNotification(const char* source, const char* type);
 
     GHashTable* getNotifyHash();
-
+    #ifndef RDKV_TR69
     static void setPowerConInterface( bool isPwrContEnalbe);
+    #endif
 
 //    void runSystemMgmtTimePathMonitor();
     /**

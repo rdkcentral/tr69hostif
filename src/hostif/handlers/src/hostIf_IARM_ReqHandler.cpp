@@ -52,8 +52,9 @@
 
 #define X_RDK_RFC_DEEPSLEEP_ENABLE           "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable"
 #define RETRYSLEEP (300 * 1000) //Retry sleep
-
+#ifndef RDKV_TR69
 static bool IsPwrCtlInt = false;
+#endif
 static bool TR69_HostIf_Mgr_Init();
 static bool TR69_HostIf_Mgr_Connect();
 static bool TR69_HostIf_Mgr_Get_RegisterCall();

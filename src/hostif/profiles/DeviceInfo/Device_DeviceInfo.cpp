@@ -63,7 +63,11 @@
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
 #include "hostIf_utils.h"
+#ifdef RDKV_TR69
+#include "pwrMgr.h"
+#else
 #include "power_controller.h"
+#endif
 #include "rbus.h"
 #include <curl/curl.h>
 
@@ -73,6 +77,12 @@
 #include "dsError.h"
 #include "audioOutputPort.hpp"
 #include "sysMgr.h"
+
+#ifdef RDKV_NM
+#ifdef MEDIA_CLIENT
+#include "netsrvmgrIarm.h"
+#endif
+#endif
 
 #ifdef USE_REMOTE_DEBUGGER
 #include "rrdInterface.h"
@@ -93,7 +103,7 @@
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
 
-#include "power_controller.h"
+
 
 #define VERSION_FILE                       "/version.txt"
 #define SOC_ID_FILE                        "/var/log/socprov.log"
@@ -157,8 +167,9 @@ XRFCStorage hostIf_DeviceInfo::m_rfcStorage;
 #endif
 XBSStore* hostIf_DeviceInfo::m_bsStore;
 string hostIf_DeviceInfo::m_xrPollingAction = "0";
-
+#ifndef RDKV_TR69
 static bool bPowerControllerEnable;
+#endif
 
 /****************************************************************************************************************************************************/
 // Device.DeviceInfo Profile. Getters:
@@ -3061,104 +3072,41 @@ int hostIf_DeviceInfo::findLocalPortAvailable()
     }
     return -1;
 }
-#ifdef RDKV_TR69
-  //This is a placeholder function that has been copied from RDK-49540 in RDK-E
-//Please delete this reference when we are bringing RDK-49540 changes to RDK-V
-#ifdef PRIVACYMODES_CONTROL
-size_t static writeCurlResponse_privacy(void *ptr, size_t size, size_t nmemb, string stream)
-{
-    size_t realsize = size * nmemb;
-    string temp(static_cast<const char*>(ptr), realsize);
-    stream.append(temp);
-    return realsize;
-}
 
-string getJsonRPCData(std::string postData)
-{
-    std::string tokenheader;
-    string response;
-
-    CURL *curl = curl_easy_init();
-    if(curl)
-    {
-        std::string sToken = get_security_token();
-	tokenheader = "Authorization: Bearer " + sToken;
-
-	struct curl_slist *list = NULL;
-	list = curl_slist_append(list, tokenheader.c_str());
-        list = curl_slist_append(list, "Content-Type: application/json");
-
-        if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_HTTPHEADER\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_POST, 1L) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POST\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str()) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POSTFIELDS\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCurlResponse_privacy) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEFUNCTION\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEDATA\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_URL, JSONRPC_URL) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d: curl setup failed for CURLOPT_URL\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d: curl setup failed for CURLOPT_CONNECTTIMEOUT\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d: curl setup failed for CURLOPT_TIMEOUT\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return response;
-        }
-
-        CURLcode res = curl_easy_perform(curl);
-        long http_code = 0;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response : %d http response code: %ld\n", __FUNCTION__, res, http_code);
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(list);
-
-        return response;
-    }
-    else
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
-        return response;
-    }
-}
-#endif
-#endif
 
 int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
-
+    #ifdef PRIVACYMODES_CONTROL
+    string privacyModeValue; 
+    string queryJsonPrivacy = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.System.getPrivacyMode\" }";
+    string response = getJsonRPCData(queryJsonPrivacy);
+    //string response = '{"jsonrpc":"2.0","id":3,"result":{"privacyMode":"SHARE","success":true}}';
+    if(response.c_str())
+    {
+        cJSON* root = cJSON_Parse(response.c_str());
+        if(root)
+        {
+            cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
+            if (jsonObj){
+                cJSON* privacyMode = cJSON_GetObjectItem(jsonObj, "privacyMode");
+                if(privacyMode){
+                    privacyModeValue = privacyMode->valuestring;
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: PrivacyMode is %s\n", __FUNCTION__, privacyModeValue.c_str());
+                    if (privacyModeValue.compare("DO_NOT_SHARE") == 0){
+                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: Revssh is disabled\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                }
+            }
+            cJSON_Delete(root);
+        }
+        else{
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: Response from the rdkservices is not valid \n", __FUNCTION__);
+        }
+    }  
+#endif
     string inputStr(stMsgData->paramValue);
     const string startShorts = "start shorts";
     bool trigger = strncmp(inputStr.c_str(),"start",strlen("start")) == 0;
@@ -3672,6 +3620,114 @@ int hostIf_DeviceInfo::set_xRDKCentralComBootstrap(HOSTIF_MsgData_t * stMsgData)
     return ret;
 }
 
+#ifdef RDKV_TR69
+static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
+{
+    const char *apparmor_profiledir = "/etc/apparmor.d";
+    const char *service_profiles_dir = "/etc/apparmor/service_profiles";
+    struct dirent *entry=NULL;
+    DIR *dir=NULL;
+    char *files_name = NULL;
+    size_t files_name_len = 0;
+    int number_of_profiles = 0;
+    char *token=NULL;
+    char *subtoken=NULL;
+    char *sub_string=NULL;
+    char *sp=NULL;
+    char *sptr=NULL;
+    char tmp[ENTRY_WIDTH]= {0};
+    char *arg=NULL;
+    if(tmp_fptr == NULL){
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"tmp_fptr empty, returning false\n");
+        return FALSE;
+    }
+    dir=opendir(apparmor_profiledir);
+    if(dir == NULL) {
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Failed to open Apparmor Profile directory\n");
+        return FALSE;
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        number_of_profiles++;
+    }
+    if (closedir(dir) != 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to close Apparmor Profile directory\n");
+        return false;
+    }
+    // Allocate the exact required buffer size directly
+    files_name = (char *)malloc(number_of_profiles * ENTRY_WIDTH);
+    if (files_name == NULL) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Memory allocation failed\n");
+        return false;
+    }
+    files_name[0] = '\0';  // Ensure the buffer is initially empty
+    dir = opendir(apparmor_profiledir);
+    if (dir == NULL) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to open Apparmor Profile directory\n");
+        free(files_name);
+        return false;
+    }
+    // Read the entries and store in the buffer
+    while ((entry = readdir(dir)) != NULL) {
+        strncat(files_name, entry->d_name, ENTRY_WIDTH - 1);
+        files_name_len += strlen(entry->d_name);
+    }
+    if (closedir(dir) != 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to close Apparmor Profile directory\n");
+        free(files_name);
+        return false;
+    }
+    /* Read the input arguments and ensure the corresponding profiles exist or not by searching in
+     Apparmor profile directory (/etc/apparmor.d/). Returns false if input does not have the
+     apparmor profile, Returns true if apparmor profile finds for the input */
+    token=strtok_r( input,"#", &sp);
+    while(token != NULL) {
+        arg=strchr(token,':');
+         if (arg == NULL) {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Missing ':' in token: %s\n", token);
+            free(files_name);
+            return false;
+        }
+        if ( ( (strcmp(arg+1,"disable") != 0) && (strcmp(arg+1,"complain") != 0) && (strcmp(arg+1,"enforce") != 0) ) ) {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments in the parser:%s\n", token);
+            free(files_name);
+            return FALSE;
+        }
+        strncpy(tmp,token,sizeof(tmp)-1);
+        subtoken=strtok_r(tmp,":",&sptr);
+        if(subtoken != NULL) {
+            sub_string=strstr(files_name, subtoken);
+            if(sub_string != NULL) {
+                fprintf(tmp_fptr,"%s\n",token);
+            } else {
+                bool profile_found = false;
+                DIR *service_profiles_dir_ptr = opendir(service_profiles_dir);
+                if (service_profiles_dir_ptr != NULL) {
+                    struct dirent *profile_entry = NULL;
+                    while ((profile_entry = readdir(service_profiles_dir_ptr)) != NULL) {
+                        // Check if the file ends with .service.sp and matches subtoken
+                        if (strstr(profile_entry->d_name, subtoken) != NULL &&
+                            strstr(profile_entry->d_name, ".service.sp") != NULL) {
+                            profile_found = true;
+                            break;
+                        }
+                    }
+                    closedir(service_profiles_dir_ptr);
+                }
+                if (profile_found) {
+                    fprintf(tmp_fptr, "%s\n", token);
+                } else {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Invalid arguments %s error found in the parser\n", subtoken);
+                    free(files_name);
+                    return FALSE;
+                }
+            }
+        }
+        token=strtok_r(NULL,"#",&sp);
+    }
+    free(files_name);
+    return TRUE;
+}
+#else
 static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
 {
     const char *apparmor_profiledir = "/etc/apparmor.d";
@@ -3797,7 +3853,7 @@ static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
     free(files_name);
     return TRUE;
 }
-
+#endif
 int hostIf_DeviceInfo::set_xRDKCentralComApparmorBlocklist(HOSTIF_MsgData_t *stMsgData)
 {
     const char *apparmor_config = "/opt/secure/Apparmor_blocklist";
@@ -5600,138 +5656,7 @@ void hostIf_DeviceInfo::systemMgmtTimePathMonitorThr()
     }
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s]Exiting...\n", __FUNCTION__);
 }
-#ifdef RDKV_NM
-int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgData)
-{
-    string resp="";
-    string experience = "";
-    std::string postData;
-    std::string tokenheader;
 
-    CURL *curl = curl_easy_init();
-
-    if(NULL == curl)
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]Failed at curl_easy_init.\n", __FUNCTION__);
-        return NOK;
-    }
-
-    if(curl)
-    {
-        std::string sToken = get_security_token();
-        tokenheader = "Authorization: Bearer " + sToken;
-
-        postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
-
-        struct curl_slist *list = NULL;
-
-        list = curl_slist_append(list, tokenheader.c_str());
-        list = curl_slist_append(list, "Content-Type: application/json");
-
-        if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_HTTPHEADER\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return NOK;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_POST, 1L) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POST\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return NOK;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str()) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_POSTFIELDS\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return NOK;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCurlResponse) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEFUNCTION\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return NOK;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_WRITEDATA\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return NOK;
-        }
-        if(curl_easy_setopt(curl, CURLOPT_URL, JSONRPC_URL) != CURLE_OK){
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s:%d curl setup failed for CURLOPT_URL\n", __FUNCTION__, __LINE__);
-            curl_easy_cleanup(curl);
-            curl_slist_free_all(list);
-            return NOK;
-        }
-	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
-
-        CURLcode res = curl_easy_perform(curl);
-
-        long http_code = 0;
-
-        if(res == CURLE_OK)
-        {
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response : %d http response code: %ld\n", __FUNCTION__, res, http_code);
-        }
-
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(list);
-
-        if(res == CURLE_OK && http_code == HTTP_OK )
-        {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
-
-            cJSON* root = cJSON_Parse(resp.c_str());
-
-            if(root)
-            {
-                cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
-                if (jsonObj)
-                {
-                    cJSON *experienceObj = cJSON_GetObjectItem(jsonObj, "experience");
-
-                    if(experienceObj && experienceObj->type == cJSON_String && experienceObj->valuestring && (strlen(experienceObj->valuestring) > 0))
-                    {
-                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s]The parameter [%s] value is [%s].\n", __FUNCTION__, stMsgData->paramName, experienceObj->valuestring);
-                        experience = experienceObj->valuestring;
-                    }
-                    else
-                    {
-                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"experience\" in the output from Thunder plugin\n", __FUNCTION__);
-                        cJSON_Delete(root);
-                        return NOK;
-                    }
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return NOK;
-                }
-
-                cJSON_Delete(root);
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
-                return NOK;
-            }
-        }
-    }
-
-    if(!experience.empty()) {
-        strncpy(stMsgData->paramValue, experience.c_str(), TR69HOSTIFMGR_MAX_PARAM_LEN-1 );
-    }
-    else {
-        return NOK;
-    }
-    return OK;
-}
-#else
 int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgData)
 {
     string experience = "";

@@ -37,9 +37,6 @@
  *****************************************************************************/
 #include <cstddef>
 #include "safec_lib.h"
-#include <curl/curl.h>
-#include "cJSON.h"
-#include "hostIf_utils.h"
 #ifdef USE_WIFI_PROFILE
 
 #include "Device_WiFi_SSID.h"
@@ -49,6 +46,10 @@ extern "C" {
 #include "wifi_common_hal.h"
 #include "wifiSrvMgrIarmIf.h"
 };
+#else
+#include <curl/curl.h>
+#include "cJSON.h"
+#include "hostIf_utils.h"
 #endif
 
 static time_t firstExTime = 0;
