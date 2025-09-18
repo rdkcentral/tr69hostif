@@ -5713,7 +5713,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgD
 
     return OK;
 }
-#endif
+
 
 /**
  * @brief This function identifying the imagename of the running image
