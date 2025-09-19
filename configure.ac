@@ -226,6 +226,15 @@ AC_ARG_ENABLE([t2api],
 AM_CONDITIONAL([IS_TELEMETRY2_ENABLED], [test x$IS_TELEMETRY2_ENABLED = xtrue])
 AC_SUBST(T2_EVENT_FLAG)
 
+AC_ARG_ENABLE([powercontroller],
+[  --enable-powercontroller    Enable linking WPEFrameworkPowerController],
+[case "${enableval}" in
+  yes) powercontroller=true ;;
+  no)  powercontroller=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-powercontroller]) ;;
+esac],[powercontroller=false])
+AM_CONDITIONAL([POWERCONTROLLER_ENABLE], [test x$powercontroller = xtrue])
+
 
 
 AC_ARG_ENABLE([rf4ce],

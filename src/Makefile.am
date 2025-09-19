@@ -100,7 +100,7 @@ AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	-lds -ldshalcli
 endif
 
-ifndef RDKV_TR69
+if POWERCONTROLLER_ENABLE
 AM_LDFLAGS += -lWPEFrameworkPowerController
 endif
 
