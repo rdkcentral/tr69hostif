@@ -1472,11 +1472,20 @@ string hostIf_DeviceInfo::getEstbIp()
         else {
             retAddr = tmp_buff;
         }
-    } catch (const std::exception& e) {
+    } 
+        #ifndef RDKV_TR69
+        catch (const std::exception& e) {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Exception getting IP\n",__FUNCTION__);
+        #endif       
     }
 #endif
-    //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
+#ifdef RDKV_TR69
+catch (const std::exception &e)
+    {
+        RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s()]Exception caught %s\n", __FUNCTION__, e.what());
+    }
+#endif
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return retAddr;
 }
 
