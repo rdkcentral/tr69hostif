@@ -3531,20 +3531,6 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS." access="readOnly" minEntries="1" maxEntries="1"/>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsCrashdumpUpload." access="readOnly" minEntries="0" maxEntries="1" >
-     <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-     </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsXConfDownload." access="readOnly" minEntries="0" maxEntries="1" >
-     <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-     </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsXcSsr." access="readOnly" minEntries="0" maxEntries="1" >
      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -4137,14 +4123,6 @@
       <parameter base="Version" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
-        </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.MTLS." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-	  <boolean/>
-	  <default type="factory" value="true"/>
         </syntax>
       </parameter>
     </object>
