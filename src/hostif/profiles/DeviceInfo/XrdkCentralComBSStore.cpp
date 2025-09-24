@@ -112,7 +112,7 @@ bool createBspCompleteFiles()
 
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"Creating BSP Complete File %s\n", BSP_COMPLETE);
     createFile(BSP_COMPLETE);
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"Creating BSP Complete File %s in tmp Directory%s\n", BSP_COMPLETE_TMP);
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"Creating BSP Complete File %s in tmp Directory\n", BSP_COMPLETE_TMP);
     createFile(BSP_COMPLETE_TMP);
     return true;
 }
