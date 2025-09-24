@@ -207,6 +207,22 @@ public:
     static GList* getAllIntefaces();
     static void closeAllInstances();
 
+    #ifdef RDKV_NM
+     /**
+     * @ingroup TR69_HOSTIF_WIFI_API
+     * @{
+     */
+    /**
+     * @brief This function provides the number of entries in the Radio table.
+     */
+    int get_Device_WiFi_RadioNumberOfEntries(HOSTIF_MsgData_t *);
+
+
+    /**
+     * @brief This function provides the number of entries in the SSID table.
+     */
+    int get_Device_WiFi_SSIDNumberOfEntries(HOSTIF_MsgData_t *);
+    #endif
     /**
      * @brief This function provides the number of entries in the AccessPoint table.
      */
