@@ -69,6 +69,49 @@ extern T_ARGLIST argList;
 static std::mutex get_handler_mutex;
 static std::mutex set_handler_mutex;
 
+void paramValueToString(const HOSTIF_MsgData_t *stMsgData, char *paramValueStr, size_t strSize)
+{
+    if (!stMsgData || !paramValueStr || strSize == 0) {
+        if (paramValueStr && strSize > 0)
+            snprintf(paramValueStr, strSize, "<invalid input>");
+        return;
+    }
+
+    switch (stMsgData->paramtype) {
+        case hostIf_StringType:
+        case hostIf_DateTimeType:
+            snprintf(paramValueStr, strSize, "%s", (const char*)stMsgData->paramValue);
+            break;
+        case hostIf_IntegerType: {
+            int val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%d", val);
+            break;
+        }
+        case hostIf_UnsignedIntType: {
+            unsigned int val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%u", val);
+            break;
+        }
+        case hostIf_BooleanType: {
+            bool val = false;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%s", val ? "true" : "false");
+            break;
+        }
+        case hostIf_UnsignedLongType: {
+            unsigned long val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%lu", val);
+            break;
+        }
+        default:
+            snprintf(paramValueStr, strSize, "<unknown or unsupported type>");
+            break;
+    }
+}
+
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
