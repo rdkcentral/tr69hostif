@@ -233,7 +233,7 @@ AC_ARG_ENABLE([powercontroller],
   no)  powercontroller=false ;;
   *) AC_MSG_ERROR([bad value ${enableval} for --enable-powercontroller]) ;;
 esac],[powercontroller=false])
-AM_CONDITIONAL([POWERCONTROLLER_ENABLE], [test x$powercontroller = xtrue])
+AM_CONDITIONAL([POWERCONTROLLER_ENB], [test x$powercontroller = xtrue])
 
 
 
