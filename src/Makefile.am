@@ -100,7 +100,7 @@ AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	-lds -ldshalcli
 endif
 
-if POWERCONTROLLER_ENABLE
+if POWERCONTROLLER_ENB
 AM_LDFLAGS += -lWPEFrameworkPowerController
 endif
 
