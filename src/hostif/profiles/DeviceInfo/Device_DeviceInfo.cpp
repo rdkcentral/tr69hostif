@@ -114,6 +114,9 @@
 #define MAX_TR69_DOS_THRESHOLD 30
 #define HTTP_OK 200
 
+#define MEMINSIGHT_SERVICE                 "meminsight-runner.service"
+#define MEMINSIGHT_ENABLE_FILE             "/opt/.enable_meminsight"
+
 /* Localhost port range for stunnel client to listen/accept */
 #define MIN_PORT_RANGE 3000
 #define MAX_PORT_RANGE 3020
@@ -3912,6 +3915,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(stMsgData);
     }
+    else if (strcasecmp(stMsgData->paramName, X_MEMINSIGHT_ENABLE) == 0)
+    {
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(stMsgData);
+    }
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(stMsgData);
@@ -4380,6 +4387,109 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return retVal;
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    bool is_xmem_enabled = false;
+
+    if (!stMsgData)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] NULL parameter passed\n", __FUNCTION__, __LINE__);
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_BooleanType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Invalid parameter type for %s. Expected boolean(0/1)\n", __FUNCTION__, __LINE__, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    is_xmem_enabled = get_boolean(stMsgData->paramValue);
+
+    if (is_xmem_enabled)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Enabling MemInsight feature\n", __FUNCTION__, __LINE__);
+
+        std::ofstream enableFile(MEMINSIGHT_ENABLE_FILE);
+        if (enableFile.is_open())
+        {
+            enableFile.close();
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully enabled MemInsight. File created: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+            ret = OK;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to create MemInsight enable file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE, strerror(errno));
+            stMsgData->faultCode = fcInternalError;
+            ret = NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Disabling MemInsight feature\n", __FUNCTION__, __LINE__);
+
+        std::ifstream checkFile(MEMINSIGHT_ENABLE_FILE);
+        if (checkFile.is_open())
+        {
+            checkFile.close();
+            if (remove(MEMINSIGHT_ENABLE_FILE) == 0)
+            {
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully disabled MemInsight. File removed: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+                ret = OK;
+
+                int sysRet = v_secure_system("systemctl is-active %s", MEMINSIGHT_SERVICE);
+
+                if (sysRet == 0)
+                {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] %s is currently active\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    sysRet = v_secure_system("systemctl stop %s", MEMINSIGHT_SERVICE);
+
+                    if (sysRet == 0)
+                    {
+                        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] %s stopped successfully\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                    else
+                    {
+                        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to stop %s. Return code: %d\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE, sysRet);
+                    }
+                    sysRet = v_secure_system("systemctl is-active %s", MEMINSIGHT_SERVICE);
+
+                    if (sysRet != 0)
+                    {
+                        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Confirmed: %s is now inactive\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                    else
+                    {
+                        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Warning: %s appears to still be active after stop command\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                }
+                else
+                {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight service %s is already inactive\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                }
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove MemInsight enable file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE, strerror(errno));
+                stMsgData->faultCode = fcInternalError;
+                ret = NOK;
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight is already disabled. File not found: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+            ret = OK;
+        }
+    }
+
+    if (ret == OK)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully set MemInsight enable to %s\n", __FUNCTION__, __LINE__, is_xmem_enabled ? "true" : "false");
+    }
+    return ret;
 }
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(HOSTIF_MsgData_t *stMsgData)
