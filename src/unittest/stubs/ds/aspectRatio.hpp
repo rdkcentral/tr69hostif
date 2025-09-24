@@ -54,11 +54,15 @@ public:
 	static const int k16x9;   //!< Indicates 16x9 aspect ratio.
 	static const int kMax;    //!< Indicates maximum number of aspect ratios supported.
 
-	static const AspectRatio & getInstance(int id);
+	static const AspectRatio & getInstance(int id)
+	{
+	    static AspectRatio aspectRatio(id);
+            return aspectRatio; 	    
+	}
 	static const AspectRatio & getInstance(const std::string &name);
 
-	AspectRatio(int id);
-	virtual ~AspectRatio();
+	AspectRatio(int id) {}
+	virtual ~AspectRatio() {}
 
 };
 

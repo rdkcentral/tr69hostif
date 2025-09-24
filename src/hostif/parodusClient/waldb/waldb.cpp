@@ -59,8 +59,11 @@ int checkMatchingParameter(const char* attrValue, char* paramName, int* ret);
 void appendNextObject(char* currentParam, const char* pAttparam);
 int getNumberofInstances(const char* paramName);
 
-
+#ifdef RDKV_TR69
+#define WEBPA_DATA_MODEL_FILE "/etc/data-model.xml"
+#else
 #define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
+#endif
 static void *g_dbhandle = NULL;
 std::mutex g_db_mutex;
 

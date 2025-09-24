@@ -28,6 +28,7 @@
 #define RDK_LOG_INFO 3
 #define RDK_LOG_WARN 4
 #define RDK_LOG_ERROR 5
+#define RDK_LOG_TRACE2 6
 
 #define rdk_logger_init(DEBUG_INI_NAME) ;
 

@@ -84,11 +84,16 @@ class AudioOutputPort  : public Enumerable {
 
 public:
 
-	static AudioOutputPort & getInstance(int id);
+	static AudioOutputPort & getInstance(int id)
+	{
+	    static AudioOutputPort instance(id);
+            return instance;	    
+	}
 	static AudioOutputPort & getInstance(const std::string &name);
 
 	AudioOutputPort(const int type, const int index, const int id);
-	virtual ~AudioOutputPort();
+	AudioOutputPort(int id) {}
+	virtual ~AudioOutputPort() {}
 
 	const AudioOutputPortType & getType() const;
 	int getId() const {return _id;};
@@ -108,9 +113,13 @@ public:
 	const List<AudioStereoMode> getSupportedStereoModes() const;
 
 
-	const AudioEncoding &getEncoding() const;
-	int getCompression() const;
-	int getDialogEnhancement() const;
+	const AudioEncoding &getEncoding() const
+	{
+	  static AudioEncoding audioObj(AudioEncoding::kPCM);
+          return audioObj;	  
+	}
+	int getCompression() const { return 1; }
+	int getDialogEnhancement() const { return 1; }
 	bool getDolbyVolumeMode() const;
 	int getIntelligentEqualizerMode() const;
         dsVolumeLeveller_t getVolumeLeveller() const;
@@ -122,7 +131,11 @@ public:
 	int getGraphicEqualizerMode() const;
 	const std::string getMS12AudioProfile() const;
 	std::vector<std::string> getMS12AudioProfileList() const;
-	const AudioStereoMode &getStereoMode(bool usePersist = false);
+	const AudioStereoMode &getStereoMode(bool usePersist = false)
+	{
+	    static AudioStereoMode stereoObj(AudioStereoMode::kStereo);
+	    return stereoObj;
+	}
 
     dsError_t setEnablePort(bool enabled);	
     dsError_t reInitializeAudioOutputPort();
@@ -134,25 +147,25 @@ public:
 
 	bool getStereoAuto();
 
-	float getGain() const;
-	float getDB() const;
-	float getLevel() const;
-	float getMaxDB() const;
-	float getMinDB() const;
-	float getOptimalLevel() const;
+	float getGain() const { return 0.6f; };
+	float getDB() const { return 0.6f; };
+	float getLevel() const { return 0.6f; };
+	float getMaxDB() const { return 0.6f; };
+	float getMinDB() const { return 0.6f; };
+	float getOptimalLevel() const { return 0.6f; };
 	bool getAudioDelay(uint32_t& audioDelayMs) const;
 	bool getAudioDelayOffset(uint32_t& audioDelayOffsetMs) const;
-	bool isLoopThru() const;
-	bool isMuted() const;
+	bool isLoopThru() const { return true; }
+	bool isMuted() const { return true; };
 	bool isConnected() const;
-	bool isEnabled() const;
+	bool isEnabled() const { return true; };
 
 	bool isAudioMSDecode() const;
 	bool isAudioMS12Decode() const;
 	
-	void setEncoding(const int encoding);
-	void setCompression(const int compression);
-	void setDialogEnhancement(const int level);
+	void setEncoding(const int encoding) {}
+	void setCompression(const int compression) {}
+	void setDialogEnhancement(const int level) {}
 	void setDolbyVolumeMode(const bool mode);
 	void setIntelligentEqualizerMode(const int mode);
         void setVolumeLeveller(const dsVolumeLeveller_t volLeveller);
@@ -164,7 +177,7 @@ public:
 	void setGraphicEqualizerMode(const int mode);
 	void setMS12AudioProfile(std::string profile);
 
-	void setStereoMode(const int mode, const bool toPersist = true);
+	void setStereoMode(const int mode, const bool toPersist = true) {}
 	void setStereoAuto(const bool autoMode, const bool toPersist = true);
 
 	void setEncoding(const std::string & encoding);
@@ -189,11 +202,11 @@ public:
         void setSecondaryLanguage(const std::string sLang);
         void getSecondaryLanguage(std::string &sLang);
 
-	void setDB(const float db);
+	void setDB(const float db) {}
         void setGain(const float newGain);
-	void setLevel(const float level);
-	void setLoopThru(const bool loopThru);
-	void setMuted(const bool mute);
+	void setLevel(const float level) {}
+	void setLoopThru(const bool loopThru) {}
+	void setMuted(const bool mute) {}
 	void setAudioDucking(dsAudioDuckingAction_t action, dsAudioDuckingType_t, const unsigned char level);
         void getAudioCapabilities(int *capabilities);
         void getMS12Capabilities(int *capabilities);

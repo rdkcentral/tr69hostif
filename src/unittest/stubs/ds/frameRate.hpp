@@ -53,7 +53,7 @@ public:
 	static const int k24;        //!< Indicates video frame rate of 24 fps.
 	static const int k25;        //!< Indicates video frame rate of 25 fps.
 	static const int k30;        //!< Indicates video frame rate of 30 fps.
-	static const int k60;        //!< Indicates video frame rate of 60 fps.
+	static constexpr int k60 = 60;        //!< Indicates video frame rate of 60 fps.
 	static const int k23dot98;   //!< Indicates video frame rate of 23.98 fps.
 	static const int k29dot97;   //!< Indicates video frame rate of 29.97 fps.
 	static const int k50;        //!< Indicates video frame rate of 50 fps.
@@ -63,9 +63,9 @@ public:
 	static const FrameRate & getInstance(int id);
 	static const FrameRate & getInstance(const std::string &name);
 
-	FrameRate(float value);
-	FrameRate(int id);
-	virtual ~FrameRate();
+	FrameRate(float value) {}
+	FrameRate(int id) {}
+	virtual ~FrameRate() {}
 };
 
 }

@@ -53,7 +53,7 @@ class AudioStereoMode : public DSConstant {
 
 public:
 	static const int kMono;       //!< Indicates audio mode of type mono.
-	static const int kStereo;     //!< Indicates audio mode of type stereo.
+	static const int kStereo = 1;     //!< Indicates audio mode of type stereo.
 	static const int kSurround;   //!< Indicates audio mode of type surround.
 	static const int kPassThru;   //!< Indicates audio mode of type pass through.
 	static const int kDD;         //!< Indicates audio mode of type dolby digital.
@@ -63,8 +63,8 @@ public:
 	static const AudioStereoMode & getInstance(int id);
 	static const AudioStereoMode & getInstance(const std::string &name);
 
-	AudioStereoMode(int id);
-	virtual ~AudioStereoMode();
+	AudioStereoMode(int id) {}
+	virtual ~AudioStereoMode() {}
 
 };
 
