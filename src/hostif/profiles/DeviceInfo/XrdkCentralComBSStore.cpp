@@ -110,7 +110,9 @@ bool createBspCompleteFiles()
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF,"Directory %s already exists.\n", RFC_DIRECTORY);
     }
 
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"Creating BSP Complete File %s\n", BSP_COMPLETE);
     createFile(BSP_COMPLETE);
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"Creating BSP Complete File %s in tmp Directory%s\n", BSP_COMPLETE_TMP);
     createFile(BSP_COMPLETE_TMP);
     return true;
 }
@@ -279,12 +281,15 @@ void XBSStore::getAuthServicePartnerID()
                         // Create a new file "/tmp/authservice_parodus_restart"
                         createFile(AUTH_SERVICE_PARODUS_RESTART);
                         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"BSP_COMPLETE exists. Created /tmp/authservice_parodus_restart.\n");
-                    } else {
-                        // If BSP_COMPLETE doesn't exist, create it so parodus.service can start.
-                        createBspCompleteFiles();
-                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"BSP_COMPLETE did not exist. Created BSP_COMPLETE.\n");
-                    }
+                    } 
                 }
+
+		RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"Check and create BSP_COMPLETE for parodus.service to start.\n");
+                if (!fileExists(BSP_COMPLETE)) {
+                    // If BSP_COMPLETE doesn't exist, create it so parodus.service can start.
+                    createBspCompleteFiles();
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"BSP_COMPLETE did not exist. Created BSP_COMPLETE.\n");
+		}		
             }
             else
             {
