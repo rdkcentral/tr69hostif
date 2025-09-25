@@ -105,11 +105,13 @@ static void usage();
 T_ARGLIST argList = {{'\0'}, 0};
 static int isShutdownTriggered = 0;
 
+#ifndef RDKV_TR69
 #define DEVICE_PROPS_FILE "/etc/device.properties"
 #define GENERIC_XML_FILE "/etc/data-model-generic.xml"
 #define STB_XML_FILE "/etc/data-model-stb.xml"
 #define TV_XML_FILE "/etc/data-model-tv.xml"
 #define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
+#endif
 
 
 std::mutex mtx_httpServerThreadDone;
@@ -411,6 +413,7 @@ int main(int argc, char *argv[])
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
         }
+        #ifndef RDKV_TR69
         MergeStatus mergeStatus = mergeDataModel();
         if (mergeStatus != MERGE_SUCCESS) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in merging Data Model\n");
@@ -419,6 +422,7 @@ int main(int argc, char *argv[])
         else {
              RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Successfully merged Data Model.\n");
         }
+        #endif
         /* Load the data model xml file*/
         DB_STATUS status = loadDataModel();
         if(status != DB_SUCCESS)
@@ -671,7 +675,7 @@ static void usage()
 #endif
 }
 
-
+#ifndef RDKV_TR69
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r"); 
     FILE *in_fp2 = fopen(input2, "r"); 
@@ -783,6 +787,7 @@ MergeStatus mergeDataModel()  {
 	return MERGE_FAILURE;
     }
 }
+#endif
 
 /** @} */
 /** @} */
