@@ -249,3 +249,10 @@ int getnotifyparamList(char ***notifyParamList,int *ptrnotifyListSize)
     }
     return 0;
 }
+
+#ifdef GTEST_ENABLE
+void (*macToLowerFunc())(char macValue[],char macConverted[])
+{
+    return &macToLower;
+}
+#endif

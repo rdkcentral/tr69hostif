@@ -501,3 +501,15 @@ void getCurrentTime(struct timespec *timer)
 {
     clock_gettime(CLOCK_REALTIME, timer);
 }
+
+#ifdef GTEST_ENABLE
+WDMP_STATUS (*validate_parameterFunc()) (param_t *param, int paramCount)
+{
+    return &validate_parameter;
+}
+
+void (*setRebootReasonFunc()) (param_t param, WEBPA_SET_TYPE setType)
+{
+    return &setRebootReason;
+}
+#endif

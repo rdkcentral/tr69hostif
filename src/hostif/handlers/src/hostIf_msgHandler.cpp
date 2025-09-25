@@ -31,6 +31,8 @@
 
 #include <mutex>
 #include <chrono>
+#include <atomic>
+#include <time.h>
 #include "hostIf_main.h"
 #include "hostIf_msgHandler.h"
 #include "hostIf_utils.h"
@@ -71,6 +73,60 @@ static std::mutex get_handler_mutex;
 static std::mutex set_handler_mutex;
 static int getCount = 0;
 static int setCount = 0;
+static std::atomic<int> getCountSinceBoot{0};
+static time_t bootTimeSec = 0;
+static std::atomic<int> setCountSinceBoot{0};
+static time_t bootTimeSecSet =0;
+static std::atomic<bool> loggedGet200Within1Min {false};
+static std::atomic<bool> loggedGet1000Within5Min {false};
+static std::atomic<bool> loggedSet200Within1Min {false};
+static std::atomic<bool> loggedSet1000Within5Min {false};
+
+#define PARAM_VALUE_STR_SIZE 128
+
+
+void paramValueToString(const HOSTIF_MsgData_t *stMsgData, char *paramValueStr, size_t strSize)
+{
+    if (!stMsgData || !paramValueStr || strSize == 0) {
+        if (paramValueStr && strSize > 0)
+            snprintf(paramValueStr, strSize, "<invalid input>");
+        return;
+    }
+
+    switch (stMsgData->paramtype) {
+        case hostIf_StringType:
+        case hostIf_DateTimeType:
+            snprintf(paramValueStr, strSize, "%s", (const char*)stMsgData->paramValue);
+            break;
+        case hostIf_IntegerType: {
+            int val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%d", val);
+            break;
+        }
+        case hostIf_UnsignedIntType: {
+            unsigned int val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%u", val);
+            break;
+        }
+        case hostIf_BooleanType: {
+            bool val = false;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%s", val ? "true" : "false");
+            break;
+        }
+        case hostIf_UnsignedLongType: {
+            unsigned long val = 0;
+            memcpy(&val, stMsgData->paramValue, sizeof(val));
+            snprintf(paramValueStr, strSize, "%lu", val);
+            break;
+        }
+        default:
+            snprintf(paramValueStr, strSize, "<unknown or unsupported type>");
+            break;
+    }
+}
 
 int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
@@ -82,6 +138,40 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] GET called %d times\n",__FUNCTION__, __LINE__, getCount);
     }
     std::lock_guard<std::mutex> lock(get_handler_mutex);
+     // On first call, record boot time
+    if (bootTimeSec == 0) {
+        struct timespec ts;
+        clock_gettime(CLOCK_BOOTTIME, &ts);
+        bootTimeSec = ts.tv_sec;
+    }
+    getCountSinceBoot++;
+
+    // Calculate seconds since boot
+    struct timespec now;
+    clock_gettime(CLOCK_BOOTTIME, &now);
+    long secondsSinceBoot = now.tv_sec - bootTimeSec;
+
+    // Log if getCount reaches 200 before 1 minute from boot
+    if ( !loggedGet200Within1Min && getCountSinceBoot >= 200 && secondsSinceBoot <= 60) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] GET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
+            __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
+        t2CountNotify("TR69HOSTIF_GET_200_WITHIN_1MIN", 1);
+        #endif
+        loggedGet200Within1Min = true;
+    }
+
+    // Log if getCount reaches 1000 before 5 minutes from boot
+    if ( !loggedGet1000Within5Min && getCountSinceBoot >= 1000 && secondsSinceBoot <= 300) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] GET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
+            __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
+        t2CountNotify("TR69HOSTIF_GET_1000_WITHIN_5MIN", 1);
+        #endif
+        loggedGet1000Within5Min =true;
+    }
     try
     {
         /* Find the respective manager and forward the request*/
@@ -93,15 +183,31 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             ret = pMsgHandler->handleGetMsg(stMsgData);
             auto endTime = std::chrono::high_resolution_clock::now();
             auto timeTaken = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+            char paramValueStr[PARAM_VALUE_STR_SIZE] = {0};
+            paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
+            
 
             // Calculate time taken in microseconds
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
-                stMsgData->paramValue,
+                paramValueStr,
                 timeTaken);
+           // Telemetry and debug log if processing time > 5 second (1,000,000 us)
+            if (timeTaken > 5000000) {
+                // Debug log
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                    "[%s:%d] Slow GET detected: paramName: %s, timeTaken: %lld ms\n",
+                    __FUNCTION__, __LINE__, stMsgData->paramName, timeTaken/1000);
+                #ifdef T2_EVENT_ENABLED
+                // Telemetry: report paramName
+                t2ValNotify("TR69HOSTIF_GET_TIMEOUT_PARAM", stMsgData->paramName);
+                #endif
+                
+            }
         }
+        
     }
     catch (const std::exception& e)
     {
@@ -122,6 +228,41 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     std::lock_guard<std::mutex> lock(set_handler_mutex);
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
 
+     if (bootTimeSecSet == 0) {
+        struct timespec ts;
+        clock_gettime(CLOCK_BOOTTIME, &ts);
+        bootTimeSecSet = ts.tv_sec;
+    }
+    setCountSinceBoot++;
+
+    // Calculate seconds since boot for SET
+    struct timespec now;
+    clock_gettime(CLOCK_BOOTTIME, &now);
+    long secondsSinceBoot = now.tv_sec - bootTimeSecSet;
+
+    // Log if setCount reaches 200 before 1 minute from boot
+    if (!loggedSet200Within1Min && setCountSinceBoot >= 200 && secondsSinceBoot <= 60) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] SET count reached 200 within 1 minute after boot (actual: %ld seconds)\n",
+            __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
+        t2CountNotify("TR69HOSTIF_SET_200_WITHIN_1MIN", 1);
+        #endif
+        loggedSet200Within1Min = true ;
+    }
+
+    // Log if setCount reaches 1000 before 5 minutes from boot
+    if (!loggedSet1000Within5Min && setCountSinceBoot >= 1000 && secondsSinceBoot <= 300) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] SET count reached 1000 within 5 minutes after boot (actual: %ld seconds)\n",
+            __FUNCTION__, __LINE__, secondsSinceBoot);
+        #ifdef T2_EVENT_ENABLED
+        t2CountNotify("TR69HOSTIF_SET_1000_WITHIN_5MIN", 1);
+        #endif
+        loggedSet1000Within5Min = true;
+    }
+
+
     /* Find the respective manager and forward the request*/
     msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
@@ -132,12 +273,25 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         auto endTime = std::chrono::high_resolution_clock::now();
         auto timeTakenset = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
+        char paramValueStr[128] = {0};
+        paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
+
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
-                stMsgData->paramValue,
+                paramValueStr,
                 timeTakenset);
+       // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
+        if (timeTakenset > 5000000) {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%d] Slow SET detected: paramName: %s, timeTaken: %lld ms\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName, timeTakenset/1000);
+            #ifdef T2_EVENT_ENABLED
+            t2ValNotify("TR69HOSTIF_SET_TIMEOUT_PARAM", stMsgData->paramName);
+            #endif
+            
+        }
     }
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);

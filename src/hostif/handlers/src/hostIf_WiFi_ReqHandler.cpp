@@ -255,6 +255,44 @@ int WiFiReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
     const char *pSetting;
     const int maxSSID_Instances = 1;
     int instanceNum = 0;
+    #ifdef RDKV_TR69
+    const int maxRadioInstances = 1;
+    int radioIndex = 1;
+    if (strcasecmp(stMsgData->paramName,"Device.WiFi.RadioNumberOfEntries") == 0)
+    {
+        stMsgData->instanceNum = maxRadioInstances;
+        hostIf_WiFi *pIface = hostIf_WiFi::getInstance(maxRadioInstances);
+
+        if(!pIface)
+        {
+            return NOK;
+        }
+
+        ret = pIface->get_Device_WiFi_RadioNumberOfEntries(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName,"Device.WiFi.SSIDNumberOfEntries") == 0)
+    {
+        stMsgData->instanceNum = maxSSID_Instances;
+        hostIf_WiFi *pIface = hostIf_WiFi::getInstance(maxSSID_Instances);
+
+        if(!pIface)
+        {
+            return NOK;
+        }
+
+        ret = pIface->get_Device_WiFi_SSIDNumberOfEntries(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName,"Device.WiFi.AccessPointNumberOfEntries") == 0)
+    {
+        stMsgData->instanceNum = 0;
+        hostIf_WiFi *pIface = hostIf_WiFi::getInstance(stMsgData->instanceNum);
+        if(!pIface)
+        {
+            return NOK;
+        }
+        ret = pIface->get_Device_WiFi_AccessPointNumberOfEntries(stMsgData);
+    }
+    #else
 
     if (strcasecmp(stMsgData->paramName,"Device.WiFi.AccessPointNumberOfEntries") == 0)
     {
@@ -268,6 +306,7 @@ int WiFiReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
 
         ret = pIface->get_Device_WiFi_AccessPointNumberOfEntries(stMsgData);
     }
+    #endif
     else if (strcasecmp(stMsgData->paramName,"Device.WiFi.EndPointNumberOfEntries") == 0)
     {
         hostIf_WiFi *pIface = hostIf_WiFi::getInstance (1);
@@ -288,6 +327,179 @@ int WiFiReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         }
         ret = pIface->get_Device_WiFi_EnableWiFi(stMsgData);
     }
+    #ifdef RDKV_TR69
+     else if (matchComponent(stMsgData->paramName, "Device.WiFi.Radio", &pSetting, instanceNum))
+    {
+        if ((instanceNum <= 0) || (instanceNum > maxRadioInstances))
+        {
+            return NOK;
+        }
+
+        stMsgData->instanceNum = instanceNum;
+        hostIf_WiFi_Radio *pWifiRadio = hostIf_WiFi_Radio::getInstance(stMsgData->instanceNum);
+        hostIf_WiFi_Radio_Stats *pWifiRadioStats = hostIf_WiFi_Radio_Stats::getInstance(stMsgData->instanceNum);
+
+        if ((!pWifiRadio) || (!pWifiRadioStats))
+        {
+            return NOK;
+        }
+
+        if (strcasecmp(pSetting,"Enable") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_Enable(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Status") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_Status(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Alias") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_Alias(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Name") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_Name(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"LastChange") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_LastChange(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"LowerLayers") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_LowerLayers(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Upstream") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_Upstream(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"MaxBitRate") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_MaxBitRate(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"SupportedFrequencyBands") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_SupportedFrequencyBands(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"OperatingFrequencyBand") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_OperatingFrequencyBand(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"SupportedStandards") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_SupportedStandards(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"OperatingStandards") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_OperatingStandards(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"PossibleChannels") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_PossibleChannels(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"ChannelsInUse") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_ChannelsInUse(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Channel") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_Channel(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"AutoChannelSupported") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_AutoChannelSupported(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"AutoChannelEnable") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_AutoChannelEnable(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"AutoChannelRefreshPeriod") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_AutoChannelRefreshPeriod(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"OperatingChannelBandwidth") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_OperatingChannelBandwidth(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"ExtensionChannel") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_ExtensionChannel(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"GuardInterval") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_GuardInterval(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"MCS") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_MCS(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"MCS") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_MCS(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"TransmitPowerSupported") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_TransmitPowerSupported(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"TransmitPower") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_TransmitPower(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"IEEE80211hSupported") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_IEEE80211hSupported(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"IEEE80211hEnabled") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_IEEE80211hEnabled(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"RegulatoryDomain") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_RegulatoryDomain(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.BytesSent") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_BytesSent(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.BytesReceived") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_BytesReceived(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.PacketsSent") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_PacketsSent(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.PacketsReceived") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_PacketsReceived(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.ErrorsSent") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_ErrorsSent(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.ErrorsReceived") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_ErrorsReceived(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.DiscardPacketsSent") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_DiscardPacketsSent(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.DiscardPacketsReceived") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_DiscardPacketsReceived(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.Noise") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_NoiseFloor(stMsgData,radioIndex);
+        }
+        else
+        {
+           RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d]  Parameter : \'%s\' is Not Supported  \n", __FUNCTION__, __LINE__, stMsgData->paramName);
+           stMsgData->faultCode = fcInvalidParameterName;
+           ret = NOK; 
+        }
+    }
+    #endif
     else if (matchComponent(stMsgData->paramName, "Device.WiFi.Endpoint", &pSetting, instanceNum))
     {
         stMsgData->instanceNum = instanceNum;
@@ -557,6 +769,34 @@ void WiFiReqHandler::checkForUpdates()
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s] hostIf_WiFi::getInstance(1) returned NULL\n", __FILE__, __FUNCTION__);
         return;
     }
+    #ifdef RDKV_TR69
+     HOSTIF_MsgData_t stMsgData;
+
+    if (OK == pIface->get_Device_WiFi_SSIDNumberOfEntries(&stMsgData))
+    {
+        int currentSSIDNumberOfEntries = get_int (stMsgData.paramValue);
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s] currentSSIDNumberOfEntries = %d, savedSSIDNumberOfEntries = %d\n",
+                __FILE__, __FUNCTION__, currentSSIDNumberOfEntries, savedSSIDNumberOfEntries);
+        sendAddRemoveEvents (mUpdateCallback, currentSSIDNumberOfEntries, savedSSIDNumberOfEntries, (char *)DEVICE_WIFI_SSID_PROFILE);
+    }
+
+    if (!bfirstInstance && (OK == pIface->get_Device_WiFi_RadioNumberOfEntries (&stMsgData)))
+    {
+        bfirstInstance = true;
+        int currentRadioNumberOfEntries = get_int (stMsgData.paramValue);
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s] currentRadioNumberOfEntries = %d, savedRadioNumberOfEntries = %d\n",
+                __FILE__, __FUNCTION__, currentRadioNumberOfEntries, savedRadioNumberOfEntries);
+        sendAddRemoveEvents (mUpdateCallback, currentRadioNumberOfEntries, savedRadioNumberOfEntries, (char *)DEVICE_WIFI_RADIO_PROFILE);
+    }
+
+    if (OK == pIface->get_Device_WiFi_EndPointNumberOfEntries (&stMsgData))
+    {
+        int currentEndPointNumberOfEntries = get_int (stMsgData.paramValue);
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s] currentEndPointNumberOfEntries = %d, savedEndPointNumberOfEntries = %d\n",
+                __FILE__, __FUNCTION__, currentEndPointNumberOfEntries, savedEndPointNumberOfEntries);
+        sendAddRemoveEvents (mUpdateCallback, currentEndPointNumberOfEntries, savedEndPointNumberOfEntries, (char *)DEVICE_WIFI_ENDPOINT_PROFILE);
+    }
+    #endif
 }
 
 #endif /* #ifdef USE_WIFI_PROFILE */

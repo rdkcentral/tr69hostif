@@ -60,21 +60,42 @@ class VideoDevice : public DSConstant {
 	static const char * kPropertyDFC;
 
 public:
-	static VideoDevice & getInstance(int id);
-	static VideoDevice & getInstance(const std::string &name);
+	static VideoDevice & getInstance(int id)
+	{
+	   static VideoDevice instance(id);
+           return instance;	   
+	}
+	static VideoDevice & getInstance(const std::string &name)
+	{
+	   static VideoDevice instance(0);
+           return instance;	   
+	}
 
-	VideoDevice(int id);
+	VideoDevice(int id) {}
 	void setDFC(const std::string & name);
 	void setDFC(int id);
 	void setPlatformDFC();
-	const VideoDFC & getDFC();
+	const VideoDFC & getDFC()
+	{
+	   static VideoDFC vDFC(0);
+           return vDFC;	   
+	}
 	const List <VideoDFC>  getSupportedDFCs() const;
 	void addDFC(const VideoDFC &dfc);
-	virtual ~VideoDevice();
+	virtual ~VideoDevice() {}
 	void getHDRCapabilities(int *capabilities);
-        void getSettopSupportedResolutions(std::list<std::string>& stbSupportedResoltuions);
-	unsigned int getSupportedVideoCodingFormats() const;
-	dsVideoCodecInfo_t getVideoCodecInfo(dsVideoCodingFormat_t format) const;
+        void getSettopSupportedResolutions(std::list<std::string>& stbSupportedResoltuions)
+       	{
+	    stbSupportedResoltuions.push_back("1920x1080");
+	    stbSupportedResoltuions.push_back("1280x720");
+	}
+	unsigned int getSupportedVideoCodingFormats() const { return 0x1F; }
+	dsVideoCodecInfo_t getVideoCodecInfo(dsVideoCodingFormat_t format) const
+	{
+	    dsVideoCodecInfo_t codecInfo = {};
+	    codecInfo.num_entries = 2;
+            return codecInfo;
+	}
 	int forceDisableHDRSupport(bool disable);
 	int getFRFMode(int *frfmode) const;
         int setFRFMode(int frfmode) const;

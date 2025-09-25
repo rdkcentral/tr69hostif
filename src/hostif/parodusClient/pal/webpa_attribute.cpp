@@ -227,3 +227,27 @@ static WAL_STATUS setParamAttributes(const char *pParameterName, const AttrVal *
     ret = set_AttribValues_tr69hostIf (&Param);
     return ret;
 }
+
+#ifdef GTEST_ENABLE
+WAL_STATUS (*get_AttribValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam)
+{
+    return &get_AttribValues_tr69hostIf;
+}
+
+WAL_STATUS (*set_AttribValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *param)
+{
+    return &set_AttribValues_tr69hostIf;
+}
+
+WAL_STATUS (*getParamAttributesFunc()) (const char *pParameterName, AttrVal ***attr, int *TotalParams)
+{
+    return &getParamAttributes;
+}
+
+WAL_STATUS (*setParamAttributesFunc()) (const char *pParameterName, const AttrVal *attArr)
+{
+    return &setParamAttributes;
+}
+
+
+#endif

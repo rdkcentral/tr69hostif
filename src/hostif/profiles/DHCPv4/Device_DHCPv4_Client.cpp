@@ -306,6 +306,7 @@ int hostIf_DHCPv4Client::get_Device_DHCPv4_Client_Fields(DHCPv4ClientMembers dhc
     GList *devList =NULL;
     GList *elem=NULL;
     HOSTIF_MsgData_t msgData;
+    char cmd[MAX_CMD_LEN];
 
     memset(&msgData, 0, sizeof(msgData));
     ret=getInterfaceName(ifname);
@@ -373,7 +374,7 @@ int hostIf_DHCPv4Client::get_Device_DHCPv4_Client_Fields(DHCPv4ClientMembers dhc
             break;
         case eDHCPv4Iprouters:
             memset(dhcpClient.ipRouters, '\0', sizeof(dhcpClient.ipRouters));
-            memset(cmd, 0, sizeof cmd);
+            memset(cmd, 0, sizeof(cmd));
             /*Get the default interface name and its gateway. If the interface name matches with the class interface, then fill iprouters */
             cmdOP=v_secure_popen("r", "ip r|grep default| grep %s |awk '{printf $3}'",ifname);
             if (cmdOP)

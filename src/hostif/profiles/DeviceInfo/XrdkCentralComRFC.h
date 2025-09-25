@@ -23,6 +23,10 @@
 #include "IniFile.h"
 #include <string>
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 using namespace std;
 
 class XRFCStorage
@@ -41,6 +45,10 @@ private:
     IniFile             m_storage;
     string              m_storageFile;
     bool                m_storageLoaded;
+
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(rfcStorageTest, init);
+#endif
 };
 
 #endif // XRDKCENTRALCOMRFC_H

@@ -212,6 +212,30 @@ AC_ARG_ENABLE([notification],
            ],
          [echo "Notification support is disabled"])
 
+AC_ARG_ENABLE([t2api],
+	      AS_HELP_STRING([--enable-t2api],[enables telemetry]),
+	      [
+	        case "${enableval}" in
+                 yes) IS_TELEMETRY2_ENABLED=true
+                      T2_EVENT_FLAG=" -DT2_EVENT_ENABLED ";;
+                 no)  IS_TELEMETRY2_ENABLED=false ;;
+               *) AC_MSG_ERROR([bad value ${enableval} for --enable-t2enable]) ;;
+	       esac
+	       ],
+	   [echo "telemetry is disabled"])
+AM_CONDITIONAL([IS_TELEMETRY2_ENABLED], [test x$IS_TELEMETRY2_ENABLED = xtrue])
+AC_SUBST(T2_EVENT_FLAG)
+
+AC_ARG_ENABLE([powercontroller],
+[  --enable-powercontroller    Enable linking WPEFrameworkPowerController],
+[case "${enableval}" in
+  yes) powercontroller=true ;;
+  no)  powercontroller=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-powercontroller]) ;;
+esac],[powercontroller=false])
+AM_CONDITIONAL([POWERCONTROLLER_ENABLE], [test x$powercontroller = xtrue])
+
+
 
 AC_ARG_ENABLE([rf4ce],
         AS_HELP_STRING([--enable-rf4ce],[enable X_RDKCENTRAL_COM RF4CE profile (default is no)]),

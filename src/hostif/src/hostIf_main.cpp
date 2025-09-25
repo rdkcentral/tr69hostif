@@ -77,6 +77,10 @@ extern "C" {
 #include<webconfig_lite.h>
 #endif
 
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
+#endif
+
 #include "hostIf_rbus_Dml_Provider.h"
 #include "Device_DeviceInfo.h"
 #include "safec_lib.h"
@@ -101,11 +105,13 @@ static void usage();
 T_ARGLIST argList = {{'\0'}, 0};
 static int isShutdownTriggered = 0;
 
+#ifndef RDKV_TR69
 #define DEVICE_PROPS_FILE "/etc/device.properties"
 #define GENERIC_XML_FILE "/etc/data-model-generic.xml"
 #define STB_XML_FILE "/etc/data-model-stb.xml"
 #define TV_XML_FILE "/etc/data-model-tv.xml"
 #define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
+#endif
 
 
 std::mutex mtx_httpServerThreadDone;
@@ -186,7 +192,20 @@ bool GetFeatureEnabled(char *cmd)
 }
 #endif
 
+/* Description: Use for sending telemetry Log
+ * @param marker: use for send marker details
+ * @return : void
+ * */
+#ifdef T2_EVENT_ENABLED
+void t2CountNotify(const char *marker, int val) {
+    t2_event_d(marker, val);
+}
 
+void t2ValNotify( const char *marker, const char *val )
+{
+    t2_event_s(marker, val);
+}
+#endif
 
 
 //------------------------------------------------------------------------------
@@ -292,7 +311,9 @@ int main(int argc, char *argv[])
 
         /* Enable RDK logger.*/
         if(rdk_logger_init(debugConfigFile) == 0) rdk_logger_enabled = 1;
-
+        #ifdef T2_EVENT_ENABLED
+         t2_init(const_cast<char*>("tr69hostif"));
+        #endif
         if (optind < argc)
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"non-option ARGV-elements: ");
@@ -411,6 +432,7 @@ int main(int argc, char *argv[])
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
         }
+        #ifndef RDKV_TR69
         MergeStatus mergeStatus = mergeDataModel();
         if (mergeStatus != MERGE_SUCCESS) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in merging Data Model\n");
@@ -419,6 +441,7 @@ int main(int argc, char *argv[])
         else {
              RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Successfully merged Data Model.\n");
         }
+        #endif
         /* Load the data model xml file*/
         DB_STATUS status = loadDataModel();
         if(status != DB_SUCCESS)
@@ -594,7 +617,9 @@ void exit_gracefully (int sig_received)
         if(pthread_mutex_trylock(&graceful_exit_mutex) == 0) {
             RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
             isShutdownTriggered = 1;
-
+#ifdef T2_EVENT_ENABLED
+            t2_uninit();
+#endif
 #if defined(USE_WIFI_PROFILE)
             /* Perform the necessary operations to shut down the WiFi device */
             WiFiDevice::shutdown();
@@ -669,7 +694,7 @@ static void usage()
 #endif
 }
 
-
+#ifndef RDKV_TR69
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r"); 
     FILE *in_fp2 = fopen(input2, "r"); 
@@ -781,6 +806,7 @@ MergeStatus mergeDataModel()  {
 	return MERGE_FAILURE;
     }
 }
+#endif
 
 /** @} */
 /** @} */

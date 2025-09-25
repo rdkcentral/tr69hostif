@@ -61,7 +61,14 @@ typedef struct _rbusProperty* rbusProperty_t;
  *          If the value is NULL, the property's value will be NULL.
  *  @return The new property
  */
-rbusProperty_t rbusProperty_Init(rbusProperty_t* pproperty, char const* name, rbusValue_t value);
+static inline rbusProperty_t rbusProperty_Init(rbusProperty_t* pproperty, char const* name, rbusValue_t value)
+{
+    (void)pproperty;
+    (void)name;
+    (void)value;
+    
+    return NULL;
+}
 
 /** @name rbusProperty_Init[Type]
  *  @brief  These function allocate and initialize a property 
@@ -109,7 +116,10 @@ void rbusProperty_Retain(rbusProperty_t property);
  *         a property that was retained with either rbusProperty_Init or rbusProperty_Retain.
  *  @param property the property to release
  */
-void rbusProperty_Release(rbusProperty_t property);
+static inline void rbusProperty_Release(rbusProperty_t property)
+{
+    (void)property;	
+}
 
 void rbusProperty_Releases(int count, ...);
 
@@ -277,7 +287,11 @@ rbusProperty_t rbusProperty_AppendObject(rbusProperty_t property, char const* na
  *          it should take ownership by calling rbusProperty_Retain and then
  *          when its done with it, call rbusProperty_Release.
  */  
-rbusProperty_t rbusProperty_GetNext(rbusProperty_t property);
+static inline rbusProperty_t rbusProperty_GetNext(rbusProperty_t property)
+{
+    (void)property;
+    return NULL;    
+}
 
 /** @fn void rbusProperty_SetNext(rbusProperty_t property, rbusProperty_t next)
  *  @brief Set the next property in the list.  Properties can be linked together into a list.

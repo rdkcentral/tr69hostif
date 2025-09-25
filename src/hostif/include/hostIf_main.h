@@ -109,21 +109,28 @@
  #include <sys/time.h>
 #include "rdk_debug.h"
 
-extern gchar *date_str;
 
+
+extern gchar *date_str;
+#ifndef RDKV_TR69
 typedef enum {
     MERGE_SUCCESS,
     MERGE_FAILURE
 } MergeStatus;
+#endif
 
 
 
 void tr69hostIf_logger (const gchar *log_domain, GLogLevelFlags log_level,const gchar *message, gpointer user_data);
+#ifndef RDKV_TR69
 MergeStatus mergeDataModel();
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output);
+#endif
 
 #define G_LOG_DOMAIN    ((gchar*) 0)
 #define LOG_TR69HOSTIF  "LOG.RDK.TR69HOSTIF"
+
+
 
 using namespace std;
 
@@ -146,6 +153,8 @@ static volatile sig_atomic_t time_to_quit = 0;
 
 void quit_handler (int sig_received);
 void exit_gracefully (int sig_received);
+
+
 
 void *tr69IfHandlerThread(void *);
 void *jsonIfHandlerThread(void *);
