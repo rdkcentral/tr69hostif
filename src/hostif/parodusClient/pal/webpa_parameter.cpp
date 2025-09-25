@@ -811,7 +811,7 @@ DATA_TYPE (*mapRbusDataTypeToWebPAFunc()) (rbusValueType_t type)
 {
     return &mapRbusDataTypeToWebPA;
 }
-WDMP_STATUS (*get_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam)
+WDMP_STATUS (*get_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam, DataModelParam *dmParam)
 {
     return &get_ParamValues_tr69hostIf;
 }
