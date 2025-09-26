@@ -46,10 +46,12 @@
 #include "Device_IP.h"
 #include "safec_lib.h"
 #include <secure_wrapper.h>
+#ifndef RDKV_TR69
 static const char* TIME_INFINITY = "9999-12-31T23:59:59Z";
 static const char* TIME_UNKNOWN = "0001-01-01T00:00:00Z";
 static const char* STATE_DOWN = "Down";
 static const char* NOT_IMPLEMENTED = "Not Implemented";
+#endif
 
 /**
  * @struct in6_ifreq

@@ -42,15 +42,7 @@ AC_FUNC_REALLOC
 # Check for GLib 2.0
 PKG_CHECK_MODULES([GLIB], [glib-2.0])
 
-# This enables libsoup-3 support
-AC_ARG_ENABLE([libsoup3],
-[  --enable-libsoup3    Turn on libsoup-3 support],
-[case "${enableval}" in
-  yes) libsoup3=true ;;
-  no)  libsoup3=false ;;
-  *) AC_MSG_ERROR([bad value ${enableval} for --enable-libsoup3]) ;;
-esac],[libsoup3=false])
-AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
+
 
 AC_ARG_ENABLE([t2api],
 	      AS_HELP_STRING([--enable-t2api],[enables telemetry]),
