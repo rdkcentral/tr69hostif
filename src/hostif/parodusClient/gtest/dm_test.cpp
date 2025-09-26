@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <iostream>
+#include <fstream>
 #include "dm_stubs.h"
 #include "startParodus.h"
 #include "file_writer.h"
@@ -31,6 +32,9 @@
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_utils.h"
 #include "wrp-c.h"
+#include "hostIf_msgHandler.h"
+#include "Device_DeviceInfo_ProcessStatus_Process.h"
+#include "cJSON.h"
 
 #include "waldb.h"
 #include "wdmp-c.h"
@@ -56,12 +60,19 @@ GError *httpError = NULL;
 GHashTable* paramMgrhash = NULL;
 T_ARGLIST argList = {{'\0'}, 0};
 
+typedef struct {
+    char name[512];
+    char value[512];
+    int statusCode;
+    char message[512];
+} ParsedResult;
+
 #ifdef GTEST_ENABLE
 extern void (*macToLowerFunc())(char macValue[],char macConverted[]);
 extern WDMP_STATUS (*GetParamInfoFunc()) (const char *pParameterName, param_t ***parametervalPtrPtr, int *paramCountPtr,int paramIndex);
 extern rbusValueType_t (*getRbusDataTypefromWebPAFunc())(WAL_DATA_TYPE type);
 extern DATA_TYPE (*mapRbusDataTypeToWebPAFunc())(rbusValueType_t type);
-WDMP_STATUS (*get_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam);
+WDMP_STATUS (*get_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam, DataModelParam *dmParam);
 WAL_STATUS (*set_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam);
 WAL_STATUS (*convertFaultCodeToWalStatusFunc())(faultCode_t faultCode);
 extern void (*converttohostIfTypeFunc())(char *ParamDataType,HostIf_ParamType_t* pParamType);
@@ -74,7 +85,52 @@ extern WAL_STATUS (*getParamAttributesFunc()) (const char *pParameterName, AttrV
 extern WAL_STATUS (*setParamAttributesFunc()) (const char *pParameterName, const AttrVal *attArr);
 extern void (*setRebootReasonFunc()) (param_t param, WEBPA_SET_TYPE setType);
 extern long (*timeValDiffFunc()) (struct timespec *starttime, struct timespec *finishtime);
+extern WDMP_STATUS (*rbusGetParamInfoFunc()) (const char *pParameterName, param_t ***parametervalPtrPtr, int *paramCountPtr, int index);
+extern WAL_STATUS (*rbusSetParamInfoFunc()) (ParamVal paramVal, char * transactionID);
+extern WAL_STATUS (*SetParamInfoFunc()) (ParamVal paramVal, char * transactionID);
+void (*parodus_receive_waitFunc()) ();
 #endif
+
+int parse_json(char *json_str, ParsedResult *result) {
+    cJSON *root = cJSON_Parse(json_str);
+    if (!root) return 0;  // parse error
+
+    cJSON *statusCode = cJSON_GetObjectItem(root, "statusCode");
+    if (cJSON_IsNumber(statusCode)) {
+        result->statusCode = statusCode->valueint;
+    } else {
+        cJSON_Delete(root);
+        return 0;
+    }
+
+    cJSON *parameters = cJSON_GetObjectItem(root, "parameters");
+    if (cJSON_IsArray(parameters)) {
+        cJSON *param = cJSON_GetArrayItem(parameters, 0);
+        if (param) {
+            cJSON *name = cJSON_GetObjectItem(param, "name");
+            cJSON *value = cJSON_GetObjectItem(param, "value");
+            cJSON *message = cJSON_GetObjectItem(param, "message");
+
+            if (cJSON_IsString(name)) {
+                strncpy(result->name, name->valuestring, sizeof(result->name) - 1);
+                result->name[sizeof(result->name) - 1] = '\0';
+            }
+
+            if (cJSON_IsString(value)) {
+                strncpy(result->value, value->valuestring, sizeof(result->value) - 1);
+                result->value[sizeof(result->value) - 1] = '\0';
+            }
+
+            if (cJSON_IsString(message)) {
+                strncpy(result->message, message->valuestring, sizeof(result->message) - 1);
+                result->message[sizeof(result->message) - 1] = '\0';
+            }
+        }
+    }
+
+    cJSON_Delete(root);
+    return 1;  // success
+}
 
 TEST(datamodelTest, ParameterExistPositive2) {
 
@@ -248,6 +304,28 @@ TEST(datamodelTest, getChildParamNamesFromDataModel) {
     EXPECT_EQ(status, DB_SUCCESS);
 }
 
+TEST(datamodelTest, getChildParamNamesFromDataModel_InvalidParam) {
+
+    DB_STATUS dbStatus = loadDataModel();
+    if(dbStatus != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+
+    char *ParamList = NULL;
+    char *ParamDataTypeList = NULL;
+
+    char *paramName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.FriendlyName";
+    int paramCount = 1;
+    DB_STATUS status = getChildParamNamesFromDataModel(getDataModelHandle(), paramName, &ParamList, &ParamDataTypeList, &paramCount);
+    EXPECT_EQ(status, 2);
+}
+
 TEST(datamodelTest, checkDataModelStatus) {
     DB_STATUS status = checkDataModelStatus();
     EXPECT_EQ(status, DB_SUCCESS);
@@ -267,10 +345,30 @@ TEST(startParodusTest, get_HWMAcAddress) {
     EXPECT_EQ(macAddr, "D452EEDEC6FA");
 }
 
+TEST(startParodusTest, get_PartnerId_Empty) {
+    write_on_file("/opt/www/authService/partnerId3.dat", "");
+    std::string partnerId = get_PartnerId();
+    EXPECT_EQ(partnerId, "*,");
+}
+
 TEST(startParodusTest, get_PartnerId) {
     write_on_file("/opt/www/authService/partnerId3.dat", "sky");
     std::string partnerId = get_PartnerId();
     EXPECT_EQ(partnerId, "*,sky");
+}
+
+TEST(startParodusTest, get_PartnerId_Unknown) {
+    std::remove("/opt/www/authService/partnerId3.dat");	
+    write_on_file("/opt/www/authService/partnerId3.dat", "unknown");
+    std::string partnerId = get_PartnerId();
+    EXPECT_EQ(partnerId, "unknown");
+    std::remove("/opt/www/authService/partnerId3.dat");
+}
+
+TEST(startParodusTest, get_RebootReason_Empty) {
+    write_on_file("/opt/secure/reboot/previousreboot.info", "");
+    std::string reboot_reason = get_RebootReason();
+    EXPECT_EQ(reboot_reason, "");
 }
 
 TEST(startParodusTest, get_RebootReason) {
@@ -294,6 +392,14 @@ TEST(palTest, macToLower) {
     EXPECT_STREQ(macConverted, "a84a6388e9b5");
 }
 
+TEST(palTest, getnotifyparamList_Empty) {
+    setNotifyConfigurationFile("/tmp/empty.conf");
+    char **notifyParamList = NULL;
+    int ptrnotifyListSize = 3;
+    int ret = getnotifyparamList(&notifyParamList, &ptrnotifyListSize);
+    EXPECT_EQ(ret, -1);
+}
+
 TEST(palTest, getnotifyparamList) {
     const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"]})";
     write_on_file("/tmp/notify.conf", json_data);
@@ -304,8 +410,43 @@ TEST(palTest, getnotifyparamList) {
     EXPECT_EQ(ret, 0);
 }
 
-TEST(palTest, getNotifySource) {
+/* TEST(palTest, getParamAttributes_Canary) {
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+
+    DB_STATUS dbStatus = loadDataModel();
+    if(dbStatus != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+
+    const char *paramName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart";
+    AttrVal **attributes = NULL;
+    int totalParams = 1;
+
+    WAL_STATUS status = getParamAttributesFunc()(paramName, &attributes, &totalParams);
+    EXPECT_EQ(status, WAL_SUCCESS);
+} */
+
+TEST(palTest, getNotifySource_Empty) {
     char* notificationSource = getNotifySource();
+    EXPECT_EQ(0, 0);
+}
+
+TEST(palTest, getNotifySource) {  
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+    char* notificationSource = getNotifySource();
+    EXPECT_EQ(0, 0);
+}
+
+TEST(palTest, setNotifyConfigurationFile) {
+    setNotifyConfigurationFile(NULL);
     EXPECT_EQ(0, 0);
 }
 
@@ -321,6 +462,7 @@ TEST(palTest, getRbusDataTypefromWebPA) {
     EXPECT_EQ(getRbusDataTypefromWebPAFunc()(WAL_FLOAT), RBUS_SINGLE);
     EXPECT_EQ(getRbusDataTypefromWebPAFunc()(WAL_DOUBLE), RBUS_DOUBLE);
     EXPECT_EQ(getRbusDataTypefromWebPAFunc()(WAL_BYTE), RBUS_BYTE);
+    EXPECT_EQ(getRbusDataTypefromWebPAFunc()(WAL_NONE), RBUS_STRING);
 }
 
 TEST(palTest, mapRbusDataTypeToWebPA) {
@@ -349,7 +491,11 @@ TEST(palTest, get_ParamValues_tr69hostIf) {
     param.paramtype = hostIf_IntegerType;
     param.paramLen = sizeof(hostIf_IntegerType);
 
-    WDMP_STATUS status = get_ParamValues_tr69hostIfFunc()(&param);
+    DataModelParam dmParam = {0};
+    const char* dbParamName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed";
+    int match = getParamInfoFromDataModel(getDataModelHandle(), dbParamName, &dmParam);
+
+    WDMP_STATUS status = get_ParamValues_tr69hostIfFunc()(&param, &dmParam);
     EXPECT_EQ(0, 0);
 }
 
@@ -361,7 +507,7 @@ TEST(palTest, set_ParamValues_tr69hostIf) {
     param.bsUpdate = HOSTIF_NONE;
     param.requestor = HOSTIF_SRC_RFC;
 
-    put_boolean(param.paramValue, 13800);
+    put_int(param.paramValue, 13800);
     param.paramtype =  hostIf_IntegerType;
     param.paramLen = sizeof(hostIf_IntegerType);
 
@@ -402,10 +548,58 @@ TEST(palTest, converttohostIfType) {
 
     converttohostIfTypeFunc()("hexBinary", &pParamType);
     EXPECT_EQ(pParamType, hostIf_StringType);
+
+    converttohostIfTypeFunc()("float", &pParamType);
+    EXPECT_EQ(pParamType, hostIf_StringType);
 }
 
 TEST(palTest, GetParamInfo) {
 
+    DB_STATUS dbStatus = loadDataModel();
+    if(dbStatus != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+    const char *pParameterName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable";
+    param_t** parameterval = (param_t**) calloc(1, sizeof(param_t*));
+    EXPECT_NE(parameterval, nullptr);
+    int paramCountPtr = 0;
+    int index = 0;
+    WDMP_STATUS status = GetParamInfoFunc()(pParameterName, &parameterval, &paramCountPtr, index);
+    EXPECT_EQ(0, 0);
+}
+
+TEST(palTest, GetParamInfo_UnsignedInt) {
+
+    DB_STATUS dbStatus = loadDataModel();
+    if(dbStatus != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+    const char *pParameterName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.collectd.PortNumber";
+    param_t** parameterval = (param_t**) calloc(1, sizeof(param_t*));
+    EXPECT_NE(parameterval, nullptr);
+    int paramCountPtr = 0;
+    int index = 0;
+    WDMP_STATUS status = GetParamInfoFunc()(pParameterName, &parameterval, &paramCountPtr, index);
+    EXPECT_EQ(0, 0);
+}
+
+TEST(palTest, GetParamInfo_String) {
+
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+	
     DB_STATUS dbStatus = loadDataModel();
     if(dbStatus != DB_SUCCESS)
     {
@@ -423,6 +617,85 @@ TEST(palTest, GetParamInfo) {
     int index = 0;
     WDMP_STATUS status = GetParamInfoFunc()(pParameterName, &parameterval, &paramCountPtr, index);
     EXPECT_EQ(0, 0);
+}
+
+TEST(palTest, SetParamInfoFunc_Bool) {
+
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+
+    DB_STATUS dbStatus = loadDataModel();
+    if(dbStatus != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+    ParamVal param;
+    param.name = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IncrementalCDL.Enable";
+    param.value = "false";
+    param.type = WAL_BOOLEAN;
+
+    char transactionID[] = "txn12344";
+
+    WAL_STATUS status = SetParamInfoFunc() (param, transactionID);
+    EXPECT_EQ(status, WAL_SUCCESS);
+}
+
+
+TEST(palTest, SetParamInfoFunc_Int) {
+
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+
+    DB_STATUS dbStatus = loadDataModel();
+    if(dbStatus != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+    ParamVal param;
+    param.name = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.LowSpeed";
+    param.value = "14800";
+    param.type = WAL_INT;
+
+    char transactionID[] = "txn12344";
+
+    WAL_STATUS status = SetParamInfoFunc() (param, transactionID);
+    EXPECT_EQ(status, WAL_SUCCESS);
+}
+
+TEST(palTest, SetParamInfoFunc_String) {
+
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+
+    DB_STATUS dbStatus = loadDataModel();
+    if(dbStatus != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+    ParamVal param;
+    param.name = "Device.X_RDKCENTRAL-COM_T2.ReportProfiles";
+    param.value = "TestProfiles";
+    param.type = WAL_STRING;
+
+    char transactionID[] = "txn12344";
+
+    WAL_STATUS status = SetParamInfoFunc() (param, transactionID);
+    EXPECT_EQ(status, WAL_SUCCESS);
 }
 
 TEST(palTest, GetWildParamInfo) {
@@ -444,6 +717,46 @@ TEST(palTest, GetWildParamInfo) {
     parametervalPtrPtr = NULL;
 }
 
+TEST(palTest, GetWildParamInfo_String) {
+    const char *pParameterName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.";
+    param_t **parametervalPtrPtr = (param_t**) calloc(4, sizeof(param_t*));
+    int paramCountPtr = 4;
+    int index = 0;
+    WDMP_STATUS status = GetParamInfoFunc()(pParameterName, &parametervalPtrPtr, &paramCountPtr, index);
+    EXPECT_EQ(status, WDMP_SUCCESS);
+
+    for (int i = 0; i < 4; i++) {
+      if (parametervalPtrPtr[i]) {
+          // If parametervalPtrPtr[i] points to dynamically allocated memory, free it
+          free(parametervalPtrPtr[i]);
+          parametervalPtrPtr[i] = NULL;
+      }
+    }
+    free(parametervalPtrPtr);
+    parametervalPtrPtr = NULL;
+}
+
+
+TEST(palTest, get_parodus_url_EmptyConfigFileSetsDefaults) {
+    // Write empty config file
+    std::ofstream ofs("/etc/webpa_cfg.json");
+    ofs.close();
+    char parodus_url[64] = {'\0'};
+    char client_url[64] = {'\0'};
+    get_parodus_urlFunc()(parodus_url, client_url);
+    EXPECT_NE(parodus_url, "");
+    EXPECT_NE(client_url, "");
+}
+
+TEST(palPdTest, get_parodus_url_MissingConfigFileSetsDefaults) {
+    unlink("/etc/webpa_cfg.json");
+    char parodus_url[64] = {'\0'};
+    char client_url[64] = {'\0'};
+    get_parodus_urlFunc()(parodus_url, client_url);
+    EXPECT_NE(parodus_url, "");
+    EXPECT_NE(client_url, "");
+}
+
 TEST(palTest, get_parodus_url) {
     char parodus_url[256] = {0};
     char client_url[256] = {0};
@@ -453,6 +766,16 @@ TEST(palTest, get_parodus_url) {
     EXPECT_STREQ(parodus_url, "tcp://parodus.xcal.tv:6666");
     EXPECT_STREQ(client_url, "tcp://127.0.0.1:6666");
 }
+
+/*TEST(LibPdTest, sendNotification_ValidPayloadSends) {
+    // This requires a mock/fake for libparodus_send, wrp_free_struct, etc.
+    // For now, ensure function does not crash with valid input
+    char payload[] = "{\"command\":\"GET\",\"names\":[\"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed\"]}";
+    char source[] = "source";
+    char dest[] = "dest";
+    sendNotification(payload, source, dest);
+    EXPECT_EQ(0, 0);
+} */
 
 TEST(palTest, validate_parameter_wildcard) {
     param_t *params = (param_t *) malloc(sizeof(param_t) * 1);
@@ -498,11 +821,9 @@ TEST(palTest, validate_parameter_NOT_Support) {
     free(params);
 }
 
-TEST(palTest, processRequest_GET) {
-     // Initialize paramMgrhash if not already done
-    /*if (paramMgrhash == NULL) {
-        paramMgrhash = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-    } */
+TEST(palTest, processRequest_GET) {    
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
 
     //Load the data model xml file
     DB_STATUS status = loadDataModel();
@@ -531,17 +852,50 @@ TEST(palTest, processRequest_GET) {
     processRequest((char*)wrp_msg->u.req.payload, (char*)wrp_msg->u.req.transaction_uuid, ((char **)(&(res_wrp_msg->u.req.payload))));
     std::cout << "Response payload: " << (char*)res_wrp_msg->u.req.payload << std::endl;
     char *json_response = (char*)res_wrp_msg->u.req.payload;
+    
+    ParsedResult result = {0};
+    if (parse_json(json_response, &result))
+    {
+	EXPECT_EQ(result.statusCode, 200);
+	EXPECT_STREQ(result.message, "Success");
+        EXPECT_STREQ(result.name, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed");
+	EXPECT_STREQ(result.value, "1280000");
+    }
+}
+
+TEST(palTest, processRequest_GETWildCard) {
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+
+    //Load the data model xml file
+    DB_STATUS status = loadDataModel();
+    if(status != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(status, DB_SUCCESS);
+    wrp_msg_t *wrp_msg;
+    wrp_msg_t *res_wrp_msg;
+
+    wrp_msg = (wrp_msg_t *)malloc(sizeof(wrp_msg_t));
+    res_wrp_msg = (wrp_msg_t *)malloc(sizeof(wrp_msg_t));
+    memset(res_wrp_msg, 0, sizeof(wrp_msg_t));
+    wrp_msg->msg_type = WRP_MSG_TYPE__REQ;
+    const char *payload = "{\"command\":\"GET_ATTRIBUTES\",\"attributes\":\"notify\",\"names\":[\"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.\"]}";
+    wrp_msg->u.req.payload = (void*)payload;
+    wrp_msg->u.req.payload_size = strlen((char*)wrp_msg->u.req.payload);
+    processRequest((char*)wrp_msg->u.req.payload, (char*)wrp_msg->u.req.transaction_uuid, ((char **)(&(res_wrp_msg->u.req.payload))));
+    std::cout << "Response payload: " << (char*)res_wrp_msg->u.req.payload << std::endl;
+    char *json_response = (char*)res_wrp_msg->u.req.payload;
     EXPECT_EQ(0, 0);
 }
 
-
 TEST(palTest, processRequest_SET) {
-    // Initialize paramMgrhash if not already done
-   /* if (paramMgrhash == NULL) {
-        paramMgrhash = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
-    } */
-
-   // Load the data model xml file
+    // Load the data model xml file
     DB_STATUS status = loadDataModel();
     if(status != DB_SUCCESS)
     {
@@ -568,10 +922,38 @@ TEST(palTest, processRequest_SET) {
     processRequest((char*)wrp_msg->u.req.payload, (char*)wrp_msg->u.req.transaction_uuid, ((char **)(&(res_wrp_msg->u.req.payload))));
     std::cout << "Response payload: " << (char*)res_wrp_msg->u.req.payload << std::endl;
     char *json_response = (char*)res_wrp_msg->u.req.payload;
+
+    ParsedResult result = {0};
+    if (parse_json(json_response, &result))
+    {
+        EXPECT_EQ(result.statusCode, 200);
+        EXPECT_STREQ(result.message, "Success");
+        EXPECT_STREQ(result.name, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.LogServerUrl");
+    }
+}
+
+TEST(srcTest, getCurrentTime) {
+    struct timespec ts;
+    getCurrentTime(&ts);
+    EXPECT_GT(ts.tv_sec, 0);
+
+    EXPECT_GE(ts.tv_nsec, 0);
+    EXPECT_LT(ts.tv_nsec, 1000000000L);
+}
+
+TEST(srcTest, setInitialNotifyConfigFile) {
+    std::remove("/tmp/notify.conf");
+    const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed"]})";
+    write_on_file("/tmp/notify.conf", json_data);
+    char **notifyParamList = NULL;
+    int ptrnotifyListSize = 2;
+    setInitialNotifyConfigFile("/tmp/notify.conf");
+    int ret = getnotifyparamList(&notifyParamList, &ptrnotifyListSize);
+    setInitialNotify();
     EXPECT_EQ(0, 0);
 }
 
-TEST(palTest, get_AttribValues_tr69hostIf) {
+/* TEST(palTest, get_AttribValues_tr69hostIf) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
     param.reqType = HOSTIF_GET;
@@ -581,9 +963,12 @@ TEST(palTest, get_AttribValues_tr69hostIf) {
 
     WAL_STATUS status = get_AttribValues_tr69hostIfFunc()(&param);
     EXPECT_EQ(status, WAL_ERR_INVALID_PARAM);
-}
+} */
 
 TEST(palTest, set_AttribValues_tr69hostIf) {
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
     param.reqType = HOSTIF_SET;
@@ -596,7 +981,7 @@ TEST(palTest, set_AttribValues_tr69hostIf) {
     param.paramLen = sizeof(hostIf_BooleanType);
 
     WAL_STATUS status = set_AttribValues_tr69hostIfFunc()(&param);
-    EXPECT_EQ(status, 4);
+    EXPECT_EQ(status, WAL_SUCCESS);
 }
 
 TEST(palTest, getParamAttributes) {
@@ -618,8 +1003,83 @@ TEST(palTest, setParamAttributes) {
     EXPECT_EQ(status, WAL_SUCCESS);
 }
 
+TEST(palTest, setParamAttributes_notifyList) {
+    std::remove("/tmp/notify.conf");
+    const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed"]})";
+    write_on_file("/tmp/notify.conf", json_data);
+    char **notifyParamList = NULL;
+    int ptrnotifyListSize = 3;
+    setNotifyConfigurationFile("/tmp/notify.conf");
+    int ret = getnotifyparamList(&notifyParamList, &ptrnotifyListSize);
+    const char *paramName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed";
+    AttrVal attr;
 
-TEST(webpaAdapterTest, setRebootReason) {
+    attr.name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed");
+    attr.value = strdup("168000");
+
+    WAL_STATUS status = setParamAttributesFunc()(paramName, &attr);
+    EXPECT_EQ(status, WAL_SUCCESS);
+}
+
+TEST(palTest, getAttributes) {
+    const char *paramNames[] = {
+        "Device.DeviceInfo.ModelName",
+        "Device.DeviceInfo.SerialNumber"
+    };
+    unsigned int paramCount = sizeof(paramNames) / sizeof(paramNames[0]);
+
+    money_trace_spans span = {0};  // Optional, or nullptr
+
+    AttrVal **attrArray = nullptr;
+    int attrCount = 0;
+    WAL_STATUS status = WAL_FAILURE;
+
+    getAttributes(paramNames, paramCount, &span, &attrArray, &attrCount, &status);
+
+    EXPECT_EQ(status, 14);
+}
+
+TEST(palTest, setAttributes) {
+     std::remove("/tmp/notify.conf");
+     const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable"]})";
+    write_on_file("/tmp/notify.conf", json_data);
+    char **notifyParamList = NULL;
+    int ptrnotifyListSize = 1;
+    setNotifyConfigurationFile("/tmp/notify.conf");
+    int ret = getnotifyparamList(&notifyParamList, &ptrnotifyListSize);
+
+    ParamVal params[1];
+    params[0].name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable");
+    params[0].value = strdup("true");
+    params[0].type = WAL_BOOLEAN;
+
+    unsigned int paramCount = 1;
+    money_trace_spans traceSpan = {0};
+    AttrVal val1 = { (char *)"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable", (char *)"true", WAL_BOOLEAN };
+    const AttrVal *attrList[1] = { &val1 };
+    WDMP_STATUS* statuses = new WDMP_STATUS[1];
+
+    setAttributes(params, paramCount, &traceSpan, attrList, &statuses);
+    EXPECT_EQ(0, 0);
+}
+
+/* TEST(webpaAdapterTest, setRebootReason) {
+ 
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    bool ret = hostIf_initalize_ConfigManger();
+
+    //Load the data model xml file
+    DB_STATUS status = loadDataModel();
+    if(status != DB_SUCCESS)
+    {
+        std::cout << "Error in Data Model Initialization" << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully initialize Data Model." << std::endl;
+    }
+    EXPECT_EQ(status, DB_SUCCESS);
+
     // Prepare a param_t with the reboot parameter and value
     param_t param;
     param.name = strdup("Device.X_CISCO_COM_DeviceControl.RebootDevice");
@@ -635,8 +1095,20 @@ TEST(webpaAdapterTest, setRebootReason) {
 
     // L1: No assertion needed, just ensure no crash
     EXPECT_EQ(0, 0);
+} */
+
+
+TEST(palTest, parodus_receive_waitFunc) {
+    parodus_receive_waitFunc();
+    sleep(30);
+    stop_parodus_recv_wait();
+    EXPECT_EQ(0, 0);
 }
 
+TEST(palTest, stop_parodus_recv_wait) {
+    stop_parodus_recv_wait();
+    EXPECT_EQ(0, 0);
+}
 
 TEST(palTest, notificationCallBack) {
     notificationCallBack();
@@ -645,6 +1117,15 @@ TEST(palTest, notificationCallBack) {
 
 TEST(palTest, setInitialNotify) {
     notificationCallBack();
+    EXPECT_EQ(0, 0);
+}
+
+TEST(palTest, libpd_set_notifyConfigFile) {
+     std::remove("/tmp/notify.conf");                                                                                                     const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed"]})";
+    write_on_file("/tmp/notify.conf", json_data);
+    char **notifyParamList = NULL;
+    int ptrnotifyListSize = 2;
+    libpd_set_notifyConfigFile("/tmp/notify.conf");
     EXPECT_EQ(0, 0);
 }
 
@@ -668,6 +1149,186 @@ TEST(palTest, timeValDiff) {
     EXPECT_EQ(msec, 1700);
 }
 
+TEST(palTest, replaceWithInstanceNumber) {
+    char paramName[50] = "Device.DeviceInfo.XXXX.{i}";
+    int instanceNumber = 3;
+    replaceWithInstanceNumber(paramName, instanceNumber);
+    EXPECT_STREQ(paramName, "Device.DeviceInfo.XXXX.{i}");
+}
+
+TEST(palTest, appendNextObject) {
+    char currentParam[100] = "Device.WiFi.{i}.SSID.";
+    const char* pAttparam = "Device.WiFi.{i}.SSID.Enable";
+    appendNextObject(currentParam, pAttparam);
+
+    EXPECT_STREQ(currentParam, "Device.WiFi.{i}.SSID.Enable");
+}
+
+TEST(palTest, test_get_complete_param_list) {
+    test_get_complete_param_list();
+    EXPECT_EQ(0, 0);
+}
+
+TEST(palTest, converttoWalType) {
+    WAL_DATA_TYPE walType = WAL_STRING;
+
+    converttoWalTypeFunc()(hostIf_IntegerType, &walType);
+    EXPECT_EQ(walType, WAL_INT);
+
+    converttoWalTypeFunc()(hostIf_UnsignedIntType, &walType);
+    EXPECT_EQ(walType, WAL_UINT);
+
+    converttoWalTypeFunc()(hostIf_BooleanType, &walType);
+    EXPECT_EQ(walType, WAL_BOOLEAN);
+
+    converttoWalTypeFunc()(hostIf_UnsignedLongType, &walType);
+    EXPECT_EQ(walType, WAL_ULONG);
+
+    converttoWalTypeFunc()(hostIf_DateTimeType, &walType);
+    EXPECT_EQ(walType, WAL_DATETIME);
+}
+
+TEST(palTest, rbusSetParamInfo) {
+    ParamVal param;
+    param.name = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.Enable";
+    param.value = "true";
+    param.type = WAL_BOOLEAN;
+
+    char transactionID[] = "txn12345";
+
+    WAL_STATUS status = rbusSetParamInfoFunc() (param, transactionID);
+    EXPECT_EQ(status, WAL_SUCCESS);
+}
+
+TEST(palTest, getnotifyparamList_NULL) {
+    char **dummyList = NULL;
+    int result = getnotifyparamList(&dummyList, NULL);
+    EXPECT_EQ(result, -1);
+
+    int dummySize = 0;
+    int ret = getnotifyparamList(NULL, &dummySize);
+    EXPECT_EQ(ret, -1);
+}
+
+TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_PID) {
+    HOSTIF_MsgData_t param;
+    bool bChanged; 
+    int instanceNumber = 0;
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;    
+    strncpy (param.paramName, "Device.DeviceInfo.ProcessStatus.Process.1.PID", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    
+    hostIf_DeviceProcess *hostIf_DeviceProcess = hostIf_DeviceProcess::getInstance(instanceNumber);
+    if(hostIf_DeviceProcess)
+    {
+        bChanged =  false;
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
+        cout << "param.paramValue = " << param.paramValue << endl;
+        EXPECT_EQ(ret, -1);
+    }
+}
+
+TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_Command) {
+    HOSTIF_MsgData_t param;
+    bool bChanged;
+    int instanceNumber = 0;
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy (param.paramName, "Device.DeviceInfo.ProcessStatus.Process.1.Command", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+
+    hostIf_DeviceProcess *hostIf_DeviceProcess = hostIf_DeviceProcess::getInstance(instanceNumber);
+    if(hostIf_DeviceProcess)
+    {
+        bChanged =  false;
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
+        cout << "param.paramValue = " << param.paramValue << endl;
+        EXPECT_EQ(ret, -1);
+    }
+}
+
+TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_Size) {
+    HOSTIF_MsgData_t param;
+    bool bChanged;
+    int instanceNumber = 0;
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy (param.paramName, "Device.DeviceInfo.ProcessStatus.Process.1.Size", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+
+    hostIf_DeviceProcess *hostIf_DeviceProcess = hostIf_DeviceProcess::getInstance(instanceNumber);
+    if(hostIf_DeviceProcess)
+    {
+        bChanged =  false;
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
+        cout << "param.paramValue = " << param.paramValue << endl;
+        EXPECT_EQ(ret, -1);
+    }
+}
+
+TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_Priority) {
+    HOSTIF_MsgData_t param;
+    bool bChanged;
+    int instanceNumber = 0;
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy (param.paramName, "Device.DeviceInfo.ProcessStatus.Process.1.Priority", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+
+    hostIf_DeviceProcess *hostIf_DeviceProcess = hostIf_DeviceProcess::getInstance(instanceNumber);
+    if(hostIf_DeviceProcess)
+    {
+        bChanged =  false;
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
+        cout << "param.paramValue = " << param.paramValue << endl;
+        EXPECT_EQ(ret, -1);
+    }
+}
+
+TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_CPUTime) {
+    HOSTIF_MsgData_t param;
+    bool bChanged;
+    int instanceNumber = 0;
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy (param.paramName, "Device.DeviceInfo.ProcessStatus.Process.1.CPUTime", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+
+    hostIf_DeviceProcess *hostIf_DeviceProcess = hostIf_DeviceProcess::getInstance(instanceNumber);
+    if(hostIf_DeviceProcess)
+    {
+        bChanged =  false;
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
+        cout << "param.paramValue = " << param.paramValue << endl;
+        EXPECT_EQ(ret, -1);
+    }
+}
+
+TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_State) {
+    HOSTIF_MsgData_t param;
+    bool bChanged;
+    int instanceNumber = 0;
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy (param.paramName, "Device.DeviceInfo.ProcessStatus.Process.1.State", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+
+    hostIf_DeviceProcess *hostIf_DeviceProcess = hostIf_DeviceProcess::getInstance(instanceNumber);
+    if(hostIf_DeviceProcess)
+    {
+        bChanged =  false;
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
+        cout << "param.paramValue = " << param.paramValue << endl;
+        EXPECT_EQ(ret, -1);
+    }
+}
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];

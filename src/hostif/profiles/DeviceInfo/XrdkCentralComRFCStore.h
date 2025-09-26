@@ -25,6 +25,10 @@
 #include <unordered_map>
 #include <string>
 
+#if defined(GTEST_ENABLE)
+#include <gtest/gtest.h>
+#endif
+
 using namespace std;
 
 #if defined(GTEST_ENABLE)
@@ -65,6 +69,16 @@ private:
     void initTR181PropertiesFileName();
     bool loadFileToCache(const string &filename, unordered_map<string, string> &dict);
     bool loadTR181PropertiesIntoCache();
+
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(rfcStoreTest, getRawValue);
+    FRIEND_TEST(rfcStoreTest, getRawValue_NONPERSISTENT_FILE);
+    FRIEND_TEST(rfcStoreTest, setRawValue_NONPERSISTENT_FILE);
+    FRIEND_TEST(rfcStoreTest, writeHashToFile);
+    FRIEND_TEST(rfcStoreTest, loadTR181PropertiesIntoCache);
+    FRIEND_TEST(rfcStoreTest, setRawValue_Invalid_FILE);
+    FRIEND_TEST(rfcStoreTest, loadFileToCache);
+#endif
 };
 
 #endif // XRDKCENTRALCOMRFCSTORE_H
