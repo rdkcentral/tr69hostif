@@ -436,6 +436,10 @@ public:
 
     int get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *, bool *pChanged = NULL);
 
+#if defined(GTEST_ENABLE)
+    FRIEND_TEST(TimeTest, releaseLock);
+#endif
+    
 };
 /* End of TR_069_DEVICE_TIME_SETTER_API doxygen group. */
 /**

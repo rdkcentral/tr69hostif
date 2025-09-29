@@ -90,6 +90,9 @@ int isParamEndsWithInstance(const char* paramName);
 int getNumberOfDigitsInInstanceNumber(const char* paramName,int position);
 int getNumberofInstances(const char* paramName);
 int checkMatchingParameter(const char* attrValue, char* paramName, int* ret);
+void replaceWithInstanceNumber(char *paramName, int instanceNumber);
+void appendNextObject(char* currentParam, const char* pAttparam);
+void test_get_complete_param_list();
 #endif
 
 #ifdef __cplusplus

@@ -99,7 +99,12 @@ bool XRFCStorage::init()
 
     // get the file path
     IniFile file;
-    file.load(RFC_PROPERTIES_FILE);
+    if(!file.load(RFC_PROPERTIES_FILE))
+    {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s] [%d] Failed to load file: %s\n", __FUNCTION__, __LINE__, RFC_PROPERTIES_FILE);
+        return false;
+    }
+
     m_storageFile = file.value(TR181_RFC_STORE_KEY);
 
     if (m_storageFile.empty()) {
