@@ -633,3 +633,10 @@ int getRbusStringParam(const char *rbusParamName, char **rbusParamValue) {
     return OK ;
 
 }
+
+#ifdef GTEST_ENABLE
+int (*convertRbus2hostIfDataTypeFunc()) (rbusValueType_t type, HostIf_ParamType_t* pParamType)
+{
+    return &convertRbus2hostIfDataType;
+}
+#endif

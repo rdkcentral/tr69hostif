@@ -84,8 +84,13 @@ private:
     FRIEND_TEST(bsStoreTest, getRawValue);
     FRIEND_TEST(bsStoreTest, setRawValue);
     FRIEND_TEST(bsStoreTest, initBSPropertiesFileName);
-    FRIEND_TEST(bsClearTest, resetCacheAndStore);
-    FRIEND_TEST(bsClearTest, clearRfcValues);
+    FRIEND_TEST(StoreClearTest, resetCacheAndStore);
+    FRIEND_TEST(StoreClearTest, clearRfcValues);
+    FRIEND_TEST(bsStoreTest, getPartnerDeviceConfig);
+    FRIEND_TEST(bsStoreTest, getPartnerDeviceConfig_generic);
+    FRIEND_TEST(bsStoreTest, getPartnerDeviceConfig_FileRemoved);
+    FRIEND_TEST(bsStoreTest, getRawValue_Empty);
+    FRIEND_TEST(StoreClearTest, setRawValue_Flush);
 #endif
 };
 

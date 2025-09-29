@@ -461,4 +461,10 @@ long (*timeValDiffFunc()) (struct timespec *starttime, struct timespec *finishti
 {
     return &timeValDiff;
 }
+
+void (*parodus_receive_waitFunc()) ()
+{
+    return &parodus_receive_wait;	
+}
+
 #endif
