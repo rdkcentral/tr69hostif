@@ -69,6 +69,7 @@ AC_SUBST(T2_EVENT_FLAG)
     hostif/profiles/Ethernet/gtest/Makefile
     hostif/profiles/Time/gtest/Makefile
     hostif/profiles/DeviceInfo/gtest/Makefile
+    hostif/handlers/src/gtest/Makefile
  ])
 
 # Generate the configure script

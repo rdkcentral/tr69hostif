@@ -660,7 +660,7 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
     status = hostIf_GetMsgHandler(ptrParam);
 
     if(status != 0) {
-        if (dmParam->defaultValue)
+        if (dmParam != NULL && dmParam->defaultValue)
         {    
             strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
             ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
@@ -811,7 +811,8 @@ DATA_TYPE (*mapRbusDataTypeToWebPAFunc()) (rbusValueType_t type)
 {
     return &mapRbusDataTypeToWebPA;
 }
-WDMP_STATUS (*get_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam)
+
+WDMP_STATUS (*get_ParamValues_tr69hostIfFunc()) (HOSTIF_MsgData_t *ptrParam, DataModelParam *dmParam)
 {
     return &get_ParamValues_tr69hostIf;
 }
@@ -833,6 +834,21 @@ void (*converttohostIfTypeFunc())(char *ParamDataType,HostIf_ParamType_t* pParam
 
 void (*converttoWalTypeFunc())(HostIf_ParamType_t paramType,WAL_DATA_TYPE* pwalType)
 {
-    &converttoWalType;
+    return &converttoWalType;
+}
+
+WDMP_STATUS (*rbusGetParamInfoFunc()) (const char *pParameterName, param_t ***parametervalPtrPtr, int *paramCountPtr, int index)
+{
+    return &rbusGetParamInfo;
+}
+
+WAL_STATUS (*rbusSetParamInfoFunc()) (ParamVal paramVal, char * transactionID)
+{
+    return &rbusSetParamInfo;
+}
+
+WAL_STATUS (*SetParamInfoFunc()) (ParamVal paramVal, char * transactionID)
+{
+    return &SetParamInfo;
 }
 #endif

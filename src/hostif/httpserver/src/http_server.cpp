@@ -289,3 +289,15 @@ void HttpServerStop()
         RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"SERVER: Stopped server successfully.\n");
     }
 }
+
+#ifdef GTEST_ENABLE
+void (*HTTPRequestHandlerFunc()) (
+    SoupServer        *server,
+    SoupServerMessage *msg,
+    const char        *path,
+    GHashTable        *query,
+    void           *user_data)
+{
+    return &HTTPRequestHandler;
+}
+#endif
