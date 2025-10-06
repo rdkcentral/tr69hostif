@@ -63,7 +63,11 @@
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
 #include "hostIf_utils.h"
+#ifdef RDKV_TR69
+#include "pwrMgr.h"
+#else
 #include "power_controller.h"
+#endif
 #include "rbus.h"
 #include <curl/curl.h>
 
@@ -73,6 +77,12 @@
 #include "dsError.h"
 #include "audioOutputPort.hpp"
 #include "sysMgr.h"
+
+#ifdef RDKV_NM
+#ifdef MEDIA_CLIENT
+#include "netsrvmgrIarm.h"
+#endif
+#endif
 
 #ifdef USE_REMOTE_DEBUGGER
 #include "rrdInterface.h"
@@ -93,7 +103,7 @@
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
 
-#include "power_controller.h"
+
 
 #define VERSION_FILE                       "/version.txt"
 #define SOC_ID_FILE                        "/var/log/socprov.log"
@@ -118,6 +128,8 @@
 #define MIN_PORT_RANGE 3000
 #define MAX_PORT_RANGE 3020
 
+#define MEMINSIGHT_SERVICE                 "meminsight-runner.service"
+#define MEMINSIGHT_ENABLE_FILE             "/opt/.enable_meminsight"
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
@@ -155,8 +167,9 @@ XRFCStorage hostIf_DeviceInfo::m_rfcStorage;
 #endif
 XBSStore* hostIf_DeviceInfo::m_bsStore;
 string hostIf_DeviceInfo::m_xrPollingAction = "0";
-
+#ifndef RDKV_TR69
 static bool bPowerControllerEnable;
+#endif
 
 /****************************************************************************************************************************************************/
 // Device.DeviceInfo Profile. Getters:
@@ -1252,9 +1265,27 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_MAC(HOSTIF_MsgDat
 string hostIf_DeviceInfo::getEstbIp()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
+    #ifdef RDKV_TR69
+    string retAddr;
+    #else
     string retAddr = "";
     string ifc = "";
+    #endif
 #if MEDIA_CLIENT
+    #ifdef RDKV_TR69
+    IARM_Result_t ret = IARM_RESULT_SUCCESS;
+    IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+    memset(&param, 0, sizeof(param));
+    try
+    {
+        ret = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME,IARM_BUS_NETSRVMGR_API_getSTBip, (void*)&param, sizeof(param));
+        if (ret != IARM_RESULT_SUCCESS )
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s():%d] IARM_BUS_NETSRVMGR_API_getActiveInterface failed \n", __FUNCTION__, __LINE__);
+        }
+        retAddr=param.activeIfaceIpaddr;
+    }
+    #else
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetPrimaryInterface\"}";
 
     string response = getJsonRPCData(std::move(postData));
@@ -1298,7 +1329,7 @@ string hostIf_DeviceInfo::getEstbIp()
     {
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData failed\n", __FUNCTION__);
     }
-    
+
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetIPSettings\", \"params\" : { \"interface\" : \"" +  ifc + "\"}}";
     response = getJsonRPCData(std::move(postData));
     if(response.c_str())
@@ -1341,7 +1372,8 @@ string hostIf_DeviceInfo::getEstbIp()
     {
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData failed\n", __FUNCTION__);
     }
-    //Legacy way of getting estb ip.
+    #endif
+////Legacy way of getting estb ip.
 #else
 
     struct ifaddrs *ifAddrStr = NULL;
@@ -1440,13 +1472,23 @@ string hostIf_DeviceInfo::getEstbIp()
         else {
             retAddr = tmp_buff;
         }
-    } catch (const std::exception& e) {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Exception getting IP\n",__FUNCTION__);
+    } 
+    #ifndef RDKV_TR69
+        catch (const std::exception& e) {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Exception getting IP\n",__FUNCTION__);     
+    }
+    #endif   
+#endif
+#ifdef RDKV_TR69
+catch (const std::exception &e)
+    {
+        RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s()]Exception caught %s\n", __FUNCTION__, e.what());
     }
 #endif
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return retAddr;
 }
+
 
 bool hostIf_DeviceInfo::isRsshactive()
 {
@@ -1489,6 +1531,8 @@ bool hostIf_DeviceInfo::isRsshactive()
  * @retval ERR_INTERNAL_ERROR if not able to fetch data from the device.
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
+
+
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
@@ -1517,10 +1561,14 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(HOSTIF_MsgData
     return OK;
 }
 
+
+#ifndef RDKV_TR69
 void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
 {
     bPowerControllerEnable = isPwrContEnalbe;
+
 }
+#endif
 
 /**
  * @brief The X_COMCAST_COM_PowerStatus as get parameter results in the power status
@@ -1535,6 +1583,52 @@ void hostIf_DeviceInfo::setPowerConInterface( bool isPwrContEnalbe)
  * @retval NOK if not able to fetch data from the device.
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
+
+#ifdef RDKV_TR69
+int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
+    IARM_Result_t err;
+    int ret = NOK;
+    const char *pwrState = "PowerOFF";
+    int str_len = 0;
+    IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+    memset(&param, 0, sizeof(param));
+    IARM_Result_t iarm_ret = IARM_RESULT_IPCCORE_FAIL;
+
+    err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                        IARM_BUS_PWRMGR_API_GetPowerState,
+                        (void *)&param,
+                        sizeof(param));
+    if(err == IARM_RESULT_SUCCESS)
+    {
+        pwrState = (param.curState==IARM_BUS_PWRMGR_POWERSTATE_OFF)?"PowerOFF":(param.curState==IARM_BUS_PWRMGR_POWERSTATE_ON)?"PowerON":"Standby";
+
+//        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Current state is : (%d)%s\n",param.curState, pwrState);
+        str_len = strlen(pwrState);
+        try
+        {
+            strncpy((char *)stMsgData->paramValue, pwrState, str_len);
+            stMsgData->paramValue[str_len+1] = '\0';
+            stMsgData->paramLen = str_len;
+            stMsgData->paramtype = hostIf_StringType;
+            ret = OK;
+        } catch (const std::exception e)
+        {
+            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
+            ret = NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed in IARM_Bus_Call() for parameter : %s [param.type:%s with error code:%d]\n",stMsgData->paramName, pwrState, ret);
+        ret = NOK;
+    }
+
+    //RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
+    return ret;
+}
+#else
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Entering..\n", __FUNCTION__);
@@ -1580,6 +1674,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]Exiting..\n", __FUNCTION__);
     return ret;
 }
+#endif
 
 /**
  * @brief Get the filename of the firmware currently running on the device.
@@ -1647,31 +1742,25 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename(H
             }
 
             if(line.length()) {
-                char * cstr = new char [line.length()+1];
-                rc=strcpy_s (cstr,(line.length()+1), line.c_str());
-                if(rc!=EOK)
+		std::string::size_type pos = line.find(':');
+	        if (pos == std::string::npos)
                 {
-                    ERR_CHK(rc);
+                   return NOK;
                 }
-                char * pch = NULL;
-		        pch = strstr (cstr,":");
-		        pch++;
-
-                while(isspace(*pch)) {
-                    pch++;
-                }
-                delete[] cstr;
-
-                if(bCalledX_COMCAST_COM_FirmwareFilename && pChanged && strncmp(pch,backupX_COMCAST_COM_FirmwareFilename,_BUF_LEN_64 ))
+	        std::string value = line.substr(pos + 1);
+	        value.erase(0, value.find_first_not_of(" \t"));  	
+                
+                if(bCalledX_COMCAST_COM_FirmwareFilename && pChanged && strncmp(value.c_str(),backupX_COMCAST_COM_FirmwareFilename,_BUF_LEN_64 ))
                 {
                     *pChanged =  true;
                 }
 
                 bCalledX_COMCAST_COM_FirmwareFilename = true;
-                strncpy(backupX_COMCAST_COM_FirmwareFilename,pch,sizeof(backupX_COMCAST_COM_FirmwareFilename) -1);  //CID:136569 - Buffer size
+                strncpy(backupX_COMCAST_COM_FirmwareFilename,value.c_str(),sizeof(backupX_COMCAST_COM_FirmwareFilename) -1);  //CID:136569 - Buffer size
                 backupX_COMCAST_COM_FirmwareFilename[sizeof(backupX_COMCAST_COM_FirmwareFilename) -1] = '\0';
-                strncpy(stMsgData->paramValue,pch,_BUF_LEN_64 );
-                strncpy((char *) stMsgData->paramValue, pch, stMsgData->paramLen +1 );
+                strncpy((char *) stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+		stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+		stMsgData->paramLen = value.length();
             }
         }
 
@@ -2987,10 +3076,11 @@ int hostIf_DeviceInfo::findLocalPortAvailable()
     return -1;
 }
 
+
 int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
-#ifdef PRIVACYMODES_CONTROL
+    #ifdef PRIVACYMODES_CONTROL
     string privacyModeValue; 
     string queryJsonPrivacy = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.System.getPrivacyMode\" }";
     string response = getJsonRPCData(queryJsonPrivacy);
@@ -3533,6 +3623,114 @@ int hostIf_DeviceInfo::set_xRDKCentralComBootstrap(HOSTIF_MsgData_t * stMsgData)
     return ret;
 }
 
+#ifdef RDKV_TR69
+static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
+{
+    const char *apparmor_profiledir = "/etc/apparmor.d";
+    const char *service_profiles_dir = "/etc/apparmor/service_profiles";
+    struct dirent *entry=NULL;
+    DIR *dir=NULL;
+    char *files_name = NULL;
+    size_t files_name_len = 0;
+    int number_of_profiles = 0;
+    char *token=NULL;
+    char *subtoken=NULL;
+    char *sub_string=NULL;
+    char *sp=NULL;
+    char *sptr=NULL;
+    char tmp[ENTRY_WIDTH]= {0};
+    char *arg=NULL;
+    if(tmp_fptr == NULL){
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"tmp_fptr empty, returning false\n");
+        return FALSE;
+    }
+    dir=opendir(apparmor_profiledir);
+    if(dir == NULL) {
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Failed to open Apparmor Profile directory\n");
+        return FALSE;
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        number_of_profiles++;
+    }
+    if (closedir(dir) != 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to close Apparmor Profile directory\n");
+        return false;
+    }
+    // Allocate the exact required buffer size directly
+    files_name = (char *)malloc(number_of_profiles * ENTRY_WIDTH);
+    if (files_name == NULL) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Memory allocation failed\n");
+        return false;
+    }
+    files_name[0] = '\0';  // Ensure the buffer is initially empty
+    dir = opendir(apparmor_profiledir);
+    if (dir == NULL) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to open Apparmor Profile directory\n");
+        free(files_name);
+        return false;
+    }
+    // Read the entries and store in the buffer
+    while ((entry = readdir(dir)) != NULL) {
+        strncat(files_name, entry->d_name, ENTRY_WIDTH - 1);
+        files_name_len += strlen(entry->d_name);
+    }
+    if (closedir(dir) != 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to close Apparmor Profile directory\n");
+        free(files_name);
+        return false;
+    }
+    /* Read the input arguments and ensure the corresponding profiles exist or not by searching in
+     Apparmor profile directory (/etc/apparmor.d/). Returns false if input does not have the
+     apparmor profile, Returns true if apparmor profile finds for the input */
+    token=strtok_r( input,"#", &sp);
+    while(token != NULL) {
+        arg=strchr(token,':');
+         if (arg == NULL) {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Missing ':' in token: %s\n", token);
+            free(files_name);
+            return false;
+        }
+        if ( ( (strcmp(arg+1,"disable") != 0) && (strcmp(arg+1,"complain") != 0) && (strcmp(arg+1,"enforce") != 0) ) ) {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments in the parser:%s\n", token);
+            free(files_name);
+            return FALSE;
+        }
+        strncpy(tmp,token,sizeof(tmp)-1);
+        subtoken=strtok_r(tmp,":",&sptr);
+        if(subtoken != NULL) {
+            sub_string=strstr(files_name, subtoken);
+            if(sub_string != NULL) {
+                fprintf(tmp_fptr,"%s\n",token);
+            } else {
+                bool profile_found = false;
+                DIR *service_profiles_dir_ptr = opendir(service_profiles_dir);
+                if (service_profiles_dir_ptr != NULL) {
+                    struct dirent *profile_entry = NULL;
+                    while ((profile_entry = readdir(service_profiles_dir_ptr)) != NULL) {
+                        // Check if the file ends with .service.sp and matches subtoken
+                        if (strstr(profile_entry->d_name, subtoken) != NULL &&
+                            strstr(profile_entry->d_name, ".service.sp") != NULL) {
+                            profile_found = true;
+                            break;
+                        }
+                    }
+                    closedir(service_profiles_dir_ptr);
+                }
+                if (profile_found) {
+                    fprintf(tmp_fptr, "%s\n", token);
+                } else {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Invalid arguments %s error found in the parser\n", subtoken);
+                    free(files_name);
+                    return FALSE;
+                }
+            }
+        }
+        token=strtok_r(NULL,"#",&sp);
+    }
+    free(files_name);
+    return TRUE;
+}
+#else
 static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
 {
     const char *apparmor_profiledir = "/etc/apparmor.d";
@@ -3658,7 +3856,7 @@ static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
     free(files_name);
     return TRUE;
 }
-
+#endif
 int hostIf_DeviceInfo::set_xRDKCentralComApparmorBlocklist(HOSTIF_MsgData_t *stMsgData)
 {
     const char *apparmor_config = "/opt/secure/Apparmor_blocklist";
@@ -3911,6 +4109,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     else if (strcasecmp(stMsgData->paramName,CANARY_END_TIME) == 0)
     {
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_MEMINSIGHT_ENABLE) == 0)
+    {
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(stMsgData);
     }
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
     {
@@ -4380,6 +4582,109 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return retVal;
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    bool is_xmem_enabled = false;
+
+    if (!stMsgData)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] NULL parameter passed\n", __FUNCTION__, __LINE__);
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_BooleanType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Invalid parameter type for %s. Expected boolean(0/1)\n", __FUNCTION__, __LINE__, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    is_xmem_enabled = get_boolean(stMsgData->paramValue);
+
+    if (is_xmem_enabled)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Enabling MemInsight feature\n", __FUNCTION__, __LINE__);
+
+        std::ofstream enableFile(MEMINSIGHT_ENABLE_FILE);
+        if (enableFile.is_open())
+        {
+            enableFile.close();
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully enabled MemInsight. File created: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+            ret = OK;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to create MemInsight enable file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE, strerror(errno));
+            stMsgData->faultCode = fcInternalError;
+            ret = NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Disabling MemInsight feature\n", __FUNCTION__, __LINE__);
+
+        std::ifstream checkFile(MEMINSIGHT_ENABLE_FILE);
+        if (checkFile.is_open())
+        {
+            checkFile.close();
+            if (remove(MEMINSIGHT_ENABLE_FILE) == 0)
+            {
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully disabled MemInsight. File removed: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+                ret = OK;
+
+                int sysRet = v_secure_system("systemctl is-active %s", MEMINSIGHT_SERVICE);
+
+                if (sysRet == 0)
+                {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] %s is currently active\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    sysRet = v_secure_system("systemctl stop %s", MEMINSIGHT_SERVICE);
+
+                    if (sysRet == 0)
+                    {
+                        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] %s stopped successfully\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                    else
+                    {
+                        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to stop %s. Return code: %d\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE, sysRet);
+                    }
+                    sysRet = v_secure_system("systemctl is-active %s", MEMINSIGHT_SERVICE);
+
+                    if (sysRet != 0)
+                    {
+                        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Confirmed: %s is now inactive\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                    else
+                    {
+                        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Warning: %s appears to still be active after stop command\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                    }
+                }
+                else
+                {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight service %s is already inactive\n", __FUNCTION__, __LINE__, MEMINSIGHT_SERVICE);
+                }
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove MemInsight enable file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE, strerror(errno));
+                stMsgData->faultCode = fcInternalError;
+                ret = NOK;
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight is already disabled. File not found: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_ENABLE_FILE);
+            ret = OK;
+        }
+    }
+
+    if (ret == OK)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully set MemInsight enable to %s\n", __FUNCTION__, __LINE__, is_xmem_enabled ? "true" : "false");
+    }
+    return ret;
 }
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable(HOSTIF_MsgData_t *stMsgData)
@@ -5412,6 +5717,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgD
     return OK;
 }
 
+
 /**
  * @brief This function identifying the imagename of the running image
  *        This Value comes from "imagename" property in /version.txt file
@@ -5552,6 +5858,13 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *
     }
 
     return ret;
+}
+#endif
+
+#ifdef GTEST_ENABLE
+bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr)
+{
+    return &ValidateInput_Arguments;
 }
 #endif
 /* End of doxygen group */

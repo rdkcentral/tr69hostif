@@ -770,4 +770,14 @@ defaultValue, HostIf_Source_Type_t *bsUpdate)
 {
     return &validateAgainstDataModel;
 }
+
+void (*convertAndAssignParamValueFunc()) (HOSTIF_MsgData_t *param, char *value)
+{
+    return &convertAndAssignParamValue;	
+}
+
+char* (*getStringValueFunc()) (HostIf_ParamType_t paramType, char *value)
+{
+    return &getStringValue;	
+}
 #endif

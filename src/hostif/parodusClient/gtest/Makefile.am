@@ -22,20 +22,10 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = dm_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DUSE_DEV_PROPERTIES_CONF -DUSE_REMOTE_DEBUGGER -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include -I$(TOP_DIR)/src/hostif/handlers/include -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/hostif/httpserver/include -I$(TOP_DIR)/src/hostif/handlers/src -I/usr/include/rbus -I/usr/local/include/rbus -Isrc/unittest/stubs/rbus/include/ -I$(TOP_DIR)/src/hostif/profiles/Time -I$(TOP_DIR)/src/hostif/profiles/Device -I$(TOP_DIR)/src/hostif/profiles/IP -I$(TOP_DIR)/src/hostif/profiles/STBService -I/usr/rdk-halif-device_settings/include/ -I/usr/rdkvhal-devicesettings-raspberrypi4/ -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$(TOP_DIR)/src/hostif/profiles/Ethernet -I/usr/remote_debugger/src/ -I/usr/local/include/libparodus/ -I/usr/local/include/wrp-c/ -I$(TOP_DIR)/src/hostif/parodusClient/startParodus/
-
-if LIBSOUP3_ENABLE
-COMMON_CPPFLAGS +=  -I/usr/include/libsoup-3.0 -DLIBSOUP3_ENABLE
-else
-COMMON_CPPFLAGS +=  -I/usr/include/libsoup-2.4
-endif
+COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DUSE_DEV_PROPERTIES_CONF -DUSE_REMOTE_DEBUGGER -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include -I$(TOP_DIR)/src/hostif/handlers/include -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/hostif/httpserver/include -I$(TOP_DIR)/src/hostif/handlers/src -I/usr/include/rbus -I/usr/local/include/rbus -Isrc/unittest/stubs/rbus/include/ -I$(TOP_DIR)/src/hostif/profiles/Time -I$(TOP_DIR)/src/hostif/profiles/Device -I$(TOP_DIR)/src/hostif/profiles/IP -I$(TOP_DIR)/src/hostif/profiles/STBService -I/usr/rdk-halif-device_settings/include/ -I/usr/rdkvhal-devicesettings-raspberrypi4/ -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$(TOP_DIR)/src/hostif/profiles/Ethernet -I/usr/remote_debugger/src/ -I/usr/local/include/libparodus/ -I/usr/local/include/wrp-c/ -I$(TOP_DIR)/src/hostif/parodusClient/startParodus/ -I/usr/include/libsoup-3.0
 
 # Define the libraries to link against
-COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl -lglib-2.0 -llibparodus -lwrp-c -lnanomsg -lmsgpackc -ltrower-base64 -lcimplog
-
-if LIBSOUP3_ENABLE
-COMMON_LDADD +=  -lsoup-3.0
-endif
+COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl -lglib-2.0 -llibparodus -lwrp-c -lnanomsg -lmsgpackc -ltrower-base64 -lcimplog -lsoup-3.0
 
 # Define the compiler flags
 COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) -fprofile-arcs -ftest-coverage

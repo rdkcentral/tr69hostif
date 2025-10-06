@@ -48,10 +48,21 @@
 #ifndef HOSTIF_RBUS_DML_PROVIDER_H_
 #define HOSTIF_RBUS_DML_PROVIDER_H_
 
+#ifdef GTEST_ENABLE
+#include "rbus_value.h"
+#include "rbus.h"
+#endif
+
 void init_rbus_dml_provider();
 
 int setRbusStringParam(const char *paramName, char* paramValue);
 int getRbusStringParam(const char *paramName, char** paramValue);
+
+#ifdef GTEST_ENABLE
+rbusError_t TR_Dml_EventSubHandler(rbusHandle_t handle, rbusEventSubAction_t action, const char* eventName, rbusFilter_t filter, int32_t interval, bool* autoPublish);
+rbusError_t TR_Dml_GetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rbusGetHandlerOptions_t* opts);
+rbusError_t TR_Dml_SetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rbusSetHandlerOptions_t* opts);
+#endif
 
 #endif /* HOSTIF_RBUS_DML_PROVIDER_H_ */
 

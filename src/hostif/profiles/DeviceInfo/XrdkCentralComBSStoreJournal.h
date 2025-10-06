@@ -82,6 +82,8 @@ private:
     FRIEND_TEST(bsStoreJournalTest, getBuildTime);
     FRIEND_TEST(bsStoreJournalTest, resetClearRfc);
     FRIEND_TEST(bsStoreJournalTest, clearRfcAndGetDefaultValue);
+    FRIEND_TEST(bsStoreJournalTest, constructor);
+    FRIEND_TEST(bsStoreJournalTest, getBuildTime_Version);
 #endif  
 };
 

@@ -50,8 +50,10 @@
 #include <errno.h>
 #include "Device_IP.h"
 #include "safec_lib.h"
+#ifndef RDKV_TR69
 static const char* STATE_UP = "Up";
 static const char* STATE_DOWN = "Down";
+#endif
 
 // TODO: fix potential bug with initialization, as structure definition now has a "#ifdef IPV6_SUPPORT"
 IPInterface hostIf_IPInterface::stIPInterfaceInstance = {FALSE,FALSE,FALSE,FALSE,{"Down"},{'\0'},{'\0'},0,{'\0'},{'\0'},FALSE,0,{"Normal"},FALSE,0,

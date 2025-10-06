@@ -48,7 +48,6 @@ apt-get -y install libsoup-3.0-dev
 apt-get -y install libprocps-dev
 apt-get -y install libnanomsg-dev
 apt-get -y install iproute2
-
 sed '/<\/model>/d; /<\/dm:document>/d' ./src/hostif/parodusClient/waldb/data-model/data-model-tv.xml > ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
 sed '/<?xml/,/<model/ d' ./src/hostif/parodusClient/waldb/data-model/data-model-generic.xml >> ./src/hostif/parodusClient/waldb/data-model/data-model-merged.xml
 
@@ -65,17 +64,26 @@ mkdir -p /tmp/webpa
 mkdir -p /opt/persistent/
 mkdir -p /etc/rfcdefaults
 mkdir -p /etc/apparmor.d
+mkdir -p /opt/secure/persistent/
+mkdir -p /etc/rrd/
 cp ./src/unittest/stubs/tr181store.ini /opt/secure/RFC/tr181store.ini
 cp ./src/integrationtest/conf/bootstrap.ini /opt/secure/RFC/
 cp ./src/integrationtest/conf/rfcVariable.ini /opt/secure/RFC/
 cp partners_defaults.json /etc/partners_defaults.json
 cp ./src/unittest/stubs/partners_defaults_device.json /etc/partners_defaults_device.json
 cp ./src/unittest/stubs/fwdnldstatus.txt  /opt/fwdnldstatus.txt
+cp ./src/integrationtest/conf/mgrlist.conf /etc/mgrlist.conf
+cp ./src/unittest/stubs/remote_debugger.json /etc/rrd/remote_debugger.json
 touch /tmp/timeReceivedNTP
 touch /tmp/webpa/start_time 
 touch /opt/persistent/firstNtpTime
-
-
+touch /etc/rfcdefaults/rfcdefaults.ini
+touch /opt/XRE_container_enable /opt/dab-enable
+touch /opt/.ntpEnabled
+touch /var/tmp/rssh.pid
+cat /version.txt
+rm -rf /version.txt
+echo "Method|" >> /opt/fwdnldstatus.txt
 
 export TOP_DIR=$WORKDIR
 cd ./src/
@@ -90,10 +98,20 @@ make clean
 
 echo "TOP_DIR = $TOP_DIR"
 
+echo "**** Compiling handlers gtest ****"
+cd $TOP_DIR/src/hostif/handlers/src/gtest
+rm handlers_gtest
+sed -i '/getCurrentTime/,/^ *}/d' ../../../src/hostIf_utils.cpp
+make clean
+make
+./handlers_gtest
+echo "********************"
+
+
 echo "**** Compiling data model gtest ****"
 cd $TOP_DIR/src/hostif/parodusClient/gtest
 rm dm_gtest
-sed -i '/getCurrentTime/,/^ *}/d' ../../src/hostIf_utils.cpp
+#sed -i '/getCurrentTime/,/^ *}/d' ../../src/hostIf_utils.cpp
 make
 ./dm_gtest
 echo "********************"
@@ -101,7 +119,8 @@ echo "********************"
 echo "**** Compiling httpserver gtest ****"
 cd $TOP_DIR/src/hostif/httpserver/src/gtest
 rm httpserver_gtest
-sed -i '$a void getCurrentTime(struct timespec *timer)\n{\n    clock_gettime(CLOCK_REALTIME, timer);\n}' ../../../src/hostIf_utils.cpp
+#sed -i '$a void getCurrentTime(struct timespec *timer)\n{\n    clock_gettime(CLOCK_REALTIME, timer);\n}' ../../../src/hostIf_utils.cpp
+#sed -i '/getCurrentTime/,/^ *}/d' ../../src/hostIf_utils.cpp
 make clean
 make
 ./httpserver_gtest
@@ -110,6 +129,7 @@ echo "********************"
 echo "**** Compiling src gtest ****"
 cd $TOP_DIR/src/hostif/src/gtest
 rm src_gtest
+sed -i '$a void getCurrentTime(struct timespec *timer)\n{\n    clock_gettime(CLOCK_REALTIME, timer);\n}' ../hostIf_utils.cpp
 make clean
 make
 ./src_gtest
@@ -145,6 +165,7 @@ echo "********************"
 
 echo "**** Compiling DeviceInfo gtest ****"
 cd $TOP_DIR/src/hostif/profiles/DeviceInfo/gtest
+cp ../../../../unittest/stubs/rfc.properties /etc/rfc.properties
 rm devieInfo_gtest /opt/www/authService/partnerId3.dat
 make
 ./devieInfo_gtest

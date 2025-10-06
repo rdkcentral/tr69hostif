@@ -200,6 +200,10 @@
 #define CANARY_START_TIME                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart"
 #define CANARY_END_TIME                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"
 
+/* Profile: X_RDKCENTRAL-COM_RFC.Feature.xMemInsight */
+#define X_MEMINSIGHT_ENABLE                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable"
+#define X_MEMINSIGHT_ARGS                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Args"
+
 char* getLastField(char* line, char delimiter);
 
 /**
@@ -314,6 +318,8 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, NewNtpEnable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCDisable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCInvalidtype);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComApparmorBlocklist);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldCompletedNotification);
@@ -328,6 +334,7 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComNewNtpEnable);
+    FRIEND_TEST(deviceTest, NewNtpEnable_Disable);
     FRIEND_TEST(deviceTest, findLocalPortAvailable);
     FRIEND_TEST(deviceTest, get_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldStartedNotification);
@@ -336,6 +343,15 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
     FRIEND_TEST(deviceTest, set_xOpsDeviceMgmtRPCRebootNow);
     FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCEnable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCDisable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCInvalidtype);
+    FRIEND_TEST(deviceTest, get_xOpsRPCDevManageableNotification);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRoamTrigger);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_InvalidType);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCAutoRebootEnable_Invalidtype);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable_FileRemoved);
+    FRIEND_TEST(deviceTest, NewNtpEnable_Disable_FileRemoved);
+    FRIEND_TEST(deviceTest, get_xRDKCentralComRFCAccountId);
 #endif
 
 public:
@@ -357,8 +373,9 @@ public:
     static int sendDeviceMgtNotification(const char* source, const char* type);
 
     GHashTable* getNotifyHash();
-
+    #ifndef RDKV_TR69
     static void setPowerConInterface( bool isPwrContEnalbe);
+    #endif
 
 //    void runSystemMgmtTimePathMonitor();
     /**
@@ -1284,6 +1301,23 @@ public:
 
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd(HOSTIF_MsgData_t *);
+
+
+      /*
+      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable
+      *
+      * This method is used to enable/disable the xmeminsight memory & CPU Analysis Tool.
+      * with following TR-069 definition:
+      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable
+      *   Data type: boolean - Enable (True)/ disable (False) xmeminsight tool.
+      *
+      * @retval OK if it is successful.
+      * @retval NOK if operation fails.
+      */
+
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *);
+
+
 
     /*
       * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable

@@ -162,6 +162,17 @@ int XREClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
     {
         ret = set_Device_X_COMCAST_COM_Xcalibur_Client_XRE_xreLogLevel(stMsgData);
     }
+    #ifdef RDKV_TR69
+    else if(strcasecmp(stMsgData->paramName,"Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreReceiverRestart") == 0)
+    {
+        ret = setXreReceiverRestart(stMsgData);
+    }
+    else if(strcasecmp(stMsgData->paramName,"Device.X_COMCAST-COM_Xcalibur.DevApp.devAppRestartRequest") == 0)
+    {
+        // xreReceiverRestart uses /lib/rdk/restartReceiver.sh, which sometimes doesn't start receiver back 
+        ret = setDevAppRestartRequest(stMsgData);
+    }
+    #endif
     else
     {
         stMsgData->faultCode = fcInvalidParameterName;
@@ -499,7 +510,7 @@ int set_Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow(HOSTIF_MsgData_t *stM
     }
     else
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: \"%s\" Invalid Input. Valid Input is \"TRUE\" \n",__FILE__,__FUNCTION__,__LINE__,stMsgData->paramValue);
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s:%s:%d]Device_X_COMCAST_COM_Xcalibur_Client_xconfCheckNow: \"%s\" Invalid Input. Valid Input is \"TRUE or CANARY\" \n",__FILE__,__FUNCTION__,__LINE__,stMsgData->paramValue);
         return NOK;	    
     }
     return OK;

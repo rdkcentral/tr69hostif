@@ -56,6 +56,7 @@ private:
 #if defined(GTEST_ENABLE)
     FRIEND_TEST(httpserverTest, initRFCVarFileName);
     FRIEND_TEST(httpserverTest, loadRFCVarIntoCache);
+    FRIEND_TEST(httpserverTest, Invalid_RFC_filename);
 #endif
 };
 
