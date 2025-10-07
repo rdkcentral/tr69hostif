@@ -21,21 +21,10 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = time_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DPARODUS -DUNIT_TEST -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/handlers/include -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/profiles/Time -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include  -I/usr/include/rbus -I/usr/local/include/rbus $(GLIB_CFLAGS) $(G_THREAD_CFLAGS)
-
-
-if LIBSOUP3_ENABLE
-COMMON_CPPFLAGS +=  -I/usr/include/libsoup-3.0 -DLIBSOUP3_ENABLE
-else
-COMMON_CPPFLAGS +=  -I/usr/include/libsoup-2.4
-endif
+COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DPARODUS -DUNIT_TEST -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/handlers/include -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/profiles/Time -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include  -I/usr/include/rbus -I/usr/local/include/rbus $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) -I/usr/include/libsoup-3.0
 
 # Define the libraries to link against
-COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl
-
-if LIBSOUP3_ENABLE
-COMMON_LDADD +=  -lsoup-3.0
-endif
+COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl -lsoup-3.0
 
 # Define the compiler flags
 COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) $(SOUP_LIBS) -fprofile-arcs -ftest-coverage
