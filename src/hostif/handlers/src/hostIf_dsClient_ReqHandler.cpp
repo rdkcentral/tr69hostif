@@ -82,9 +82,6 @@ bool DSClientReqHandler::init()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] Device manager Initializing\n", __FUNCTION__);
-	// Add delay to allow DSMgr service to start before attempting initialization
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] Waiting for DSMgr service to be ready...\n", __FUNCTION__);
-    sleep(8);  // Wait 3 seconds for DSMgr service to start
     try
     {
        device::Manager::Initialize();
