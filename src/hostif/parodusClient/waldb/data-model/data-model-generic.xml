@@ -4340,7 +4340,7 @@
       <parameter base="DeviceType" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
-          <default type="factory" value="TEST"/>
+          <default type="factory" value="PROD"/>
         </syntax>
       </parameter>
     </object>
