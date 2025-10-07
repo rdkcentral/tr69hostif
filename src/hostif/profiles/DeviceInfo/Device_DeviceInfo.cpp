@@ -1690,7 +1690,6 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus(HOSTIF_Ms
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
-    errno_t rc = -1;
     string line;
     bool curFileFlag = true;
     ifstream curFwfile(CURENT_FW_FILE);
