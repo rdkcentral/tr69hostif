@@ -4020,7 +4020,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *stMsgDat
 int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
-
+    faultCode_t fcode = fcNoFault;
     if (stMsgData->paramtype != hostIf_StringType) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed due to wrong data type for %s, please use string to set.\n",
                 __FUNCTION__, __LINE__, stMsgData->paramName);
@@ -4054,19 +4054,19 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
     std::string currentValue;
 #ifndef NEW_HTTP_SERVER_DISABLE
     if (!legacyRFCEnabled()) {
-        if (( ret = m_rfcStore->getValue(&getCurrentMsgData)) == OK) {
+        if (m_rfcStore->getValue(&getCurrentMsgData) == fcNoFault) {
             currentValue = std::string(getCurrentMsgData.paramValue);
         }
     } else {
-        if (( ret = m_rfcStorage.getValue(&getCurrentMsgData)) == OK) {
+        if (m_rfcStorage.getValue(&getCurrentMsgData) == OK) {
             currentValue = std::string(getCurrentMsgData.paramValue);
         }
     }
 #else
-    if (( ret = m_rfcStorage.getValue(&getCurrentMsgData)) == OK) {
+    if (m_rfcStorage.getValue(&getCurrentMsgData) == OK) {
         currentValue = std::string(getCurrentMsgData.paramValue);
-    }
-#endif
+    }                                                                                                                   
+#endif 
 
     // Check if the new value is different from current value
     if (configURL == currentValue) {
@@ -4079,19 +4079,19 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
     // Store the new value using RFC store
 #ifndef NEW_HTTP_SERVER_DISABLE
     if (!legacyRFCEnabled()) {
-        ret = m_rfcStore->setValue(stMsgData);
+        fcode = m_rfcStore->setValue(stMsgData);
     } else {
         ret = m_rfcStorage.setValue(stMsgData);
     }
 #else
     ret = m_rfcStorage.setValue(stMsgData);
 #endif
-
-    if (ret != OK) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to store ConfigURL in RFC store\n",
-                __FUNCTION__, __LINE__);
-        stMsgData->faultCode = fcInternalError;
-        return ret;
+                                                                                                                        
+    if (ret != OK || fcode != fcNoFault) {                                                                              
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to store ConfigURL in RFC store\n",                      
+                __FUNCTION__, __LINE__);                                                                                
+        stMsgData->faultCode = fcInternalError;                                                                         
+        return ret;                                                                                                     
     }
 
     // Execute the system command
