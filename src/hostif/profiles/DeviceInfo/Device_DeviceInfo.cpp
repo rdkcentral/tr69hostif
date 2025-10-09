@@ -4054,16 +4054,16 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
     std::string currentValue;
 #ifndef NEW_HTTP_SERVER_DISABLE
     if (!legacyRFCEnabled()) {
-        if (m_rfcStore->getValue(&getCurrentMsgData) == OK) {
+        if (( ret = m_rfcStore->getValue(&getCurrentMsgData)) == OK) {
             currentValue = std::string(getCurrentMsgData.paramValue);
         }
     } else {
-        if (m_rfcStorage.getValue(&getCurrentMsgData) == OK) {
+        if (( ret = m_rfcStorage.getValue(&getCurrentMsgData)) == OK) {
             currentValue = std::string(getCurrentMsgData.paramValue);
         }
     }
 #else
-    if (m_rfcStorage.getValue(&getCurrentMsgData) == OK) {
+    if (( ret = m_rfcStorage.getValue(&getCurrentMsgData)) == OK) {
         currentValue = std::string(getCurrentMsgData.paramValue);
     }
 #endif
