@@ -4019,13 +4019,13 @@ int hostIf_DeviceInfo::set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *stMsgDat
 
 int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t *stMsgData)
 {
-    int ret = NOK;
+    int ret = OK;
     faultCode_t fcode = fcNoFault;
     if (stMsgData->paramtype != hostIf_StringType) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed due to wrong data type for %s, please use string to set.\n",
                 __FUNCTION__, __LINE__, stMsgData->paramName);
         stMsgData->faultCode = fcInvalidParameterType;
-        return ret;
+        return NOK;
     }
 
     std::string configURL = getStringValue(stMsgData);
@@ -4034,7 +4034,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
     if (configURL.empty()) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Empty ConfigURL provided\n", __FUNCTION__, __LINE__);
         stMsgData->faultCode = fcInvalidParameterValue;
-        return ret;
+        return NOK;
     }
 
     // Check if the URL starts with https
@@ -4042,7 +4042,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] ConfigURL must start with https: %s\n",
                 __FUNCTION__, __LINE__, configURL.c_str());
         stMsgData->faultCode = fcInvalidParameterValue;
-        return ret;
+        return NOK;
     }
 
     // Read current value from RFC store to check if it's different
