@@ -167,6 +167,8 @@
 #define XRE_CONTAINER_RFC_ENABLE                        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable"
 #define TR181_AUTOREBOOT_ENABLE                         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define SHORTS_RFC_ENABLE                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SHORTS.Enable"
+//Telemetry.ConfigURL
+#define TELEMETRY_CONFIG_URL                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.ConfigURL"
 /* Profile: X_RDKCENTRAL-COM_RFC.Control */
 #define RFC_CTL_RETRIEVE_NOW                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.RetrieveNow"
 /* Profile: X_RDKCENTRAL-COM_IPRemoteSupport */
@@ -275,6 +277,7 @@ class hostIf_DeviceInfo {
 
     int set_xRDKCentralComRFCRetrieveNow(HOSTIF_MsgData_t *);
     int set_xRDKCentralComApparmorBlocklist(HOSTIF_MsgData_t *);
+    int set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t *);
 #ifdef ENABLE_VIDEO_TELEMETRY
     int set_xRDKCentralComRFCVideoTelFreq(HOSTIF_MsgData_t *);
 #endif
