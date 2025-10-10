@@ -4029,22 +4029,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
     }
 
     std::string configURL = getStringValue(stMsgData);
-
-    // Check if the input is empty
-    if (configURL.empty()) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Empty ConfigURL provided\n", __FUNCTION__, __LINE__);
-        stMsgData->faultCode = fcInvalidParameterValue;
-        return NOK;
-    }
-
-    // Check if the URL starts with https
-    if (configURL.find("https://") != 0) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] ConfigURL must start with https: %s\n",
-                __FUNCTION__, __LINE__, configURL.c_str());
-        stMsgData->faultCode = fcInvalidParameterValue;
-        return NOK;
-    }
-
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] New ConfigURL to be set: %s\n", __FUNCTION__, __LINE__, configURL.c_str());
     // Read current value from RFC store to check if it's different
     HOSTIF_MsgData_t getCurrentMsgData;
     memset(&getCurrentMsgData, 0, sizeof(getCurrentMsgData));
@@ -4068,13 +4053,15 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
     }                                                                                                                   
 #endif 
 
-    // Check if the new value is different from current value
     if (configURL == currentValue) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] ConfigURL is same as current value, no action needed\n",
-                __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] ConfigURL %s is same as current value %s, no action needed\n",
+                __FUNCTION__, __LINE__, configURL.c_str(), currentValue.c_str());
         ret = OK;
         return ret;
+    }else {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] New ConfigURL provided: %s\n", __FUNCTION__, __LINE__, configURL.c_str());
     }
+
 
     // Store the new value using RFC store
 #ifndef NEW_HTTP_SERVER_DISABLE
@@ -4094,17 +4081,17 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t 
         return ret;                                                                                                     
     }
 
-    // Execute the system command
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Sending kill 12 signal for ConfigURL: %s\n", __FUNCTION__, __LINE__, configURL.c_str());
-    // TODO : Use right arguments to dca_utility.sh if needed for config reload
-
-    int systemRet = v_secure_system(CONFIG_RELOAD);
-    if (systemRet == -1) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] kill signal 12 to telemetry2_0 failed\n", __FUNCTION__, __LINE__);
-        // Note: We still return OK since the parameter was set successfully
-        // The system call failure is logged but doesn't affect the parameter setting
-    } else {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully send signal 12 to telemetry2_0, return code: %d\n", __FUNCTION__, __LINE__, systemRet);
+    // Execute the system command only if configURL is not empty and starts with https://
+    if (!configURL.empty() && configURL.find("https://") == 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Sending kill 12 signal for ConfigURL: %s\n", __FUNCTION__, __LINE__, configURL.c_str());
+        int systemRet = v_secure_system(CONFIG_RELOAD);
+        if (systemRet == -1) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] kill signal 12 to telemetry2_0 failed\n", __FUNCTION__, __LINE__);
+            // Note: We still return OK since the parameter was set successfully
+            // The system call failure is logged but doesn't affect the parameter setting
+        } else {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully sent signal 12 to telemetry2_0, return code: %d\n", __FUNCTION__, __LINE__, systemRet);
+        }
     }
 
     RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Successfully set Telemetry ConfigURL: %s\n",  __FUNCTION__, __LINE__, configURL.c_str());
