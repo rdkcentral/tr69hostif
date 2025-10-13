@@ -223,6 +223,7 @@ std::string get_RebootReason()
                           reboot_reason = reason->valuestring;
                           reboot_reason.erase(std::remove(reboot_reason.begin(), reboot_reason.end(), '\n'), reboot_reason.cend());
                       }
+                      cJSON_Delete(rebootFile);
                    }
                    free(rebootReasonFile); // CID:18606 - Resource leak
                   }
@@ -399,6 +400,7 @@ int main(int argc, char *argv[])
                             pingWaitTime = MaxPingWaitTimeInSec->valueint;
                             printf("pingWaitTime = [ %d ] \n", pingWaitTime);
                         }
+                        cJSON_Delete(webpa_cfg);
                     }
                     free(webpaCfgFile); // CID:18606 - Resource leak
                     if (fp)

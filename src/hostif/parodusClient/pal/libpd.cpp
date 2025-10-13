@@ -337,10 +337,10 @@ static void get_parodus_url(char *parodus_url, char *client_url)
 
                     pUrl = cJSON_GetObjectItem(webpa_cfg,"ParodusURL");
                     cUrl = cJSON_GetObjectItem(webpa_cfg,"ParodusClientURL");
-                    if((NULL != pUrl && NULL != cUrl) && (NULL != pUrl->valuestring && NULL != pUrl->valuestring))
+                    if((NULL != pUrl && NULL != cUrl) && (NULL != pUrl->valuestring && NULL != cUrl->valuestring))
                     {
                         strncpy(parodus_url,pUrl->valuestring,strlen(pUrl->valuestring));
-                        strncpy(client_url,cUrl->valuestring,strlen(pUrl->valuestring));
+                        strncpy(client_url,cUrl->valuestring,strlen(cUrl->valuestring));
                         getStatus = 1;
                     }
                  }
