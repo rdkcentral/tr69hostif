@@ -3530,21 +3530,6 @@
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS." access="readOnly" minEntries="1" maxEntries="1"/>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsCrashdumpUpload." access="readOnly" minEntries="0" maxEntries="1" >
-     <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-     </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsXConfDownload." access="readOnly" minEntries="0" maxEntries="1" >
-     <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-     </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsXcSsr." access="readOnly" minEntries="0" maxEntries="1" >
      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -4153,14 +4138,6 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.MTLS." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-	  <boolean/>
-	  <default type="factory" value="true"/>
-        </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ManageableNotification." access="readOnly" minEntries="1" maxEntries="1" >
      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -4454,6 +4431,14 @@
         <syntax>
           <string/>
           <default type="factory" value="base64:eyJ2ZXJiIjoiUE9TVCIsInVybCI6Imh0dHBzOi8vZXh0ZXJuYWwucHdydWxlcy5za3kuY29tL3BhdGhjYXQifQ=="/>
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DynamicIUIUpdate." access="readOnly" minEntries="0" maxEntries="1">
+      <parameter base="IUISelector" access="readWrite" notification="0" maxNotification="2">
+        <syntax>
+          <string/>
+          <default type="factory" value=""/>
         </syntax>
       </parameter>
     </object>
