@@ -235,24 +235,20 @@ int getnotifyparamList(char ***notifyParamList,int *ptrnotifyListSize)
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Notify Param  = %s\n", temp_ptr);
                 }
             }
-        }
-        else
+        // Update local Parameter list from generic layer
+        if(NULL != notifyParamList && NULL != ptrnotifyListSize)
         {
-            RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"Unable to parse Configuration file - no 'Notify' array found");
+            g_notifyParamList = *notifyParamList;
+            g_notifyListSize = *ptrnotifyListSize;
         }
+        
         cJSON_Delete(notify_cfg);
     }
     else
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"Unable to parse JSON from configuration file");
     }
-            // Update local Parameter list from generic layer
-            if(NULL != notifyParamList && NULL != ptrnotifyListSize)
-            {
-                g_notifyParamList = *notifyParamList;
-                g_notifyListSize = *ptrnotifyListSize;
-            }
-        }
+    
     if(notifycfg_file_content)
     {
         free(notifycfg_file_content);
