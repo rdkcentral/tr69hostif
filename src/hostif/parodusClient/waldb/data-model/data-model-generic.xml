@@ -4434,6 +4434,14 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DynamicIUIUpdate." access="readOnly" minEntries="0" maxEntries="1">
+      <parameter base="IUISelector" access="readWrite" notification="0" maxNotification="2">
+        <syntax>
+          <string/>
+          <default type="factory" value=""/>
+        </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LaunchDarkly." access="readOnly" minEntries="0" maxEntries="1">
       <parameter base="EnvKeyLabel" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
