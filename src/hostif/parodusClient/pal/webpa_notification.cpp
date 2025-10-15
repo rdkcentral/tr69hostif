@@ -235,11 +235,13 @@ int getnotifyparamList(char ***notifyParamList,int *ptrnotifyListSize)
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Notify Param  = %s\n", temp_ptr);
                 }
             }
-        // Update local Parameter list from generic layer
-        if(NULL != notifyParamList && NULL != ptrnotifyListSize)
-        {
-            g_notifyParamList = *notifyParamList;
-            g_notifyListSize = *ptrnotifyListSize;
+            
+            // Update local Parameter list from generic layer
+            if(NULL != notifyParamList && NULL != ptrnotifyListSize)
+            {
+                g_notifyParamList = *notifyParamList;
+                g_notifyListSize = *ptrnotifyListSize;
+            }
         }
         
         cJSON_Delete(notify_cfg);
