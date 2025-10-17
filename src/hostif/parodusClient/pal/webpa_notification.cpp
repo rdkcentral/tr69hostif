@@ -207,6 +207,7 @@ int getnotifyparamList(char ***notifyParamList,int *ptrnotifyListSize)
     if(readRet < 0){
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s] Failed read from %s.\n", __FUNCTION__, webpaNotifyConfigFile);
         fclose(fp);
+        free(notifycfg_file_content);
         return -1;
     }
     notifycfg_file_content[ch_count] ='\0';
@@ -219,7 +220,7 @@ int getnotifyparamList(char ***notifyParamList,int *ptrnotifyListSize)
         if(NULL != notifyArray)
         {
             *ptrnotifyListSize =(int)cJSON_GetArraySize(notifyArray);
-            *notifyParamList = (char **)malloc(sizeof(char *) **ptrnotifyListSize);
+            *notifyParamList = (char **)malloc(sizeof(char *) * *ptrnotifyListSize);
             for (i = 0 ; i < cJSON_GetArraySize(notifyArray) ; i++)
             {
                 cJSON *arrayItem = cJSON_GetArrayItem(notifyArray, i);
