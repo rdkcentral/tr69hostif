@@ -105,12 +105,15 @@ static void usage();
 T_ARGLIST argList = {{'\0'}, 0};
 static int isShutdownTriggered = 0;
 
-#ifndef RDKV_TR69
 #define DEVICE_PROPS_FILE "/etc/device.properties"
 #define GENERIC_XML_FILE "/etc/data-model-generic.xml"
 #define STB_XML_FILE "/etc/data-model-stb.xml"
 #define TV_XML_FILE "/etc/data-model-tv.xml"
 #define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
+
+#ifdef RDKV_TR69
+#define BASE_DATA_MODEL_FILE "/etc/data-model.xml"
+#define INTERMEDIATE_DATA_MODEL_FILE "/tmp/data-model-intermediate.xml"
 #endif
 
 
@@ -413,7 +416,6 @@ int main(int argc, char *argv[])
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to start hostIf_IARM_IF_Start()\n");
         }
-        #ifndef RDKV_TR69
         MergeStatus mergeStatus = mergeDataModel();
         if (mergeStatus != MERGE_SUCCESS) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in merging Data Model\n");
@@ -422,7 +424,6 @@ int main(int argc, char *argv[])
         else {
              RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Successfully merged Data Model.\n");
         }
-        #endif
         /* Load the data model xml file*/
         DB_STATUS status = loadDataModel();
         if(status != DB_SUCCESS)
@@ -675,7 +676,6 @@ static void usage()
 #endif
 }
 
-#ifndef RDKV_TR69
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r"); 
     FILE *in_fp2 = fopen(input2, "r"); 
@@ -742,7 +742,7 @@ return true;
 
 
 MergeStatus mergeDataModel()  {
-    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Entering \n");
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Entering data model merge process\n");
     FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
     if (fp != NULL) {
         char line[256];
@@ -757,7 +757,48 @@ MergeStatus mergeDataModel()  {
             }
          }
         fclose(fp);
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties\n");
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "mergeDataModel: Closed /etc/device.properties, Profile: %s\n", rdk_profile);
+
+#ifdef RDKV_TR69
+        // RDKV specific logic: First merge base data-model.xml with data-model-generic.xml
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "RDKV: First merging base data-model.xml with data-model-generic.xml\n");
+        const char *base_file = BASE_DATA_MODEL_FILE;
+        const char *generic_file = GENERIC_XML_FILE;
+        const char *intermediate_file = INTERMEDIATE_DATA_MODEL_FILE;
+        const char *output_file = WEBPA_DATA_MODEL_FILE;
+        
+        // Step 1: Merge base data-model.xml with data-model-generic.xml
+        if (!filter_and_merge_xml(generic_file, base_file, intermediate_file)) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "RDKV: Error while merging base data-model.xml with data-model-generic.xml\n");
+            return MERGE_FAILURE;
+        }
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "RDKV: Successfully created intermediate merged file\n");
+        
+        // Step 2: Apply profile-specific merging using the intermediate file as base
+        if (strcmp(rdk_profile, "TV") == 0) {
+            const char *tv_file = TV_XML_FILE;
+            if (!filter_and_merge_xml(tv_file, intermediate_file, output_file)) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "RDKV: Error while merging with TV profile\n");
+                return MERGE_FAILURE;
+            }
+        } 
+        else if (strcmp(rdk_profile, "STB") == 0) {
+            const char *stb_file = STB_XML_FILE;
+            if (!filter_and_merge_xml(stb_file, intermediate_file, output_file)) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "RDKV: Error while merging with STB profile\n");
+                return MERGE_FAILURE;
+            }
+        } 
+        else {
+            // If no specific profile, just use the intermediate file as final
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "RDKV: No specific profile, using intermediate file as final\n");
+            if (rename(intermediate_file, output_file) != 0) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "RDKV: Error moving intermediate file to final location\n");
+                return MERGE_FAILURE;
+            }
+        }
+#else
+        // Non-RDKV logic: Traditional merging (generic + profile)
         const char *generic_file = GENERIC_XML_FILE;
         const char *output_file = WEBPA_DATA_MODEL_FILE;
         if (strcmp(rdk_profile, "TV") == 0) {
@@ -778,6 +819,7 @@ MergeStatus mergeDataModel()  {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unsupported RDK_PROFILE: %s\n", rdk_profile);
 	    return MERGE_FAILURE;
         }
+#endif
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
 	return MERGE_SUCCESS;
     }
@@ -787,7 +829,6 @@ MergeStatus mergeDataModel()  {
 	return MERGE_FAILURE;
     }
 }
-#endif
 
 /** @} */
 /** @} */
