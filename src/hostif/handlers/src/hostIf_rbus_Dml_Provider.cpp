@@ -561,6 +561,11 @@ void init_rbus_dml_provider()
                 if(rc != RBUS_ERROR_SUCCESS)
                 {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s][rbusdml] rbusPropertyProvider_Register failed: %d\n", __FUNCTION__, rc);
+					 for (int j = 0; j < rbus_param_counter; j++) {
+                        if (dataElements[j].name) {
+                            free((void*)dataElements[j].name);
+                        }
+                    }
                     free(dataElements);
                     rbus_close(rbusHandle);
                 }
@@ -568,6 +573,11 @@ void init_rbus_dml_provider()
                 {
 
                     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s][rbusdml] rbus_regDataElements registered successfully.\n", __FUNCTION__);
+					for (int j = 0; j < rbus_param_counter; j++) {
+                        if (dataElements[j].name) {
+                            free((void*)dataElements[j].name);
+                        }
+                    }
                     free(dataElements);
                 }
 
