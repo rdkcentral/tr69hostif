@@ -31,7 +31,7 @@
 #include "safec_lib.h"
 
 using namespace tinyxml2;
-#define MAX_PARAMETER_LENGTH 512
+#define MAX_PARAMETER_LENGTH 2048
 #define MAX_DATATYPE_LENGTH 48
 #define MAX_NUM_PARAMETERS 2048
 #define INSTANCE_NUMBER_INDICATOR "{i}."
@@ -607,7 +607,8 @@ DB_STATUS getChildParamNamesFromDataModel(void *dbhandle,char *paramName,char **
 {
     char parameterName[MAX_PARAMETER_LENGTH];
     char currentParam[MAX_PARAMETER_LENGTH] = "\0";
-    strncpy(parameterName,paramName,MAX_PARAMETER_LENGTH-1);
+    strncpy(parameterName, paramName, MAX_PARAMETER_LENGTH-1);
+	parameterName[MAX_PARAMETER_LENGTH-1] = '\0';  // Ensure null termination
 
     if(dbhandle == NULL)
         return DB_FAILURE;
