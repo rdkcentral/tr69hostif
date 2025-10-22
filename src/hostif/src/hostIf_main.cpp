@@ -688,9 +688,9 @@ bool filter_and_merge_xml(const char *input1, const char *input2, const char *ou
         if (out_fp) fclose(out_fp);
          return false;
     }
-    char line[16384];
-    char last_model_line[16384] = {0};
-    char last_dm_document_line[16384] = {0};
+    char line[1024];
+    char last_model_line[1024] = {0};
+    char last_dm_document_line[1024] = {0};
     long model_last_line_pos = -1, dm_document_last_line_pos = -1; 
     long line_pos = 0;
     while (fgets(line, sizeof(line), in_fp2)) {
