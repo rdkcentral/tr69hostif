@@ -50,7 +50,7 @@
 #define LOG_PARODUS_IF  "LOG.RDK.PARODUSIF"
 #define WAL_FREE(__x__) if(__x__ != NULL) { free((void*)(__x__)); __x__ = NULL;}
 
-#define MAX_PARAMETER_LEN 512
+#define MAX_PARAMETER_LEN 2048  // Increased from 512 to 2048 for long federated parameter names
 #define RDKC_XPC_SYNC_PARAM_CID
 #define MAX_PARAMETERNAME_LEN 256
 

@@ -54,7 +54,7 @@ extern "C"
 
 
 #define MAX_NUM_PARAMETERS 2048
-#define MAX_PARAMETER_LENGTH 512
+#define MAX_PARAMETER_LENGTH 2048  // Increased from 512 to 2048 to match waldb.cpp
 
 static const char *EXCLUDE_PARAMLIST[] = { "Device.X_RDKCENTRAL-COM_T2.ReportProfiles", \
                                            "Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack"
@@ -561,7 +561,8 @@ void init_rbus_dml_provider()
                 if(rc != RBUS_ERROR_SUCCESS)
                 {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s][rbusdml] rbusPropertyProvider_Register failed: %d\n", __FUNCTION__, rc);
-					 for (int j = 0; j < rbus_param_counter; j++) {
+                    // Free allocated parameter names before freeing dataElements
+                    for (int j = 0; j < rbus_param_counter; j++) {
                         if (dataElements[j].name) {
                             free((void*)dataElements[j].name);
                         }
@@ -573,7 +574,9 @@ void init_rbus_dml_provider()
                 {
 
                     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s][rbusdml] rbus_regDataElements registered successfully.\n", __FUNCTION__);
-					for (int j = 0; j < rbus_param_counter; j++) {
+                    // Free allocated parameter names before freeing dataElements
+                    for (int j = 0; j < rbus_param_counter; j++) {
+>>>>>>> 4d0b9dc (Final)
                         if (dataElements[j].name) {
                             free((void*)dataElements[j].name);
                         }

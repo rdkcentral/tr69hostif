@@ -31,7 +31,7 @@
 #include "safec_lib.h"
 
 using namespace tinyxml2;
-#define MAX_PARAMETER_LENGTH 2048
+#define MAX_PARAMETER_LENGTH 2048  // Increased from 512 to 2048 for long federated parameter names
 #define MAX_DATATYPE_LENGTH 48
 #define MAX_NUM_PARAMETERS 2048
 #define INSTANCE_NUMBER_INDICATOR "{i}."
@@ -59,11 +59,8 @@ int checkMatchingParameter(const char* attrValue, char* paramName, int* ret);
 void appendNextObject(char* currentParam, const char* pAttparam);
 int getNumberofInstances(const char* paramName);
 
-#ifdef RDKV_TR69
-#define WEBPA_DATA_MODEL_FILE "/etc/data-model.xml"
-#else
+
 #define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
-#endif
 static void *g_dbhandle = NULL;
 std::mutex g_db_mutex;
 
@@ -608,7 +605,7 @@ DB_STATUS getChildParamNamesFromDataModel(void *dbhandle,char *paramName,char **
     char parameterName[MAX_PARAMETER_LENGTH];
     char currentParam[MAX_PARAMETER_LENGTH] = "\0";
     strncpy(parameterName, paramName, MAX_PARAMETER_LENGTH-1);
-	parameterName[MAX_PARAMETER_LENGTH-1] = '\0';  // Ensure null termination
+    parameterName[MAX_PARAMETER_LENGTH-1] = '\0';  // Ensure null termination
 
     if(dbhandle == NULL)
         return DB_FAILURE;

@@ -65,7 +65,7 @@
 #include "waldb.h"
 
 
-#define MAX_PARAMETER_LEN 512
+#define MAX_PARAMETER_LEN 2048  // Increased from 512 to 2048 for long federated parameter names
 #define MAX_PARAMETERNAME_LEN 256
 
 #ifdef __cplusplus

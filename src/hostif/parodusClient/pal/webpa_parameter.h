@@ -32,15 +32,12 @@ extern "C"
 #endif
 #include "webpa_adapter.h"
 
-#ifdef RDKV_TR69
-#define WEBPA_DATA_MODEL_FILE "/etc/data-model.xml"
-#else
+
 #define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
-#endif
 #define MAX_NUM_PARAMETERS 2048
 #define MAX_DATATYPE_LENGTH 48
 #define MAX_PARAM_LENGTH TR69HOSTIFMGR_MAX_PARAM_LEN
-#define MAX_PARAMETER_LENGTH 512
+#define MAX_PARAMETER_LENGTH 2048  // Increased from 512 to 2048 for long federated parameter names
 #define MAX_PARAMETERVALUE_LEN 128
 
 
