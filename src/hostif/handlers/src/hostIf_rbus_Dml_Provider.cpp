@@ -576,7 +576,6 @@ void init_rbus_dml_provider()
                     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s][rbusdml] rbus_regDataElements registered successfully.\n", __FUNCTION__);
                     // Free allocated parameter names before freeing dataElements
                     for (int j = 0; j < rbus_param_counter; j++) {
->>>>>>> 4d0b9dc (Final)
                         if (dataElements[j].name) {
                             free((void*)dataElements[j].name);
                         }
