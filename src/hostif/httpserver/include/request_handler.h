@@ -65,7 +65,7 @@
 #include "waldb.h"
 
 
-#define MAX_PARAMETER_LEN 256 
+#define MAX_PARAMETER_LEN 512 
 #define MAX_PARAMETERNAME_LEN 256
 
 #ifdef __cplusplus
