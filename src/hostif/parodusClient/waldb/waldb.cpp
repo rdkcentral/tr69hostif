@@ -31,7 +31,7 @@
 #include "safec_lib.h"
 
 using namespace tinyxml2;
-#define MAX_PARAMETER_LENGTH 2048  // Increased from 512 to 2048 for long federated parameter names
+#define MAX_PARAMETER_LENGTH 512 
 #define MAX_DATATYPE_LENGTH 48
 #define MAX_NUM_PARAMETERS 2048
 #define INSTANCE_NUMBER_INDICATOR "{i}."
