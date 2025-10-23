@@ -120,6 +120,8 @@ typedef enum {
 void tr69hostIf_logger (const gchar *log_domain, GLogLevelFlags log_level,const gchar *message, gpointer user_data);
 MergeStatus mergeDataModel();
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output);
+MergeStatus mergeDataModelRDKV(const char* rdk_profile);
+MergeStatus mergeDataModelRDKE(const char* rdk_profile);
 
 #define G_LOG_DOMAIN    ((gchar*) 0)
 #define LOG_TR69HOSTIF  "LOG.RDK.TR69HOSTIF"
