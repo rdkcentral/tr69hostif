@@ -54,7 +54,7 @@ extern "C"
 
 
 #define MAX_NUM_PARAMETERS 2048
-#define MAX_PARAMETER_LENGTH 2048  // Increased from 512 to 2048 to match waldb.cpp
+#define MAX_PARAMETER_LENGTH 512
 
 static const char *EXCLUDE_PARAMLIST[] = { "Device.X_RDKCENTRAL-COM_T2.ReportProfiles", \
                                            "Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack"
