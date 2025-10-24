@@ -675,7 +675,7 @@ static void usage()
         \n" << endl;
 #endif
 }
-
+#ifdef RDKV_TR69
 MergeStatus mergeDataModelRDKV(const char* rdk_profile) {
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "RDKV: First merging base data-model.xml with data-model-generic.xml\n");
     const char *base_file = BASE_DATA_MODEL_FILE;
@@ -717,7 +717,7 @@ MergeStatus mergeDataModelRDKV(const char* rdk_profile) {
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "RDKV: Merged XML written to %s\n", output_file);
     return MERGE_SUCCESS;
 }
-
+#else
 MergeStatus mergeDataModelRDKE(const char* rdk_profile) {
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "RDKE: Merging XML files for profile: %s\n", rdk_profile);
     const char *generic_file = GENERIC_XML_FILE;
@@ -745,7 +745,7 @@ MergeStatus mergeDataModelRDKE(const char* rdk_profile) {
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "RDKE: Merged XML written to %s\n", output_file);
     return MERGE_SUCCESS;
 }
-
+#endif
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r"); 
     FILE *in_fp2 = fopen(input2, "r"); 
