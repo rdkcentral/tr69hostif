@@ -112,20 +112,16 @@
 
 
 extern gchar *date_str;
-#ifndef RDKV_TR69
 typedef enum {
     MERGE_SUCCESS,
     MERGE_FAILURE
 } MergeStatus;
-#endif
-
-
 
 void tr69hostIf_logger (const gchar *log_domain, GLogLevelFlags log_level,const gchar *message, gpointer user_data);
-#ifndef RDKV_TR69
 MergeStatus mergeDataModel();
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output);
-#endif
+MergeStatus mergeDataModelRDKV(const char* rdk_profile);
+MergeStatus mergeDataModelRDKE(const char* rdk_profile);
 
 #define G_LOG_DOMAIN    ((gchar*) 0)
 #define LOG_TR69HOSTIF  "LOG.RDK.TR69HOSTIF"
