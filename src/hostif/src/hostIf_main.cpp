@@ -836,8 +836,6 @@ MergeStatus mergeDataModel()  {
         // Use RDKE-specific merging logic
         return mergeDataModelRDKE(rdk_profile);
 #endif
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML written to %s\n", output_file);
-	return MERGE_SUCCESS;
     }
     else
     {
