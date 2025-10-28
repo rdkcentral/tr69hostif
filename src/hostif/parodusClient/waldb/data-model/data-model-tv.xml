@@ -40,11 +40,6 @@
           <default type="factory" value="TR-181, TR-135 and Comcast specific Datamodel Configuration"/>
         </syntax>
       </parameter>
-      <parameter base="ProductClass" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
       <parameter base="SerialNumber" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
