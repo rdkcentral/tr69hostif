@@ -4478,5 +4478,22 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_DAC." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="ConfigURL" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="dacBundlePlatformName" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="dacBundleFirmwareCompatibilityKey" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+   </object>
   </model>
 </dm:document>
