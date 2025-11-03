@@ -1,0 +1,81 @@
+# Bootstrap Initialization Test Makefile
+# Usage: make bootstrap-test
+
+.PHONY: bootstrap-test bootstrap-test-clean bootstrap-test-setup bootstrap-test-run
+
+# Test configuration
+TEST_DIR = test/functional-tests
+RESULT_DIR = /tmp/tr69hostif_bootstrap_test
+LOG_DIR = /opt/logs
+
+bootstrap-test: bootstrap-test-clean bootstrap-test-setup bootstrap-test-run
+
+bootstrap-test-clean:
+	@echo "Cleaning up previous test runs..."
+	@pkill -f tr69hostif || true
+	@rm -rf $(RESULT_DIR)
+	@mkdir -p $(RESULT_DIR)
+	@echo "" > $(LOG_DIR)/tr69hostif.log.0 || true
+
+bootstrap-test-setup:
+	@echo "Setting up test environment..."
+	@mkdir -p /opt/secure/RFC/
+	@cp src/integrationtest/conf/mgrlist.conf /etc/ || true
+	@cp src/integrationtest/conf/rfc.properties /etc/ || true
+	@cp src/integrationtest/conf/tr181store.ini /opt/secure/RFC/ || true
+	@cp src/integrationtest/conf/bootstrap.ini /opt/secure/RFC/ || true
+	@cp partners_defaults.json /etc/ || true
+	@touch /opt/secure/RFC/tr181localstore.ini
+	@touch /opt/persistent/tr181localstore.ini || true
+	@echo "RDK_PROFILE=STB" > /etc/device.properties || true
+
+bootstrap-test-run:
+	@echo "Running Bootstrap Initialization Tests..."
+	@cd $(TEST_DIR) && \
+	python3 -m pytest test_bootstrap_initialization.py \
+		--json-report \
+		--json-report-summary \
+		--json-report-file=$(RESULT_DIR)/bootstrap_test_results.json \
+		-v --tb=short --durations=10
+	@echo "Bootstrap test results saved to: $(RESULT_DIR)"
+
+bootstrap-test-verbose:
+	@echo "Running Bootstrap Tests with verbose output..."
+	@cd $(TEST_DIR) && \
+	python3 -m pytest test_bootstrap_initialization.py \
+		-v -s --tb=long --capture=no
+
+bootstrap-test-html:
+	@echo "Running Bootstrap Tests with HTML report..."
+	@cd $(TEST_DIR) && \
+	python3 -m pytest test_bootstrap_initialization.py \
+		--html=$(RESULT_DIR)/bootstrap_report.html \
+		--self-contained-html \
+		--json-report \
+		--json-report-file=$(RESULT_DIR)/bootstrap_results.json
+
+# Quick bootstrap test for development
+bootstrap-test-quick:
+	@echo "Running quick bootstrap validation..."
+	@cd $(TEST_DIR) && \
+	python3 -m pytest test_bootstrap_initialization.py::TestBootstrapInitialization::test_bootstrap_process_startup \
+		test_bootstrap_initialization.py::TestBootstrapInitialization::test_bootstrap_config_manager_init \
+		test_bootstrap_initialization.py::TestBootstrapInitialization::test_bootstrap_data_model_loading \
+		-v
+
+# Performance-focused bootstrap test
+bootstrap-test-performance:
+	@echo "Running bootstrap performance tests..."
+	@cd $(TEST_DIR) && \
+	python3 -m pytest test_bootstrap_initialization.py::TestBootstrapInitialization::test_bootstrap_process_stability \
+		test_bootstrap_initialization.py::TestBootstrapInitialization::test_bootstrap_functional_verification \
+		-v --durations=0
+
+help:
+	@echo "Bootstrap Test Targets:"
+	@echo "  bootstrap-test         - Run complete bootstrap test suite"
+	@echo "  bootstrap-test-quick   - Run essential bootstrap tests only"
+	@echo "  bootstrap-test-verbose - Run with verbose output"
+	@echo "  bootstrap-test-html    - Run with HTML report generation"
+	@echo "  bootstrap-test-performance - Run performance-focused tests"
+	@echo "  bootstrap-test-clean   - Clean test environment"
