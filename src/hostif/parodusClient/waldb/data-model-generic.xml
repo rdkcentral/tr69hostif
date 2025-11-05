@@ -61,17 +61,6 @@
          <syntax> <boolean/> </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl." access="readOnly" minEntries="1" maxEntries="1" />
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Service.Discovery." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <boolean/> </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Subsystem.RICS." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <boolean/> </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HideStartupScreensOnRootAppConnect." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -85,90 +74,6 @@
           <boolean/>
         </syntax>
        </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NTP." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="failoverServer" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="AdCacheEnable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="ProgrammerEnable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="ByteRangeDownload" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="PlacementReqUrl" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="PSNUrl" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="AltconReceiver" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Schemas_NGOD" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Schema_Location" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="XMLNS_Schema" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="XMLSchema_Instance" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Xifaid_Xml_Key" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Advt_Opt_Out_Key" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Schemas_admin" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Schemas_core" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderTestClient." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="ServerURL" access="readWrite" notification="0" maxNotification="2" >
@@ -254,13 +159,6 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.vodclient." access="readOnly" minEntries="1" maxEntries="1" >
-       <parameter base="StunnelConnect" access="readWrite" notification="0" maxNotification="2" >
-         <syntax>
-           <string/>
-         </syntax>
-       </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial." minEntries="0" maxEntries="1" >
       <parameter base="DynamicAppList" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -293,23 +191,6 @@
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
            <boolean/>
-        </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.recorder." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="UpdateSchedule" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Status" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <string/>
-        </syntax>
-      </parameter>
-      <parameter base="LongpollUrl" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <string/>
         </syntax>
       </parameter>
     </object>
@@ -593,11 +474,12 @@
         </syntax>  
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity." access="readOnly" minEntries="0" maxEntries="1" >
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CovaticSDK." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>                                                                                                                          
-           <boolean/>
-        </syntax>  
+        <syntax>
+         <boolean/>
+           <default type="factory" value="false"/>
+        </syntax>
       </parameter>
     </object>
   </model>

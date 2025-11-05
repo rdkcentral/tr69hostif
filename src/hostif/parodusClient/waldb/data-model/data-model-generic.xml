@@ -3585,19 +3585,6 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderTestClient." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="ServerURL" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-          <default type="factory" value="false"/>
-        </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLDirect." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -4478,5 +4465,22 @@
         </syntax>
       </parameter>
     </object>
+  <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DAC." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="ConfigURL" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="dacBundlePlatformName" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+      <parameter base="dacBundleFirmwareCompatibilityKey" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+   </object>
   </model>
 </dm:document>
