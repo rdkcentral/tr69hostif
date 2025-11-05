@@ -281,10 +281,10 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     case eEnable:
         hostIf_EthernetInterface::stEthInterface.enable = FALSE;
 
-        snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
-	if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
+        if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
             return 0;
 
+        snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	value = readEthernetInterfaceFile(cmd, sizeof(hostIf_EthernetInterface::stEthInterface.enable));
 	if(value == NULL)
 	   return 0;
@@ -300,10 +300,10 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     case eStatus:
         memset(hostIf_EthernetInterface::stEthInterface.status,'\0',sizeof(hostIf_EthernetInterface::stEthInterface.status));   //CID:45367 - OVERRUN
 
-	snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
         if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
             return 0;
 
+	snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	value = readEthernetInterfaceFile(cmd, sizeof(temp));
 	if(value == NULL)
 	   return 0;
@@ -344,10 +344,10 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     case eUpstream:
         hostIf_EthernetInterface::stEthInterface.upStream = FALSE;
 
-        snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
-	if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
+        if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
             return 0;
 
+        snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	 value = readEthernetInterfaceFile(cmd, sizeof(hostIf_EthernetInterface::stEthInterface.upStream));
 	 if(value == NULL)
            return 0;
