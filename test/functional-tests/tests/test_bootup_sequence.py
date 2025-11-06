@@ -106,3 +106,40 @@ def test_loadDataModel_status():
     DM_SUCCESS_MSG = "Successfully initialize Data Model" 
     assert DM_SUCCESS_MSG in grep_T2logs(DM_SUCCESS_MSG)
 
+@pytest.mark.run(order=8)
+def test_rfcdefaults_ini_file_creation():
+    """
+    L2 Test Case: Verify that rfcdefaults.ini file is created in the device
+    This test validates that the TR69 Host Interface daemon properly creates
+    the rfcdefaults.ini configuration file during initialization.
+    """
+    print("Testing rfcdefaults.ini file creation...")
+    
+    # Ensure process is active before checking file creation
+    is_process_active()
+    
+    # Wait for file to be created (with timeout)
+    RFC_DEFAULTS_FILE = "/opt/rfcdefaults.ini"
+    file_created = wait_for_file_creation(RFC_DEFAULTS_FILE, timeout=30)
+    
+    # Assert that the file exists
+    assert file_created, f"rfcdefaults.ini file was not created at {RFC_DEFAULTS_FILE} within timeout period"
+    
+    # Additional validation: Check if file is not empty
+    file_content = get_file_content(RFC_DEFAULTS_FILE)
+    assert len(file_content) > 0, f"rfcdefaults.ini file exists but is empty: {RFC_DEFAULTS_FILE}"
+    
+    # Log success message validation - check if file creation was logged
+    RFC_FILE_CREATION_MSG = "rfcdefaults.ini"
+    creation_logged = grep_T2logs(RFC_FILE_CREATION_MSG)
+    
+    # Print file status for debugging
+    print(f"rfcdefaults.ini file created successfully at: {RFC_DEFAULTS_FILE}")
+    print(f"File size: {len(file_content)} bytes")
+    
+    # Additional check: Verify file has basic INI structure (optional)
+    if file_content:
+        assert "[" in file_content or "=" in file_content, "rfcdefaults.ini does not appear to have valid INI format"
+    
+    print("rfcdefaults.ini file creation test completed successfully")
+

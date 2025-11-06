@@ -167,6 +167,33 @@ def run_shell_command(command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout.strip()
 
+def check_file_exists(file_path):
+    """Check if a file exists on the filesystem."""
+    try:
+        return os.path.exists(file_path)
+    except Exception as e:
+        print(f"Error checking file existence {file_path}: {e}")
+        return False
+
+def get_file_content(file_path):
+    """Get the content of a file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
+            return file.read()
+    except Exception as e:
+        print(f"Could not read file {file_path}: {e}")
+        return ""
+
+def wait_for_file_creation(file_path, timeout=30, check_interval=1):
+    """Wait for a file to be created within a timeout period."""
+    import time
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if check_file_exists(file_path):
+            return True
+        time.sleep(check_interval)
+    return False
+
 def grep_paroduslogs(search: str):
     search_result = ""
     search_pattern = re.compile(re.escape(search), re.IGNORECASE)
