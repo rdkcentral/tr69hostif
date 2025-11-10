@@ -119,7 +119,7 @@ def test_rfcdefaults_ini_file_creation():
     is_process_active()
     
     # Wait for file to be created (with timeout)
-    RFC_DEFAULTS_FILE = "/opt/rfcdefaults.ini"
+    RFC_DEFAULTS_FILE = "/tmp/rfcdefaults.ini"
     file_created = wait_for_file_creation(RFC_DEFAULTS_FILE, timeout=30)
     
     # Assert that the file exists
