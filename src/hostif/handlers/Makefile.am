@@ -157,3 +157,20 @@ AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/parodusClient/pal \
 libMsgHandlers_la_SOURCES += src/hostIf_NotificationHandler.cpp
 include_HEADERS = include/hostIf_msgHandler.h \
                   include/hostIf_NotificationHandler.h
+
+# Add OTLP instrumentation source file
+libMsgHandlers_la_SOURCES += tr69hostif_otlp_instrumentation.cpp
+
+# Add OpenTelemetry include paths
+AM_CXXFLAGS += -I/usr/local/include -I/usr/include
+
+# Add OpenTelemetry libraries using LIBADD (proper way for libtool libraries)
+libMsgHandlers_la_LIBADD = -L/usr/local/lib -L/usr/lib \
+                           -lopentelemetry_trace \
+                           -lopentelemetry_resources \
+                           -lopentelemetry_common \
+                           -lopentelemetry_exporter_otlp_http \
+                           -lopentelemetry_exporter_otlp_http_client \
+                           -lopentelemetry_http_client_curl \
+                           -lcurl \
+                           -lpthread

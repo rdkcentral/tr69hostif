@@ -67,9 +67,19 @@ parodus_SOURCES =  \
         ../../../handlers/src/x_rdk_req_handler.cpp \
         ../../../profiles/Device/x_rdk_profile.cpp \
         ../../../handlers/src/hostIf_XrdkCentralT2_ReqHandler.cpp \
-        ../../../handlers/src/hostIf_rbus_Dml_Provider.cpp
+        ../../../handlers/src/hostIf_rbus_Dml_Provider.cpp \
+        ../../../handlers/tr69hostif_otlp_instrumentation.cpp
 
 parodus_CPPFLAGS = -I../ -I../../../../unittest/stubs/ -I/usr/local/include/wrp-c/ -I../../waldb/ -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/local/include/wdmp-c/ -I/usr/local/include/rbus -I../../../include/ -I../../../../unittest/stubs/ -I../../../handlers/src/ -I/usr/local/include/cjson/ -I/usr/local/include/libparodus/ -I./ -I../../waldb/ -I../../../handlers/include/ -I../../../profiles/Time/ -I../../../profiles/DeviceInfo/ -I../../../profiles/Device -I../../../handlers/include/ -I../../../../unittest/stubs/ds -I../../../profiles/Ethernet/ -I../../../include/ -I../../../profiles/IP/ -I../../../profiles/STBService/ -I/usr/rdk-halif-device_settings/include/ -I/usr/rdkvhal-devicesettings-raspberrypi4/ -DUSE_REMOTE_DEBUGGER -I/usr/remote_debugger/src/
 
 parodus_LDADD = -llibparodus -lrdkloggers -lwdmp-c -lwrp-c -lmsgpackc -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -lcjson -lpthread -lglib-2.0 -lnanomsg -lrbus -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lsecure_wrapper -lcurl -L../../waldb/.libs/ -l:libwaldb.a -L../../../profiles/Time/.libs/ -l:libhostIfTime.a -ltinyxml2 -lIARMBus
 
+parodus_LDADD += -L/usr/local/lib -L/usr/lib \
+                           -lopentelemetry_trace \
+                           -lopentelemetry_resources \
+                           -lopentelemetry_common \
+                           -lopentelemetry_exporter_otlp_http \
+                           -lopentelemetry_exporter_otlp_http_client \
+                           -lopentelemetry_http_client_curl \
+                           -lcurl \
+                           -lpthread 

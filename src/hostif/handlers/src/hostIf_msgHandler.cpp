@@ -66,6 +66,19 @@
 #include "hostIf_SNMPClient_ReqHandler.h"
 #endif
 #include "x_rdk_req_handler.h"
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <string>
+
+
+void tr69hostif_otlp_trace_http_request(const char* method, const char* uri, int status_code);
+void tr69hostif_otlp_trace_parameter_get(const char* param_name);
+void tr69hostif_otlp_trace_parameter_set(const char* param_name);
+void tr69hostif_otlp_trace_device_comm(const char* device_type, const char* operation);
+void tr69hostif_otlp_force_flush();
+const char* tr69hostif_otlp_get_endpoint();
+
 
 extern GHashTable* paramMgrhash;
 extern T_ARGLIST argList;
@@ -175,6 +188,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     try
     {
         /* Find the respective manager and forward the request*/
+	tr69hostif_otlp_trace_parameter_get(stMsgData->paramName);
         msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
         if(pMsgHandler)
@@ -265,7 +279,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 
     /* Find the respective manager and forward the request*/
     msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
-
+    tr69hostif_otlp_trace_parameter_set(stMsgData->paramName); 
     if(pMsgHandler)
     {
         auto startTime = std::chrono::high_resolution_clock::now();
