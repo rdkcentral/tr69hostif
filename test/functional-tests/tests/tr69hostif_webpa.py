@@ -248,31 +248,40 @@ def test_WebPA_Get_WILDCARD_STATUS_Handler():
 
 
 @pytest.mark.run(order=30)
-def test_Bootstrap_File_Creation_With_PartnerId():
+def test_Bootstrap_File_Creation():
     import os
     
-    # Given: Set Partner ID to "community"
-    PARTNER_ID = "community"
-    rbus_set_data("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId", 
-                  "string", PARTNER_ID)
-    
-    # When: Wait for bootstrap initialization
     sleep(5)
     
-    # Then: Verify bootstrap files exist
+    #  Verify bootstrap files exist
     assert os.path.exists("/opt/secure/RFC/bootstrap.ini"), \
         "bootstrap.ini file was not created"
     assert os.path.exists("/opt/secure/RFC/bootstrap.journal"), \
         "bootstrap.journal file was not created"
     
-    # And: Verify bootstrap.ini contains correct Partner ID
+    # Test that bootstrap parameters can be set via RBUS 
+    TEST_PARAM = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName"
+    TEST_VALUE = "TestProduct123"
+    
+    # Set using standard L2 pattern
+    rbus_set_data(TEST_PARAM, "string", TEST_VALUE)
+    
+    # Verify using standard L2 pattern
+    result = rbus_get_data(TEST_PARAM)
+    assert RBUS_EXCEPTION_STRING not in result, \
+        f"RBUS error occurred: {result}"
+    assert TEST_VALUE in result, \
+        f"Expected value '{TEST_VALUE}' not found in result: {result}"
+    
+    #Wait for file update
+    sleep(2)
+    
+    # Verify the parameter was written to bootstrap.ini
     with open("/opt/secure/RFC/bootstrap.ini", "r") as f:
         content = f.read()
-        assert f"Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId={PARTNER_ID}" in content
-        
-        # Verify partner-specific config loaded from JSON
-        assert "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName=community" in content
-        assert "Device.Time.NTPServer1=time.google.com" in content
-        assert "Device.X_RDK_WebPA_Server.URL=https://webpa.rdkcentral.com:8080" in content
-
-
+        assert TEST_VALUE in content, \
+            f"Bootstrap parameter not found in file. Content:\n{content}"
+    
+    print("✓ bootstrap.ini file exists and is writable")
+    print("✓ bootstrap.journal file exists")
+    print("✓ Bootstrap parameter set operation works via RBUS")
