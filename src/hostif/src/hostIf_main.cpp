@@ -489,6 +489,9 @@ int main(int argc, char *argv[])
         }
     #endif
 
+		/* Initialized Rbus interface for TR181 Data*/
+        init_rbus_dml_provider();
+
     #if defined(WEB_CONFIG_ENABLED)
         initWebConfigMultipartTask(0);
     #elif defined(WEBCONFIG_LITE_ENABLE)
@@ -502,9 +505,7 @@ int main(int argc, char *argv[])
         }
      #endif
 
-        /* Initialized Rbus interface for TR181 Data*/
-        init_rbus_dml_provider();
-
+     
         // Send sd notify event after http server thread is complete.
         if (httpServerThreadDone == false)
         {
