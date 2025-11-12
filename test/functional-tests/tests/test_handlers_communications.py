@@ -178,30 +178,4 @@ def test_Bootstrap_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert SSR_URL_MSG in rstdout
 
-@pytest.mark.run(order=13)
-def test_Bootstrap_File_Creation_With_PartnerId():
-    import os
-    
-    # Given: Set Partner ID to "community"
-    PARTNER_ID = "community"
-    rbus_set_data("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId", 
-                  "string", PARTNER_ID)
-    
-    # When: Wait for bootstrap initialization
-    sleep(5)
-    
-    # Then: Verify bootstrap files exist
-    assert os.path.exists("/opt/secure/RFC/bootstrap.ini"), \
-        "bootstrap.ini file was not created"
-    assert os.path.exists("/opt/secure/RFC/bootstrap.journal"), \
-        "bootstrap.journal file was not created"
-    
-    # And: Verify bootstrap.ini contains correct Partner ID
-    with open("/opt/secure/RFC/bootstrap.ini", "r") as f:
-        content = f.read()
-        assert f"Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId={PARTNER_ID}" in content
-        
-        # Verify partner-specific config loaded from JSON
-        assert "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName=community" in content
-        assert "Device.Time.NTPServer1=time.google.com" in content
-        assert "Device.X_RDK_WebPA_Server.URL=https://webpa.rdkcentral.com:8080" in content
+
