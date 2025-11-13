@@ -57,7 +57,21 @@ extern "C"
 #define MAX_PARAMETER_LENGTH 512
 
 static const char *EXCLUDE_PARAMLIST[] = { "Device.X_RDKCENTRAL-COM_T2.ReportProfiles", \
-                                           "Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack"
+                                           "Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack" ,\
+                                            "Device.DeviceInfo.Manufacturer",\
+    "Device.DeviceInfo.ManufacturerOUI", \
+    "Device.DeviceInfo.ModelName", \
+    "Device.DeviceInfo.Description", \
+    "Device.DeviceInfo.SerialNumber", \
+    "Device.DeviceInfo.HardwareVersion", \
+    "Device.DeviceInfo.SoftwareVersion", \
+    "Device.DeviceInfo.AdditionalSoftwareVersion", \
+    "Device.DeviceInfo.ProvisioningCode", \
+    "Device.DeviceInfo.UpTime", \
+    "Device.DeviceInfo.FirstUseDate", \
+    "Device.DeviceInfo.X_COMCAST-COM_STB_MAC", \
+    "Device.DeviceInfo.X_COMCAST-COM_STB_IP" ,\
+    "Device.DeviceInfo.X_COMCAST-COM_FirmwareFilename" 
                                          };
 
 #define EXCLUDE_LIST_SIZE (sizeof((EXCLUDE_PARAMLIST))/sizeof((EXCLUDE_PARAMLIST)[0]))
