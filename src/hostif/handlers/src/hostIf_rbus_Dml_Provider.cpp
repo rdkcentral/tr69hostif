@@ -56,26 +56,9 @@ extern "C"
 #define MAX_NUM_PARAMETERS 2048
 #define MAX_PARAMETER_LENGTH 512
 
-// Exclude parameters that are registered by other components (e.g., rfc_provider)
-static const char *EXCLUDE_PARAMLIST[] = { 
-    "Device.X_RDKCENTRAL-COM_T2.ReportProfiles",
-    "Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack",
-    // Parameters registered by rfc_provider (PID 11) in L2 container
-    "Device.DeviceInfo.Manufacturer",
-    "Device.DeviceInfo.ManufacturerOUI",
-    "Device.DeviceInfo.ModelName",
-    "Device.DeviceInfo.Description",
-    "Device.DeviceInfo.SerialNumber",
-    "Device.DeviceInfo.HardwareVersion",
-    "Device.DeviceInfo.SoftwareVersion",
-    "Device.DeviceInfo.AdditionalSoftwareVersion",
-    "Device.DeviceInfo.ProvisioningCode",
-    "Device.DeviceInfo.UpTime",
-    "Device.DeviceInfo.FirstUseDate",
-    "Device.DeviceInfo.X_COMCAST-COM_STB_MAC",
-    "Device.DeviceInfo.X_COMCAST-COM_STB_IP",
-    "Device.DeviceInfo.X_COMCAST-COM_FirmwareFilename"
-};
+static const char *EXCLUDE_PARAMLIST[] = { "Device.X_RDKCENTRAL-COM_T2.ReportProfiles", \
+                                           "Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack"
+                                         };
 
 #define EXCLUDE_LIST_SIZE (sizeof((EXCLUDE_PARAMLIST))/sizeof((EXCLUDE_PARAMLIST)[0]))
 
@@ -513,9 +496,9 @@ void init_rbus_dml_provider()
                 {
                     if(pParamNameList[i] != NULL) {
                         if(isInExclusionList(pParamNameList[i])) {
-                            // Skip parameters already registered by other components (rfc_provider, T2, etc.)
-                            // to avoid duplicate registration errors
-                            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] [rbusdml] Skipping parameter %s (externally registered by another component)\n", __FUNCTION__,pParamNameList[i]);
+                            // Temporary solution to ignore externally managed TR181 parameters from rBus registration.
+                            // This is to avoid recursive call of handlers.
+                            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s] [rbusdml] Parameter %s is externally rbus registered, ignoring from datamodel list.\n", __FUNCTION__,pParamNameList[i]);
                             continue;
                         } else {
                             dataElements[rbus_param_counter].name = strdup(pParamNameList[i]);
