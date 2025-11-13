@@ -71,7 +71,7 @@ static const char *EXCLUDE_PARAMLIST[] = { "Device.X_RDKCENTRAL-COM_T2.ReportPro
     "Device.DeviceInfo.FirstUseDate", \
     "Device.DeviceInfo.X_COMCAST-COM_STB_MAC", \
     "Device.DeviceInfo.X_COMCAST-COM_STB_IP" ,\
-    "Device.DeviceInfo.X_COMCAST-COM_FirmwareFilename" ,\
+    "Device.DeviceInfo.X_COMCAST-COM_FirmwareFilename" 
                                          };
 
 #define EXCLUDE_LIST_SIZE (sizeof((EXCLUDE_PARAMLIST))/sizeof((EXCLUDE_PARAMLIST)[0]))
