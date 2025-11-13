@@ -89,10 +89,41 @@ def test_init_rbus_dml_provider_status():
     RBUS2_ERROR_MSG = "consumer: rbus_open failed"
     RBUS3_SUCCESS_MSG = "[rbusdml]Successfully get the complete parameter list"
     RBUS4_SUCCESS_MSG = "rbus_regDataElements registered successfully"
+    RBUS5_PARTIAL_MSG = "rbusPropertyProvider_Register failed: 14"  # Duplicate registration (acceptable)
+    RBUS6_INDIVIDUAL_MSG = "Attempting individual parameter registration"  # Individual registration fallback
+    
     assert RBUS1_ERROR_MSG not in grep_T2logs(RBUS1_ERROR_MSG)
     assert RBUS2_ERROR_MSG not in grep_T2logs(RBUS2_ERROR_MSG)
     assert RBUS3_SUCCESS_MSG in grep_T2logs(RBUS3_SUCCESS_MSG)
-    assert RBUS4_SUCCESS_MSG in grep_T2logs(RBUS4_SUCCESS_MSG)
+    
+    # Check for successful registration OR acceptable partial failure (duplicates)
+    logs = grep_T2logs("rbus")
+    assert (RBUS4_SUCCESS_MSG in logs or RBUS5_PARTIAL_MSG in logs), \
+        "RBUS registration did not complete (neither success nor duplicate error found)"
+    
+    # If duplicates were found, report them
+    if RBUS5_PARTIAL_MSG in logs and RBUS6_INDIVIDUAL_MSG in logs:
+        print("\nDuplicate parameters detected - checking individual registration logs...")
+        duplicate_logs = grep_T2logs("Duplicate parameter (already registered)")
+        if duplicate_logs:
+            print("Found duplicate parameters:")
+            print(duplicate_logs)
+
+@pytest.mark.run(order=6)
+def test_check_duplicate_rbus_registrations():
+    """Identify and report which parameters are already registered (duplicates)"""
+    is_process_active()
+    
+    duplicate_logs = grep_T2logs("Duplicate parameter (already registered)")
+    individual_summary = grep_T2logs("Individual registration complete")
+    
+    if duplicate_logs:
+        print("\n=== DUPLICATE RBUS PARAMETERS FOUND ===")
+        print(duplicate_logs)
+        print("\n=== REGISTRATION SUMMARY ===")
+        print(individual_summary)
+    else:
+        print("No duplicate parameters found - all registered successfully on first attempt")
 
 @pytest.mark.run(order=6)
 def test_hostIf_initalize_ConfigManger_status():

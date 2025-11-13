@@ -561,8 +561,41 @@ void init_rbus_dml_provider()
                 if(rc != RBUS_ERROR_SUCCESS)
                 {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s][rbusdml] rbusPropertyProvider_Register failed: %d\n", __FUNCTION__, rc);
+                    
+                    // If batch registration failed (likely due to duplicates), try individual registration
+                    if(rc == RBUS_ERROR_ELEMENT_NAME_DUPLICATE)
+                    {
+                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s][rbusdml] Attempting individual parameter registration to identify duplicates...\n", __FUNCTION__);
+                        int success_count = 0;
+                        int duplicate_count = 0;
+                        
+                        for(int idx = 0; idx < rbus_param_counter; idx++)
+                        {
+                            rbusError_t individual_rc = rbus_regDataElements(rbusHandle, 1, &dataElements[idx]);
+                            
+                            if(individual_rc == RBUS_ERROR_SUCCESS)
+                            {
+                                success_count++;
+                                RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF, "[%s][rbusdml] Successfully registered: %s\n", __FUNCTION__, dataElements[idx].name);
+                            }
+                            else if(individual_rc == RBUS_ERROR_ELEMENT_NAME_DUPLICATE)
+                            {
+                                duplicate_count++;
+                                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s][rbusdml] Duplicate parameter (already registered): %s\n", __FUNCTION__, dataElements[idx].name);
+                            }
+                            else
+                            {
+                                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "[%s][rbusdml] Failed to register %s: error %d\n", __FUNCTION__, dataElements[idx].name, individual_rc);
+                            }
+                        }
+                        
+                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s][rbusdml] Individual registration complete: %d successful, %d duplicates, %d total\n", 
+                                __FUNCTION__, success_count, duplicate_count, rbus_param_counter);
+                    }
+                    
                     free(dataElements);
-                    rbus_close(rbusHandle);
+                    // Don't close rbus handle - some parameters may have been registered
+                    // rbus_close(rbusHandle);
                 }
                 else
                 {
