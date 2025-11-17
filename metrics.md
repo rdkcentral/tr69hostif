@@ -18,7 +18,6 @@ flowchart TB
     
     Method -->|Push| Collector[Push to Collector<br/>POST /v1/metrics<br/>Port 4318]
     
-    Prometheus --> Visualize[Grafana Dashboard]
     Collector --> Visualize
     
     style Start fill:#90EE90
