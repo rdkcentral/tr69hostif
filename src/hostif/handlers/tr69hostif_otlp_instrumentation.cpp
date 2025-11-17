@@ -76,10 +76,6 @@ public:
         exporter_opts.url = getCollectorEndpoint() + "/v1/traces";
         exporter_opts.content_type = otlp::HttpRequestContentType::kJson;
         
-        // Add headers for authentication/identification
-        exporter_opts.http_headers.insert({"User-Agent", "tr69hostif-rdk/1.2.7"});
-        exporter_opts.http_headers.insert({"X-RDK-Component", "tr69hostif"});
-        
         std::cout << "Initializing OTLP HTTP exporter with endpoint: " << exporter_opts.url << std::endl;
         
         // Create OTLP HTTP exporter
@@ -125,20 +121,6 @@ public:
     std::pair<std::string, std::string> getTraceSpanIds(nostd::shared_ptr<trace::Span> span) {
         auto span_context = span->GetContext();
         
-        // Generate simple IDs for logging purposes
-        // In a real implementation, you might want to use the actual IDs
-       /* static int trace_counter = 1000;
-        static int span_counter = 2000;
-        
-        std::stringstream trace_stream, span_stream;
-        trace_stream << "trace_" << std::hex << (trace_counter++);
-        span_stream << "span_" << std::hex << (span_counter++);
-        
-        // Note: This is a simplified approach for demo purposes
-        // For production, you would extract the actual trace/span IDs
-        // but the API varies between OpenTelemetry versions
-        
-        return {trace_stream.str(), span_stream.str()};*/
 
     // Extract actual trace_id (16 bytes)
     char trace_id[32];
@@ -152,53 +134,7 @@ public:
 
     }
     
-    /**
-     * Trace HTTP request processing with trace/span ID logging
-     */
-    void traceHttpRequest(const std::string& method, const std::string& uri, 
-                         int status_code, const std::function<void()>& operation) {
-        auto span = tracer_->StartSpan("tr69hostif.http.request");
-        
-        // Get and log trace/span IDs
-        auto [trace_id, span_id] = getTraceSpanIds(span);
-        std::cout << "🔍 HTTP Request Trace - TraceID: " << trace_id << ", SpanID: " << span_id << std::endl;
-        
-        // Set HTTP-specific attributes
-        span->SetAttribute("http.method", method);
-        span->SetAttribute("http.url", uri);
-        span->SetAttribute("http.scheme", "http");
-        span->SetAttribute("trace.id", trace_id);
-        span->SetAttribute("span.id", span_id);
-        
-        // Set RDK-specific attributes
-        span->SetAttribute("rdk.operation.type", "http_request");
-        span->SetAttribute("rdk.component.function", "request_handler");
-        span->SetAttribute("rdk.trace.source", "tr69hostif-otlp");
-        
-        try {
-            // Execute the operation
-            operation();
-            
-            // Set success attributes
-            span->SetAttribute("http.status_code", status_code);
-            span->SetStatus(trace::StatusCode::kOk);
-            std::cout << "✅ HTTP Request completed successfully - Status: " << status_code << std::endl;
-            
-        } catch (const std::exception& e) {
-            // Handle errors
-            span->SetAttribute("error.message", e.what());
-            span->SetAttribute("http.status_code", 500);
-            span->SetStatus(trace::StatusCode::kError, e.what());
-            std::cout << "❌ HTTP Request failed - Error: " << e.what() << std::endl;
-            throw;
-        }
-        
-        span->End();
-        std::cout << "📤 Span sent to collector at: " << getCollectorEndpoint() << std::endl;
-    }
-    
-    /**
-     * Trace parameter operations (get/set) with trace/span ID logging
+     /* Trace parameter operations (get/set) with trace/span ID logging
      */
     void traceParameterOperation(const std::string& param_name, 
                                const std::string& operation_type,
@@ -207,7 +143,7 @@ public:
         
         // Get and log trace/span IDs
         auto [trace_id, span_id] = getTraceSpanIds(span);
-        std::cout << "🔍 Parameter " << operation_type << " Trace - TraceID: " << trace_id << ", SpanID: " << span_id << std::endl;
+        std::cout << "Parameter " << operation_type << " Trace - TraceID: " << trace_id << ", SpanID: " << span_id << std::endl;
         
         // Set parameter-specific attributes
         span->SetAttribute("parameter.name", param_name);
@@ -221,64 +157,23 @@ public:
             // Execute the operation
             operation();
             span->SetStatus(trace::StatusCode::kOk);
-            std::cout << "✅ Parameter " << operation_type << " completed for: " << param_name << std::endl;
+            std::cout << "Parameter " << operation_type << " completed for: " << param_name << std::endl;
             
         } catch (const std::exception& e) {
             span->SetAttribute("error.message", e.what());
             span->SetStatus(trace::StatusCode::kError, e.what());
-            std::cout << "❌ Parameter " << operation_type << " failed for: " << param_name << " - Error: " << e.what() << std::endl;
+            std::cout << " Parameter " << operation_type << " failed for: " << param_name << " - Error: " << e.what() << std::endl;
             throw;
         }
         
         span->End();
-        std::cout << "📤 Span sent to collector at: " << getCollectorEndpoint() << std::endl;
-    }
-    
-    /**
-     * Trace device communication with trace/span ID logging
-     */
-    void traceDeviceCommunication(const std::string& device_type, 
-                                 const std::string& operation,
-                                 const std::function<void()>& comm_operation) {
-        auto span = tracer_->StartSpan("tr69hostif.device.communication");
-        
-        // Get and log trace/span IDs
-        auto [trace_id, span_id] = getTraceSpanIds(span);
-        std::cout << "🔍 Device Communication Trace - TraceID: " << trace_id << ", SpanID: " << span_id << std::endl;
-        
-        // Set device-specific attributes
-        span->SetAttribute("device.type", device_type);
-        span->SetAttribute("device.operation", operation);
-        span->SetAttribute("rdk.component", "tr69hostif");
-        span->SetAttribute("trace.id", trace_id);
-        span->SetAttribute("span.id", span_id);
-        span->SetAttribute("rdk.trace.source", "tr69hostif-otlp");
-        
-        try {
-            // Execute the communication
-            comm_operation();
-            span->SetStatus(trace::StatusCode::kOk);
-            std::cout << "✅ Device communication completed - Type: " << device_type << ", Operation: " << operation << std::endl;
-            
-        } catch (const std::exception& e) {
-            span->SetAttribute("error.message", e.what());
-            span->SetStatus(trace::StatusCode::kError, e.what());
-            std::cout << "❌ Device communication failed - Error: " << e.what() << std::endl;
-            throw;
-        }
-        
-        span->End();
-        std::cout << "📤 Span sent to collector at: " << getCollectorEndpoint() << std::endl;
+        std::cout << " Span sent to collector at: " << getCollectorEndpoint() << std::endl;
     }
     
     /**
      * Force flush all pending spans (useful for shutdown)
-     * Simplified version that doesn't rely on SDK-specific methods
      */
     void forceFlush() {
-        // Simple approach: just log that we're flushing
-        // The spans should be automatically flushed when the tracer is destroyed
-        // or when the process exits
         std::cout << "🔄 Requesting flush of all pending spans..." << std::endl;
         
         // Sleep briefly to allow any pending spans to be processed
@@ -308,14 +203,13 @@ public:
 
 class TR69HostIFMetricsCollector {
 private:
-    opentelemetry::nostd::shared_ptr<metrics_api::Meter> meter_;  // FIX 1: Use nostd::shared_ptr
+    opentelemetry::nostd::shared_ptr<metrics_api::Meter> meter_;
     
     // Counter metrics
     std::unique_ptr<metrics_api::Counter<uint64_t>> parameter_operations_total_;
     
     // Histogram metrics
     std::unique_ptr<metrics_api::Histogram<double>> parameter_operation_duration_;
-    std::unique_ptr<metrics_api::Histogram<uint64_t>> response_size_bytes_;
 
 public:
     TR69HostIFMetricsCollector() {
@@ -327,7 +221,6 @@ public:
             // Configure OTLP HTTP metric exporter
             otlp::OtlpHttpMetricExporterOptions exporter_opts;
             
-            // FIX 2: Inline endpoint detection instead of calling getCollectorEndpoint()
             const char* env_endpoint = std::getenv("OTEL_EXPORTER_OTLP_ENDPOINT");
             std::string base_endpoint = env_endpoint ? env_endpoint : "http://localhost:4318";
             const char* container_env = std::getenv("RUNNING_IN_CONTAINER");
@@ -342,7 +235,6 @@ public:
             std::cout << "Initializing OTLP HTTP metrics exporter with endpoint: " 
                       << exporter_opts.url << std::endl;
             
-            // FIX 3: C++11 compatible - no std::make_unique
             std::unique_ptr<otlp::OtlpHttpMetricExporter> exporter(
                 new otlp::OtlpHttpMetricExporter(exporter_opts));
             
@@ -363,7 +255,6 @@ public:
             };
             auto resource = resource::Resource::Create(resource_attributes);
             
-            // FIX 4: Use nostd::shared_ptr with explicit new (C++11 compatible)
             std::unique_ptr<metrics_sdk::ViewRegistry> view_registry(new metrics_sdk::ViewRegistry());
             auto provider = opentelemetry::nostd::shared_ptr<metrics_sdk::MeterProvider>(
                 new metrics_sdk::MeterProvider(std::move(view_registry), resource)
@@ -371,7 +262,6 @@ public:
             
             provider->AddMetricReader(std::move(reader));
             
-            // FIX 5: Use std::move()
             metrics_api::Provider::SetMeterProvider(std::move(provider));
             
             meter_ = metrics_api::Provider::GetMeterProvider()->GetMeter("tr69hostif", "1.0.0");
@@ -386,15 +276,7 @@ public:
                 "Parameter operation processing duration",
                 "seconds");
             
-            response_size_bytes_ = meter_->CreateUInt64Histogram(
-                "tr69hostif.http.response.size",
-                "HTTP response size in bytes",
-                "bytes");
-            
-            // FIX 6: REMOVED all observable gauge code and RegisterCallback calls
-            
-            std::cout << "✅ TR69HostIF Metrics Collector initialized successfully!" << std::endl;
-            std::cout << "📊 Metrics will be exported every 10 seconds" << std::endl;
+            std::cout <<"Metrics will be exported every 10 seconds" << std::endl;
             
         } catch (const std::exception& e) {
             std::cerr << "❌ Failed to initialize metrics: " << e.what() << std::endl;
@@ -410,7 +292,6 @@ public:
             {"operation.type", operation_type}
         });
         
-        // FIX 7: Add context parameter to Record()
         auto context = opentelemetry::context::Context{};
         parameter_operation_duration_->Record(duration_seconds, {
             {"parameter.name", param_name},
@@ -420,7 +301,7 @@ public:
         std::cout << "📊 Parameter Operation Metric: " << operation_type << " " 
                   << param_name << " (" << duration_seconds << "s)" << std::endl;
     }
-}; // FIX 8: Closing brace for class
+};
 
 // Global metrics collector
 static std::unique_ptr<TR69HostIFMetricsCollector> g_metrics_collector;
@@ -445,9 +326,6 @@ void tr69hostif_metrics_record_parameter_operation(
 // Global tracer instance
 static TR69HostIFOTLPTracer g_otlp_tracer;
 
-void tr69hostif_otlp_trace_http_request(const char* method, const char* uri, int status_code) {
-    g_otlp_tracer.traceHttpRequest(method, uri, status_code, [](){});
-}
 
 void tr69hostif_otlp_trace_parameter_get(const char* param_name) {
     g_otlp_tracer.traceParameterOperation(param_name, "get", [](){});
@@ -455,10 +333,6 @@ void tr69hostif_otlp_trace_parameter_get(const char* param_name) {
 
 void tr69hostif_otlp_trace_parameter_set(const char* param_name) {
     g_otlp_tracer.traceParameterOperation(param_name, "set", [](){});
-}
-
-void tr69hostif_otlp_trace_device_comm(const char* device_type, const char* operation) {
-    g_otlp_tracer.traceDeviceCommunication(device_type, operation, [](){});
 }
 
 void tr69hostif_otlp_force_flush() {

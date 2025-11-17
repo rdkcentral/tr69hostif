@@ -72,10 +72,8 @@
 #include <string>
 
 
-void tr69hostif_otlp_trace_http_request(const char* method, const char* uri, int status_code);
 void tr69hostif_otlp_trace_parameter_get(const char* param_name);
 void tr69hostif_otlp_trace_parameter_set(const char* param_name);
-void tr69hostif_otlp_trace_device_comm(const char* device_type, const char* operation);
 void tr69hostif_otlp_force_flush();
 const char* tr69hostif_otlp_get_endpoint();
 
