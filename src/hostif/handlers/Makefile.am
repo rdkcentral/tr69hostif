@@ -158,19 +158,19 @@ libMsgHandlers_la_SOURCES += src/hostIf_NotificationHandler.cpp
 include_HEADERS = include/hostIf_msgHandler.h \
                   include/hostIf_NotificationHandler.h
 
-# Add OTLP instrumentation source file
 libMsgHandlers_la_SOURCES += tr69hostif_otlp_instrumentation.cpp
+AM_CXXFLAGS += -I/usr/local/include
 
-# Add OpenTelemetry include paths
-AM_CXXFLAGS += -I/usr/local/include -I/usr/include
-
-# Add OpenTelemetry libraries using LIBADD (proper way for libtool libraries)
-libMsgHandlers_la_LIBADD = -L/usr/local/lib -L/usr/lib \
-                           -lopentelemetry_trace \
-                           -lopentelemetry_resources \
-                           -lopentelemetry_common \
+# OpenTelemetry libraries must be in LIBADD, not LDFLAGS
+libMsgHandlers_la_LIBADD = -L/usr/local/lib \
                            -lopentelemetry_exporter_otlp_http \
                            -lopentelemetry_exporter_otlp_http_client \
-                           -lopentelemetry_http_client_curl \
+                           -lopentelemetry_exporter_otlp_http_metric \
+                           -lopentelemetry_otlp_recordable \
+                           -lopentelemetry_trace \
+                           -lopentelemetry_metrics \
+                           -lopentelemetry_resources \
+                           -lopentelemetry_common \
+                           -lopentelemetry_version \
                            -lcurl \
                            -lpthread

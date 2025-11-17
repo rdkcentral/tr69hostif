@@ -125,11 +125,8 @@ AM_CXXFLAGS += $(T2_EVENT_FLAG)
 AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
 endif
 
-# Add OpenTelemetry include paths
-AM_CXXFLAGS += -I/usr/local/include -I/usr/include
-
 bin_PROGRAMS = tr69hostif backgroundrun
-tr69hostif_SOURCES = $(top_srcdir)/src/hostif/src/hostIf_main.cpp $(top_srcdir)/src/hostif/src/hostIf_utils.cpp
+tr69hostif_SOURCES = $(top_srcdir)/src/hostif/src/hostIf_main.cpp $(top_srcdir)/src/hostif/src/hostIf_utils.cpp $(top_srcdir)/src/hostif/handlers/tr69hostif_otlp_instrumentation.cpp
 tr69hostif_SOURCES += $(top_srcdir)/src/hostif/src/IniFile.cpp
 backgroundrun_SOURCES = $(top_srcdir)/src/backgroundrun.c
 
@@ -189,13 +186,16 @@ if WITH_PARODUS_SUPPORT
 AM_CXXFLAGS += $(PARODUS_ENABLE_FLAG)
 endif
 
-# Add OpenTelemetry OTLP libraries (must be at the end, after all .la files)
-tr69hostif_LDADD += -L/usr/local/lib -L/usr/lib
-tr69hostif_LDADD += -lopentelemetry_trace
-tr69hostif_LDADD += -lopentelemetry_resources
-tr69hostif_LDADD += -lopentelemetry_common
-tr69hostif_LDADD += -lopentelemetry_exporter_otlp_http
-tr69hostif_LDADD += -lopentelemetry_exporter_otlp_http_client
-tr69hostif_LDADD += -lopentelemetry_http_client_curl
-tr69hostif_LDADD += -lcurl
-tr69hostif_LDADD += -lpthread
+# OpenTelemetry libraries for OTLP tracing and metrics
+AM_CXXFLAGS += -I/usr/local/include
+tr69hostif_LDADD += -L/usr/local/lib \
+                    -lopentelemetry_exporter_otlp_http \
+                    -lopentelemetry_exporter_otlp_http_client \
+                    -lopentelemetry_exporter_otlp_http_metric \
+                    -lopentelemetry_otlp_recordable \
+                    -lopentelemetry_trace \
+                    -lopentelemetry_metrics \
+                    -lopentelemetry_resources \
+                    -lopentelemetry_common \
+                    -lopentelemetry_version \
+                    -lcurl

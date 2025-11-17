@@ -3,7 +3,7 @@
  * Compatible with OpenTelemetry C++ SDK v1.23.0
  * Sends traces to OpenTelemetry Collector via OTLP HTTP
  */
-
+//trace libs
 #include <opentelemetry/trace/provider.h>
 #include <opentelemetry/trace/tracer.h>
 #include <opentelemetry/exporters/otlp/otlp_http_exporter.h>
@@ -13,8 +13,17 @@
 #include <opentelemetry/nostd/shared_ptr.h>
 #include <opentelemetry/trace/span.h>
 #include <opentelemetry/trace/span_context.h>
+
+//metrics libs
+#include <opentelemetry/metrics/provider.h>
+#include <opentelemetry/sdk/metrics/meter_provider.h>
+#include <opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h>
+#include <opentelemetry/exporters/otlp/otlp_http_metric_exporter.h>
+#include <opentelemetry/sdk/metrics/view/view_registry.h>
+#include <opentelemetry/sdk/metrics/aggregation/default_aggregation.h>
+
 #include <cstdlib>
-#include <cstring>  // for memcpy
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -30,6 +39,9 @@ namespace trace_sdk = opentelemetry::sdk::trace;
 namespace resource = opentelemetry::sdk::resource;
 namespace nostd = opentelemetry::nostd;
 namespace otlp = opentelemetry::exporter::otlp;
+
+namespace metrics_api = opentelemetry::metrics;
+namespace metrics_sdk = opentelemetry::sdk::metrics;
 
 class TR69HostIFOTLPTracer {
 private:
@@ -115,7 +127,7 @@ public:
         
         // Generate simple IDs for logging purposes
         // In a real implementation, you might want to use the actual IDs
-        static int trace_counter = 1000;
+       /* static int trace_counter = 1000;
         static int span_counter = 2000;
         
         std::stringstream trace_stream, span_stream;
@@ -126,7 +138,18 @@ public:
         // For production, you would extract the actual trace/span IDs
         // but the API varies between OpenTelemetry versions
         
-        return {trace_stream.str(), span_stream.str()};
+        return {trace_stream.str(), span_stream.str()};*/
+
+    // Extract actual trace_id (16 bytes)
+    char trace_id[32];
+    span_context.trace_id().ToLowerBase16(trace_id);
+
+    // Extract actual span_id (8 bytes)
+    char span_id[16];
+    span_context.span_id().ToLowerBase16(span_id);
+
+    return {std::string(trace_id, 32), std::string(span_id, 16)};
+
     }
     
     /**
@@ -283,40 +306,166 @@ public:
     }
 };
 
+class TR69HostIFMetricsCollector {
+private:
+    opentelemetry::nostd::shared_ptr<metrics_api::Meter> meter_;  // FIX 1: Use nostd::shared_ptr
+    
+    // Counter metrics
+    std::unique_ptr<metrics_api::Counter<uint64_t>> parameter_operations_total_;
+    
+    // Histogram metrics
+    std::unique_ptr<metrics_api::Histogram<double>> parameter_operation_duration_;
+    std::unique_ptr<metrics_api::Histogram<uint64_t>> response_size_bytes_;
+
+public:
+    TR69HostIFMetricsCollector() {
+        initializeMetrics();
+    }
+    
+    void initializeMetrics() {
+        try {
+            // Configure OTLP HTTP metric exporter
+            otlp::OtlpHttpMetricExporterOptions exporter_opts;
+            
+            // FIX 2: Inline endpoint detection instead of calling getCollectorEndpoint()
+            const char* env_endpoint = std::getenv("OTEL_EXPORTER_OTLP_ENDPOINT");
+            std::string base_endpoint = env_endpoint ? env_endpoint : "http://localhost:4318";
+            const char* container_env = std::getenv("RUNNING_IN_CONTAINER");
+            if (!env_endpoint && container_env != nullptr && std::string(container_env) == "true") {
+                base_endpoint = "http://otel-collector:4318";
+            }
+            
+            exporter_opts.url = base_endpoint + "/v1/metrics";
+            exporter_opts.content_type = otlp::HttpRequestContentType::kJson;
+            exporter_opts.timeout = std::chrono::seconds(10);
+            
+            std::cout << "Initializing OTLP HTTP metrics exporter with endpoint: " 
+                      << exporter_opts.url << std::endl;
+            
+            // FIX 3: C++11 compatible - no std::make_unique
+            std::unique_ptr<otlp::OtlpHttpMetricExporter> exporter(
+                new otlp::OtlpHttpMetricExporter(exporter_opts));
+            
+            metrics_sdk::PeriodicExportingMetricReaderOptions reader_options;
+            reader_options.export_interval_millis = std::chrono::milliseconds(10000);
+            reader_options.export_timeout_millis = std::chrono::milliseconds(5000);
+            
+            std::unique_ptr<metrics_sdk::PeriodicExportingMetricReader> reader(
+                new metrics_sdk::PeriodicExportingMetricReader(std::move(exporter), reader_options));
+            
+            auto resource_attributes = resource::ResourceAttributes{
+                {"service.name", "tr69hostif"},
+                {"service.version", "1.2.7"},
+                {"service.namespace", "rdk"},
+                {"rdk.component", "tr69hostif"},
+                {"rdk.profile", "STB"},
+                {"deployment.environment", "container"}
+            };
+            auto resource = resource::Resource::Create(resource_attributes);
+            
+            // FIX 4: Use nostd::shared_ptr with explicit new (C++11 compatible)
+            std::unique_ptr<metrics_sdk::ViewRegistry> view_registry(new metrics_sdk::ViewRegistry());
+            auto provider = opentelemetry::nostd::shared_ptr<metrics_sdk::MeterProvider>(
+                new metrics_sdk::MeterProvider(std::move(view_registry), resource)
+            );
+            
+            provider->AddMetricReader(std::move(reader));
+            
+            // FIX 5: Use std::move()
+            metrics_api::Provider::SetMeterProvider(std::move(provider));
+            
+            meter_ = metrics_api::Provider::GetMeterProvider()->GetMeter("tr69hostif", "1.0.0");
+            
+            parameter_operations_total_ = meter_->CreateUInt64Counter(
+                "tr69hostif.parameter.operations.total",
+                "Total number of parameter operations (get/set)",
+                "operations");
+            
+            parameter_operation_duration_ = meter_->CreateDoubleHistogram(
+                "tr69hostif.parameter.operation.duration",
+                "Parameter operation processing duration",
+                "seconds");
+            
+            response_size_bytes_ = meter_->CreateUInt64Histogram(
+                "tr69hostif.http.response.size",
+                "HTTP response size in bytes",
+                "bytes");
+            
+            // FIX 6: REMOVED all observable gauge code and RegisterCallback calls
+            
+            std::cout << "✅ TR69HostIF Metrics Collector initialized successfully!" << std::endl;
+            std::cout << "📊 Metrics will be exported every 10 seconds" << std::endl;
+            
+        } catch (const std::exception& e) {
+            std::cerr << "❌ Failed to initialize metrics: " << e.what() << std::endl;
+            throw;
+        }
+    }
+    
+    void recordParameterOperation(const std::string& param_name, 
+                                   const std::string& operation_type,
+                                   double duration_seconds) {
+        parameter_operations_total_->Add(1, {
+            {"parameter.name", param_name},
+            {"operation.type", operation_type}
+        });
+        
+        // FIX 7: Add context parameter to Record()
+        auto context = opentelemetry::context::Context{};
+        parameter_operation_duration_->Record(duration_seconds, {
+            {"parameter.name", param_name},
+            {"operation.type", operation_type}
+        }, context);
+        
+        std::cout << "📊 Parameter Operation Metric: " << operation_type << " " 
+                  << param_name << " (" << duration_seconds << "s)" << std::endl;
+    }
+}; // FIX 8: Closing brace for class
+
+// Global metrics collector
+static std::unique_ptr<TR69HostIFMetricsCollector> g_metrics_collector;
+
+void initializeMetricsCollector() {
+    if (!g_metrics_collector) {
+        g_metrics_collector.reset(new TR69HostIFMetricsCollector());
+    }
+}
+
+void tr69hostif_metrics_init() {
+    initializeMetricsCollector();
+}
+
+void tr69hostif_metrics_record_parameter_operation(
+    const char* param_name, const char* operation_type, double duration_seconds) {
+    if (g_metrics_collector) {
+        g_metrics_collector->recordParameterOperation(param_name, operation_type, duration_seconds);
+    }
+}
+
 // Global tracer instance
 static TR69HostIFOTLPTracer g_otlp_tracer;
 
-// C-style API for integration with existing C code
 void tr69hostif_otlp_trace_http_request(const char* method, const char* uri, int status_code) {
-    g_otlp_tracer.traceHttpRequest(method, uri, status_code, [](){
-            // Placeholder operation - replace with actual HTTP processing
-    });
+    g_otlp_tracer.traceHttpRequest(method, uri, status_code, [](){});
 }
-    
+
 void tr69hostif_otlp_trace_parameter_get(const char* param_name) {
-    g_otlp_tracer.traceParameterOperation(param_name, "get", [](){
-            // Placeholder operation - replace with actual parameter retrieval
-    });
+    g_otlp_tracer.traceParameterOperation(param_name, "get", [](){});
 }
-    
+
 void tr69hostif_otlp_trace_parameter_set(const char* param_name) {
-    g_otlp_tracer.traceParameterOperation(param_name, "set", [](){
-            // Placeholder operation - replace with actual parameter setting
-    });
+    g_otlp_tracer.traceParameterOperation(param_name, "set", [](){});
 }
-    
+
 void tr69hostif_otlp_trace_device_comm(const char* device_type, const char* operation) {
-    g_otlp_tracer.traceDeviceCommunication(device_type, operation, [](){
-            // Placeholder operation - replace with actual device communication
-    });
+    g_otlp_tracer.traceDeviceCommunication(device_type, operation, [](){});
 }
-    
+
 void tr69hostif_otlp_force_flush() {
     g_otlp_tracer.forceFlush();
 }
-    
+
 const char* tr69hostif_otlp_get_endpoint() {
     static std::string endpoint = g_otlp_tracer.getCurrentEndpoint();
     return endpoint.c_str();
 }
-

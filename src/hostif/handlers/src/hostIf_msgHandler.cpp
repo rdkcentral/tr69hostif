@@ -79,6 +79,10 @@ void tr69hostif_otlp_trace_device_comm(const char* device_type, const char* oper
 void tr69hostif_otlp_force_flush();
 const char* tr69hostif_otlp_get_endpoint();
 
+// Metrics functions
+void tr69hostif_metrics_init();
+void tr69hostif_metrics_record_parameter_operation(const char* param_name, const char* operation_type, double duration_seconds);
+
 
 extern GHashTable* paramMgrhash;
 extern T_ARGLIST argList;
@@ -208,6 +212,11 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramName,
                 paramValueStr,
                 timeTaken);
+            
+            // Record metrics (convert microseconds to seconds)
+            double duration_seconds = timeTaken / 1000000.0;
+            tr69hostif_metrics_record_parameter_operation(stMsgData->paramName, "get", duration_seconds);
+            
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
                 // Debug log
@@ -296,6 +305,11 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramName,
                 paramValueStr,
                 timeTakenset);
+        
+        // Record metrics (convert microseconds to seconds)
+        double duration_seconds = timeTakenset / 1000000.0;
+        tr69hostif_metrics_record_parameter_operation(stMsgData->paramName, "set", duration_seconds);
+        
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
