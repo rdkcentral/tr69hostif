@@ -24,7 +24,7 @@ from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=13)
+@pytest.mark.run(order=24)
 def test_DeviceDefault_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.SoftwareVersion"
@@ -61,7 +61,7 @@ def test_DeviceDefault_Set_Get_Handler():
 
 
 
-@pytest.mark.run(order=14)
+@pytest.mark.run(order=25)
 def test_DeviceIP_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Prefix.1.Autonomous"
@@ -151,7 +151,7 @@ def test_DeviceIP_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert PREF_LTF_STATUS_MSG in rstdout
 
-@pytest.mark.run(order=15)
+@pytest.mark.run(order=26)
 def test_DeviceServices_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.Services.STBServiceNumberOfEntries"
@@ -161,7 +161,7 @@ def test_DeviceServices_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert STB_ENTRY_COUNT_MSG in rstdout
 
-@pytest.mark.run(order=16)
+@pytest.mark.run(order=27)
 def test_ReverseSSH_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshStatus"
