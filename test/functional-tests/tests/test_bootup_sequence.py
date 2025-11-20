@@ -162,7 +162,7 @@ def test_bootstrap_configuration():
 	
 
 @pytest.mark.run(order=13)
-	def test_device_manager_initialization():
+def test_device_manager_initialization():
     """Verify device manager (dsClient) initialization"""
     is_process_active()
     DS_INIT_MSG = "Device manager Initialized success"
