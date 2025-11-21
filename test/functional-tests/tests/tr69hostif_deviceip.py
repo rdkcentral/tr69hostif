@@ -24,7 +24,7 @@ from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=13)
+@pytest.mark.run(order=24)
 def test_DeviceDefault_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.SoftwareVersion"
@@ -61,7 +61,7 @@ def test_DeviceDefault_Set_Get_Handler():
 
 
 
-@pytest.mark.run(order=14)
+@pytest.mark.run(order=25)
 def test_DeviceIP_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Prefix.1.Autonomous"
@@ -151,7 +151,7 @@ def test_DeviceIP_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert PREF_LTF_STATUS_MSG in rstdout
 
-@pytest.mark.run(order=15)
+@pytest.mark.run(order=26)
 def test_DeviceServices_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.Services.STBServiceNumberOfEntries"
@@ -161,7 +161,7 @@ def test_DeviceServices_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert STB_ENTRY_COUNT_MSG in rstdout
 
-@pytest.mark.run(order=16)
+@pytest.mark.run(order=27)
 def test_ReverseSSH_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshStatus"
@@ -180,7 +180,7 @@ def test_ReverseSSH_Set_Get_Handler():
     
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshArgs"
-    SSH_ARGS_MSG = "host=skyfoxtel.xcal.tv;hostIp=skyfoxtel.xcal.tv;stunnelport=2009;idletimeout=300;revsshport=3008;sshport=2221;user=webpa_user01;"
+    SSH_ARGS_MSG = "host=mockserver.tv;hostIp=mockserver.xmock.tv;stunnelport=2009;idletimeout=300;revsshport=3008;sshport=2221;user=webpa_user01;"
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", SSH_ARGS_MSG)
     # Force reload config fetch from xconf
     assert RBUS_SUCCESS_STRING in rstdout
