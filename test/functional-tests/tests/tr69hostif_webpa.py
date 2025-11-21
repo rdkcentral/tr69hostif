@@ -201,23 +201,23 @@ def test_WebPA_Get_FWDL_STATUS_Handler():
         f"FirmwareDownloadStatus parameter not found in response"
 
 
-@pytest.mark.run(order=37)
-def test_WebPA_Get_FWDL_URL_Handler():
-    print("Starting parodus mock process")
-    payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL"]}'
-    command = ["/usr/local/bin/parodus", payload]
-
-    result = subprocess.run(command, capture_output=True, text=True)
-    assert result.returncode == 0, f"Command failed with error: {result.stderr}"
-
-    STATUS_CODE_MSG = '"statusCode":200'
-    assert STATUS_CODE_MSG in grep_paroduslogs(STATUS_CODE_MSG)
-
-    SUCCESS_STATUS_MSG = '"message":"Success"'
-    assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
-
-    FWDL_URL_MSG = '"value":"https://mockserver.tv/Images"'
-    assert FWDL_URL_MSG in grep_paroduslogs(FWDL_URL_MSG)
+@pytest.mark.run(order=37)                                                                                            
+  def test_WebPA_Get_FWDL_URL_Handler():                                                                                      
+      print("Starting parodus mock process")                                                                                  
+      payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL"]}'                         
+      command = ["/usr/local/bin/parodus", payload]     
+      
+      result = subprocess.run(command, capture_output=True, text=True)                                                        
+      assert result.returncode == 0, f"Command failed with error: {result.stderr}"    
+      
+      STATUS_CODE_MSG = '"statusCode":200'                                                                                    
+      assert STATUS_CODE_MSG in grep_paroduslogs(STATUS_CODE_MSG) 
+      
+      SUCCESS_STATUS_MSG = '"message":"Success"'                                                                              
+      assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)   
+      
+      FWDL_URL_MSG = '"value":"https://mockserver.tv/Images"'                                                                 
+      assert FWDL_URL_MSG in grep_paroduslogs(FWDL_URL_MSG)
 
 
 @pytest.mark.run(order=38)
