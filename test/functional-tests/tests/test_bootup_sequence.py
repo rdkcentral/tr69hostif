@@ -235,3 +235,26 @@ def test_no_critical_errors():
         assert error_msg not in logs, f"Critical error found: {error_msg}"
 
     print("\nNo critical errors found during bootup sequence")
+
+@pytest.mark.run(order=18)
+def test_rfcdefaults_ini_created():
+
+    RFC_DEFAULTS_FILE = "/tmp/rfcdefaults.ini"
+    RFC_PARAM_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable"
+    RFC_PARAM_LINE ="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable=false"
+    EXPECTED_VALUE = "false"
+    RFC_STORE_LOG_MSG = "Calling getValue in New RFC Store I/O"
+    # Check if file exists
+    import os
+    assert os.path.exists(RFC_DEFAULTS_FILE), f"File {RFC_DEFAULTS_FILE} does not exist"
+
+    with open(RFC_DEFAULTS_FILE, 'r') as f:
+        file_content = f.read()
+    assert RFC_PARAM_LINE in file_content, f"Expected parameter '{RFC_PARAM_NAME}' not found in {RFC_DEFAULTS_FILE}"
+
+    #Get the parameter value from that file
+    param_value = rbus_get_data(RFC_PARAM_NAME)
+
+    #Check logs
+    assert RFC_STORE_LOG_MSG in grep_T2logs(RFC_STORE_LOG_MSG), \
+        f"RFC Store I/O log message not found in logs"
