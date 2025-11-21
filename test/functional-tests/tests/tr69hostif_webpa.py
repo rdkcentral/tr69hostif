@@ -24,7 +24,7 @@ from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=28)                                                                                              
+@pytest.mark.run(order=29)                                                                                              
 def test_WebPA_Set_XCONF_URL_Handler():                                                                                     
     print("Starting parodus mock process")                                                                                  
     payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.XconfUrl","dataType":0,"value":"https://mockurl/featurecontrol/getSettings"}]}'
@@ -39,7 +39,7 @@ def test_WebPA_Set_XCONF_URL_Handler():
     SUCCESS_STATUS_MSG = '"message":"Success"'
     assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
 
-@pytest.mark.run(order=29)
+@pytest.mark.run(order=30)
 def test_WebPA_Get_XCONF_URL_Handler():
     print("Starting parodus mock process")
     payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.XconfUrl"]}'
@@ -57,7 +57,7 @@ def test_WebPA_Get_XCONF_URL_Handler():
     XCONF_URL_STATUS_MSG = '"value":"https://mockurl/featurecontrol/getSettings"'
     assert XCONF_URL_STATUS_MSG in grep_paroduslogs(XCONF_URL_STATUS_MSG)
 
-@pytest.mark.run(order=30)
+@pytest.mark.run(order=31)
 def test_WebPA_Set_FWUPDATE_Handler():
     print("Starting parodus mock process")
     payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.AutoExcluded.Enable","dataType":3,"value":"false"}]}'
@@ -72,7 +72,7 @@ def test_WebPA_Set_FWUPDATE_Handler():
     SUCCESS_STATUS_MSG = '"message":"Success"'
     assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
 
-@pytest.mark.run(order=31)
+@pytest.mark.run(order=32)
 def test_WebPA_Get_FWUPDATE_Handler():
     print("Starting parodus mock process")
     payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.AutoExcluded.Enable"]}'
@@ -90,7 +90,7 @@ def test_WebPA_Get_FWUPDATE_Handler():
     FWUPDATE_STATUS_MSG = '"value":"false"'
     assert FWUPDATE_STATUS_MSG in grep_paroduslogs(FWUPDATE_STATUS_MSG)
 
-@pytest.mark.run(order=32)
+@pytest.mark.run(order=33)
 def test_WebPA_Set_LOGURL_Handler():
     print("Starting parodus mock process")
     payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.LogServerUrl","dataType":0,"value":"logs.mock.tv"}]}'
@@ -107,7 +107,7 @@ def test_WebPA_Set_LOGURL_Handler():
 
 
 
-@pytest.mark.run(order=33)
+@pytest.mark.run(order=34)
 def test_WebPA_Get_LOGURL_Handler():
     print("Starting parodus mock process")
     payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.LogServerUrl"]}'
@@ -126,7 +126,7 @@ def test_WebPA_Get_LOGURL_Handler():
     assert LOGURL_MSG in grep_paroduslogs(LOGURL_MSG)
 
 
-@pytest.mark.run(order=34)
+@pytest.mark.run(order=35)
 def test_WebPA_Get_SPEED_Handler():
     print("Starting parodus mock process")
     payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.LowSpeed"]}'
@@ -145,43 +145,26 @@ def test_WebPA_Get_SPEED_Handler():
     assert SPEED_STATUS_MSG in grep_paroduslogs(SPEED_STATUS_MSG)
 
 
-@pytest.mark.run(order=35)
-def test_WebPA_Get_FW_PROTOCOL_Handler():
-    print("Starting parodus mock process")
-    payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol"]}'
-    command = ["/usr/local/bin/parodus", payload]
-
-    result = subprocess.run(command, capture_output=True, text=True)
-    assert result.returncode == 0, f"Command failed with error: {result.stderr}"
-
-    STATUS_CODE_MSG = '"statusCode":200'
-    assert STATUS_CODE_MSG in grep_paroduslogs(STATUS_CODE_MSG)
-
-    SUCCESS_STATUS_MSG = '"message":"Success"'
-    assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
-
-    FWDL_PROTOCOL_MSG = '"value":"http"'
-    assert FWDL_PROTOCOL_MSG in grep_paroduslogs(FWDL_PROTOCOL_MSG)
-
-@pytest.mark.run(order=35)
-def test_WebPA_Get_FW_PROTOCOL_Handler():
-    print("Starting parodus mock process")
-    payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol"]}'
-    command = ["/usr/local/bin/parodus", payload]
-
-    result = subprocess.run(command, capture_output=True, text=True)
-    assert result.returncode == 0, f"Command failed with error: {result.stderr}"
-
-    STATUS_CODE_MSG = '"statusCode":200'
-    assert STATUS_CODE_MSG in grep_paroduslogs(STATUS_CODE_MSG)
-
-    SUCCESS_STATUS_MSG = '"message":"Success"'
-    assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
-
-    FWDL_PROTOCOL_MSG = '"value":"http"'
-    assert FWDL_PROTOCOL_MSG in grep_paroduslogs(FWDL_PROTOCOL_MSG)
-
 @pytest.mark.run(order=36)
+def test_WebPA_Get_FW_PROTOCOL_Handler():
+    print("Starting parodus mock process")
+    payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol"]}'
+    command = ["/usr/local/bin/parodus", payload]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+    assert result.returncode == 0, f"Command failed with error: {result.stderr}"
+
+    STATUS_CODE_MSG = '"statusCode":200'
+    assert STATUS_CODE_MSG in grep_paroduslogs(STATUS_CODE_MSG)
+
+    SUCCESS_STATUS_MSG = '"message":"Success"'
+    assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
+
+    FWDL_PROTOCOL_MSG = '"value":"http"'
+    assert FWDL_PROTOCOL_MSG in grep_paroduslogs(FWDL_PROTOCOL_MSG)
+
+
+@pytest.mark.run(order=37)
 def test_WebPA_Get_FWDL_STATUS_Handler():
     print("Starting parodus mock process")
     payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus"]}'
@@ -201,7 +184,7 @@ def test_WebPA_Get_FWDL_STATUS_Handler():
         f"FirmwareDownloadStatus parameter not found in response"
 
 
-@pytest.mark.run(order=37)                                                                                            
+@pytest.mark.run(order=38)                                                                                            
 def test_WebPA_Get_FWDL_URL_Handler():                                                                                      
       print("Starting parodus mock process")                                                                                  
       payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL"]}'                         
@@ -220,7 +203,7 @@ def test_WebPA_Get_FWDL_URL_Handler():
       assert FWDL_URL_MSG in grep_paroduslogs(FWDL_URL_MSG)
 
 
-@pytest.mark.run(order=38)
+@pytest.mark.run(order=39)
 def test_WebPA_Get_FWDL_Handler():
     print("Starting parodus mock process")
     payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload"]}'
@@ -239,7 +222,7 @@ def test_WebPA_Get_FWDL_Handler():
     assert FWDL_MSG in grep_paroduslogs(FWDL_MSG)
 
 
-@pytest.mark.run(order=39)
+@pytest.mark.run(order=40)
 def test_WebPA_Get_FWUPDATE_STATUS_Handler():
     print("Starting parodus mock process")
     payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareUpdateState"]}'
@@ -258,7 +241,7 @@ def test_WebPA_Get_FWUPDATE_STATUS_Handler():
     assert ('"value":"Download complete"' in logs or '"value":"Download Complete"' in logs), \
         f"Expected firmware update state not found. Got: {logs}"
 
-@pytest.mark.run(order=40)
+@pytest.mark.run(order=41)
 def test_WebPA_Get_WILDCARD_STATUS_Handler():
      print("Starting parodus mock process") 
      payload ='{"command":"GET","names":["Device.DeviceInfo."]}'
@@ -273,7 +256,7 @@ def test_WebPA_Get_WILDCARD_STATUS_Handler():
      SUCCESS_STATUS_MSG = '"message":"Success"'
      assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)    
      
-@pytest.mark.run(order=41) 
+@pytest.mark.run(order=42) 
 def test_WebPA_Set_FirmwareDownloadProtocol_For_Upgrade():   
     print("Starting parodus mock process - Set firmware download protocol")                                                 
     payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol","dataType":0,"value":"http"}]}' 
@@ -285,7 +268,7 @@ def test_WebPA_Set_FirmwareDownloadProtocol_For_Upgrade():
     SUCCESS_STATUS_MSG = '"message":"Success"'                                                                              
     assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG) 
     
-@pytest.mark.run(order=42)
+@pytest.mark.run(order=43)
 def test_WebPA_Set_FirmwareDownloadURL_For_Upgrade():
     print("Starting parodus mock process - Set firmware download URL")
     payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL","dataType":0,"value":"https://mockserver.tv/Images"}]}'
@@ -300,7 +283,7 @@ def test_WebPA_Set_FirmwareDownloadURL_For_Upgrade():
     SUCCESS_STATUS_MSG = '"message":"Success"'
     assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
 
-@pytest.mark.run(order=43) 
+@pytest.mark.run(order=44) 
 def test_WebPA_Set_FirmwareToDownload_For_Upgrade():
     print("Starting parodus mock process - Set firmware to download") 
     payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload","dataType":0,"value":"    TESTIMAGE_DEV.bin"}]}'
@@ -315,7 +298,7 @@ def test_WebPA_Set_FirmwareToDownload_For_Upgrade():
     SUCCESS_STATUS_MSG = '"message":"Success"'
     assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
 
-@pytest.mark.run(order=44)
+@pytest.mark.run(order=45)
 def test_WebPA_Set_FirmwareDownloadNow_Trigger():
     print("Starting parodus mock process - Image Upgrade via RDK portal")
     payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadNow","dataType":3,"value":"true"}]}'
