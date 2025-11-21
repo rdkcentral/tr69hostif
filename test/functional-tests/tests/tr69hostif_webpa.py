@@ -202,7 +202,7 @@ def test_WebPA_Get_FWDL_STATUS_Handler():
 
 
 @pytest.mark.run(order=37)                                                                                            
-  def test_WebPA_Get_FWDL_URL_Handler():                                                                                      
+def test_WebPA_Get_FWDL_URL_Handler():                                                                                      
       print("Starting parodus mock process")                                                                                  
       payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL"]}'                         
       command = ["/usr/local/bin/parodus", payload]     
