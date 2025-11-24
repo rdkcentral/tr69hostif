@@ -316,5 +316,5 @@ def test_WebPA_Set_FirmwareDownloadNow_Trigger():
     # Verify script was triggered in logs
     sleep(3)
     SCRIPT_TRIGGER_MSG = "Triggered Download"
-    assert SCRIPT_TRIGGER_MSG in grep_T2logs(SCRIPT_TRIGGER_MSG)
+    assert SCRIPT_TRIGGER_MSG in grep_tr69hostiflogs(SCRIPT_TRIGGER_MSG)
                                                                    

@@ -26,7 +26,7 @@ from helper_functions import *
 
 @pytest.mark.run(order=19)
 def test_DeviceInfo_Set_Get_Handler():
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.Version"
     VERSION_MSG = "2.2.1"
     rbus_set_data(DATA_ELEMENT_NAME, "string", VERSION_MSG)
@@ -37,7 +37,7 @@ def test_DeviceInfo_Set_Get_Handler():
 
 @pytest.mark.run(order=20)
 def test_DeviceTime_Set_Get_Handler():
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
 
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DHCPv6Client.Enable"
     SERVER_ELEMENT_NAME = "Device.Time.NTPServer1"
@@ -58,7 +58,7 @@ def test_DeviceTime_Set_Get_Handler():
 
 @pytest.mark.run(order=21)
 def test_RFC_Set_Get_Handler():
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HdmiCecSink.CECVersion"
     VERSION_MSG = "1.4"
     rbus_set_data(DATA_ELEMENT_NAME, "string", VERSION_MSG)
@@ -67,7 +67,7 @@ def test_RFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VERSION_MSG in rstdout
 
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable"
     STATE_MSG = "true"
     rbus_set_data(DATA_ELEMENT_NAME, "boolean", STATE_MSG)
@@ -76,7 +76,7 @@ def test_RFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert STATE_MSG in rstdout
 
-     #clear_T2logs()
+     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed"
     SPEED_LIMIT_MSG = "1280000"
     rbus_set_data(DATA_ELEMENT_NAME, "int", SPEED_LIMIT_MSG)
@@ -84,7 +84,7 @@ def test_RFC_Set_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert SPEED_LIMIT_MSG in rstdout
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.eMMCFirmware.Version"
     VERSION_MSG = "08140310"
     rbus_set_data(DATA_ELEMENT_NAME, "string", VERSION_MSG)
@@ -93,7 +93,7 @@ def test_RFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VERSION_MSG in rstdout
 
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IncrementalCDL.Enable"
     CDL_STATE_MSG = "true"
     rbus_set_data(DATA_ELEMENT_NAME, "boolean", CDL_STATE_MSG)
@@ -104,7 +104,7 @@ def test_RFC_Set_Get_Handler():
 
 @pytest.mark.run(order=22)
 def test_NonRFC_Set_Get_Handler():
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.Enable"
     IPRS_STATE_MSG = "false"
     rbus_set_data(DATA_ELEMENT_NAME, "boolean", IPRS_STATE_MSG)
@@ -113,7 +113,7 @@ def test_NonRFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert IPRS_STATE_MSG in rstdout
 
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ForwardSSH.Enable"
     SSH_STATE_MSG = "false"
     rbus_set_data(DATA_ELEMENT_NAME, "boolean", SSH_STATE_MSG)
@@ -122,7 +122,7 @@ def test_NonRFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert SSH_STATE_MSG in rstdout
 
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadDeferReboot"
     FWDLRBT_STATE_MSG = "false"
     rbus_set_data(DATA_ELEMENT_NAME, "boolean", FWDLRBT_STATE_MSG)
@@ -131,8 +131,8 @@ def test_NonRFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert FWDLRBT_STATE_MSG in rstdout
 
-    #clear_T2logs()
-       DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.FirmwareDownloadCompletedNotification"
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.FirmwareDownloadCompletedNotification"
     FWDLNOTIF_STATE_MSG = "false"
     rbus_set_data(DATA_ELEMENT_NAME, "boolean", FWDLNOTIF_STATE_MSG)
     # Force reload config fetch from xconf
@@ -142,7 +142,7 @@ def test_NonRFC_Set_Get_Handler():
 
 @pytest.mark.run(order=23)
 def test_Bootstrap_Set_Get_Handler():
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName"
     PRODUCT_NAME_MSG = "TestProduct123"
     rbus_set_data(DATA_ELEMENT_NAME, "string", PRODUCT_NAME_MSG)
@@ -151,7 +151,7 @@ def test_Bootstrap_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert PRODUCT_NAME_MSG in rstdout
 
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.NetflixESNprefix"
     ESN_PREFIX_MSG = "TESTESN"
     rbus_set_data(DATA_ELEMENT_NAME, "string", ESN_PREFIX_MSG)
@@ -160,7 +160,7 @@ def test_Bootstrap_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert ESN_PREFIX_MSG in rstdout
 
-     #clear_T2logs()
+     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
     PARTNER_NAME_MSG = "Test"
     rbus_set_data(DATA_ELEMENT_NAME, "string", PARTNER_NAME_MSG)
@@ -169,7 +169,7 @@ def test_Bootstrap_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert PARTNER_NAME_MSG in rstdout
 
-    #clear_T2logs()
+    #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.SsrUrl"
     SSR_URL_MSG = "https://ssr.test.tv"
     rbus_set_data(DATA_ELEMENT_NAME, "string", SSR_URL_MSG)
@@ -207,8 +207,8 @@ def test_Bootstrap_File_Creation():
     # Verify the parameter was written to bootstrap.ini
     with open("/opt/secure/RFC/bootstrap.ini", "r") as f:
         content = f.read()
-         assert TEST_VALUE in content, \
-            f"Bootstrap parameter not found in file. Content:\n{content}"
+        assert TEST_VALUE in content, \
+        f"Bootstrap parameter not found in file. Content:\n{content}"
 
 
                                                

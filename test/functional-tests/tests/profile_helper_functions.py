@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
     print("Execute L2 Test suit for tr69hostif ")
     print("Clearing T2 logs")
-    clear_T2logs()
+    clear_tr69hostiflogs()
     print("Messages after clearing")
-    response = grep_T2logs(GREP_STRING)
+    response = grep_tr69hostiflogs(GREP_STRING)
     print(response)
     

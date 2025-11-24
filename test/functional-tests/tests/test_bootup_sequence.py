@@ -59,27 +59,27 @@ def is_process_active():
 def test_check_tr69_json_handler():
     is_process_active()
     JSON_SUCCESS_MSG = "SERVER: Started server successfully." 
-    assert JSON_SUCCESS_MSG in grep_T2logs(JSON_SUCCESS_MSG)
+    assert JSON_SUCCESS_MSG in grep_tr69hostiflogs(JSON_SUCCESS_MSG)
 
 @pytest.mark.run(order=2)
 def test_check_http_server_status():
     start_time = time.time();
     is_process_active()
     HTTP_SUCCESS_MSG = "SERVER: Started server successfully." 
-    assert HTTP_SUCCESS_MSG in grep_T2logs(HTTP_SUCCESS_MSG)
+    assert HTTP_SUCCESS_MSG in grep_tr69hostiflogs(HTTP_SUCCESS_MSG)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 @pytest.mark.run(order=3)
 def test_check_paradous_status():
     is_process_active()
     PD_SUCCESS_MSG = "Initiating Connection with PARODUS success.."
-    assert PD_SUCCESS_MSG in grep_T2logs(PD_SUCCESS_MSG)
+    assert PD_SUCCESS_MSG in grep_tr69hostiflogs(PD_SUCCESS_MSG)
 
 @pytest.mark.run(order=4)
 def test_check_shutdown_thread_status():
     is_process_active()
     SHUTDOWN_ERROR_MSG = "pthread_create() failed" 
-    assert SHUTDOWN_ERROR_MSG not in grep_T2logs(SHUTDOWN_ERROR_MSG)
+    assert SHUTDOWN_ERROR_MSG not in grep_tr69hostiflogs(SHUTDOWN_ERROR_MSG)
 
 #Verify Initialization are success 
 @pytest.mark.run(order=5)
@@ -89,16 +89,16 @@ def test_init_rbus_dml_provider_status():
     RBUS2_ERROR_MSG = "consumer: rbus_open failed"
     RBUS3_SUCCESS_MSG = "[rbusdml]Successfully get the complete parameter list"
     RBUS4_SUCCESS_MSG = "rbus_regDataElements registered successfully"
-    assert RBUS1_ERROR_MSG not in grep_T2logs(RBUS1_ERROR_MSG)
-    assert RBUS2_ERROR_MSG not in grep_T2logs(RBUS2_ERROR_MSG)
-    assert RBUS3_SUCCESS_MSG in grep_T2logs(RBUS3_SUCCESS_MSG)
-    assert RBUS4_SUCCESS_MSG in grep_T2logs(RBUS4_SUCCESS_MSG)
+    assert RBUS1_ERROR_MSG not in grep_tr69hostiflogs(RBUS1_ERROR_MSG)
+    assert RBUS2_ERROR_MSG not in grep_tr69hostiflogs(RBUS2_ERROR_MSG)
+    assert RBUS3_SUCCESS_MSG in grep_tr69hostiflogs(RBUS3_SUCCESS_MSG)
+    assert RBUS4_SUCCESS_MSG in grep_tr69hostiflogs(RBUS4_SUCCESS_MSG)
 
 @pytest.mark.run(order=6)
 def test_hostIf_initalize_ConfigManger_status():
     is_process_active()
     CONFIG_ERROR_MSG = "Failed to hostIf_initalize_ConfigManger()" 
-    assert CONFIG_ERROR_MSG not in grep_T2logs(CONFIG_ERROR_MSG)
+    assert CONFIG_ERROR_MSG not in grep_tr69hostiflogs(CONFIG_ERROR_MSG)
 
 @pytest.mark.run(order=7)
 def test_iarm_initialization():
@@ -107,8 +107,8 @@ def test_iarm_initialization():
     IARM_INIT_MSG = "Success 'IARM_Bus_Init(tr69HostIfMgr)'"
     THREAD_MSG = "created getPwrContInterface thread.."
 
-    assert IARM_INIT_MSG in grep_T2logs("IARM_Bus_Init"), "IARM initialization failed"
-    assert THREAD_MSG in grep_T2logs("getPwrContInterface thread"), "getPwrContInterface thread creation failed"
+    assert IARM_INIT_MSG in grep_tr69hostiflogs("IARM_Bus_Init"), "IARM initialization failed"
+    assert THREAD_MSG in grep_tr69hostiflogs("getPwrContInterface thread"), "getPwrContInterface thread creation failed"
 
 
 @pytest.mark.run(order=8)
@@ -116,7 +116,7 @@ def test_power_controller_thread():
     """Verify getPwrContInterface thread is created"""
     is_process_active()
     THREAD_MSG = "created getPwrContInterface thread.."
-    assert THREAD_MSG in grep_T2logs(THREAD_MSG), "getPwrContInterface thread creation failed"
+    assert THREAD_MSG in grep_tr69hostiflogs(THREAD_MSG), "getPwrContInterface thread creation failed"
 
 @pytest.mark.run(order=9)
 def test_data_model_merge_process():
@@ -126,13 +126,13 @@ def test_data_model_merge_process():
     MERGE_SUCCESS_MSG = "Merged XML files successfully into /tmp/data-model.xml"
     MERGE_COMPLETE_MSG = "Successfully merged Data Model"
 
-    logs = grep_T2logs("merge")
+    logs = grep_tr69hostiflogs("merge")
 
     assert MERGE_START_MSG in logs, "Data model merge process did not start"
     assert MERGE_SUCCESS_MSG in logs, "XML merge failed"
     assert MERGE_COMPLETE_MSG in logs, "Data model merge did not complete successfully"
 
-    profile_log = grep_T2logs("Merging XML files for profile:")
+    profile_log = grep_tr69hostiflogs("Merging XML files for profile:")
     assert profile_log, "Profile information not found in merge logs"
     print(f"\nProfile merge info: {profile_log}")
 
@@ -140,7 +140,7 @@ def test_data_model_merge_process():
 def test_loadDataModel_status():
     is_process_active()
     DM_SUCCESS_MSG = "Successfully initialize Data Model"
-    assert DM_SUCCESS_MSG in grep_T2logs(DM_SUCCESS_MSG)
+    assert DM_SUCCESS_MSG in grep_tr69hostiflogs(DM_SUCCESS_MSG)
 
 
 @pytest.mark.run(order=11)
@@ -148,7 +148,7 @@ def test_ethernet_client_thread():
     """Verify Ethernet client thread starts"""
     is_process_active()
     ETH_THREAD_MSG = "checkForUpdates] Got lock.."
-    assert ETH_THREAD_MSG in grep_T2logs(ETH_THREAD_MSG), "Ethernet client thread did not start"
+    assert ETH_THREAD_MSG in grep_tr69hostiflogs(ETH_THREAD_MSG), "Ethernet client thread did not start"
 
 @pytest.mark.run(order=12)
 def test_bootstrap_configuration():
@@ -157,7 +157,7 @@ def test_bootstrap_configuration():
     BOOTSTRAP_MSG = "Bootstrap Properties File"
     BOOTSTRAP_PATH = "/opt/secure/RFC/bootstrap.ini"
 
-    logs = grep_T2logs(BOOTSTRAP_MSG)
+    logs = grep_tr69hostiflogs(BOOTSTRAP_MSG)
     assert logs, "Bootstrap configuration not loaded"
     assert BOOTSTRAP_PATH in logs, f"Bootstrap file path {BOOTSTRAP_PATH} not found"
 
@@ -168,7 +168,7 @@ def test_device_manager_initialization():
     DS_INIT_MSG = "Device manager Initialized success"
     DS_BREAK_LOOP_MSG = "break loop"
 
-    logs = grep_T2logs("Device manager")
+    logs = grep_tr69hostiflogs("Device manager")
     assert DS_INIT_MSG in logs, "Device manager initialization failed"
     assert DS_BREAK_LOOP_MSG in logs, "Device manager initialization loop did not break properly"
 
@@ -180,7 +180,7 @@ def test_webpa_ready_status():
     WEBPA_START_MSG = "Starting WEBPA Parodus Connections"
     PARODUS_START_MSG = "Starting WEBPA Parodus Connections"
 
-    logs = grep_T2logs("parodus")
+    logs = grep_tr69hostiflogs("parodus")
 
     assert PARODUS_START_MSG in logs, "Parodus did not start correctly"
     assert WEBPA_START_MSG in logs, "WebPA did not start correctly"
@@ -195,7 +195,7 @@ def test_power_controller_initialization():
     PC_INTERFACE_MSG = "Got the powercontroller interface"
 
 
-    logs = grep_T2logs("PowerController")
+    logs = grep_tr69hostiflogs("PowerController")
 
     assert PC_START_MSG in logs, "PowerController initialization did not start"
     assert PC_COMPLETE_MSG in logs, "PowerController initialization did not complete"
@@ -208,7 +208,7 @@ def test_power_mode_initialization():
     PC_REGISTERING_MSG = "Registering power mode change callback"
     PC_CALLBACK_MSG = "Registered power mode change callback"
 
-    logs = grep_T2logs("power")
+    logs = grep_tr69hostiflogs("power")
 
     assert PC_REGISTERING_MSG in logs, "Power mode change callback registration not started"
     assert PC_CALLBACK_MSG in logs, "Power mode change callback not registered"
@@ -229,7 +229,7 @@ def test_no_critical_errors():
         "CRITICAL"
     ]
 
-    logs = grep_T2logs("tr69hostif")
+    logs = grep_tr69hostiflogs("tr69hostif")
 
     for error_msg in CRITICAL_ERRORS:
         assert error_msg not in logs, f"Critical error found: {error_msg}"
@@ -256,5 +256,5 @@ def test_rfcdefaults_ini_created():
     param_value = rbus_get_data(RFC_PARAM_NAME)
 
     #Check logs
-    assert RFC_STORE_LOG_MSG in grep_T2logs(RFC_STORE_LOG_MSG), \
+    assert RFC_STORE_LOG_MSG in grep_tr69hostiflogs(RFC_STORE_LOG_MSG), \
         f"RFC Store I/O log message not found in logs"

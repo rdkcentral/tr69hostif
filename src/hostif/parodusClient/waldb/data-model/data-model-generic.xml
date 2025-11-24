@@ -4060,7 +4060,8 @@
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.memcapture." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
-           <boolean/>
+	  <boolean/>
+          <default type="factory" value="false"/>
         </syntax>
       </parameter>
       <parameter base="Duration" access="readWrite" notification="0" maxNotification="2" >
