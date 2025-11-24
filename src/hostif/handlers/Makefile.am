@@ -159,10 +159,10 @@ include_HEADERS = include/hostIf_msgHandler.h \
                   include/hostIf_NotificationHandler.h
 
 libMsgHandlers_la_SOURCES += tr69hostif_otlp_instrumentation.cpp
-AM_CXXFLAGS += -I/usr/local/include
+AM_CXXFLAGS += -I/usr/include
 
 # OpenTelemetry libraries must be in LIBADD, not LDFLAGS
-libMsgHandlers_la_LIBADD = -L/usr/local/lib \
+libMsgHandlers_la_LIBADD = -L/usr/lib \
                            -lopentelemetry_exporter_otlp_http \
                            -lopentelemetry_exporter_otlp_http_client \
                            -lopentelemetry_exporter_otlp_http_metric \
