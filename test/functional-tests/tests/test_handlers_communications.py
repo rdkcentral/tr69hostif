@@ -24,7 +24,7 @@ from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=8)
+@pytest.mark.run(order=9)
 def test_DeviceInfo_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.Version"
@@ -35,7 +35,7 @@ def test_DeviceInfo_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VERSION_MSG in rstdout
 
-@pytest.mark.run(order=9)
+@pytest.mark.run(order=10)
 def test_DeviceTime_Set_Get_Handler():
     #clear_T2logs()
     
@@ -55,7 +55,7 @@ def test_DeviceTime_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert SERVER_IP in rstdout
 
-@pytest.mark.run(order=10)
+@pytest.mark.run(order=11)
 def test_RFC_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HdmiCecSink.CECVersion"
@@ -102,7 +102,7 @@ def test_RFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert CDL_STATE_MSG in rstdout
 
-@pytest.mark.run(order=11)
+@pytest.mark.run(order=12)
 def test_NonRFC_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.Enable"
@@ -140,7 +140,7 @@ def test_NonRFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert FWDLNOTIF_STATE_MSG in rstdout
 
-@pytest.mark.run(order=12)
+@pytest.mark.run(order=13)
 def test_Bootstrap_Set_Get_Handler():
     #clear_T2logs()
     DATA_ELEMENT_NAME ="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName"
