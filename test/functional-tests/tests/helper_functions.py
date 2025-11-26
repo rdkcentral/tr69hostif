@@ -83,7 +83,7 @@ def get_process_uptime(pid):
 def get_pid(name: str):
     return subprocess.run(f"pidof {name}", shell=True, capture_output=True).stdout.decode('utf-8').strip()
 
-def clear_T2logs():
+def clear_tr69hostiflogs():
     subprocess.run(f"echo '' > {LOG_FILE}", shell=True)
 
 def grep_log_file(search: str, log_file: str):
@@ -97,7 +97,7 @@ def remove_T2bootup_flag():
         except:
             pass
 
-def grep_T2logs(search: str):
+def grep_tr69hostiflogs(search: str):
     search_result = ""
     search_pattern = re.compile(re.escape(search), re.IGNORECASE)
     try:

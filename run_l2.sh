@@ -36,13 +36,13 @@ sed -i '/ModelName/ {n; n; a\
 
 dos2unix /etc/data-model-stb.xml
 
-  echo "RDK_PROFILE=STB" > /etc/device.properties
+echo "RDK_PROFILE=STB" > /etc/device.properties
 
 echo "VERSION=99.99.15.07" >> /version.txt
 echo "Proto|http" >> /opt/fwdnldstatus.txt
 echo "Status|Download In Progress" >> /opt/fwdnldstatus.txt
-echo "DnldFile|ELTE11MWR_E037.000.00.8.1s22_DEV.bin" >> /opt/fwdnldstatus.txt
-echo "DnldURL|https://dac15cdlserver.ae.ccp.xcal.tv/Images" >> /opt/fwdnldstatus.txt
+echo "DnldFile|TESTIMAGE_DEV.bin" >> /opt/fwdnldstatus.txt
+echo "DnldURL|https://mockserver.tv/Images" >> /opt/fwdnldstatus.txt
 echo "FwUpdateState|Download complete" >> /opt/fwdnldstatus.txt
 
 cp ./src/integrationtest/conf/mgrlist.conf /etc/
