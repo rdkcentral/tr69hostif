@@ -187,9 +187,8 @@ AM_CXXFLAGS += $(PARODUS_ENABLE_FLAG)
 endif
 
 # OpenTelemetry libraries for OTLP tracing and metrics
-AM_CXXFLAGS += -I/usr/include
-tr69hostif_LDADD += -L/usr/lib \
-                    -lopentelemetry_exporter_otlp_http \
+#AM_CXXFLAGS += -I/usr/include
+tr69hostif_LDADD += -lopentelemetry_exporter_otlp_http \
                     -lopentelemetry_exporter_otlp_http_client \
                     -lopentelemetry_exporter_otlp_http_metric \
                     -lopentelemetry_otlp_recordable \

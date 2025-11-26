@@ -74,8 +74,7 @@ parodus_CPPFLAGS = -I../ -I../../../../unittest/stubs/ -I/usr/local/include/wrp-
 
 parodus_LDADD = -llibparodus -lrdkloggers -lwdmp-c -lwrp-c -lmsgpackc -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -lcjson -lpthread -lglib-2.0 -lnanomsg -lrbus -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lsecure_wrapper -lcurl -L../../waldb/.libs/ -l:libwaldb.a -L../../../profiles/Time/.libs/ -l:libhostIfTime.a -ltinyxml2 -lIARMBus
 
-parodus_LDADD += -L/usr/lib \
-		           -lopentelemetry_metrics \
+parodus_LDADD +=  -lopentelemetry_metrics \
                            -lopentelemetry_trace \
                            -lopentelemetry_resources \
                            -lopentelemetry_common \
