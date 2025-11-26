@@ -142,34 +142,46 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 
     hostIf_WiFi_SSID *pDev = hostIf_WiFi_SSID::getInstance(dev_id);
     if (pDev)
-    {
+    {   
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: inside the if condition get_Device_WiFi_SSID_Fields\n", __FUNCTION__);
+
         retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getSSIDProps, (void *)&param, sizeof(param));
         if (IARM_RESULT_SUCCESS != retVal)
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] IARM BUS CALL failed with  : %d.\n", __FILE__, __FUNCTION__, retVal);
             return NOK;
         }
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: before strcpy param.data.ssid.params.name\n", __FUNCTION__);
         rc=strcpy_s(name,sizeof(name),param.data.ssid.params.name);
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: after strcpy param.data.ssid.params.name\n", __FUNCTION__);
 	if(rc!=EOK)
     	{
 	    ERR_CHK(rc);
     	}
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: before strcpy param.data.ssid.params.bssid\n", __FUNCTION__);
         rc=strcpy_s(BSSID,sizeof(BSSID),param.data.ssid.params.bssid);
+	 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: after strcpy param.data.ssid.params.bssid\n", __FUNCTION__);
 	if(rc!=EOK)
         {
             ERR_CHK(rc);
         }
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: before strcpy param.data.ssid.params.macaddr\n", __FUNCTION__);
         rc=strcpy_s(MACAddress,sizeof(MACAddress),param.data.ssid.params.macaddr);
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: after strcpy param.data.ssid.params.macaddr\n", __FUNCTION__);
 	if(rc!=EOK)
     	{
 	    ERR_CHK(rc);
     	}
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: before strcpy param.data.ssid.params.ssid\n", __FUNCTION__);
         rc=strcpy_s(SSID,sizeof(SSID),param.data.ssid.params.ssid);
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: after strcpy param.data.ssid.params.ssid\n", __FUNCTION__);
 	if(rc!=EOK)
         {
             ERR_CHK(rc);
         }
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: before strcpy param.data.ssid.params.status\n", __FUNCTION__);
         rc=strcpy_s(status,sizeof(status),param.data.ssid.params.status);
+	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: after strcpy param.data.ssid.params.status\n", __FUNCTION__);
 	if(rc!=EOK)
         {
             ERR_CHK(rc);
@@ -196,16 +208,20 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
     {
         std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetConnectedSSID\"}";
         string response = getJsonRPCData(std::move(postData));
+	 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: inside the if condition get_Device_WiFi_SSID_Fields\n", __FUNCTION__);
         if(response.c_str())
         {
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
             cJSON* root = cJSON_Parse(response.c_str());
+	    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: cJSON_Parse NetworkManager.GetConnectedSSID\n", __FUNCTION__);
             if(root)
             {
                 cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
+		 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: cJSON_GetObjectItem NetworkManager.GetConnectedSSID\n", __FUNCTION__);
 
                 if (jsonObj)
                 {
+	            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: cJSON_jsonObj NetworkManager.GetConnectedSSID\n", __FUNCTION__);		
                     cJSON *bssid = cJSON_GetObjectItem(jsonObj, "bssid");
 	            cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
                     //ASSIGN TO OP HERE
@@ -215,6 +231,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
         	    {
             	        ERR_CHK(rc);
         	    }
+		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: cJSON NetworkManager.GetConnectedSSID ssid->valuestring\n", __FUNCTION__);
 		    rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
                     if(rc!=EOK)
                     {
@@ -248,19 +265,21 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
         {
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
             cJSON* root = cJSON_Parse(response.c_str());
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: cJSON_Parse\n", __FUNCTION__);
             if(root)
             {
                 cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
+                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s:.NetworkManager.GetAvailableInterfaces cJSON_GetObjectItem\n", __FUNCTION__);
                 if (jsonObj)
                 {
                     cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
 	            cJSON *interface = NULL; 
 		    cJSON *interfaceType = NULL;
-
+                     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s:.NetworkManager.GetAvailableInterfaces cJSON_GetArraySize\n", __FUNCTION__);
 		     for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
                         interface = cJSON_GetArrayItem(interfaces, i);
 			interfaceType = cJSON_GetObjectItem(interface, "type");
+			RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: .NetworkManager.GetAvailableInterfaces inside the  cJSON_GetArraySize\n", __FUNCTION__);
 			if (strcmp(interfaceType->valuestring, "WIFI") == 0) {
 			    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
 			    break;
@@ -308,12 +327,13 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
             if(root)
             {
                 cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: NetworkManager.GetWifiState cJSON_GetObjectItem\n", __FUNCTION__); 
                 if (jsonObj)
                 {
 	            cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
 		    //ASSIGN TO OP HERE
 		    int res = state->valueint;
+		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: NetworkManager.GetWifiState cJSON_GetObjectItem\n", __FUNCTION__);
 		    switch (res) {
 			case 0:
 			    rc=strcpy_s(status,sizeof(status),"UNINSTALLED");
