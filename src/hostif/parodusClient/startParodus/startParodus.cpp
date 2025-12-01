@@ -38,7 +38,7 @@
 
 #define WEBPA_CFG_FILE "/etc/webpa_cfg.json"
 #define WEBPA_CFG_OVERIDE_FILE "/opt/webpa_cfg.json"
-#define CRUD_CONFIG_FILE "/opt/parodus_cfg.json"
+#define CRUD_CONFIG_FILE "/opt/secure/parodus_cfg.json"
 #define SSL_CERT_FILE "/etc/ssl/certs/ca-certificates.crt"
 #define JWT_KEY "/etc/ssl/certs/webpa-rs256.pem"
 #define RECORD_JWT_PAYLOAD_FILE "/tmp/xmidt-jwt-payload.json"
