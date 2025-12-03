@@ -35,7 +35,8 @@
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CrashportalEndpoint.URL" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadEndpoint.Enable" : "true",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadEndpoint.URL" : "",
-        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DefaultSupportedLocales" : ""
+        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DefaultSupportedLocales" : "",
+        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType" :"PROD"
    },
    "community" : {
         "Device.Time.NTPServer1" : "time.google.com",
