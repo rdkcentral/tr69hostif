@@ -206,19 +206,48 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 
                 if (jsonObj)
                 {
+                    // Check if the result indicates success
+                    cJSON *success = cJSON_GetObjectItem(jsonObj, "success");
+                    if (success && cJSON_IsFalse(success))
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] GetConnectedSSID returned success=false\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+
                     cJSON *bssid = cJSON_GetObjectItem(jsonObj, "bssid");
 	            cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
-                    //ASSIGN TO OP HERE
-		    rc=strcpy_s(BSSID,sizeof(BSSID),bssid->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s \n", __FUNCTION__, BSSID);
-		    if(rc!=EOK)
-        	    {
-            	        ERR_CHK(rc);
-        	    }
-		    rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
-                    if(rc!=EOK)
+                    
+                    // Check for NULL pointers before accessing valuestring
+                    if (bssid && bssid->valuestring)
                     {
-                        ERR_CHK(rc);
+                        rc=strcpy_s(BSSID,sizeof(BSSID),bssid->valuestring);
+		        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s \n", __FUNCTION__, BSSID);
+		        if(rc!=EOK)
+        	        {
+            	            ERR_CHK(rc);
+        	        }
+                    }
+                    else
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] bssid field is NULL or invalid\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+
+                    if (ssid && ssid->valuestring)
+                    {
+                        rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
+                        if(rc!=EOK)
+                        {
+                            ERR_CHK(rc);
+                        }
+                    }
+                    else
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] ssid field is NULL or invalid\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
                     }
 		 }
                  else
@@ -246,7 +275,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
             
         if(response.c_str())
         {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "`   %s: curl response string = %s\n", __FUNCTION__, response.c_str());
             cJSON* root = cJSON_Parse(response.c_str());
             if(root)
             {
@@ -258,25 +287,62 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 	            cJSON *interface = NULL; 
 		    cJSON *interfaceType = NULL;
 
+                    if (!interfaces || !cJSON_IsArray(interfaces))
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] interfaces field is NULL or not an array\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+
 		     for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
                         interface = cJSON_GetArrayItem(interfaces, i);
+                        if (!interface)
+                        {
+                            continue;
+                        }
 			interfaceType = cJSON_GetObjectItem(interface, "type");
-			if (strcmp(interfaceType->valuestring, "WIFI") == 0) {
+			if (interfaceType && interfaceType->valuestring && strcmp(interfaceType->valuestring, "WIFI") == 0) {
 			    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
 			    break;
 			}
 		    }
+
+                    if (!interface)
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WiFi interface not found\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+
                     //ASSIGN TO OP HERE
 		    cJSON *result = cJSON_GetObjectItem(interface, "mac");
-		    rc=strcpy_s(MACAddress,sizeof(MACAddress),result->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s \n", __FUNCTION__, MACAddress);
-        	    if(rc!=EOK)
-        	    {
-            	        ERR_CHK(rc);
-        	    }
+                    if (result && result->valuestring)
+                    {
+		        rc=strcpy_s(MACAddress,sizeof(MACAddress),result->valuestring);
+		        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s \n", __FUNCTION__, MACAddress);
+        	        if(rc!=EOK)
+        	        {
+            	            ERR_CHK(rc);
+        	        }
+                    }
+                    else
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] mac field is NULL or invalid\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+
 		    cJSON *isEnabled = cJSON_GetObjectItem(interface, "enabled");
-		    enable=isEnabled->type;
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
+                    if (isEnabled)
+                    {
+		        enable=isEnabled->type;
+		        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
+                    }
+                    else
+                    {
+                        RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] enabled field is NULL, using default\n", __FUNCTION__);
+                        enable = 0;
+                    }
                 }
                 else
                 {
@@ -313,6 +379,13 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                 {
 	            cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
 		    //ASSIGN TO OP HERE
+                    if (!state || !cJSON_IsNumber(state))
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] state field is NULL or not a number\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+
 		    int res = state->valueint;
 		    switch (res) {
 			case 0:
