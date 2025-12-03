@@ -119,6 +119,7 @@
 #define MAX_PORT_RANGE 3020
 
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
+#define CONFIG_RELOAD "killall -12 telemetry2_0"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
@@ -3964,6 +3965,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         ret = set_xRDKCentralComRFC_hwHealthTest_ResultFilter_ResultsFiltered(stMsgData);
     }
 #endif /* USE_HWSELFTEST_PROFILE */
+    else if (!strcasecmp(stMsgData->paramName, TELEMETRY_CONFIG_URL))
+    {
+        ret = set_xRDKCentralComRFCTelemetryConfigURL(stMsgData);
+    }
     return ret;
 }
 
@@ -4009,6 +4014,89 @@ int hostIf_DeviceInfo::set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *stMsgDat
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
     }
+    return ret;
+}
+
+int hostIf_DeviceInfo::set_xRDKCentralComRFCTelemetryConfigURL(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = OK;
+    faultCode_t fcode = fcNoFault;
+    if (stMsgData->paramtype != hostIf_StringType) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed due to wrong data type for %s, please use string to set.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    std::string configURL = getStringValue(stMsgData);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] New ConfigURL to be set: %s\n", __FUNCTION__, __LINE__, configURL.c_str());
+    // Read current value from RFC store to check if it's different
+    HOSTIF_MsgData_t getCurrentMsgData;
+    memset(&getCurrentMsgData, 0, sizeof(getCurrentMsgData));
+    strncpy(getCurrentMsgData.paramName, stMsgData->paramName, sizeof(getCurrentMsgData.paramName) - 1);
+    getCurrentMsgData.paramName[sizeof(getCurrentMsgData.paramName) - 1] = '\0';
+
+    std::string currentValue;
+#ifndef NEW_HTTP_SERVER_DISABLE
+    if (!legacyRFCEnabled()) {
+        if (m_rfcStore->getValue(&getCurrentMsgData) == fcNoFault) {
+            currentValue = std::string(getCurrentMsgData.paramValue);
+        }
+    } else {
+        if (m_rfcStorage.getValue(&getCurrentMsgData) == OK) {
+            currentValue = std::string(getCurrentMsgData.paramValue);
+        }
+    }
+#else
+    if (m_rfcStorage.getValue(&getCurrentMsgData) == OK) {
+        currentValue = std::string(getCurrentMsgData.paramValue);
+    }                                                                                                                   
+#endif 
+
+    if (configURL == currentValue) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] ConfigURL %s is same as current value %s, no action needed\n",
+                __FUNCTION__, __LINE__, configURL.c_str(), currentValue.c_str());
+        ret = OK;
+        return ret;
+    }else {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] New ConfigURL provided: %s\n", __FUNCTION__, __LINE__, configURL.c_str());
+    }
+
+
+    // Store the new value using RFC store
+#ifndef NEW_HTTP_SERVER_DISABLE
+    if (!legacyRFCEnabled()) {
+        fcode = m_rfcStore->setValue(stMsgData);
+    } else {
+        ret = m_rfcStorage.setValue(stMsgData);
+    }
+#else
+    ret = m_rfcStorage.setValue(stMsgData);
+#endif
+                                                                                                                        
+    if (ret != OK || fcode != fcNoFault) {                                                                              
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to store ConfigURL in RFC store\n",                      
+                __FUNCTION__, __LINE__);                                                                                
+        stMsgData->faultCode = fcInternalError;                                                                         
+        return ret;                                                                                                     
+    }
+
+    // Execute the system command only if configURL is not empty and starts with https://
+    if (!configURL.empty() && configURL.find("https://") == 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Sending kill 12 signal for ConfigURL: %s\n", __FUNCTION__, __LINE__, configURL.c_str());
+        int systemRet = v_secure_system(CONFIG_RELOAD);
+        if (systemRet == -1) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] kill signal 12 to telemetry2_0 failed\n", __FUNCTION__, __LINE__);
+            // Note: We still return OK since the parameter was set successfully
+            // The system call failure is logged but doesn't affect the parameter setting
+        } else {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully sent signal 12 to telemetry2_0, return code: %d\n", __FUNCTION__, __LINE__, systemRet);
+        }
+    }
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Successfully set Telemetry ConfigURL: %s\n",  __FUNCTION__, __LINE__, configURL.c_str());
+
+    ret = OK;
     return ret;
 }
 
