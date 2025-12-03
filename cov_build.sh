@@ -6,7 +6,8 @@ apt-get update && apt-get install -y libsoup-3.0
 
 #Build rfc
 cd $ROOT
-git clone https://github.com/rdkcentral/rfc.git
+rm -rf rfc
+git clone https://github.com/rdkcentral/rfc.git -b topic/otel_rfc
 cd rfc
 autoreconf -i
 ./configure --enable-rfctool=yes --enable-tr181set=yes --enable-tr69hostif=yes

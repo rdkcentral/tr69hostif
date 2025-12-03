@@ -62,7 +62,7 @@ private:
         }
         
         // Default to localhost for non-container environments
-        return "http://localhost:4318";
+        return "http://otel-collector:4318";
     }
     
 public:
@@ -189,7 +189,7 @@ public:
         // Make getCollectorEndpoint const or call it differently
         const char* env_endpoint = std::getenv("OTEL_EXPORTER_OTLP_ENDPOINT");
         if (env_endpoint != nullptr) {
-            return std::string(env_endpoint);
+            return "http://otel-collector:4318";
         }
         
         const char* container_env = std::getenv("RUNNING_IN_CONTAINER");
@@ -197,7 +197,7 @@ public:
             return "http://otel-collector:4318";
         }
         
-        return "http://localhost:4318";
+        return "http://otel-collector:4318";
     }
 };
 
