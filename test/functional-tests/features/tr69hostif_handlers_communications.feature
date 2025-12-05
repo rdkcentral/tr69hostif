@@ -30,3 +30,11 @@ Feature: tr69hostif runs as daemon to collect data
     Then the tr69hostif validation is done for RFC get/set handlers
     Then the tr69hostif validation is done for Non RFC get/set handlers
     Then the tr69hostif validation is done for Bootstrap get/set handlers
+
+  Scenario: bootstrap files exist
+    Given When the tr69hostif binary is invoked
+    Then the tr69hostif should be running as a daemon
+    And when the tr69hostif is initialized successfully
+    And the /opt/secure/RFC/bootstrap.ini file should exist
+    And the /opt/secure/RFC/bootstrap.journal file should exist
+  
