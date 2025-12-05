@@ -341,13 +341,13 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
     #ifndef RDKV_TR69
     if (IsPwrCtlInt) 
     {
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistering power mode change callback..\n", __FUNCTION__, __FILE__);
         PowerController_UnRegisterPowerModeChangedCallback(_hostIf_EventHandler);
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistered power mode change callback..\n", __FUNCTION__, __FILE__);
 
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
         PowerController_Term();
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
         hostIf_DeviceInfo::getInstance(0)->setPowerConInterface(false);
         IsPwrCtlInt = false;
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d]:  setPowerConInterface flag to false. and  IsPwrCtlInt=%s\n", __FUNCTION__, __LINE__, (IsPwrCtlInt?"true":"false"));
