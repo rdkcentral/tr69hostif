@@ -214,6 +214,14 @@ rbusError_t TR_Dml_GetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rb
                     defaultValue = strdup(dmParam.defaultValue);
                 }
 
+                // Extract trace context from RBUS options if available
+                param.hasTraceContext = false;
+                if (opts && opts->sessionId > 0) {
+                    // For now, RBUS doesn't natively support trace context
+                    // This will be enhanced when RFC components add trace context to RBUS messages
+                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][rbusdml] RBUS sessionId: %u\n", __FUNCTION__, opts->sessionId);
+                }
+
                 freeDataModelParam(dmParam);
 
                 status = hostIf_GetMsgHandler(&param);
@@ -356,6 +364,14 @@ rbusError_t TR_Dml_SetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rb
                     }
                     param.bsUpdate = getBSUpdateEnum(dmParam.bsUpdate);
                     param.requestor = HOSTIF_SRC_WEBPA;
+                    
+                    // Extract trace context from RBUS options if available
+                    param.hasTraceContext = false;
+                    if (opts && opts->sessionId > 0) {
+                        // For now, RBUS doesn't natively support trace context
+                        // This will be enhanced when RFC components add trace context to RBUS messages
+                        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][rbusdml] RBUS sessionId: %u\n", __FUNCTION__, opts->sessionId);
+                    }
 
                     if (convertRbus2hostIfDataType(rbusPropType, &inputParamType))
                     {

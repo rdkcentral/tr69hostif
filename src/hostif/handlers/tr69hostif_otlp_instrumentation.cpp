@@ -134,16 +134,85 @@ public:
 
     }
     
-     /* Trace parameter operations (get/set) with trace/span ID logging
+    /**
+     * Create a span with parent context from trace/span IDs
+     */
+    nostd::shared_ptr<trace::Span> createSpanWithParent(
+        const std::string& operation_name,
+        const char* parent_trace_id,
+        const char* parent_span_id) {
+        
+        if (parent_trace_id && parent_span_id && 
+            strlen(parent_trace_id) == 32 && strlen(parent_span_id) == 16) {
+            
+            // Parse trace ID from hex string
+            uint8_t trace_id_bytes[16];
+            for (size_t i = 0; i < 16; ++i) {
+                sscanf(parent_trace_id + (i * 2), "%2hhx", &trace_id_bytes[i]);
+            }
+            nostd::span<const uint8_t, 16> trace_id_span(trace_id_bytes, 16);
+            trace::TraceId trace_id(trace_id_span);
+            
+            // Parse span ID from hex string
+            uint8_t span_id_bytes[8];
+            for (size_t i = 0; i < 8; ++i) {
+                sscanf(parent_span_id + (i * 2), "%2hhx", &span_id_bytes[i]);
+            }
+            nostd::span<const uint8_t, 8> span_id_span(span_id_bytes, 8);
+            trace::SpanId span_id(span_id_span);
+            
+            // Create parent span context
+            trace::SpanContext parent_ctx(
+                trace_id,
+                span_id,
+                trace::TraceFlags{trace::TraceFlags::kIsSampled},
+                true  // is_remote = true for distributed tracing
+            );
+            
+            // Create start span options with parent context
+            trace::StartSpanOptions options;
+            options.parent = parent_ctx;
+            
+            std::cout << "📡 Creating child span with parent - TraceID: " << parent_trace_id 
+                      << ", SpanID: " << parent_span_id << std::endl;
+            
+            return tracer_->StartSpan(operation_name, options);
+        }
+        
+        // No parent context, create root span
+        return tracer_->StartSpan(operation_name);
+    }
+
+     /* Trace parameter operations (get/set) with trace/span ID logging and context propagation
      */
     void traceParameterOperation(const std::string& param_name, 
                                const std::string& operation_type,
+                               const char* parent_trace_id,
+                               const char* parent_span_id,
+                               char* out_trace_id,
+                               char* out_span_id,
                                const std::function<void()>& operation) {
-        auto span = tracer_->StartSpan("tr69hostif.parameter." + operation_type);
+        
+        // Create span with parent context if available
+        auto span = createSpanWithParent(
+            "tr69hostif.parameter." + operation_type,
+            parent_trace_id,
+            parent_span_id
+        );
         
         // Get and log trace/span IDs
         auto [trace_id, span_id] = getTraceSpanIds(span);
-        std::cout << "Parameter " << operation_type << " Trace - TraceID: " << trace_id << ", SpanID: " << span_id << std::endl;
+        std::cout << "📍 Parameter " << operation_type << " Trace - TraceID: " << trace_id << ", SpanID: " << span_id << std::endl;
+        
+        // Copy trace context to output parameters for propagation
+        if (out_trace_id) {
+            strncpy(out_trace_id, trace_id.c_str(), 32);
+            out_trace_id[32] = '\0';
+        }
+        if (out_span_id) {
+            strncpy(out_span_id, span_id.c_str(), 16);
+            out_span_id[16] = '\0';
+        }
         
         // Set parameter-specific attributes
         span->SetAttribute("parameter.name", param_name);
@@ -153,21 +222,27 @@ public:
         span->SetAttribute("span.id", span_id);
         span->SetAttribute("rdk.trace.source", "tr69hostif-otlp");
         
+        if (parent_trace_id && parent_span_id) {
+            span->SetAttribute("parent.trace.id", parent_trace_id);
+            span->SetAttribute("parent.span.id", parent_span_id);
+            span->SetAttribute("trace.distributed", true);
+        }
+        
         try {
             // Execute the operation
             operation();
             span->SetStatus(trace::StatusCode::kOk);
-            std::cout << "Parameter " << operation_type << " completed for: " << param_name << std::endl;
+            std::cout << "✅ Parameter " << operation_type << " completed for: " << param_name << std::endl;
             
         } catch (const std::exception& e) {
             span->SetAttribute("error.message", e.what());
             span->SetStatus(trace::StatusCode::kError, e.what());
-            std::cout << " Parameter " << operation_type << " failed for: " << param_name << " - Error: " << e.what() << std::endl;
+            std::cout << "❌ Parameter " << operation_type << " failed for: " << param_name << " - Error: " << e.what() << std::endl;
             throw;
         }
         
         span->End();
-        std::cout << " Span sent to collector at: " << getCollectorEndpoint() << std::endl;
+        std::cout << "📤 Span sent to collector at: " << getCollectorEndpoint() << std::endl;
     }
     
     /**
@@ -327,12 +402,41 @@ void tr69hostif_metrics_record_parameter_operation(
 static TR69HostIFOTLPTracer g_otlp_tracer;
 
 
+void tr69hostif_otlp_trace_parameter_get_with_context(
+    const char* param_name,
+    const char* parent_trace_id,
+    const char* parent_span_id,
+    char* out_trace_id,
+    char* out_span_id) {
+    g_otlp_tracer.traceParameterOperation(
+        param_name, "get", 
+        parent_trace_id, parent_span_id,
+        out_trace_id, out_span_id,
+        [](){}
+    );
+}
+
+void tr69hostif_otlp_trace_parameter_set_with_context(
+    const char* param_name,
+    const char* parent_trace_id,
+    const char* parent_span_id,
+    char* out_trace_id,
+    char* out_span_id) {
+    g_otlp_tracer.traceParameterOperation(
+        param_name, "set",
+        parent_trace_id, parent_span_id,
+        out_trace_id, out_span_id,
+        [](){}
+    );
+}
+
+// Legacy functions for backward compatibility
 void tr69hostif_otlp_trace_parameter_get(const char* param_name) {
-    g_otlp_tracer.traceParameterOperation(param_name, "get", [](){});
+    g_otlp_tracer.traceParameterOperation(param_name, "get", nullptr, nullptr, nullptr, nullptr, [](){});
 }
 
 void tr69hostif_otlp_trace_parameter_set(const char* param_name) {
-    g_otlp_tracer.traceParameterOperation(param_name, "set", [](){});
+    g_otlp_tracer.traceParameterOperation(param_name, "set", nullptr, nullptr, nullptr, nullptr, [](){});
 }
 
 void tr69hostif_otlp_force_flush() {

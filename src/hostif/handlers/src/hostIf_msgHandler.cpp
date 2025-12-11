@@ -74,6 +74,18 @@
 
 void tr69hostif_otlp_trace_parameter_get(const char* param_name);
 void tr69hostif_otlp_trace_parameter_set(const char* param_name);
+void tr69hostif_otlp_trace_parameter_get_with_context(
+    const char* param_name,
+    const char* parent_trace_id,
+    const char* parent_span_id,
+    char* out_trace_id,
+    char* out_span_id);
+void tr69hostif_otlp_trace_parameter_set_with_context(
+    const char* param_name,
+    const char* parent_trace_id,
+    const char* parent_span_id,
+    char* out_trace_id,
+    char* out_span_id);
 void tr69hostif_otlp_force_flush();
 const char* tr69hostif_otlp_get_endpoint();
 
@@ -190,7 +202,20 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     try
     {
         /* Find the respective manager and forward the request*/
-	tr69hostif_otlp_trace_parameter_get(stMsgData->paramName);
+        // Extract parent trace context if present
+        const char* parent_trace_id = (stMsgData->hasTraceContext && stMsgData->traceId[0]) ? stMsgData->traceId : nullptr;
+        const char* parent_span_id = (stMsgData->hasTraceContext && stMsgData->spanId[0]) ? stMsgData->spanId : nullptr;
+        
+        // Create span with distributed tracing context and update stMsgData with new context
+        tr69hostif_otlp_trace_parameter_get_with_context(
+            stMsgData->paramName,
+            parent_trace_id,
+            parent_span_id,
+            stMsgData->traceId,
+            stMsgData->spanId
+        );
+        stMsgData->hasTraceContext = true;
+        
         msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
         if(pMsgHandler)
@@ -286,7 +311,20 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 
     /* Find the respective manager and forward the request*/
     msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
-    tr69hostif_otlp_trace_parameter_set(stMsgData->paramName); 
+    
+    // Extract parent trace context if present
+    const char* parent_trace_id = (stMsgData->hasTraceContext && stMsgData->traceId[0]) ? stMsgData->traceId : nullptr;
+    const char* parent_span_id = (stMsgData->hasTraceContext && stMsgData->spanId[0]) ? stMsgData->spanId : nullptr;
+    
+    // Create span with distributed tracing context and update stMsgData with new context
+    tr69hostif_otlp_trace_parameter_set_with_context(
+        stMsgData->paramName,
+        parent_trace_id,
+        parent_span_id,
+        stMsgData->traceId,
+        stMsgData->spanId
+    );
+    stMsgData->hasTraceContext = true; 
     if(pMsgHandler)
     {
         auto startTime = std::chrono::high_resolution_clock::now();

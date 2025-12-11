@@ -179,6 +179,9 @@ typedef struct _HostIf_MsgData_t {
     HostIf_Source_Type_t requestor;   /*!< Requestor that made the set/get request*/
     HostIf_Source_Type_t bsUpdate; /*!< Bootstrap update level*/
     bool isLengthyParam;
+    char traceId[33];               /*!< OpenTelemetry trace ID (32 hex chars + null terminator) */
+    char spanId[17];                /*!< OpenTelemetry span ID (16 hex chars + null terminator) */
+    bool hasTraceContext;           /*!< Flag indicating if trace context is present */
 } HOSTIF_MsgData_t;
 
 /*! Events published from TR69 host interface */
