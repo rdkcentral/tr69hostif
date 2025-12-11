@@ -275,12 +275,14 @@ void putValue(HOSTIF_MsgData_t *stMsgData, const string &value)
     case hostIf_UnsignedIntType:
         put_uint(stMsgData->paramValue, string_to_uint(value.c_str()));
         break;
-    case hostIf_BooleanType:
-        put_boolean(stMsgData->paramValue, string_to_bool(value.c_str()));
-        break;
+    
     case hostIf_UnsignedLongType:
-        put_ulong(stMsgData->paramValue, string_to_ulong(value.c_str()));
+        {
+        bool bval = string_to_bool(value.c_str());
+        put_boolean(stMsgData->paramValue, bval);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "putValue: stored boolean=%s\n", bval ? "true" : "false");
         break;
+    }
     case hostIf_DateTimeType:
         // we don't handle this one yet
     default:
