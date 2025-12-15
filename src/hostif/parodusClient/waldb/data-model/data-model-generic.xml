@@ -88,7 +88,7 @@
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ScreenCapture." access="readOnly" minEntries="0" maxEntries="1" >              
       <parameter base="Enable" access="readOnly" notification="0" maxNotification="2" >                                                              
         <syntax>                                                                                                                                
-           <boolean/>                                                                                                                           
+        <boolean/>                                                                                                                           
         </syntax>                                                                                                                            
       </parameter>
       <parameter base="URL" access="readOnly" notification="0" maxNotification="2" >                                                            
