@@ -95,7 +95,7 @@
         <syntax>                                                                                                                                
           <string/>                                                                                                                             
         </syntax>                                                                                                                               
-      </parameter>                                                                                                                              
+      </parameter>
     </object> 
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.PairedDevice.{i}." access="readOnly" minEntries="0" maxEntries="unbounded" >
       <parameter base="Name" access="readOnly" notification="0" maxNotification="2" >
