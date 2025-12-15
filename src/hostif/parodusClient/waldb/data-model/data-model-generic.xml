@@ -91,7 +91,7 @@
            <boolean/>                                                                                                                           
         </syntax>                                                                                                                            
       </parameter>                                                                                                                              
-      <parameter base="URL" access="readOnly" notification="0" maxNotification="2" >                                                            
+      <parameter base="URL" access="readWrite" notification="0" maxNotification="2" >                                                            
         <syntax>                                                                                                                                
           <string/>                                                                                                                             
         </syntax>                                                                                                                               
