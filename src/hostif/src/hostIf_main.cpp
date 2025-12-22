@@ -40,6 +40,7 @@
 
 #include "hostIf_updateHandler.h"
 #include "XrdkCentralComBSStore.h"
+#include "tr69hostif_otlp_instrumentation.h"
 
 #if defined(USE_WIFI_PROFILE)
 #include "Device_WiFi.h"

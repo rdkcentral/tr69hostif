@@ -40,6 +40,7 @@
 #include "hostIf_DeviceClient_ReqHandler.h"
 #include "hostIf_XrdkCentralT2_ReqHandler.h"
 #include "safec_lib.h"
+#include "tr69hostif_otlp_instrumentation.h"
 
 #ifdef USE_XRESRC
 #include "hostIf_XREClient_ReqHandler.h"
@@ -74,18 +75,6 @@
 
 void tr69hostif_otlp_trace_parameter_get(const char* param_name);
 void tr69hostif_otlp_trace_parameter_set(const char* param_name);
-void tr69hostif_otlp_trace_parameter_get_with_context(
-    const char* param_name,
-    const char* parent_trace_id,
-    const char* parent_span_id,
-    char* out_trace_id,
-    char* out_span_id);
-void tr69hostif_otlp_trace_parameter_set_with_context(
-    const char* param_name,
-    const char* parent_trace_id,
-    const char* parent_span_id,
-    char* out_trace_id,
-    char* out_span_id);
 void tr69hostif_otlp_force_flush();
 const char* tr69hostif_otlp_get_endpoint();
 
@@ -160,6 +149,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     LOG_ENTRY_EXIT;
 
     int ret = NOK;
+    void *span = NULL;
     getCount++;
     if (getCount % 10 == 0) {
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] GET called %d times\n",__FUNCTION__, __LINE__, getCount);
@@ -199,23 +189,60 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         #endif
         loggedGet1000Within5Min =true;
     }
-    try
-    {
-        /* Find the respective manager and forward the request*/
-        // Extract parent trace context if present
-        const char* parent_trace_id = (stMsgData->hasTraceContext && stMsgData->traceId[0]) ? stMsgData->traceId : nullptr;
-        const char* parent_span_id = (stMsgData->hasTraceContext && stMsgData->spanId[0]) ? stMsgData->spanId : nullptr;
+
+    // DEBUG: Print trace context received
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+        "[%s:%d] [DEBUG] Received GET request - Trace context check:\n"
+        "  trace_id[0] = 0x%02x ('%c')\n"
+        "  trace_id = '%s'\n"
+        "  span_id = '%s'\n"
+        "  trace_flags = '%s'\n"
+        "  param_name = '%s'\n",
+        __FUNCTION__, __LINE__,
+        (unsigned char)stMsgData->trace_id[0], 
+        stMsgData->trace_id[0] != '\0' ? stMsgData->trace_id[0] : '?',
+        stMsgData->trace_id,
+        stMsgData->span_id,
+        stMsgData->trace_flags,
+        stMsgData->paramName);
+
+    // Start distributed tracing child span if trace context is present
+    if (stMsgData->trace_id[0] != '\0') {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] ✓ TRACE CONTEXT FOUND - Starting child span for GET\n"
+            "  TraceID: %s\n"
+            "  ParentSpanID: %s\n"
+            "  Flags: %s\n"
+            "  ParamName: %s\n",
+            __FUNCTION__, __LINE__, 
+            stMsgData->trace_id, 
+            stMsgData->span_id, 
+            stMsgData->trace_flags, 
+            stMsgData->paramName);
         
-        // Create span with distributed tracing context and update stMsgData with new context
-        tr69hostif_otlp_trace_parameter_get_with_context(
+        span = tr69hostif_otlp_start_child_span(
             stMsgData->paramName,
-            parent_trace_id,
-            parent_span_id,
-            stMsgData->traceId,
-            stMsgData->spanId
+            "get",
+            stMsgData->trace_id,
+            stMsgData->span_id,
+            stMsgData->trace_flags
         );
-        stMsgData->hasTraceContext = true;
         
+        if (span) {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s:%d] ✓ Child span created successfully: %p\n",
+                __FUNCTION__, __LINE__, span);
+        } else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] ✗ Failed to create child span!\n",
+                __FUNCTION__, __LINE__);
+        }
+    } else {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+            "[%s:%d] ⚠ NO TRACE CONTEXT - trace_id is empty\n",
+            __FUNCTION__, __LINE__);
+    }
+
         msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
         if(pMsgHandler)
@@ -254,10 +281,12 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             }
         }
         
-    }
-    catch (const std::exception& e)
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Exception caught %s\n", __FUNCTION__, __LINE__, e.what());
+    // End distributed tracing child span
+    if (span) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] Ending child span for GET. Result: %s\n",
+            __FUNCTION__, __LINE__, ret == OK ? "SUCCESS" : "FAILED");
+        tr69hostif_otlp_end_span(span, ret == OK, ret == OK ? NULL : "GET operation failed");
     }
 
     return ret;
@@ -266,6 +295,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
+    void *span = NULL;
     setCount++;
      if (setCount % 10 == 0) {
          RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] SET called %d times\n",__FUNCTION__, __LINE__, setCount);
@@ -308,23 +338,62 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         loggedSet1000Within5Min = true;
     }
 
+    // DEBUG: Print trace context received
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+        "[%s:%d] [DEBUG] Received SET request - Trace context check:\n"
+        "  trace_id[0] = 0x%02x ('%c')\n"
+        "  trace_id = '%s'\n"
+        "  span_id = '%s'\n"
+        "  trace_flags = '%s'\n"
+        "  param_name = '%s'\n",
+        __FUNCTION__, __LINE__,
+        (unsigned char)stMsgData->trace_id[0], 
+        stMsgData->trace_id[0] != '\0' ? stMsgData->trace_id[0] : '?',
+        stMsgData->trace_id,
+        stMsgData->span_id,
+        stMsgData->trace_flags,
+        stMsgData->paramName);
+
+    // Start distributed tracing child span if trace context is present
+    if (stMsgData->trace_id[0] != '\0') {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] ✓ TRACE CONTEXT FOUND - Starting child span for SET\n"
+            "  TraceID: %s\n"
+            "  ParentSpanID: %s\n"
+            "  Flags: %s\n"
+            "  ParamName: %s\n",
+            __FUNCTION__, __LINE__, 
+            stMsgData->trace_id, 
+            stMsgData->span_id, 
+            stMsgData->trace_flags, 
+            stMsgData->paramName);
+        
+        span = tr69hostif_otlp_start_child_span(
+            stMsgData->paramName,
+            "set",
+            stMsgData->trace_id,
+            stMsgData->span_id,
+            stMsgData->trace_flags
+        );
+        
+        if (span) {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s:%d] ✓ Child span created successfully: %p\n",
+                __FUNCTION__, __LINE__, span);
+        } else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] ✗ Failed to create child span!\n",
+                __FUNCTION__, __LINE__);
+        }
+    } else {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+            "[%s:%d] ⚠ NO TRACE CONTEXT - trace_id is empty\n",
+            __FUNCTION__, __LINE__);
+    }
 
     /* Find the respective manager and forward the request*/
     msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
     
-    // Extract parent trace context if present
-    const char* parent_trace_id = (stMsgData->hasTraceContext && stMsgData->traceId[0]) ? stMsgData->traceId : nullptr;
-    const char* parent_span_id = (stMsgData->hasTraceContext && stMsgData->spanId[0]) ? stMsgData->spanId : nullptr;
-    
-    // Create span with distributed tracing context and update stMsgData with new context
-    tr69hostif_otlp_trace_parameter_set_with_context(
-        stMsgData->paramName,
-        parent_trace_id,
-        parent_span_id,
-        stMsgData->traceId,
-        stMsgData->spanId
-    );
-    stMsgData->hasTraceContext = true; 
     if(pMsgHandler)
     {
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -356,6 +425,14 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             #endif
             
         }
+    }
+
+    // End distributed tracing child span
+    if (span) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] Ending child span for SET. Result: %s\n",
+            __FUNCTION__, __LINE__, ret == OK ? "SUCCESS" : "FAILED");
+        tr69hostif_otlp_end_span(span, ret == OK, ret == OK ? NULL : "SET operation failed");
     }
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
