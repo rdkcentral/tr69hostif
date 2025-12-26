@@ -195,6 +195,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
     if (pDev)
     {
         std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetConnectedSSID\"}";
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Sending GetConnectedSSID request: %s\n", __FUNCTION__, postData.c_str());
         string response = getJsonRPCData(std::move(postData));
         if(response.c_str())
         {
@@ -208,17 +209,30 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                 {
                     cJSON *bssid = cJSON_GetObjectItem(jsonObj, "bssid");
 	            cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
+                    
+                    if (!bssid || !ssid) {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: NULL pointer - bssid=%p, ssid=%p\n", __FUNCTION__, bssid, ssid);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                    
                     //ASSIGN TO OP HERE
+                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: Copying BSSID value: %s\n", __FUNCTION__, bssid->valuestring);
 		    rc=strcpy_s(BSSID,sizeof(BSSID),bssid->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s \n", __FUNCTION__, BSSID);
+		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s, strcpy_s return code = %d\n", __FUNCTION__, BSSID, rc);
 		    if(rc!=EOK)
         	    {
             	        ERR_CHK(rc);
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: strcpy_s failed for BSSID with rc=%d\n", __FUNCTION__, rc);
         	    }
+                    
+                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: Copying SSID value: %s\n", __FUNCTION__, ssid->valuestring);
 		    rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: SSID = %s, strcpy_s return code = %d\n", __FUNCTION__, SSID, rc);
                     if(rc!=EOK)
                     {
                         ERR_CHK(rc);
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: strcpy_s failed for SSID with rc=%d\n", __FUNCTION__, rc);
                     }
 		 }
                  else
@@ -231,22 +245,23 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 	    }
             else
             {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error for GetConnectedSSID, response was: %s\n", __FUNCTION__, response.c_str());
                 return NOK;
             }
 	}
         else
         {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() returned empty response for GetConnectedSSID\n", __FUNCTION__);
             return NOK;
         }
 
         postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetAvailableInterfaces\"}";
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Sending GetAvailableInterfaces request: %s\n", __FUNCTION__, postData.c_str());
         response = getJsonRPCData(postData);
             
         if(response.c_str())
         {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: GetAvailableInterfaces response = %s\n", __FUNCTION__, response.c_str());
             cJSON* root = cJSON_Parse(response.c_str());
             if(root)
             {
@@ -255,28 +270,64 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                 if (jsonObj)
                 {
                     cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
+                    if (!interfaces) {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: interfaces array is NULL\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                    
 	            cJSON *interface = NULL; 
 		    cJSON *interfaceType = NULL;
+                    int arraySize = cJSON_GetArraySize(interfaces);
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found %d interfaces\n", __FUNCTION__, arraySize);
 
-		     for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
+		     for (int i = 0; i < arraySize; i++) {
                         interface = cJSON_GetArrayItem(interfaces, i);
+                        if (!interface) {
+                            RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "%s: interface at index %d is NULL\n", __FUNCTION__, i);
+                            continue;
+                        }
 			interfaceType = cJSON_GetObjectItem(interface, "type");
+                        if (!interfaceType) {
+                            RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "%s: interfaceType at index %d is NULL\n", __FUNCTION__, i);
+                            continue;
+                        }
+                        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: Checking interface %d, type=%s\n", __FUNCTION__, i, interfaceType->valuestring);
 			if (strcmp(interfaceType->valuestring, "WIFI") == 0) {
-			    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
+			    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface at index %d\n", __FUNCTION__, i);
 			    break;
 			}
 		    }
+                    
+                    if (!interface) {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: WiFi interface not found\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                    
                     //ASSIGN TO OP HERE
 		    cJSON *result = cJSON_GetObjectItem(interface, "mac");
+                    if (!result) {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: mac field is NULL\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: Copying MACAddress value: %s\n", __FUNCTION__, result->valuestring);
 		    rc=strcpy_s(MACAddress,sizeof(MACAddress),result->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s \n", __FUNCTION__, MACAddress);
+		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s, strcpy_s return code = %d\n", __FUNCTION__, MACAddress, rc);
         	    if(rc!=EOK)
         	    {
             	        ERR_CHK(rc);
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: strcpy_s failed for MACAddress with rc=%d\n", __FUNCTION__, rc);
         	    }
 		    cJSON *isEnabled = cJSON_GetObjectItem(interface, "enabled");
+                    if (!isEnabled) {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: enabled field is NULL\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
 		    enable=isEnabled->type;
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
+		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d (cJSON type)\n", __FUNCTION__, enable);
                 }
                 else
                 {
@@ -288,22 +339,23 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
              }
              else
              {
-                  RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
+                  RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error for GetAvailableInterfaces, response was: %s\n", __FUNCTION__, response.c_str());
 		  return NOK;
              }
 	}
         else
         {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() returned empty response for GetAvailableInterfaces\n", __FUNCTION__);
 	    return NOK;
         }
 	
         postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWifiState\"}";
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Sending GetWifiState request: %s\n", __FUNCTION__, postData.c_str());
         response = getJsonRPCData(std::move(postData));
 
         if(response.c_str())
         {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: GetWifiState response = %s\n", __FUNCTION__, response.c_str());
             cJSON* root = cJSON_Parse(response.c_str());
             if(root)
             {
@@ -312,56 +364,81 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                 if (jsonObj)
                 {
 	            cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
+                    if (!state) {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: state field is NULL\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
 		    //ASSIGN TO OP HERE
 		    int res = state->valueint;
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: WiFi state value = %d\n", __FUNCTION__, res);
 		    switch (res) {
 			case 0:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = UNINSTALLED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"UNINSTALLED");
 			    break;
 			case 1:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = DISABLED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"DISABLED");
 			    break;
 			case 2:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = DISCONNECTED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"DISCONNECTED");
 			    break;
 			case 3:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = PAIRING\n", __FUNCTION__);
 		            rc=strcpy_s(status,sizeof(status),"PAIRING");
 			    break;
 			case 4:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = CONNECTING\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"CONNECTING");
 			    break;
 			case 5:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = CONNECTED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"CONNECTED");
 			    break;
 			case 6:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = SSID_NOT_FOUND\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"SSID_NOT_FOUND");
 			    break;
 			case 7:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = SSID_CHANGED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"SSID_CHANGED");
 			    break;
 			case 8:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = CONNECTION_LOST\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"CONNECTION_LOST");
 			    break;
 			case 9:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = CONNECTION_FAILED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"CONNECTION_FAILED");
 			    break;
 			case 10:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = CONNECTION_INTERRUPTED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"CONNECTION_INTERRUPTED");
 			    break;
 			case 11:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = INVALID_CREDENTIALS\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"INVALID_CREDENTIALS");
 			    break;
 			case 12:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = AUTHENTICATION_FAILED\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"AUTHENTICATION_FAILED");
 			    break;
 			case 13:
+                            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s: WiFi state = ERROR\n", __FUNCTION__);
 			    rc=strcpy_s(status,sizeof(status),"ERROR");
 			    break;
+                        default:
+                            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Unknown WiFi state = %d\n", __FUNCTION__, res);
+			    rc=strcpy_s(status,sizeof(status),"UNKNOWN");
+			    break;
 			}
-			RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: STATUS = %s \n", __FUNCTION__, status);
+			RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: STATUS = %s, strcpy_s return code = %d\n", __FUNCTION__, status, rc);
 			if(rc!=EOK)
 			{
 			    ERR_CHK(rc);
+                            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: strcpy_s failed for status with rc=%d\n", __FUNCTION__, rc);
 			}
 		}
 	  	else
@@ -374,18 +451,18 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 	    }
             else
             {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error for GetWifiState, response was: %s\n", __FUNCTION__, response.c_str());
                 return NOK;
             }
 	}
         else
         {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed\n", __FUNCTION__);
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() returned empty response for GetWifiState\n", __FUNCTION__);
             return NOK;
         }
         
 	firstExTime = time (NULL);
-        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting with return value OK\n", __FUNCTION__, __FILE__);
         return OK;
     }
     else
