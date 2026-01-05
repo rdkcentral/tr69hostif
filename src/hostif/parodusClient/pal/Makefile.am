@@ -28,7 +28,7 @@ AM_CXXFLAGS=  -I$(top_srcdir)/src/hostif/parodusClient/pal \
             -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/wdmp-c \
             -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/wrp-c $(GLIB_CFLAGS)
 
-libparodusclient_la_LDFLAGS= -llibparodus -lrdkloggers -lwdmp-c -lwrp-c  -lcjson -lpthread
+libparodusclient_la_LDFLAGS= -llibparodus -lrdkloggers -lwdmp-c -lwrp-c  -lcjson -lpthread 
 libparodusclient_la_LIBADD = $(top_builddir)/src/hostif/parodusClient/waldb/libwaldb.la \
                              $(top_builddir)/src/hostif/handlers/libMsgHandlers.la 
 libparodusclient_la_SOURCES = webpa_notification.cpp libpd.cpp webpa_parameter.cpp webpa_adapter.cpp webpa_attribute.cpp 
