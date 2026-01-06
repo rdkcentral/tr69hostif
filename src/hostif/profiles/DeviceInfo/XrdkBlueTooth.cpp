@@ -70,7 +70,7 @@ static BTRMgrDeviceHandle handle_devInfo = 0;
 std::mutex hostIf_DeviceInfoRdk_xBT::m;
 hostIf_DeviceInfoRdk_xBT* hostIf_DeviceInfoRdk_xBT::m_instance = NULL;
 
-#define BTRMGR_QUERY_INTERVAL 5
+#define BTRMGR_QUERY_INTERVAL 30
 
 int hostIf_DeviceInfoRdk_xBT::noOfDiscoveredDevice=0;
 int hostIf_DeviceInfoRdk_xBT::noOfPairedDevice=0;
