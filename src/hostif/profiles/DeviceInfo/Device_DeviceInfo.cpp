@@ -302,7 +302,7 @@ void hostIf_DeviceInfo::getLock() {
     // Try to lock
     int lock_result = pthread_mutex_lock(&hostIf_DeviceInfo::m_mutex);
     if (lock_result == 0) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
     } else {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to lock mutex: %s\n",
                 __FUNCTION__, __LINE__, strerror(lock_result));
@@ -317,7 +317,7 @@ void hostIf_DeviceInfo::releaseLock() {
 
     if (unlock_result == 0) {
         // Successful unlock
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully unlocked mutex\n",
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Successfully unlocked mutex\n",
                 __FUNCTION__, __LINE__);
     } else if (unlock_result == EPERM) {
         // Thread doesn't own the mutex
