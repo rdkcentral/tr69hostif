@@ -394,10 +394,15 @@ static WDMP_STATUS validateAgainstDataModel(REQ_TYPE reqType, char* paramName, c
     else if(reqType == SET)
     {
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Validating paramValue and dataType against data-model\n");
-        if(paramValue == NULL || *dataType >= WDMP_NONE)
+        if(paramValue == NULL)
         {
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"ParameterValue is NULL or Unknown Datatype\n");
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"ParameterValue is NULL\n");
             ret = WDMP_ERR_VALUE_IS_NULL;
+        }
+        else if(*dataType >= WDMP_NONE)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Unknown Datatype\n");
+            ret = WDMP_ERR_DATATYPE_IS_NULL;
         }
         else if(dmParam.access != NULL && !strcasecmp(dmParam.access, "readOnly"))
         {
