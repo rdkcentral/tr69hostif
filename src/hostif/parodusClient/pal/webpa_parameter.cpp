@@ -662,10 +662,18 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
     if(status != 0) {
         if (dmParam != NULL && dmParam->defaultValue)
         {    
+            RDK_LOG(RDK_LOG_INFO, LOG_PARODUS_IF,
+                "[%s:%d] hostIf_GetMsgHandler failed (status=%d), using DataModel default value for param: %s, defaultValue: %s\n",
+                __FUNCTION__, __LINE__, status, ptrParam->paramName, dmParam->defaultValue);
+            
             strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
             ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
             paramValueToString(ptrParam, ptrParam->paramValue, sizeof(ptrParam->paramValue));
             status = WDMP_ERR_DEFAULT_VALUE;
+            
+            RDK_LOG(RDK_LOG_INFO, LOG_PARODUS_IF,
+                "[%s:%d] Successfully applied default value, returning WDMP_SUCCESS\n",
+                __FUNCTION__, __LINE__);
             return WDMP_SUCCESS;
         }
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Get Message Handler : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
