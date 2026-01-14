@@ -704,9 +704,18 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
             }
             else if(reqSt->u.setReq->param[paramIndex].value == NULL)
             {
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parameter value is null\n");
-                respSt->retStatus[paramIndex] = WDMP_ERR_VALUE_IS_NULL;
-                continue;
+                // Allow NULL/empty values for string types, reject for others
+                if(reqSt->u.setReq->param[paramIndex].type == WDMP_STRING)
+                {
+                    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Allowing empty string value for string type parameter\n");
+                    respSt->u.paramRes->params[paramIndex].value = strdup("");
+                }
+                else
+                {
+                    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parameter value is null for non-string type\n");
+                    respSt->retStatus[paramIndex] = WDMP_ERR_VALUE_IS_NULL;
+                    continue;
+                }
             }
             else
             {
