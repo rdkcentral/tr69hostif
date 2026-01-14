@@ -154,31 +154,16 @@ hostIf_STBServiceVideoOutput::hostIf_STBServiceVideoOutput(int devid, device::Vi
 {
     errno_t rc = -1;
     rc=strcpy_s(backupAspectRatioBehaviour,sizeof(backupAspectRatioBehaviour)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupDisplayFormat,sizeof(backupDisplayFormat)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupDisplayName,sizeof(backupDisplayName)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupVideoFormat,sizeof(backupVideoFormat)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupHDCP = false;
     rc=strcpy_s(backupVideoOutputStatus,sizeof(backupVideoOutputStatus)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     bCalledAspectRatioBehaviour = false;
     bCalledDisplayFormat = false;

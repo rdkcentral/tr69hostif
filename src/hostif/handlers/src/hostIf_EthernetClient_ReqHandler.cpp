@@ -384,14 +384,16 @@ int EthernetClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData
     	    }
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
             ret = OK;
+            // Note: notifyKey and notifyValuePtr are now owned by the hash table, don't free them
         }
         else
         {
             ret = NOK;
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] EthernetClientReqHandler Not able to allocate Notify pointer %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
+            // Free only if allocation failed and not inserted into hash table
+            if(notifyKey) free(notifyKey);
+            if(notifyValuePtr) free(notifyValuePtr);
         }
-        free(notifyKey);  //CID:87027 - Resource leak
-        free(notifyValuePtr);
     }
     else
     {

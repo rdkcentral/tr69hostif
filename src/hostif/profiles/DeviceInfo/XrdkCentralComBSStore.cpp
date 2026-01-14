@@ -46,6 +46,8 @@
 #define AUTH_SERVICE_PARODUS_RESTART "/tmp/authservice_parodus_restart"
 #define MAX_FILENAME_LENGTH 256
 
+#include <atomic>
+
 #define CURL_EASY_SETOPT(CURL , CURLoption , Value)\
     if (curl_easy_setopt(CURL , CURLoption , Value) != CURLE_OK ) {\
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl_easy_setopt setopt failed ...\n", __FUNCTION__);\
@@ -53,7 +55,7 @@
 /*CID:121745 - checked return */
 
 
-XBSStore* XBSStore::xbsInstance = NULL;
+std::atomic<XBSStore*> XBSStore::xbsInstance(nullptr);
 XBSStoreJournal* XBSStore::xbsJournalInstance = NULL;
 recursive_mutex XBSStore::mtx;
 thread XBSStore::partnerIdThread;
@@ -130,9 +132,9 @@ void XBSStore::getAuthServicePartnerID()
 
     // Extracting the parent directories dynamically
     std::string filePath = partnerIdPath;
-    std::string authServiceDir = getParentDirectory(filePath);  // "/opt/www/authService"
-    std::string wwwDir = getParentDirectory(authServiceDir);    // "/opt/www"
-    std::string parentDir = getParentDirectory(wwwDir);         // "/opt"
+    std::string authServiceDir = std::move(getParentDirectory(filePath));  // "/opt/www/authService"
+    std::string wwwDir = std::move(getParentDirectory(authServiceDir));    // "/opt/www"
+    std::string parentDir = std::move(getParentDirectory(wwwDir));         // "/opt"
     std::string targetFile = filePath.substr(filePath.find_last_of('/') + 1);  // "partnerId3.dat"
 
     // Add a watch on /opt for directory creation

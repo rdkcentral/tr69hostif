@@ -155,9 +155,16 @@ static WAL_STATUS getParamAttributes(const char *pParameterName, AttrVal ***attr
         strncpy(Param.paramName,pParameterName,strlen(pParameterName)+1);
         Param.instanceNum = 0;
         Param.paramtype = hostIf_IntegerType;
-	get_AttribValues_tr69hostIf(&Param);
-        strncpy(attr[0][i]->value,Param.paramValue, strlen(Param.paramValue));
-        attr[0][i]->value[strlen(Param.paramValue)] = '\0';
+	int ret = get_AttribValues_tr69hostIf(&Param);
+        if(ret == 0 && Param.paramValue != NULL)
+        {
+            strncpy(attr[0][i]->value,Param.paramValue, strlen(Param.paramValue));
+            attr[0][i]->value[strlen(Param.paramValue)] = '\0';
+        }
+        else
+        {
+            attr[0][i]->value[0] = '\0';
+        }
         attr[0][i]->type = WAL_INT; // Currently only notification which is a int
     }
     return WAL_SUCCESS;

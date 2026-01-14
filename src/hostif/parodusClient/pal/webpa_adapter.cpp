@@ -113,7 +113,8 @@ void setInitialNotify()
     char **notifyparameters=NULL;
     int notifyListSize =0;
 
-    // Read Notify configuration file
+    // TODO: Read Notify configuration file and populate notifyparameters
+    // Currently this functionality is not implemented
     if(notifyparameters != NULL)
     {
         WDMP_STATUS *ret = NULL;

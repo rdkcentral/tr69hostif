@@ -25,6 +25,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 #include <XrdkCentralComBSStoreJournal.h>
 #include "cJSON.h"
 
@@ -51,7 +52,7 @@ public:
     bool call_loadJson() { return loadFromJson(); }
 
 private:
-    static XBSStore* xbsInstance;
+    static std::atomic<XBSStore*> xbsInstance;
     static XBSStoreJournal* xbsJournalInstance;
     string m_filename;
     bool m_initDone;

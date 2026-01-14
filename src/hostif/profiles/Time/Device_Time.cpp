@@ -248,15 +248,9 @@ int hostIf_Time::get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *stMsgData, b
 
     bCalledCurrentLocalTime = true;
     rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue), buffer);
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupCurrentLocalTime,sizeof(backupCurrentLocalTime),buffer);
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] buffer : %s stMsgData->paramValue: %s\n", __FILE__, __FUNCTION__, buffer, stMsgData->paramValue);
 
@@ -327,15 +321,9 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
 
     bCalledCurrentUTCTime = true;
     rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), buffer);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupCurrentUTCTime, sizeof(backupCurrentUTCTime), buffer);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] buffer : %s stMsgData->paramValue: %s\n", __FILE__, __FUNCTION__, buffer, stMsgData->paramValue);
 
