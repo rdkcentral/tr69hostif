@@ -302,7 +302,7 @@ void hostIf_DeviceInfo::getLock() {
     // Try to lock
     int lock_result = pthread_mutex_lock(&hostIf_DeviceInfo::m_mutex);
     if (lock_result == 0) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Locked mutex\n", __FUNCTION__, __LINE__);
     } else {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to lock mutex: %s\n",
                 __FUNCTION__, __LINE__, strerror(lock_result));
@@ -317,7 +317,7 @@ void hostIf_DeviceInfo::releaseLock() {
 
     if (unlock_result == 0) {
         // Successful unlock
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully unlocked mutex\n",
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Successfully unlocked mutex\n",
                 __FUNCTION__, __LINE__);
     } else if (unlock_result == EPERM) {
         // Thread doesn't own the mutex
@@ -3622,7 +3622,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComBootstrap(HOSTIF_MsgData_t * stMsgData)
     return ret;
 }
 
-#ifdef RDKV_TR69
 static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
 {
     const char *apparmor_profiledir = "/etc/apparmor.d";
@@ -3729,133 +3728,7 @@ static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
     free(files_name);
     return TRUE;
 }
-#else
-static bool ValidateInput_Arguments(char *input, FILE *tmp_fptr)
-{
-    const char *apparmor_profiledir = "/etc/apparmor.d";
-    const char *earlypolicy_base_dir = "/etc/apparmor/earlypolicy";
-    struct dirent *entry=NULL;
-    DIR *dir=NULL;
-    char *files_name = NULL;
-    size_t files_name_len = 0;
-    int number_of_profiles = 0;
-    char *token=NULL;
-    char *subtoken=NULL;
-    char *sub_string=NULL;
-    char *sp=NULL;
-    char *sptr=NULL;
-    char tmp[ENTRY_WIDTH]= {0};
-    char *arg=NULL;
-    if(tmp_fptr == NULL){
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"tmp_fptr empty, returning false\n");
-        return FALSE;
-    }
-    dir=opendir(apparmor_profiledir);
-    if(dir == NULL) {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Failed to open Apparmor Profile directory\n");
-        return FALSE;
-    }
-    while ((entry = readdir(dir)) != NULL) {
-        number_of_profiles++;
-    }
-    if (closedir(dir) != 0) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to close Apparmor Profile directory\n");
-        return false;
-    }
-    // Allocate the exact required buffer size directly
-    files_name = (char *)malloc(number_of_profiles * ENTRY_WIDTH);
-    if (files_name == NULL) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Memory allocation failed\n");
-        return false;
-    }
-    files_name[0] = '\0';  // Ensure the buffer is initially empty
-    dir = opendir(apparmor_profiledir);
-    if (dir == NULL) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to open Apparmor Profile directory\n");
-        free(files_name);
-        return false;
-    }
-    // Read the entries and store in the buffer
-    while ((entry = readdir(dir)) != NULL) {
-        strncat(files_name, entry->d_name, ENTRY_WIDTH - 1);
-        files_name_len += strlen(entry->d_name);
-    }
-    if (closedir(dir) != 0) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Failed to close Apparmor Profile directory\n");
-        free(files_name);
-        return false;
-    }
-    /* Read the input arguments and ensure the corresponding profiles exist or not by searching in
-     Apparmor profile directory (/etc/apparmor.d/). Returns false if input does not have the
-     apparmor profile, Returns true if apparmor profile finds for the input */
-    token=strtok_r( input,"#", &sp);
-    while(token != NULL) {
-        arg=strchr(token,':');
-         if (arg == NULL) {
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Missing ':' in token: %s\n", token);
-            free(files_name);
-            return false;
-        }
-        if ( ( (strcmp(arg+1,"disable") != 0) && (strcmp(arg+1,"complain") != 0) && (strcmp(arg+1,"enforce") != 0) ) ) {
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments in the parser:%s\n", token);
-            free(files_name);
-            return FALSE;
-        }
-        strncpy(tmp,token,sizeof(tmp)-1);
-        subtoken=strtok_r(tmp,":",&sptr);
-        if(subtoken != NULL) {
-            sub_string=strstr(files_name, subtoken);
-            if(sub_string != NULL) {
-                fprintf(tmp_fptr,"%s\n",token);
-            } else {
-                bool profile_found = false;
-                DIR *earlypolicy_dir_ptr = opendir(earlypolicy_base_dir);
-                if (earlypolicy_dir_ptr != NULL) {
-                    struct dirent *earlypolicy_entry = NULL;
-                    while ((earlypolicy_entry = readdir(earlypolicy_dir_ptr)) != NULL) {
-                        // Skip . and .. entries
-                        if (strcmp(earlypolicy_entry->d_name, ".") == 0 || strcmp(earlypolicy_entry->d_name, "..") == 0) {
-                            continue;
-                        }
-                        // Construct the full path to the subdirectory
-                        char subdir_path[1024];
-                        snprintf(subdir_path, sizeof(subdir_path), "%s/%s", earlypolicy_base_dir, earlypolicy_entry->d_name);
-                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"snprintf args %s and %s\n", earlypolicy_base_dir, earlypolicy_entry->d_name);
-                        // Open the subdirectory to search for the profile
-                        DIR *subdir = opendir(subdir_path);
-                        if (subdir != NULL) {
-                            struct dirent *sub_entry = NULL;
-                            while ((sub_entry = readdir(subdir)) != NULL) {
-                                // Check if the file ends with .service.sp and matches subtoken
-                                if (strstr(sub_entry->d_name, subtoken) != NULL &&
-                                    strstr(sub_entry->d_name, ".service.sp") != NULL) {
-                                    profile_found = true;
-                                    break;
-                                }
-                            }
-                            closedir(subdir);
-                        }
-                        if (profile_found) {
-                            break;
-                        }
-                    }
-                    closedir(earlypolicy_dir_ptr);
-                }
-                if (profile_found) {
-                    fprintf(tmp_fptr, "%s\n", token);
-                } else {
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Invalid arguments %s error found in the parser\n", subtoken);
-                    free(files_name);
-                    return FALSE;
-                }
-	    }
-        }
-        token=strtok_r(NULL,"#",&sp);
-    }
-    free(files_name);
-    return TRUE;
-}
-#endif
+
 int hostIf_DeviceInfo::set_xRDKCentralComApparmorBlocklist(HOSTIF_MsgData_t *stMsgData)
 {
     const char *apparmor_config = "/opt/secure/Apparmor_blocklist";
