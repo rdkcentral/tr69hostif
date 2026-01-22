@@ -5019,7 +5019,7 @@ int hostIf_DeviceInfo::set_xFirmwareDownloadNow(HOSTIF_MsgData_t *stMsgData)
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to trigger Download, \'system (\"%s\")\' returned error code '%d'\n", __FUNCTION__, cmd, ret);
                     return NOK;
                 }
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s:%d] Successfully executed (\'%s\') Triggered Download.\n",__FUNCTION__,__LINE__, cmd);
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s:%d] Successfully executed (\'%s\')Triggered Download.\n",__FUNCTION__,__LINE__, cmd);
 
                 /*Reset all cache parameter values for download trigger on successfully executed*/
                 m_xFirmwareDownloadProtocol.clear();
