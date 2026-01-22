@@ -3179,7 +3179,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HO
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Components that are Ready..\n", __FUNCTION__);
 
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.MigrationPreparer.getComponentReadiness\" }";
-    response = std::move(getJsonRPCData(postData)); 
+    response = getJsonRPCData(postData);
 
     if(response.c_str())
     {
