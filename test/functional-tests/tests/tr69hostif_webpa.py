@@ -286,7 +286,7 @@ def test_WebPA_Set_FirmwareDownloadURL_For_Upgrade():
 @pytest.mark.run(order=44) 
 def test_WebPA_Set_FirmwareToDownload_For_Upgrade():
     print("Starting parodus mock process - Set firmware to download") 
-    payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload","dataType":0,"value":"    TESTIMAGE_DEV.bin"}]}'
+    payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload","dataType":0,"value":"TESTIMAGE_DEV.bin"}]}'
     command = ["/usr/local/bin/parodus", payload]
 
     result = subprocess.run(command, capture_output=True, text=True)
