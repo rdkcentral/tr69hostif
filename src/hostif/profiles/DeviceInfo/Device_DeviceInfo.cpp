@@ -3060,10 +3060,6 @@ int hostIf_DeviceInfo::findLocalPortAvailable()
         else{
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Socket failed with  \'%s\'..\n", __FUNCTION__, __LINE__, strerror (errno) );
         }
-        if(port >= 65535) {
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] No available ports found in range.\n", __FUNCTION__);
-            return -1;
-        }
         port++;
     }
     return -1;
