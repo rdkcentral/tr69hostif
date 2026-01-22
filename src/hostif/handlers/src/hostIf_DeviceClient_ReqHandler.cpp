@@ -795,10 +795,17 @@ int DeviceClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
             if(rc!=EOK)
             {
                 ERR_CHK(rc);
+                // On strcpy_s failure, do not insert into the hash table; free allocated memory.
+                free(notifyKey);
+                free(notifyValuePtr);
+                ret = NOK;
             }
-            g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
-            ret = OK;
-            // Note: notifyKey and notifyValuePtr are now owned by the hash table, don't free them
+            else
+            {
+                g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
+                ret = OK;
+                // Note: notifyKey and notifyValuePtr are now owned by the hash table, don't free them
+            }
         }
         else
         {
