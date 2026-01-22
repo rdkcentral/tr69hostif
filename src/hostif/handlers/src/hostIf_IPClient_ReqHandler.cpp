@@ -461,6 +461,7 @@ void getIPIfcIDs(unsigned int *ifindexes) {
 
 void IPClientReqHandler::checkForUpdates()
 {
+	std::lock_guard<std::mutex> lg(m_mutex); 
     if (mUpdateCallback == 0)
         return;
 
