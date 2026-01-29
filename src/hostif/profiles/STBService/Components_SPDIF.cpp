@@ -154,10 +154,7 @@ hostIf_STBServiceSPDIF::hostIf_STBServiceSPDIF(int devid, device::AudioOutputPor
     backupEnable = false;
     errno_t rc = -1;
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupForcePCM = false;
     backupPassthrough = false;
     backupAudioDelay = 0;
