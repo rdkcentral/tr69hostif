@@ -3064,11 +3064,10 @@ int hostIf_DeviceInfo::findLocalPortAvailable()
         else{
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Socket failed with  \'%s\'..\n", __FUNCTION__, __LINE__, strerror (errno) );
         }
-        if (port < MAX_PORT_RANGE) {
-            port++;
-        } else {
+        if (port >= MAX_PORT_RANGE) {
             break;
         }
+        port++;
     }
     return -1;
 }
