@@ -298,6 +298,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_DeviceInfo_IUI_Version(stMsgData);
         }
+		else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion"))
+        {
+            ret = pIface->set_Device_DeviceInfo_IUI_AppsVersion(stMsgData);
+        }
         else
         {
             ret = NOK;
