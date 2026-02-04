@@ -449,7 +449,13 @@ static WDMP_STATUS validate_parameter(param_t *param, int paramCount)
             return WDMP_ERR_SET_OF_CMC_OR_CID_NOT_SUPPORTED;
         }
 
-        if(param[i].name == NULL || param[i].value == NULL)
+        if(param[i].name == NULL)
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Parameter name is null\n");
+            return WDMP_ERR_VALUE_IS_NULL;
+        }
+        // Allow empty/null values for AccountID parameter to support clearing the value
+        if(param[i].value == NULL && strcmp(param[i].name, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID") != 0)
         {
             RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Parameter value is null\n");
             return WDMP_ERR_VALUE_IS_NULL;
