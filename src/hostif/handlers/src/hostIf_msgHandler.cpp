@@ -199,7 +199,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             
             // Record metric - convert microseconds to seconds
             double duration_seconds = timeTaken / 1000000.0;
-	    rdk_otlp_metrics_record_parameter_operation(stMsgData->paramName, "get", duration_seconds);
+	    //rdk_otlp_metrics_record_parameter_operation(stMsgData->paramName, "get", duration_seconds);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
                 // Debug log
@@ -293,7 +293,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         
         // Record metric - convert microseconds to seconds
         double duration_seconds = timeTakenset / 1000000.0;
-	rdk_otlp_metrics_record_parameter_operation(stMsgData->paramName, "set", duration_seconds);
+	//rdk_otlp_metrics_record_parameter_operation(stMsgData->paramName, "set", duration_seconds);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
