@@ -2398,11 +2398,19 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_IUI_AppsVersion(HOSTIF_MsgData_t *s
     std::string iuiAppsVersion = getStringValue(stMsgData);
 
     if (iuiAppsVersion.empty()) {
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] Empty IUI AppsVersion provided, will clear the stored value\n", __FUNCTION__, __FILE__, __LINE__);
-        // Remove the file if empty value is set
-        std::remove(IUI_APPSVERSION_FILE);
-        return OK;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Empty IUI AppsVersion provided, will clear the stored value\n",
+            __FUNCTION__, __FILE__, __LINE__);
+
+    // Remove the file if empty value is set
+    if (std::remove(IUI_APPSVERSION_FILE) != 0) {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to remove %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                IUI_APPSVERSION_FILE);
     }
+}
+
 
     std::ofstream file(IUI_APPSVERSION_FILE);
     if (!file.is_open()) {
