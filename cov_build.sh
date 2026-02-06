@@ -2,6 +2,28 @@ WORKDIR=`pwd`
 export ROOT=/usr
 export INSTALL_DIR=${ROOT}/local
 mkdir -p $INSTALL_DIR
+
+# Detect architecture for multi-platform support (x86_64 and Apple Silicon/aarch64)
+ARCH=$(uname -m)
+case $ARCH in
+    x86_64)
+        ARCH_LIB_PATH="/usr/lib/x86_64-linux-gnu"
+        ARCH_LIB_PATH_ALT="/lib/x86_64-linux-gnu"
+        ;;
+    aarch64)
+        ARCH_LIB_PATH="/usr/lib/aarch64-linux-gnu"
+        ARCH_LIB_PATH_ALT="/lib/aarch64-linux-gnu"
+        ;;
+    *)
+        echo "Warning: Unsupported architecture $ARCH, defaulting to x86_64 paths"
+        ARCH_LIB_PATH="/usr/lib/x86_64-linux-gnu"
+        ARCH_LIB_PATH_ALT="/lib/x86_64-linux-gnu"
+        ;;
+esac
+
+# Set up library path for both architectures (aligned with L2-tests.yml)
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu:/usr/local/lib:$ARCH_LIB_PATH:$ARCH_LIB_PATH_ALT
+
 apt-get update && apt-get install -y libsoup-3.0
 
 #Build rfc
@@ -57,7 +79,7 @@ make install
 echo "Building IARMBus stubs"
 cd $WORKDIR
 cd ./src/unittest/stubs
-g++ -fPIC -shared -o libIARMBus.so iarm_stubs.cpp  -I$WORKDIR/src/hostif/parodusClient/pal -I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/parodusClient/waldb -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/include -I$WORKDIR/src/hostif/profiles/DeviceInfo -I$WORKDIR/src/hostif/parodusClient/pal -fpermissive
+g++ -fPIC -shared -o libIARMBus.so iarm_stubs.cpp  -I$WORKDIR/src/hostif/parodusClient/pal -I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/parodusClient/waldb -I/usr/include/glib-2.0 -I$ARCH_LIB_PATH/glib-2.0/include -I$WORKDIR/src/hostif/include -I$WORKDIR/src/hostif/profiles/DeviceInfo -I$WORKDIR/src/hostif/parodusClient/pal -fpermissive
 g++ -fPIC -shared -o libWPEFrameworkPowerController.so powerctrl_stubs.cpp  -I$WORKDIR/src/unittest/stubs -fpermissive
 cp libIARMBus.so /usr/local/lib
 cp libIBus.h /usr/local/include
@@ -72,8 +94,8 @@ rm -f ./src/unittest/stubs/rdk_debug.h
 autoreconf -i
 ./configure  --enable-IPv6=yes
 
-make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I/usr/include/cjson -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/handlers/include -I$WORKDIR/src/hostif/parodusClient/waldb -I$WORKDIR/src/hostif/profiles/DeviceInfo -I/usr/include/cjson -I$WORKDIR/src/hostif/profiles/Time -I$WORKDIR/src/hostif/profiles/Device -I/usr/include/libsoup-3.0 -I/usr/include/yajl -I$WORKDIR/src/hostif/profiles/STBService -I$WORKDIR/src/unittest/stubs/ds -I/usr/devicesettings/ds -I/usr/local/include -I$WORKDIR/src/hostif/profiles/IP -I$WORKDIR/src/hostif/profiles/Ethernet -I/usr/local/include/rbus -I$WORKDIR/src/hostif/parodusClient/pal -I/usr/rdk-halif-device_settings/include -I/usr/local/include/libparodus -I/usr/local/include -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/local/include/ -I/usr/include/yajl -I/usr/tinyxml2 -I/usr/devicesettings/ds -I/$WORKDIR/src/hostif/httpserver/include -I/usr/remote_debugger/src/ -DIPV6_SUPPORT" \
-AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus -lglib-2.0 -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lds -ldshalcli -ldshalsrv  -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER"
+make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I/usr/include/cjson -I/usr/include/glib-2.0 -I$ARCH_LIB_PATH/glib-2.0/include -I$WORKDIR/src/hostif/handlers/include -I$WORKDIR/src/hostif/parodusClient/waldb -I$WORKDIR/src/hostif/profiles/DeviceInfo -I/usr/include/cjson -I$WORKDIR/src/hostif/profiles/Time -I$WORKDIR/src/hostif/profiles/Device -I/usr/include/libsoup-3.0 -I/usr/include/yajl -I$WORKDIR/src/hostif/profiles/STBService -I$WORKDIR/src/unittest/stubs/ds -I/usr/devicesettings/ds -I/usr/local/include -I$WORKDIR/src/hostif/profiles/IP -I$WORKDIR/src/hostif/profiles/Ethernet -I/usr/local/include/rbus -I$WORKDIR/src/hostif/parodusClient/pal -I/usr/rdk-halif-device_settings/include -I/usr/local/include/libparodus -I/usr/local/include -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/local/include/ -I/usr/include/yajl -I/usr/tinyxml2 -I/usr/devicesettings/ds -I/$WORKDIR/src/hostif/httpserver/include -I/usr/remote_debugger/src/ -DIPV6_SUPPORT" \
+AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus -lglib-2.0 -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lds -ldshalcli -ldshalsrv  -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L$ARCH_LIB_PATH -lyajl -L/usr/local/lib -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER"
 make install
 
 cd ./src/hostif/parodusClient/pal/mock-parodus/
