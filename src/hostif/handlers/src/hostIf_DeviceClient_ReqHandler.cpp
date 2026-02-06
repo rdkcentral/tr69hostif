@@ -298,7 +298,7 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_DeviceInfo_IUI_Version(stMsgData);
         }
-		else if (!strcasecmp(stMsgData->paramName, IUI_APPSVERSION))
+        else if (!strcasecmp(stMsgData->paramName, IUI_APPSVERSION))
         {
             ret = pIface->set_Device_DeviceInfo_IUI_AppsVersion(stMsgData);
         }
