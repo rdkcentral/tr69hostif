@@ -40,6 +40,7 @@
 
 #include "hostIf_updateHandler.h"
 #include "XrdkCentralComBSStore.h"
+#include "rdk_otlp_instrumentation.h"
 
 #if defined(USE_WIFI_PROFILE)
 #include "Device_WiFi.h"
@@ -297,6 +298,12 @@ int main(int argc, char *argv[])
 
         /* Enable RDK logger.*/
         if(rdk_logger_init(0 == access("/opt/debug.ini", R_OK) ? "/opt/debug.ini" : "/etc/debug.ini") == 0) rdk_logger_enabled = 1;
+        
+        /* Initialize OpenTelemetry OTLP instrumentation */
+        rdk_otlp_init("tr69hostif", "1.0.0");
+        rdk_otlp_metrics_init();
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "TR69HostIF OTLP instrumentation initialized\n");
+        
         #ifdef T2_EVENT_ENABLED
          t2_init(const_cast<char*>("tr69hostif"));
         #endif

@@ -66,7 +66,7 @@
 #include "hostIf_SNMPClient_ReqHandler.h"
 #endif
 #include "x_rdk_req_handler.h"
-
+#include "rdk_otlp_instrumentation.h"
 extern GHashTable* paramMgrhash;
 extern T_ARGLIST argList;
 static std::mutex get_handler_mutex;
@@ -172,6 +172,8 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         #endif
         loggedGet1000Within5Min =true;
     }
+    // Start child span (retrieves parent context from TraceContextManager)
+    rdk_otlp_start_child_span(stMsgData->paramName, "get");
     try
     {
         /* Find the respective manager and forward the request*/
@@ -189,16 +191,20 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
 
             // Calculate time taken in microseconds
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
+                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %ld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
                 paramValueStr,
                 timeTaken);
+            
+            // Record metric - convert microseconds to seconds
+            double duration_seconds = timeTaken / 1000000.0;
+	    //rdk_otlp_metrics_record_parameter_operation(stMsgData->paramName, "get", duration_seconds);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
                 // Debug log
                 RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                    "[%s:%d] Slow GET detected: paramName: %s, timeTaken: %lld ms\n",
+                    "[%s:%d] Slow GET detected: paramName: %s, timeTaken: %ld ms\n",
                     __FUNCTION__, __LINE__, stMsgData->paramName, timeTaken/1000);
                 #ifdef T2_EVENT_ENABLED
                 // Telemetry: report paramName
@@ -213,7 +219,8 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     {
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Exception caught %s\n", __FUNCTION__, __LINE__, e.what());
     }
-
+    // Finish child span
+    rdk_otlp_finish_child_span();
     return ret;
 }
 
@@ -262,7 +269,8 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         loggedSet1000Within5Min = true;
     }
 
-
+   // Start child span (retrieves parent context from TraceContextManager)
+    rdk_otlp_start_child_span(stMsgData->paramName, "set");
     /* Find the respective manager and forward the request*/
     msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
@@ -277,15 +285,19 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
 
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
+                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %ld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
                 paramValueStr,
                 timeTakenset);
+        
+        // Record metric - convert microseconds to seconds
+        double duration_seconds = timeTakenset / 1000000.0;
+	//rdk_otlp_metrics_record_parameter_operation(stMsgData->paramName, "set", duration_seconds);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "[%s:%d] Slow SET detected: paramName: %s, timeTaken: %lld ms\n",
+                "[%s:%d] Slow SET detected: paramName: %s, timeTaken: %ld ms\n",
                 __FUNCTION__, __LINE__, stMsgData->paramName, timeTakenset/1000);
             #ifdef T2_EVENT_ENABLED
             t2ValNotify("TR69HOSTIF_SET_TIMEOUT_PARAM", stMsgData->paramName);
@@ -295,6 +307,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     }
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+    rdk_otlp_finish_child_span();
     return ret;
 }
 
@@ -651,14 +664,14 @@ bool hostIf_ConfigProperties_Init()
             groups = g_key_file_get_groups(key_file, &groups_id);
             for(group = 0; group < groups_id; group++)
             {
-                RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"group %u/%u: \t%s\n", group, groups_id - 1, groups[group]);
+                RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"group %lu/%lu: \t%s\n", (unsigned long)group, (unsigned long)(groups_id - 1), groups[group]);
                 if(0 == strncasecmp(HOSTIF_MGR_GROUP, groups[group], strlen(groups[group])))
                 {
                     keys = g_key_file_get_keys(key_file, groups[group], &num_keys, &error);
                     for(key = 0; key < num_keys; key++)
                     {
                         value = g_key_file_get_value(key_file,	groups[group],	keys[key],	&error);
-                        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"\t\tkey %u/%u: \t%s => %s\n", key, num_keys - 1, keys[key], value);
+                        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"\t\tkey %lu/%lu: \t%s => %s\n", (unsigned long)key, (unsigned long)(num_keys - 1), keys[key], value);
 
                         if(strcasecmp(value, "deviceMgr") == 0)
                         {

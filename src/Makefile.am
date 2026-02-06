@@ -44,7 +44,8 @@ AM_CXXFLAGS = $(GLIB_CFLAGS) $(GTHREAD_CFLAGS) \
 	-I$(top_srcdir)/src/hostif/profiles/IP \
 	-I$(top_srcdir)/src/hostif/profiles/Time \
 	-I$(top_srcdir)/src/hostif/profiles/DeviceInfo \
-	-I$(top_srcdir)/src/hostif/profiles/Device
+	-I$(top_srcdir)/src/hostif/profiles/Device \
+	-I/mnt/L2_CONTAINER_SHARED_VOLUME/dtracing/rdk_otel_instrumentation/include
 
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/parodusClient/pal \
                -I$(top_srcdir)/src/hostif/parodusClient/waldb 
@@ -119,6 +120,9 @@ AM_LDFLAGS += $(SYSTEMD_SDNOTIFY_LDFLAGS) -lsecure_wrapper
 else
 AM_LDFLAGS += $(SYSTEMD_SDNOTIFY_LDFLAGS)
 endif
+
+# Add RDK OTLP instrumentation library
+AM_LDFLAGS += -lrdk_otlp
 
 if IS_TELEMETRY2_ENABLED
 AM_CXXFLAGS += $(T2_EVENT_FLAG)
