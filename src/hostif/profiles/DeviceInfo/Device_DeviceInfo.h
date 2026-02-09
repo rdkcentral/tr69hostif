@@ -1123,6 +1123,8 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadUseCodebig(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadDeferReboot(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_IUI_AppsVersion(HOSTIF_MsgData_t *);
+    int get_Device_DeviceInfo_IUI_AppsVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
 
     /**
     * @brief set_xOpsDMUploadLogsNow.
