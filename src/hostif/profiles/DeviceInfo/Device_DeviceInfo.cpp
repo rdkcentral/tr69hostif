@@ -115,6 +115,7 @@
 #define IPREMOTE_INTERFACE_INFO            "/tmp/ipremote_interface_info"
 #define MODEL_NAME_FILE                    "/tmp/.model"
 #define IUI_VERSION_FILE                   "/tmp/.iuiVersion"
+#define IUI_APPSVERSION_FILE               "/tmp/.iuiAppsVersion"
 #define PREVIOUS_REBOT_REASON_FILE         "/opt/secure/reboot/previousreboot.info"
 #define NTPENABLED_FILE                    "/opt/.ntpEnabled"
 #define RDKV_DAB_ENABLE_FILE               "/opt/dab-enable"
@@ -2374,6 +2375,86 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayTy
     }
 
     return ret;
+}
+
+int hostIf_DeviceInfo::get_Device_DeviceInfo_IUI_AppsVersion(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
+{
+    int ret=NOT_HANDLED;
+    stMsgData->paramtype = hostIf_StringType;
+
+    std::string iuiAppsVersion;
+    std::ifstream file(IUI_APPSVERSION_FILE);
+
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] IUI AppsVersion file does not exist, returning empty value\n", __FUNCTION__, __FILE__, __LINE__);
+        stMsgData->paramValue[0] = '\0';
+        stMsgData->paramLen = 0;
+        return OK;
+    }
+
+    if (std::getline(file, iuiAppsVersion)) {
+        // Remove newline char if any in iui apps version
+        if (!iuiAppsVersion.empty() && iuiAppsVersion.back() == '\n') {
+            iuiAppsVersion.pop_back();
+        }
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] iuiAppsVersion = %s.\n", __FUNCTION__, __FILE__, __LINE__, iuiAppsVersion.c_str());
+        strncpy((char *)stMsgData->paramValue, iuiAppsVersion.c_str(), sizeof(stMsgData->paramValue)-1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+        stMsgData->paramLen = iuiAppsVersion.length();
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] paramValue: %s stMsgData->paramLen: %d \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramValue, stMsgData->paramLen);
+        ret = OK;
+    } else {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s(): No data in IUI AppsVersion file, returning empty value.\n", __FUNCTION__);
+        stMsgData->paramValue[0] = '\0';
+        stMsgData->paramLen = 0;
+        ret = OK;
+    }
+
+    file.close();
+
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
+    return ret;
+
+}
+
+int hostIf_DeviceInfo::set_Device_DeviceInfo_IUI_AppsVersion(HOSTIF_MsgData_t *stMsgData)
+{
+    std::string iuiAppsVersion = getStringValue(stMsgData);
+
+    if (iuiAppsVersion.empty()) {
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Empty IUI AppsVersion provided, will clear the stored value\n",
+            __FUNCTION__, __FILE__, __LINE__);
+
+    // Remove the file if empty value is set
+    if (std::remove(IUI_APPSVERSION_FILE) != 0) {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to remove %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                IUI_APPSVERSION_FILE);
+    }
+}
+
+
+    std::ofstream file(IUI_APPSVERSION_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to open IUI AppsVersion file for writing\n", __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    file << iuiAppsVersion;
+
+    if (file.fail()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%s:%d] Failed to write IUI AppsVersion to file\n", __FUNCTION__, __FILE__, __LINE__);
+        file.close();
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] Successfully wrote IUI AppsVersion: %s\n", __FUNCTION__, __FILE__, __LINE__, iuiAppsVersion.c_str());
+    file.close();
+    return OK;
 }
 
 /**
