@@ -547,6 +547,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_DeviceInfo_IUI_Version(stMsgData);
         }
+		else if (strcasecmp(stMsgData->paramName,IUI_APPSVERSION) == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_IUI_AppsVersion(stMsgData);
+        }
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.AdditionalHardwareVersion") == 0)
         {
             ret = pIface->get_Device_DeviceInfo_AdditionalHardwareVersion(stMsgData);
