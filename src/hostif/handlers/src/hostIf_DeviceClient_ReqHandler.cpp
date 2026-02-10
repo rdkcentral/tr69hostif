@@ -298,6 +298,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_DeviceInfo_IUI_Version(stMsgData);
         }
+        else if (!strcasecmp(stMsgData->paramName, IUI_APPSVERSION))
+        {
+            ret = pIface->set_Device_DeviceInfo_IUI_AppsVersion(stMsgData);
+        }
         else
         {
             ret = NOK;
@@ -542,6 +546,10 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         else if (strcasecmp(stMsgData->paramName,IUI_VERSION) == 0)
         {
             ret = pIface->get_Device_DeviceInfo_IUI_Version(stMsgData);
+        }
+        else if (strcasecmp(stMsgData->paramName,IUI_APPSVERSION) == 0)
+        {
+            ret = pIface->get_Device_DeviceInfo_IUI_AppsVersion(stMsgData);
         }
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.AdditionalHardwareVersion") == 0)
         {

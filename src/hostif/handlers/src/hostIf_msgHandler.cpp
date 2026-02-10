@@ -188,7 +188,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             
 
             // Calculate time taken in microseconds
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
@@ -276,7 +276,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         char paramValueStr[128] = {0};
         paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
 
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
                 stMsgData->paramName,
