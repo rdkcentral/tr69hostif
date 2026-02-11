@@ -22,7 +22,7 @@ case $ARCH in
 esac
 
 # Set up library path for both architectures (aligned with L2-tests.yml)
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu:/usr/local/lib:$ARCH_LIB_PATH:$ARCH_LIB_PATH_ALT
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ARCH_LIB_PATH:$ARCH_LIB_PATH_ALT:/usr/local/lib
 
 apt-get update && apt-get install -y libsoup-3.0
 
