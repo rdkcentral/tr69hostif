@@ -4412,7 +4412,13 @@
           <default type="factory" value=""/>
         </syntax>
       </parameter>
-    </object>
+		<parameter base="AppsVersion" access="readWrite" notification="0" maxNotification="2">
+			<syntax>
+				<string/>
+				<default type="factory" value=""/>
+			</syntax>
+		</parameter>
+	</object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DynamicIUIUpdate.Pathway." access="readOnly" minEntries="0" maxEntries="1">
       <parameter base="Uri" access="readWrite" notification="0" maxNotification="2">
         <syntax>
@@ -4423,12 +4429,6 @@
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DynamicIUIUpdate." access="readOnly" minEntries="0" maxEntries="1">
       <parameter base="IUISelector" access="readWrite" notification="0" maxNotification="2">
-        <syntax>
-          <string/>
-          <default type="factory" value=""/>
-        </syntax>
-      </parameter>
-	  <parameter base="AppsVersion" access="readWrite" notification="0" maxNotification="2">
         <syntax>
           <string/>
           <default type="factory" value=""/>
