@@ -155,9 +155,14 @@ static void parodus_receive_wait()
             clock_gettime(CLOCK_MONOTONIC, &currTime);
             currTime.tv_sec += 5;
             pthread_mutex_lock(&parodus_lock);
-            if(0 != pthread_cond_timedwait(&parodus_cond, &parodus_lock,&currTime ))
+            int wait_ret = pthread_cond_timedwait(&parodus_cond, &parodus_lock,&currTime);
+            if(wait_ret == ETIMEDOUT)
             {
-                RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"parodus_receive_wait(): wait for key acquisition timed out");  //CID:119759 - checked return
+                RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"parodus_receive_wait(): wait for key acquisition timed out");
+            }
+            else if(wait_ret != 0)
+            {
+                RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"parodus_receive_wait(): pthread_cond_timedwait failed with error %d", wait_ret);
             }
 	    RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
             pthread_mutex_unlock(&parodus_lock);
