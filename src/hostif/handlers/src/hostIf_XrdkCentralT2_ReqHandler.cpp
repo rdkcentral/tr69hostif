@@ -163,6 +163,7 @@ int XRdkCentralT2::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramValueLong = (char*) malloc (iParamLen+1);
                 if (NULL == stMsgData->paramValueLong) {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] [%d] memory allocation failed.\n", __FUNCTION__, __LINE__);
+                    free(paramValue);
                     ret = NOK;
                     return ret;
                 }
@@ -176,6 +177,7 @@ int XRdkCentralT2::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
                 strncpy(stMsgData->paramValue, paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1);
                 stMsgData->paramValue[TR69HOSTIFMGR_MAX_PARAM_LEN-1] = '\0';
             }
+            free(paramValue);
             ret = OK ;
         }
 
@@ -186,6 +188,7 @@ int XRdkCentralT2::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         if(OK == getRbusStringParam("Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack", &paramValue)) {
             strncpy(stMsgData->paramValue, paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1);
             stMsgData->paramValue[TR69HOSTIFMGR_MAX_PARAM_LEN-1] = '\0';
+            free(paramValue);
             ret = OK ;
         }
 

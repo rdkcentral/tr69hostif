@@ -649,10 +649,7 @@ int hostIf_IPInterface::get_Interface_Name(HOSTIF_MsgData_t *stMsgData, bool *pC
 
     errno_t rc = -1;
     rc=strcpy_s (stIPInterfaceInstance.name,sizeof(stIPInterfaceInstance.name), nameOfInterface);
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s(): Interface name = %s \n", __FUNCTION__, stIPInterfaceInstance.name);
 
@@ -844,26 +841,17 @@ int hostIf_IPInterface::get_Interface_Type(HOSTIF_MsgData_t *stMsgData, bool *pC
     if (isLoopback (nameOfInterface))
     {
         rc=strcpy_s (stIPInterfaceInstance.type,sizeof(stIPInterfaceInstance.type), "Loopback");
-	if(rc!=EOK)
-	{
-		ERR_CHK(rc);
-	}
+	ERR_CHK(rc);
     }
     else if (0 == strncmp (nameOfInterface, "eth", 3) || 0 == strncmp (nameOfInterface, "wlan", 4))
     {
         rc=strcpy_s (stIPInterfaceInstance.type,sizeof(stIPInterfaceInstance.type), "Normal");
-	if(rc!=EOK)
-        {
-                ERR_CHK(rc);
-        }
+	ERR_CHK(rc);
     }
     else
     {
         rc=strcpy_s (stIPInterfaceInstance.type,sizeof(stIPInterfaceInstance.type), "Tunneled");
-	if(rc!=EOK)
-        {
-                ERR_CHK(rc);
-        }
+	ERR_CHK(rc);
     }
 
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s(): Type: %s \n", __FUNCTION__, stIPInterfaceInstance.type);

@@ -265,10 +265,7 @@ int getProcessFields(int iProcInstanceNum, EProcessMembers eProcessMem)
     case eProcessCommand:
         memset(processStatus.cCommand,'\0',_COMMAND_LENGTH);
         safec_rc=strcpy_s(processStatus.cCommand, sizeof(processStatus.cCommand) ,procTask.cmd);
-        if(safec_rc!=EOK)
-	{
-		    ERR_CHK(safec_rc);
-	}
+        ERR_CHK(safec_rc);
 	RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"ProcessInstance: %d Command: %s\n",iProcInstanceNum, procTask.cmd);
         break;
     case eProcessState:
@@ -277,31 +274,19 @@ int getProcessFields(int iProcInstanceNum, EProcessMembers eProcessMem)
         {
         case 'R':
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_RUNNING);
-            if(safec_rc!=EOK)
-            {
-                    ERR_CHK(safec_rc);
-            }
+            ERR_CHK(safec_rc);
 	    break;
         case 'S':
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_SLEEPING);
-            if(safec_rc!=EOK)
-            {
-                    ERR_CHK(safec_rc);
-            }
+            ERR_CHK(safec_rc);
 	    break;
         case 'T':
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_STOPPED);
-            if(safec_rc!=EOK)
-            {
-                    ERR_CHK(safec_rc);
-            }
+            ERR_CHK(safec_rc);
 	    break;
         case 'Z':
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_ZOMBIE);
-            if(safec_rc!=EOK)
-            {
-                    ERR_CHK(safec_rc);
-            }
+            ERR_CHK(safec_rc);
 	    break;
         default:
             break;
@@ -415,10 +400,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Command(HO
         return NOK;
     }
     rc=strcpy_s(backupProcessCommand,sizeof(backupProcessCommand),processStatus.cCommand);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     if(bCalledProcessCommand && pChanged && (!rc))
     {
@@ -426,16 +408,10 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Command(HO
     }
     bCalledProcessCommand = true;
     rc=strcpy_s(backupProcessCommand,sizeof(backupProcessCommand),processStatus.cCommand);
-    if(rc!=EOK)  
-    {
-	ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue),processStatus.cCommand);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;
@@ -569,10 +545,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_State(HOST
         return NOK;
     }
     rc=strcpy_s(backupProcessState,sizeof(backupProcessState),processStatus.cState);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     if(bCalledProcessState && pChanged && (!rc))
     {
@@ -580,16 +553,10 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_State(HOST
     }
     bCalledProcessState = true;
     rc=strcpy_s(backupProcessState,sizeof(backupProcessState),processStatus.cState);
-    if(rc!=EOK)
-    {
-	ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue),processStatus.cState);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
     g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
     return OK;

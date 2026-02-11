@@ -46,6 +46,8 @@
 #define AUTH_SERVICE_PARODUS_RESTART "/tmp/authservice_parodus_restart"
 #define MAX_FILENAME_LENGTH 256
 
+#include <atomic>
+
 #define CURL_EASY_SETOPT(CURL , CURLoption , Value)\
     if (curl_easy_setopt(CURL , CURLoption , Value) != CURLE_OK ) {\
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl_easy_setopt setopt failed ...\n", __FUNCTION__);\
@@ -53,7 +55,7 @@
 /*CID:121745 - checked return */
 
 
-XBSStore* XBSStore::xbsInstance = NULL;
+std::atomic<XBSStore*> XBSStore::xbsInstance(nullptr);
 XBSStoreJournal* XBSStore::xbsJournalInstance = NULL;
 recursive_mutex XBSStore::mtx;
 thread XBSStore::partnerIdThread;

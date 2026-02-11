@@ -67,7 +67,11 @@ class VideoResolution : public DSConstant {
 
 public:
 
-	static const VideoResolution & getInstance(int id) {}
+	static const VideoResolution & getInstance(int id)
+	{
+		static VideoResolution instance(id, "dummy", 0, 0, 0, 0, false, true);
+		return instance;
+	}
 	static const VideoResolution & getInstance(const std::string &name, bool isIgnoreEdid=false);
 
 

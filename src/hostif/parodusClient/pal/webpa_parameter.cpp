@@ -280,7 +280,9 @@ static WAL_STATUS rbusSetParamInfo(ParamVal paramVal, char * transactionID)
     rbusValue_Init(&setVal);
     if (rbusValue_SetFromString(setVal, type, paramVal.value))
     {
-        rbusSetOptions_t opts = {true, strtoul (transactionID, NULL, 0)};
+        rbusSetOptions_t opts;
+        opts.commit = true;
+        opts.sessionId = (uint32_t)strtoul(transactionID, NULL, 0);
         rc = rbus_set(g_busHandle, paramVal.name, setVal, &opts);
         if(rc != RBUS_ERROR_SUCCESS)
         {

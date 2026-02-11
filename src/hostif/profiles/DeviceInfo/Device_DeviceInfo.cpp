@@ -3012,12 +3012,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] File not exists, IpRemoteInterface file open failed \n", __FUNCTION__);
 
             //values not populated so unknown.
-            rc=strcpy_s(ipAddress,sizeof(ipAddress),"unknown");
-            if(rc!=EOK)
-            {
-                ERR_CHK(rc);
-            }
-            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "unknown");
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -3065,12 +3060,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] File not exists, IpRemoteInterface file open failed \n", __FUNCTION__);
 
             //values not populated so unknown.
-            rc=strcpy_s(macAddress,sizeof(macAddress),"unknown");
-            if(rc!=EOK)
-            {
-                ERR_CHK(rc);
-            }
-            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
+            snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "unknown");
         }
 
         stMsgData->paramtype = hostIf_StringType;
@@ -3269,7 +3259,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HO
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Components that are Ready..\n", __FUNCTION__);
 
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.MigrationPreparer.getComponentReadiness\" }";
-    response = getJsonRPCData(postData); 
+    response = getJsonRPCData(postData);
 
     if(response.c_str())
     {
@@ -3562,19 +3552,12 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
         if (get_boolean(stMsgData->paramValue))
         {
             rc=strcpy_s(ForwardSSH,sizeof(ForwardSSH),"true");
-            if(rc!=EOK)
-            {
-                ERR_CHK(rc);
-
-            }
+            ERR_CHK(rc);
         }
         else
         {
             rc=strcpy_s(ForwardSSH,sizeof(ForwardSSH),"false");
-            if(rc!=EOK)
-            {
-                ERR_CHK(rc);
-            }
+            ERR_CHK(rc);
         }
         fprintf(fp,"ForwardSSH=%s", ForwardSSH);
     }
@@ -4895,6 +4878,10 @@ void executeRfcMgr()
         v_secure_pclose(pipe2);
         fclose(fp2);
     }
+    else {
+        if (pipe2) v_secure_pclose(pipe2);
+        if (fp2) fclose(fp2);
+    }
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully executed RFC Manager\n", __FUNCTION__, __LINE__);
 }
 
@@ -5112,7 +5099,7 @@ int hostIf_DeviceInfo::set_xFirmwareDownloadNow(HOSTIF_MsgData_t *stMsgData)
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to trigger Download, \'system (\"%s\")\' returned error code '%d'\n", __FUNCTION__, cmd, ret);
                     return NOK;
                 }
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s:%d] Yw.. Successfully executed (\'%s\')Triggered Download.\n",__FUNCTION__,__LINE__, cmd);
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF, "[%s:%d] Successfully executed (\'%s\')Triggered Download.\n",__FUNCTION__,__LINE__, cmd);
 
                 /*Reset all cache parameter values for download trigger on successfully executed*/
                 m_xFirmwareDownloadProtocol.clear();
@@ -5404,10 +5391,7 @@ int hostIf_DeviceInfo::set_xOpsRPCDevManageableNotification(HOSTIF_MsgData_t *st
 
     HOSTIF_MsgData_t stRfcData = {0};
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
     {
         m_strXOpsDevManageableNotification = stMsgData->paramValue;
@@ -5431,10 +5415,7 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldStartedNotification(HOSTIF_MsgData_t *st
     /* Check for RFC */
     HOSTIF_MsgData_t stRfcData = {0};
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
     {
         m_strXOpsRPCFwDwldStartedNotification = stMsgData->paramValue;
@@ -5455,10 +5436,7 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldCompletedNotification(HOSTIF_MsgData_t *
     /* Check for RFC */
     HOSTIF_MsgData_t stRfcData = {0};
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
-    if(rc!=EOK)
-    {
-        ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
     {
         m_bXOpsRPCFwDwldCompletedNotification = get_boolean(stMsgData->paramValue);

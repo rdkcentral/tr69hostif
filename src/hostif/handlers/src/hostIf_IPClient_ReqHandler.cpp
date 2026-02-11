@@ -408,14 +408,16 @@ int IPClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
     	    }
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
             ret = OK;
+            // Note: notifyKey and notifyValuePtr are now owned by the hash table, don't free them
         }
         else
         {
             ret = NOK;
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] EthernetClientReqHandler Not able to allocate Notify pointer %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
+            // Free only if allocation failed and not inserted into hash table
+            if(notifyKey) free(notifyKey);
+            if(notifyValuePtr) free(notifyValuePtr);
         }
-        free(notifyKey);  //CID:85281 - Resource leak
-        free(notifyValuePtr);
     }
     else
     {
@@ -459,6 +461,7 @@ void getIPIfcIDs(unsigned int *ifindexes) {
 
 void IPClientReqHandler::checkForUpdates()
 {
+	std::lock_guard<std::mutex> lg(m_mutex); 
     if (mUpdateCallback == 0)
         return;
 
@@ -487,11 +490,14 @@ void IPClientReqHandler::checkForUpdates()
     {
 	
         if (ifindexes[i] > 0 && ifindexes[i] < sizeof(curNumOfInterfaceIPv4Addresses)/sizeof(curNumOfInterfaceIPv4Addresses[0])) {
-            int ipv4AddressNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv4AddressNumberOfEntries ();
-            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv4AddressNumberOfEntries = %d, curNumOfInterfaceIPv4Addresses[%d] = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, ipv4AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv4Addresses[ifindexes[i]]);
-            sprintf (objectPath, "Device.IP.Interface.%d.IPv4Address.", ifindexes[i]);
-            sendAddRemoveEvents (mUpdateCallback, ipv4AddressNumberOfEntries, curNumOfInterfaceIPv4Addresses[ifindexes[i]], objectPath);
+            hostIf_IPInterface* ipIfInst = hostIf_IPInterface::getInstance(ifindexes[i]);
+            if (ipIfInst) {
+                int ipv4AddressNumberOfEntries = ipIfInst->getIPv4AddressNumberOfEntries();
+                RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv4AddressNumberOfEntries = %d, curNumOfInterfaceIPv4Addresses[%d] = %d\n",
+                    __FILE__, __FUNCTION__, __LINE__, ipv4AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv4Addresses[ifindexes[i]]);
+                sprintf (objectPath, "Device.IP.Interface.%d.IPv4Address.", ifindexes[i]);
+                sendAddRemoveEvents (mUpdateCallback, ipv4AddressNumberOfEntries, curNumOfInterfaceIPv4Addresses[ifindexes[i]], objectPath);
+            }
 
 #ifdef IPV6_SUPPORT
 	    if (ifindexes[i] < sizeof(curNumOfInterfaceIPv6Addresses)/sizeof(curNumOfInterfaceIPv6Addresses[0])) {

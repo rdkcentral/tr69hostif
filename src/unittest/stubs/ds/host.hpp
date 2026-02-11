@@ -76,10 +76,18 @@ public:
     void addDisplayConnectionListener(DisplayConnectionChangeListener *l);
     void removeDisplayConnectionListener(DisplayConnectionChangeListener *l);
 
-    static Host& getInstance(void){};
+    static Host& getInstance(void)
+    {
+        static Host instance;
+        return instance;
+    }
 
     List<VideoOutputPort> getVideoOutputPorts();
-    List<AudioOutputPort> getAudioOutputPorts(){};
+    List<AudioOutputPort> getAudioOutputPorts()
+    {
+        List<AudioOutputPort> ports;
+        return ports;
+    }
     List<VideoDevice> getVideoDevices()
     {
          List<VideoDevice> devices;
@@ -93,8 +101,12 @@ public:
          return vPort; 	 
     }
     VideoOutputPort &getVideoOutputPort(int id);
-    AudioOutputPort &getAudioOutputPort(const std::string &name){};
-    AudioOutputPort &getAudioOutputPort(int id){};
+    AudioOutputPort &getAudioOutputPort(const std::string &name)
+    {
+        static AudioOutputPort aPort(name);
+        return aPort;
+    }
+    AudioOutputPort &getAudioOutputPort(int id);
     void notifyPowerChange(const  int mode);
     float getCPUTemperature() { return 42.5f; };
     uint32_t  getVersion(void);
