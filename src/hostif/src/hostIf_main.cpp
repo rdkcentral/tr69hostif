@@ -123,7 +123,7 @@ bool httpServerThreadDone = false;
 
 #if defined(PARODUS_ENABLE)
 // Parodus Init Thread
-pthread_t parodus_init_tid;
+pthread_t parodus_init_tid = 0;
 #endif
 
 #ifdef WEBCONFIG_LITE_ENABLE
