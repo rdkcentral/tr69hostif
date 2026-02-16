@@ -358,10 +358,7 @@ void hostIf_Init_Dummy_stMsgData (HOSTIF_MsgData_t **stMsgData)
     {
         stMsgDummyData = new HOSTIF_MsgData_t();
         rc=strcpy_s(stMsgDummyData->paramName,sizeof(stMsgDummyData->paramName), TEST_STR);
-        if(rc!=EOK)
-        {
-            ERR_CHK(rc);
-        }
+        ERR_CHK(rc);
         stMsgDummyData->reqType = HOSTIF_GET;
         stMsgDummyData->instanceNum = 0;
         *stMsgData = stMsgDummyData;

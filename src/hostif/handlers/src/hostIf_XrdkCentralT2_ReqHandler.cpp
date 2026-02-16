@@ -102,6 +102,7 @@ int XRdkCentralT2::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
                     int iIpLen = strlen (stMsgData->paramValueLong);
                     int iOpLen = strlen (paramValueGetVal);
                     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%s] ReportProfiles written data size:%d data size read:%d\n", __FUNCTION__, __FILE__, iIpLen, iOpLen);
+                    free(paramValueGetVal);  // CID:100 - Free memory allocated by getRbusStringParam
                 }
                 else {
                     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%s] Device.X_RDKCENTRAL-COM_T2.ReportProfiles cross check get failed\n", __FUNCTION__, __FILE__);
@@ -163,6 +164,7 @@ int XRdkCentralT2::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
                 stMsgData->paramValueLong = (char*) malloc (iParamLen+1);
                 if (NULL == stMsgData->paramValueLong) {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] [%d] memory allocation failed.\n", __FUNCTION__, __LINE__);
+                    free(paramValue);  // CID:102 - Free memory allocated by getRbusStringParam
                     ret = NOK;
                     return ret;
                 }
@@ -176,6 +178,7 @@ int XRdkCentralT2::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
                 strncpy(stMsgData->paramValue, paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1);
                 stMsgData->paramValue[TR69HOSTIFMGR_MAX_PARAM_LEN-1] = '\0';
             }
+            free(paramValue);  // CID:103,104 - Free memory allocated by getRbusStringParam
             ret = OK ;
         }
 
@@ -186,6 +189,7 @@ int XRdkCentralT2::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         if(OK == getRbusStringParam("Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack", &paramValue)) {
             strncpy(stMsgData->paramValue, paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1);
             stMsgData->paramValue[TR69HOSTIFMGR_MAX_PARAM_LEN-1] = '\0';
+            free(paramValue);  // CID:103,104 - Free memory allocated by getRbusStringParam
             ret = OK ;
         }
 

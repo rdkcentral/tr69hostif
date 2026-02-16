@@ -282,10 +282,7 @@ int TimeClientReqHandler::handleGetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
             *notifyValuePtr = 1;
 	    errno_t rc = -1;
             rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,stMsgData->paramName);
-	    if(rc!=EOK)
-    	    {
-	    	ERR_CHK(rc);
-    	    }
+	    ERR_CHK(rc);
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
             ret = OK;
         }
@@ -335,10 +332,7 @@ int TimeClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
             *notifyValuePtr = 1;
 	    errno_t rc = -1;
             rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,stMsgData->paramName);
-	    if(rc!=EOK)
-    	    {
-	    	ERR_CHK(rc);
-    	    }
+	    ERR_CHK(rc);
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
             ret = OK;
         }

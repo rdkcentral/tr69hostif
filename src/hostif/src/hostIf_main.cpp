@@ -531,8 +531,6 @@ int main(int argc, char *argv[])
         else {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s]Fails to Create a main loop.", __FUNCTION__);
         }
-        if (isShutdownTriggered)
-		    return 0;
 		
         if(hostIf_JsonIfThread)
             g_thread_join(hostIf_JsonIfThread);
@@ -617,7 +615,10 @@ void exit_gracefully (int sig_received)
             /*Stop libSoup server and exit Json Thread */
             hostIf_HttpServerStop();
 
+            // Stop update polling and wait for the worker to exit before further teardown
             updateHandler::stop();
+			updateHandler::join();
+			
             XBSStore::getInstance()->stop();
 
             if(logfile) fclose (logfile);

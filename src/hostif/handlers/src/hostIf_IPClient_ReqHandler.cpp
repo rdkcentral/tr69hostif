@@ -402,10 +402,7 @@ int IPClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         {
             *notifyValuePtr = 1;
             rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,stMsgData->paramName);
-	    if(rc!=EOK)
-    	    {
-	    	ERR_CHK(rc);
-    	    }
+	    ERR_CHK(rc);
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
             ret = OK;
         }
@@ -478,6 +475,7 @@ void IPClientReqHandler::checkForUpdates()
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] interfaceNumberOfEntries = %d, curNumOfIPInterface = %d\n",
                 __FILE__, __FUNCTION__, __LINE__, interfaceNumberOfEntries, curNumOfIPInterface);
         sprintf (objectPath, "Device.IP.Interface.");
+        // Access to curNumOfIPInterface is protected by lock acquired above
         sendAddRemoveEvents (mUpdateCallback, interfaceNumberOfEntries, curNumOfIPInterface, objectPath);
     }
 
@@ -494,7 +492,7 @@ void IPClientReqHandler::checkForUpdates()
             sendAddRemoveEvents (mUpdateCallback, ipv4AddressNumberOfEntries, curNumOfInterfaceIPv4Addresses[ifindexes[i]], objectPath);
 
 #ifdef IPV6_SUPPORT
-	    if (ifindexes[i] < sizeof(curNumOfInterfaceIPv6Addresses)/sizeof(curNumOfInterfaceIPv6Addresses[0])) {
+	    if (ifindexes[i] < sizeof(curNumOfInterfaceIPv6Addresses)/sizeof(curNumOfInterfaceIPv6Addresses[0]))  {
                 int ipv6AddressNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv6AddressNumberOfEntries ();
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv6AddressNumberOfEntries = %d, curNumOfInterfaceIPv6Addresses[%d] = %d\n",
                 __FILE__, __FUNCTION__, __LINE__, ipv6AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv6Addresses[ifindexes[i]]);

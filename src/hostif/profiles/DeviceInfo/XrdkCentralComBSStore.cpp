@@ -129,7 +129,7 @@ void XBSStore::getAuthServicePartnerID()
     }
 
     // Extracting the parent directories dynamically
-    std::string filePath = partnerIdPath;
+    std::string filePath(partnerIdPath);
     std::string authServiceDir = getParentDirectory(filePath);  // "/opt/www/authService"
     std::string wwwDir = getParentDirectory(authServiceDir);    // "/opt/www"
     std::string parentDir = getParentDirectory(wwwDir);         // "/opt"
@@ -821,16 +821,13 @@ XBSStore* XBSStore::getInstance()
 {
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "Entering %s \n", __FUNCTION__);
 
+    std::lock_guard<std::mutex> guard(g_instance_mutex);
     if(!xbsInstance)
     {
-        std::lock_guard<std::mutex> guard(g_instance_mutex);
-        if(!xbsInstance)
-        {
-            xbsInstance = new XBSStore;
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Start thread getAuthServicePartnerID \n", __FUNCTION__);
-            partnerIdThread = thread(getAuthServicePartnerID);
-            partnerIdThread.detach();
-        }
+        xbsInstance = new XBSStore;
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Start thread getAuthServicePartnerID \n", __FUNCTION__);
+        partnerIdThread = thread(getAuthServicePartnerID);
+        partnerIdThread.detach();
     }
 
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "Leaving %s \n", __FUNCTION__);
