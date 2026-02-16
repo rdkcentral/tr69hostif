@@ -123,7 +123,7 @@ bool httpServerThreadDone = false;
 
 #if defined(PARODUS_ENABLE)
 // Parodus Init Thread
-pthread_t parodus_init_tid;
+pthread_t parodus_init_tid =0 ;
 #endif
 
 #ifdef WEBCONFIG_LITE_ENABLE
@@ -530,8 +530,9 @@ int main(int argc, char *argv[])
         }
         else {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s]Fails to Create a main loop.", __FUNCTION__);
-        }
-
+        }                                                                                                                                                                                      
+		if (isShutdownTriggered)
+		    return 0;
         if(hostIf_JsonIfThread)
             g_thread_join(hostIf_JsonIfThread);
 
