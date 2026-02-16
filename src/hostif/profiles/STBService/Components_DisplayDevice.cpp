@@ -62,30 +62,15 @@ hostIf_STBServiceDisplayDevice::hostIf_STBServiceDisplayDevice(int devId, device
 {
     errno_t rc = -1;
     rc=strcpy_s(backupDisplayDeviceStatus,sizeof(backupDisplayDeviceStatus)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupEDID,sizeof(backupEDID)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupEDIDBytes,sizeof(backupEDIDBytes)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupSupportedResolution,sizeof(backupSupportedResolution)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupPreferredResolution,sizeof(backupPreferredResolution)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     bCalledDisplayDeviceStatus = false;
     bCalledEDID = false;

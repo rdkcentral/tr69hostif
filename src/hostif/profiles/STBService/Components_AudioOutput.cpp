@@ -166,53 +166,26 @@ hostIf_STBServiceAudioInterface::hostIf_STBServiceAudioInterface(int devid, devi
 {
     errno_t rc = -1;
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupCancelMute = false;
     rc=strcpy_s(backupAudioStereoMode,sizeof(backupAudioStereoMode)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupAudioLevel=0;
     rc=strcpy_s(backupAudioDB,sizeof(backupAudioDB)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupAudioLoopThru,sizeof(backupAudioLoopThru)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupAudioCompression=0;
     rc=strcpy_s(backupAudioEncoding,sizeof(backupAudioEncoding)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupAudioGain,sizeof(backupAudioGain)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupMinAudioDB,sizeof(backupMinAudioDB)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupMaxAudioDB,sizeof(backupMaxAudioDB)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupAudioOptimalLevel,sizeof(backupAudioOptimalLevel)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupDialogEnhancement=0;
     bCalledStatus = false;
     bCalledCancelMute = false;

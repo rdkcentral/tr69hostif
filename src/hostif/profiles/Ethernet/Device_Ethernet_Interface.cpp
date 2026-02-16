@@ -185,6 +185,12 @@ static int getEthernetInterfaceName (unsigned int ethInterfaceNum, char* name)
 {
     int ret = NOK;
     errno_t rc = -1;
+    
+    if (name == NULL) {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s(): name parameter is NULL\n", __FUNCTION__);
+        return NOK;
+    }
+    
     name[0]='\0';
     //retrieve the current interfaces
     struct if_nameindex* ifname = if_nameindex ();
@@ -197,10 +203,7 @@ static int getEthernetInterfaceName (unsigned int ethInterfaceNum, char* name)
             if ((strncmp (ifnp->if_name, "eth", 3) == 0) && (++count == ethInterfaceNum))
             {
                 rc=strcpy_s (name, BUFF_LENGTH_64,ifnp->if_name);
-		if(rc!=EOK)
-        	{
-                	ERR_CHK(rc);
-        	}
+		ERR_CHK(rc);
                 ret = OK;
                 break;
             }
@@ -313,18 +316,12 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
 	if(TRUE==temp)
 	{
 		rc=strcpy_s (hostIf_EthernetInterface::stEthInterface.status,sizeof(hostIf_EthernetInterface::stEthInterface.status) ,"Up");
-		if(rc!=EOK)
-		{
-			ERR_CHK(rc);
-		}
+		ERR_CHK(rc);
 	}
 	else
 	{
 		rc=strcpy_s (hostIf_EthernetInterface::stEthInterface.status,sizeof(hostIf_EthernetInterface::stEthInterface.status) ,"Down");
-        	if(rc!=EOK)
-        	{
-                	ERR_CHK(rc);
-        	}
+		ERR_CHK(rc);
 	}
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): Interface %u Status: %s \n",
                 __FUNCTION__, ethInterfaceNum, hostIf_EthernetInterface::stEthInterface.status);
@@ -541,10 +538,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_Status(HOSTIF_MsgDat
     }
     bCalledStatus = true;
     rc=strcpy_s(backupStatus,sizeof(backupStatus), stEthInterface.status);
-    if(rc!=EOK)
-    {
-	ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.status,_BUF_LEN_16-1 );
     stMsgData->paramValue[_BUF_LEN_16-1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
@@ -575,10 +569,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_Name(HOSTIF_MsgData_
     }
     bCalledName = true;
     rc=strcpy_s(backupName,sizeof(backupName), stEthInterface.name);
-    if(rc!=EOK)
-    {
-	ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.name,_BUF_LEN_16-1 );
     stMsgData->paramValue[_BUF_LEN_16-1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
@@ -691,10 +682,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_MACAddress(HOSTIF_Ms
     }
     bCalledMACAddress = true;
     rc=strcpy_s(backupMACAddress,sizeof(backupMACAddress), stEthInterface.mACAddress);
-    if(rc!=EOK)
-    {
-	ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.mACAddress,S_LENGTH );
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stEthInterface.mACAddress);
@@ -758,10 +746,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_DuplexMode(HOSTIF_Ms
     }
     bCalledDuplexMode = true;
     rc=strcpy_s(backupDuplexMode,sizeof(backupDuplexMode), stEthInterface.duplexMode);
-    if(rc!=EOK)
-    {
-	ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.duplexMode,_BUF_LEN_16-1 );
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stEthInterface.duplexMode);

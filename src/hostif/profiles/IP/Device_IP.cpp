@@ -307,6 +307,11 @@ char* hostIf_IP::getVirtualInterfaceName (struct if_nameindex *phy_if_list, unsi
 {
     char* ret = NULL;
 
+    if (virtual_if_name == NULL) {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: virtual_if_name parameter is NULL\n", __FUNCTION__);
+        return ret;
+    }
+
     struct ifaddrs *ifa;
     if (getifaddrs (&ifa))
         return ret;
@@ -335,10 +340,7 @@ char* hostIf_IP::getVirtualInterfaceName (struct if_nameindex *phy_if_list, unsi
                         {
 			    errno_t rc = -1;
                             rc=strcpy_s (virtual_if_name,IF_NAMESIZE, ifa_node->ifa_name);
-			    if(rc!=EOK)
-		       	    {
-				ERR_CHK(rc);
-	 		    }
+			    ERR_CHK(rc);
                             ret = virtual_if_name;
                             goto freeResources; // we have found the virtualInterfaceName no need to try any matching ifa_node->ifa_name further
                         }
@@ -434,20 +436,14 @@ int hostIf_IP::get_Device_IP_Fields(EIPMembers ipMem)
         {
             stIPInstance.iPv4Enable = FALSE;
             rc=strcpy_s(stIPInstance.iPv4Status,sizeof(stIPInstance.iPv4Status),"Disabled");
-	    if(rc!=EOK)
-    	    { 
-		    ERR_CHK(rc);
-	    }
+	    ERR_CHK(rc);
             //RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): stIPInstance.iPv4Enable = %d,stIPInstance.iPv4Status = %s\n",__FUNCTION__,stIPInstance.iPv4Enable,stIPInstance.iPv4Status);
         }
         else
         {
             stIPInstance.iPv4Enable = TRUE;
             rc=strcpy_s(stIPInstance.iPv4Status,sizeof(stIPInstance.iPv4Status),"Enabled");
-	    if(rc!=EOK)
-	    {
-		    ERR_CHK(rc);
-	    }
+	    ERR_CHK(rc);
             //RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): stIPInstance.iPv4Enable = %d,stIPInstance.iPv4Status = %s\n",__FUNCTION__,stIPInstance.iPv4Enable,stIPInstance.iPv4Status);
         }
 
