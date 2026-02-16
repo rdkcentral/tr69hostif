@@ -616,6 +616,7 @@ void exit_gracefully (int sig_received)
             hostIf_HttpServerStop();
 
             updateHandler::stop();
+            updateHandler::join(); 
             XBSStore::getInstance()->stop();
 
             if(logfile) fclose (logfile);
