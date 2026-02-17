@@ -367,6 +367,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_SerialNumber(HOSTIF_MsgData_t * stM
     stMsgData->paramtype = hostIf_StringType;
 
 #if !defined (USE_DEV_PROPERTIES_CONF)
+	
     IARM_Bus_MFRLib_GetSerializedData_Param_t param;
     memset(&param, 0, sizeof(param));
     IARM_Result_t iarm_ret = IARM_RESULT_IPCCORE_FAIL;
