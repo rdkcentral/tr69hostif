@@ -29,7 +29,6 @@ ExecStart=/bin/sh -c '/usr/bin/tr69hostif -c /etc/mgrlist.conf -p 10999 -s 11999
 ExecStop=/bin/kill -15 $MAINPID
 RestartSec=10s
 Restart=always
-TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
