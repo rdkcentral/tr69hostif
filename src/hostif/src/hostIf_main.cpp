@@ -17,7 +17,6 @@
  * limitations under the License.
 */
 
-
 /**
 * @defgroup tr69hostif
 * @{
