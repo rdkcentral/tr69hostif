@@ -348,6 +348,7 @@ bool XBSStore::getPartnerDeviceConfig(cJSON* partnerConfig, const string & partn
         if (!partnerDeviceConfig)
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"%s: Error for partner:%s, error = [%s]\n", __FUNCTION__, partnerId.c_str(), cJSON_GetErrorPtr());
+            cJSON_Delete(jsonDevice);
             return true;
         }
     }
@@ -358,17 +359,18 @@ bool XBSStore::getPartnerDeviceConfig(cJSON* partnerConfig, const string & partn
         char *configDeviceKey = configDeviceObject->string;
         char *configDeviceValue = configDeviceObject->valuestring;
 
-        if (cJSON_GetObjectItem(partnerConfig, configDeviceKey)) {
+        if (configDeviceKey && configDeviceValue && cJSON_GetObjectItem(partnerConfig, configDeviceKey)) {
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"%s: key %s exist in generic json...replace entry\n", __FUNCTION__, configDeviceKey );
             cJSON_ReplaceItemInObject(partnerConfig, configDeviceKey, cJSON_CreateString(configDeviceValue));
         }
-        else
+        else if (configDeviceKey && configDeviceValue)
         {
             RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"%s: key %s does NOT exist generic json...add new entry\n", __FUNCTION__, configDeviceKey );
             cJSON_AddItemToObject(partnerConfig, configDeviceKey, cJSON_CreateString(configDeviceValue));
         }
         configDeviceObject = configDeviceObject->next;
     }
+    cJSON_Delete(jsonDevice);
     return true;
 }
 
@@ -489,15 +491,18 @@ bool XBSStore::loadFromJson()
         {
             char *configKey = configObject->string;
             char *configValue = configObject->valuestring;
-            if (partnerId == "default_boot")
+            if (configKey && configValue)
             {
-                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"default_boot config: key=%s value=%s\n",configKey, configValue);
+                if (partnerId == "default_boot")
+                {
+                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"default_boot config: key=%s value=%s\n",configKey, configValue);
+                }
+                else
+                {
+                    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"bootstrap json parser: key=%s value=%s\n",configKey, configValue);
+                }
+                setRawValue(configKey, configValue, HOSTIF_SRC_DEFAULT);
             }
-            else
-            {
-                RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"bootstrap json parser: key=%s value=%s\n",configKey, configValue);
-            }
-            setRawValue(configKey, configValue, HOSTIF_SRC_DEFAULT);
             configObject = configObject->next;
         }
         m_initialUpdate = false;
