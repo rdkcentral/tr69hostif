@@ -72,7 +72,7 @@
 extern "C" {
 #endif
 
-res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt);
+res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt, const char* traceparent_header);
 
 #ifdef __cplusplus
 }

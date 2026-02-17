@@ -214,6 +214,7 @@ rbusError_t TR_Dml_GetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rb
                     defaultValue = strdup(dmParam.defaultValue);
                 }
 
+
                 freeDataModelParam(dmParam);
 
                 status = hostIf_GetMsgHandler(&param);
@@ -356,6 +357,7 @@ rbusError_t TR_Dml_SetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rb
                     }
                     param.bsUpdate = getBSUpdateEnum(dmParam.bsUpdate);
                     param.requestor = HOSTIF_SRC_WEBPA;
+                    
 
                     if (convertRbus2hostIfDataType(rbusPropType, &inputParamType))
                     {

@@ -4,9 +4,14 @@
 #include "hostIf_main.h"
 #include "XrdkCentralComRFCStore.h"
 #include <mutex>
+#include <map>
 #include "dsError.h"
 #include "dsAVDTypes.h"
 using namespace std;
+
+// Handler registry for IARM Bus Calls
+static std::map<std::string, IARM_BusCall_t> g_iarm_handlers;
+static std::mutex g_iarm_handlers_mutex;
 
 namespace edid_parser {
 
@@ -89,7 +94,12 @@ IARM_Result_t IARM_Bus_RemoveEventHandler(const char* ownerName, IARM_EventId_t 
 }
 IARM_Result_t IARM_Bus_RegisterCall(const char *methodName, IARM_BusCall_t handler)
 {
-return IARM_RESULT_SUCCESS;
+    std::lock_guard<std::mutex> lock(g_iarm_handlers_mutex);
+    if (methodName && handler) {
+        g_iarm_handlers[methodName] = handler;
+        std::cout << "[IARM_STUB] Registered handler for method: " << methodName << std::endl;
+    }
+    return IARM_RESULT_SUCCESS;
 }
 IARM_Result_t IARM_Bus_Term(void)
 {
@@ -105,6 +115,23 @@ return IARM_RESULT_SUCCESS;
 }
 IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void* arg, size_t argLen)
 {
+    std::lock_guard<std::mutex> lock(g_iarm_handlers_mutex);
+    
+    if (!methodName) {
+        std::cout << "[IARM_STUB] Error: methodName is NULL" << std::endl;
+        return IARM_RESULT_INVALID_PARAM;
+    }
+    
+    auto it = g_iarm_handlers.find(methodName);
+    if (it != g_iarm_handlers.end()) {
+        std::cout << "[IARM_STUB] Invoking handler for method: " << methodName << std::endl;
+        if (it->second) {
+            it->second(arg);
+            return IARM_RESULT_SUCCESS;
+        }
+    }
+    
+    std::cout << "[IARM_STUB] Warning: No handler found for method: " << methodName << std::endl;
     return IARM_RESULT_SUCCESS;
 }
 extern dsError_t dsGetStereoMode(intptr_t handle, dsAudioStereoMode_t *stereoMode, bool isPersist)

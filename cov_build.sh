@@ -6,12 +6,12 @@ apt-get update && apt-get install -y libsoup-3.0
 
 #Build rfc
 cd $ROOT
-git clone https://github.com/rdkcentral/rfc.git
+git clone https://github.com/rdkcentral/rfc.git -b topic/otel_rfc
 cd rfc
 autoreconf -i
-./configure --enable-rfctool=yes --enable-tr181set=yes --enable-tr69hostif=yes
+./configure --enable-rfctool=yes --enable-tr181set=yes --enable-tr69hostif=yes --enable-iarmbus=yes
 cd rfcapi
-make librfcapi_la_CPPFLAGS="-I/usr/include/cjson -DUSE_IARMBUS"
+make librfcapi_la_CPPFLAGS="-I/usr/include/cjson -DUSE_IARMBUS -DUSE_TR69HOSTIF"
 make install
 cd ../tr181api
 cp /usr/include/cjson/cJSON.h  ./

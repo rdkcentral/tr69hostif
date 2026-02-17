@@ -36,6 +36,10 @@
 #include "libIBus.h"
 #include "libIARM.h"
 #include "sysMgr.h"
+#include "tr69hostif_otlp_instrumentation.h"
+#include <iostream>
+#include <iomanip>
+using namespace std;
 #ifdef RDKV_TR69
 #include "pwrMgr.h"
 #else
@@ -366,13 +370,70 @@ void hostIf_SetReqHandler(void *arg)
 {
     int ret;
     HOSTIF_MsgData_t *stMsgData = (HOSTIF_MsgData_t *) arg;
+    void* span_handle = nullptr;
+    
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     if(stMsgData)
     {
+        // Debug: Always log trace context status with explicit stdout
+        cout << "[hostIf_SetReqHandler] ============ DETAILED DEBUG ============" << endl;
+        cout << "[hostIf_SetReqHandler] Received SET request for " << stMsgData->paramName << endl;
+        cout << "[hostIf_SetReqHandler] sizeof(stMsgData)=" << sizeof(*stMsgData) << endl;
+        cout << "[hostIf_SetReqHandler] Address of stMsgData->trace_id=" << (void*)stMsgData->trace_id << endl;
+        cout << "[hostIf_SetReqHandler] Byte dump trace_id[0]=" << (int)stMsgData->trace_id[0] 
+             << " trace_id[1]=" << (int)stMsgData->trace_id[1] 
+             << " trace_id[2]=" << (int)stMsgData->trace_id[2] << endl;
+        cout << "[hostIf_SetReqHandler] Raw trace_id chars: ";
+        for (int i = 0; i < 10; i++) {
+            cout << (int)stMsgData->trace_id[i] << " ";
+        }
+        cout << endl;
+        cout << "[hostIf_SetReqHandler] trace_id string (with escapes)='" << stMsgData->trace_id << "'" << endl;
+        cout << "[hostIf_SetReqHandler] span_id[0]=" << (int)stMsgData->span_id[0] << endl;
+        cout << "[hostIf_SetReqHandler] span_id string='" << stMsgData->span_id << "'" << endl;
+        cout << "[hostIf_SetReqHandler] trace_flags string='" << stMsgData->trace_flags << "'" << endl;
+        
+        // Hex dump of trace_id field (40 bytes)
+        cout << "[hostIf_SetReqHandler] Hex dump of trace_id field: ";
+        unsigned char* ptr = (unsigned char*)stMsgData->trace_id;
+        for (int i = 0; i < 40; i++) {
+            cout << std::hex << std::setw(2) << std::setfill('0') << (int)ptr[i] << " ";
+        }
+        cout << std::dec << endl;
+        
+        cout << "[hostIf_SetReqHandler] ======================================" << endl;
+        
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Received SET request for %s - trace_id[0]=%d, span_id[0]=%d\n", 
+                __FUNCTION__, stMsgData->paramName, stMsgData->trace_id[0], stMsgData->span_id[0]);
+        
+        // Check if trace context is provided (distributed tracing)
+        if (stMsgData->trace_id[0] != '\0' && stMsgData->span_id[0] != '\0') {
+            cout << "[hostIf_SetReqHandler] ✓ TRACE CONTEXT FOUND!" << endl;
+            cout << "[hostIf_SetReqHandler] Starting child span with parent trace_id=" << stMsgData->trace_id 
+                 << ", span_id=" << stMsgData->span_id << endl;
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting child span with parent trace_id=%s, span_id=%s\n", 
+                    __FUNCTION__, stMsgData->trace_id, stMsgData->span_id);
+            span_handle = tr69hostif_otlp_start_child_span(
+                stMsgData->paramName, "set",
+                stMsgData->trace_id, stMsgData->span_id, stMsgData->trace_flags);
+            cout << "[hostIf_SetReqHandler] ✓ Child span created successfully" << endl;
+        } else {
+            cout << "[hostIf_SetReqHandler] ✗ NO TRACE CONTEXT received for SET" << endl;
+            cout << "[hostIf_SetReqHandler] trace_id empty: " << (stMsgData->trace_id[0] == '\0' ? "YES" : "NO") << endl;
+            cout << "[hostIf_SetReqHandler] span_id empty: " << (stMsgData->span_id[0] == '\0' ? "YES" : "NO") << endl;
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] NO trace context received for SET\n", __FUNCTION__);
+        }
+        
         stMsgData->requestor = HOSTIF_SRC_IARM;
         stMsgData->bsUpdate = HOSTIF_NONE;
         ret = hostIf_SetMsgHandler(stMsgData);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[hostIf_SetReqHandler : hostIf_MsgHandler()] Return value : %d\n", ret);
+        
+        // End distributed tracing span
+        if (span_handle) {
+            tr69hostif_otlp_end_span(span_handle, (ret == OK), 
+                                      (ret != OK) ? "Parameter set failed" : nullptr);
+        }
         /*
 
                 if(ret == OK)
@@ -414,11 +475,36 @@ void hostIf_GetReqHandler(void *arg)
 {
     int ret;
     HOSTIF_MsgData_t *stMsgData = (HOSTIF_MsgData_t *) arg;
+    void* span_handle = nullptr;
 
 //    hostIf_Init_Dummy_stMsgData (&stMsgData);
 
     if(stMsgData)
     {
+        // Debug: Always log trace context status with explicit stdout
+        cout << "[hostIf_GetReqHandler] Received GET request for " << stMsgData->paramName << endl;
+        cout << "[hostIf_GetReqHandler] trace_id[0]=" << (int)stMsgData->trace_id[0] 
+             << ", span_id[0]=" << (int)stMsgData->span_id[0] << endl;
+        cout << "[hostIf_GetReqHandler] trace_id='" << stMsgData->trace_id << "'" << endl;
+        cout << "[hostIf_GetReqHandler] span_id='" << stMsgData->span_id << "'" << endl;
+        
+        // Check if trace context is provided (distributed tracing)
+        if (stMsgData->trace_id[0] != '\0' && stMsgData->span_id[0] != '\0') {
+            cout << "[hostIf_GetReqHandler] ✓ TRACE CONTEXT FOUND!" << endl;
+            cout << "[hostIf_GetReqHandler] Starting child span with parent trace_id=" << stMsgData->trace_id 
+                 << ", span_id=" << stMsgData->span_id << endl;
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting child span with parent trace_id=%s, span_id=%s\n", 
+                    __FUNCTION__, stMsgData->trace_id, stMsgData->span_id);
+            span_handle = tr69hostif_otlp_start_child_span(
+                stMsgData->paramName, "get",
+                stMsgData->trace_id, stMsgData->span_id, stMsgData->trace_flags);
+            cout << "[hostIf_GetReqHandler] ✓ Child span created successfully" << endl;
+        } else {
+            cout << "[hostIf_GetReqHandler] ✗ NO TRACE CONTEXT received for GET" << endl;
+            cout << "[hostIf_GetReqHandler] trace_id empty: " << (stMsgData->trace_id[0] == '\0' ? "YES" : "NO") << endl;
+            cout << "[hostIf_GetReqHandler] span_id empty: " << (stMsgData->span_id[0] == '\0' ? "YES" : "NO") << endl;
+        }
+        
         DataModelParam dmParam = {0};
         if(!getParamInfoFromDataModel(getDataModelHandle(), stMsgData->paramName, &dmParam))
         {
@@ -442,6 +528,12 @@ void hostIf_GetReqHandler(void *arg)
         ret = hostIf_GetMsgHandler(stMsgData);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[hostIf_GetReqHandler : hostIf_MsgHandler()] Return value : %d\n", ret);
 
+        // End distributed tracing span
+        if (span_handle) {
+            tr69hostif_otlp_end_span(span_handle, (ret == OK), 
+                                      (ret != OK) ? "Parameter get failed" : nullptr);
+        }
+        
         if(ret == OK)
         {
 //            hostIf_Print_msgData(stMsgData);
