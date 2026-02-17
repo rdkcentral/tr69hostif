@@ -47,6 +47,7 @@ class updateHandler {
 public:
     static void Init();
     static void stop();
+    static void join();
     static void reset();
     static gpointer run(gpointer);
     static void notifyCallback(IARM_Bus_tr69HostIfMgr_EventId_t, const char* paramName, const char* paramVal, HostIf_ParamType_t paramtype);
