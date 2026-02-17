@@ -108,6 +108,14 @@ void updateHandler::stop()
     stopped = true;
 }
 
+void updateHandler::join()
+{
+    if (thread) {
+        g_thread_join(thread);
+        thread = NULL;
+    }
+}
+
 void updateHandler::reset()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n",  __FILE__, __FUNCTION__);
