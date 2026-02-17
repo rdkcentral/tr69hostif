@@ -81,7 +81,8 @@ void hostIf_DeviceProcessStatusInterface::closeInstance(hostIf_DeviceProcessStat
     if(pDev)
     {
         g_hash_table_remove(ifHash, (gconstpointer)pDev->dev_id);
-        delete pDev;
+        
+		delete pDev;
     }
 }
 
