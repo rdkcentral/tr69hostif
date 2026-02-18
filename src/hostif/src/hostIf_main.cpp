@@ -614,8 +614,9 @@ void exit_gracefully (int sig_received)
 
             /*Stop libSoup server and exit Json Thread */
             hostIf_HttpServerStop();
-
+            // Stop update polling and wait for the worker to exit before further teardown
             updateHandler::stop();
+			updateHandler::join();
             XBSStore::getInstance()->stop();
 
             if(logfile) fclose (logfile);
