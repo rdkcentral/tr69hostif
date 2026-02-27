@@ -872,7 +872,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t * stM
         }
     }
     fclose(fp);
-	strncpy((char *)stMsgData->paramValue, device_name,sizeof(stMsgData->paramValue)-1);
+    strncpy((char *)stMsgData->paramValue, device_name,sizeof(stMsgData->paramValue)-1);
     return OK;
 }
 
