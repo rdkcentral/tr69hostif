@@ -575,7 +575,7 @@ public:
      *
      * @see get_Device_DeviceInfo_ProductClass.
      */
-    int get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t *);
+    int get_Device_DeviceInfo_SoftwareVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
    
      /**
      * @brief get_Device_DeviceInfo_MigrationPreparer_MigrationReady.
