@@ -508,7 +508,7 @@ public:
      *
      * @see get_Device_DeviceInfo_Description.
      */
-    int get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t *);
+    int get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t *,bool*);
 
     /**
      * @brief get_Device_DeviceInfo_SerialNumber.
