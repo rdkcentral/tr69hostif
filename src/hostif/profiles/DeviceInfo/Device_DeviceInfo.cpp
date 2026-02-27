@@ -102,7 +102,6 @@
 
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
-#include "rdk_fwdl_utils.h"
 
 
 
@@ -850,17 +849,29 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Description(HOSTIF_MsgData_t * stMs
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
-    char device_name[32] = {'\0'};
     stMsgData->paramtype = hostIf_StringType;
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
 
-    /* Get DEVICE_NAME from device.properties */
-    memset(device_name, 0, sizeof(device_name));
-    if (getDevicePropertyData("DEVICE_NAME", device_name, sizeof(device_name)) != UTILS_SUCCESS) 
-	{
-        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF, "[%s:%d] ERROR! Cannot access DEVICE_NAME property\n", __FUNCTION__, __LINE__);
+    FILE *fp = fopen("/etc/device.properties", "r");
+    char line[256];
+    char device_name[256] = "";
+
+    if (fp == NULL) {
+        perror("Failed to open file");
+		RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] Failed to open /etc/device.properties file\n.!",__FUNCTION__, __FILE__, __LINE__);
         return NOK;
     }
+
+    while (fgets(line, sizeof(line), fp)) {
+        if (strncmp(line, "DEVICE_NAME=", 12) == 0) {
+            char *value = line + 12;
+            value[strcspn(value, "\r\n")] = 0;
+            strncpy(device_name, value, sizeof(device_name) - 1);
+            device_name[sizeof(device_name) - 1] = '\0';
+            break;
+        }
+    }
+    fclose(fp);
 	strncpy((char *)stMsgData->paramValue, device_name,sizeof(stMsgData->paramValue)-1);
     return OK;
 }
