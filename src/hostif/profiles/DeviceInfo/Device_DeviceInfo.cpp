@@ -848,7 +848,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Description(HOSTIF_MsgData_t * stMs
  * @return Returns enum integer '-1' on method completion.
  * @ingroup TR69_HOSTIF_DEVICEINFO_API
  */
-int hostIf_DeviceInfo::get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t * stMsgData)
+int hostIf_DeviceInfo::get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
     char device_name[32] = {'\0'};
     stMsgData->paramtype = hostIf_StringType;
