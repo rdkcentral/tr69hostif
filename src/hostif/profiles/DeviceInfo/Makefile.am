@@ -33,7 +33,7 @@ $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLA
 -I=/usr/include/wdmp-c/ \
 -I=/usr/include/rbus/
 
-AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lcurl -lrfcapi -lrbus -lfwutils
+AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lcurl -lrfcapi -lrbus
 
 if IS_YOCTO_ENABLED
 AM_LDFLAGS += -lsecure_wrapper
@@ -69,5 +69,5 @@ endif
 if ENABLE_BLE_TILE_PROFILE
 AM_CXXFLAGS += $(BLE_TILE_PROFILE)
 endif
-
+AM_LDFLAGS = -lfwutils
 libdeviceinfo_la_CXXFLAGS = $(AM_CXXFLAGS) -std=c++0x
