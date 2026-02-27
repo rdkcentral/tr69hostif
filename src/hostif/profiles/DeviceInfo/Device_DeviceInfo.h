@@ -185,7 +185,6 @@
 #define FWDNLD_DEFER_REBOOT                             "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadDeferReboot"
 #define IUI_VERSION                                     "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version"
 #define IUI_APPSVERSION                                 "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion"
-#define PRODUCTCLASS                                    "Device.DeviceInfo.X_RDKCENTRAL-COM.ProductClass"
 
 /* Profile: X_RDKCENTRAL-COM_RDKRemoteDebugger */
 #ifdef USE_REMOTE_DEBUGGER
