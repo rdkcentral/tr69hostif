@@ -849,62 +849,42 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_Description(HOSTIF_MsgData_t * stMs
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
     stMsgData->paramtype = hostIf_StringType;
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s()]\n", __FUNCTION__);
 
-#ifndef FETCH_PRODUCTCLASS_FROM_MFRLIB
-    /* Fixed DELIA-27160, always returns as OK */
-    char *pc = NULL;
-    pc = getenv((const char *)"RECEIVER_PLAT_TYPE");
+    FILE *fp = fopen("/etc/device.properties", "r");
+    char line[256];
+    char device_name[256] = "";
 
-    if(pc) {
-        snprintf((char *)stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN-1, "%s", pc);
-        stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (fp == NULL) {
+        perror("Failed to open file");
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] Failed to open /etc/device.properties file\n.!",__FUNCTION__, __FILE__, __LINE__);
+        return NOK;
     }
-    return OK;
-#else /* FETCH_PRODUCTCLASS_FROM_MFRLIB */
-    int ret = NOK;
-    IARM_Bus_MFRLib_GetSerializedData_Param_t param;
-    IARM_Result_t iarm_ret = IARM_RESULT_IPCCORE_FAIL;
-    memset(&param, 0, sizeof(param));
-    param.type = mfrSERIALIZED_TYPE_PRODUCTCLASS;
-    param.buffer[MAX_BUF] = {'\0'};
-    iarm_ret = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] IARM_BUS_MFRLIB_API_GetSerializedData returns params: %s with paramlen: %d.\n",__FUNCTION__, param.buffer, param.bufLen);
-    if(iarm_ret == IARM_RESULT_SUCCESS)
-    {
-        try
-        {
-            if( strlen(param.buffer) !=0 && param.bufLen != 0) {
-                strncpy((char *)stMsgData->paramValue, param.buffer, param.bufLen);
-                stMsgData->paramValue[param.bufLen+1] = '\0';
-                stMsgData->paramLen = param.bufLen;
-                if(bCalledProductClass && pChanged && strncmp(stMsgData->paramValue,backupProductClass,_BUF_LEN_16 ))
-                {
-                    *pChanged =  true;
-                }
-                bCalledProductClass = true;
-                strncpy(backupProductClass,stMsgData->paramValue,_BUF_LEN_16 );
-                stMsgData->paramtype = hostIf_StringType;
-                RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s:%d] paramValue: %s param.pBuffer: %s \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramValue, param.buffer);
-                ret = OK;
-            }
-            else
-                ret = NOK;
-        } catch (const std::exception &e)
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\n",__FUNCTION__);
-            ret = NOK;
+    while (fgets(line, sizeof(line), fp)) {
+        if (strncmp(line, "DEVICE_NAME=", 12) == 0) {
+            char *value = line + 12;
+            value[strcspn(value, "\r\n")] = 0;
+            strncpy(device_name, value, sizeof(device_name) - 1);
+            device_name[sizeof(device_name) - 1] = '\0';
+            break;
         }
     }
-    else
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF, "Failed in IARM_Bus_Call() for parameter : %s [param.type:%d with error code:%d]\n",stMsgData->paramName,param.type, ret);
-        ret = NOK;
+    fclose(fp);
+
+    strncpy((char *)stMsgData->paramValue, device_name, sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen((char *)stMsgData->paramValue);
+
+    // Change-notification pattern
+    if (bCalledProductClass && pChanged && strncmp((char *)stMsgData->paramValue, backupProductClass, _BUF_LEN_16)) {
+        *pChanged = true;
     }
-    return ret;
-#endif /* FETCH_PRODUCTCLASS_FROM_MFRLIB */
+    bCalledProductClass = true;
+    strncpy(backupProductClass, (char *)stMsgData->paramValue, _BUF_LEN_16);
+
+    return OK;
 }
 
 /**
