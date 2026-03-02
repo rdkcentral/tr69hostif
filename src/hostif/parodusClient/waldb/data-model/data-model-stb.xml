@@ -24,6 +24,11 @@
           <string/>
         </syntax>
       </parameter>
+      <parameter base="ProductClass" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
       <parameter base="ManufacturerOUI" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
