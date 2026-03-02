@@ -883,6 +883,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_ProductClass(HOSTIF_MsgData_t * stM
     }
     bCalledProductClass = true;
     strncpy(backupProductClass, (char *)stMsgData->paramValue, _BUF_LEN_16);
+    backupProductClass[_BUF_LEN_16 - 1] = '\0';
 
     return OK;
 }
