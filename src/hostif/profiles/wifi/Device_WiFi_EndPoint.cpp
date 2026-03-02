@@ -494,6 +494,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
             if (jsonObj)
             {
                 cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
+                cJSON *strength = cJSON_GetObjectItem(jsonObj, "strength");
                 if (!(cJSON_IsString(ssid) && ssid->valuestring))
                 {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s][STEP 15-FAIL] ConnectedSSID result missing ssid string\n", __FUNCTION__);
@@ -504,6 +505,15 @@ int hostIf_WiFi_EndPoint::refreshCache()
 	        strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
 		SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
                 RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 15] SSIDReference parsed: %s\n", __FUNCTION__, SSIDReference);
+                if (cJSON_IsNumber(strength))
+                {
+                    stats.SignalStrength = strength->valueint;
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 15A] Signal strength fallback parsed from ConnectedSSID: %d\n", __FUNCTION__, stats.SignalStrength);
+                }
+                else
+                {
+                    RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s][STEP 15A-WARN] ConnectedSSID result missing numeric strength, keeping existing value: %d\n", __FUNCTION__, stats.SignalStrength);
+                }
             }
             else
             {
@@ -527,57 +537,8 @@ int hostIf_WiFi_EndPoint::refreshCache()
        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
        return NOK;
     }
-	
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 16] Fetching WiFiSignalStrength from NetworkManager\n", __FUNCTION__);
-    postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWiFiSignalStrength\"}";
-    response = getJsonRPCData(std::move(postData));
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 17] WiFiSignalStrength RPC returned\n", __FUNCTION__);
 
-    if(response.c_str())
-    {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 18] WiFiSignalStrength JSON parse attempted\n", __FUNCTION__);
-        if(root)
-        {
-            cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 19] WiFiSignalStrength result object lookup done\n", __FUNCTION__);
-
-            if (jsonObj)
-            {
-                cJSON *sigstr = cJSON_GetObjectItem(jsonObj, "signalStrength");
-                if (!cJSON_IsNumber(sigstr))
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s][STEP 20-FAIL] WiFiSignalStrength result missing numeric signalStrength\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return NOK;
-                }
-                //ASSIGN TO OP HERE
-                stats.SignalStrength = sigstr->valueint;
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 20] Signal strength parsed: %d\n", __FUNCTION__, stats.SignalStrength);
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 19-FAIL] WiFiSignalStrength result object missing\n", __FUNCTION__);
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 18-FAIL] WiFiSignalStrength JSON parse failed\n", __FUNCTION__);
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-            return NOK;
-        }
-    }
-    else
-    {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 17-FAIL] WiFiSignalStrength RPC returned empty/null response\n", __FUNCTION__);
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
-        return NOK;
-    }
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 16] SignalStrength is sourced from ConnectedSSID RPC\n", __FUNCTION__);
 
     time_of_last_successful_query = time (0);
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 21] Cache timestamp updated\n", __FUNCTION__);
