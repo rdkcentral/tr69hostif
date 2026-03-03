@@ -447,26 +447,24 @@
           <string/>
         </syntax>
       </parameter>
-      <parameter base="Chrony.Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Chrony.Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
-          <string/>
+            <boolean/>
+            <default type="factory" value="false"/>
         </syntax>
-      </parameter>
-      <parameter base="NTPMinpoll" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+    </parameter>
+    <parameter base="NTPMinpoll" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
-          <string/>
+            <unsignedInt/>
+            <default type="factory" value="6"/>
         </syntax>
-      </parameter>
-      <parameter base="NTPMaxpoll" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
+    </parameter>
+    <parameter base="NTPMaxpoll" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
-          <string/>
+            <unsignedInt/>
+            <default type="factory" value="10"/>
         </syntax>
-      </parameter>
-      <parameter base="NTPMaxstep" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
+    </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
