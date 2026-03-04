@@ -345,5 +345,9 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
     return OK;
 }
 
+int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged){
+}
+int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged){
+}
 /** @} */
 /** @} */
