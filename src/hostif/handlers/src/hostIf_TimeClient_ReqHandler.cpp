@@ -140,6 +140,9 @@ int TimeClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_Time_NTPMaxpoll(stMsgData);
         }
+		else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer1Directive") == 0) {
+            ret = pIface->set_Device_Time_NTPServer1Directive(stMsgData);
+        }
         else
         {
            RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s:%d] parameter : \'%s\' Not handled \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
@@ -257,6 +260,9 @@ int TimeClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_Time_NTPMaxpoll(stMsgData);
         }
+		else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer1Directive") == 0) {
+            ret = pIface->get_Device_Time_NTPServer1Directive(stMsgData);
+        }     
         else
         {
            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] parameter : \'%s\' Not handled \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
