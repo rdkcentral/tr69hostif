@@ -228,19 +228,19 @@ int hostIf_Time::get_Device_Time_NTPServer5(HOSTIF_MsgData_t *, bool *pChanged )
 {
     return NOK;
 }
-int get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
+int hostIf_Time::get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
 {
 return NOK;
 }
-int set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
+int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
 {
 	return NOK;
 }
-int get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
+int hostIf_Time::get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
 {
 	return NOK;
 }
-int set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
+int hostIf_Time::set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL)
 {
 	return NOK;
 }
