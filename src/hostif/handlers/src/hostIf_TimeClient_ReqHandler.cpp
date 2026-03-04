@@ -244,7 +244,7 @@ int TimeClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_Device_Time_CurrentUTCTime(stMsgData);
         } 
-		   else if (strcasecmp(stMsgData->paramName,"Device.Time.Chrony.Enable") == 0)
+		   else if (strcasecmp(stMsgData->paramName,"Device.Time.ChronyEnable") == 0)
         {
             ret = pIface->get_Device_Time_Chrony_Enable(stMsgData);
         }
