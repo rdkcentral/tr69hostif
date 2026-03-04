@@ -456,13 +456,13 @@
     <parameter base="NTPMinpoll" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
             <unsignedInt/>
-            <default type="factory" value="6"/>
+            <default type="factory" value="10"/>
         </syntax>
     </parameter>
     <parameter base="NTPMaxpoll" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
             <unsignedInt/>
-            <default type="factory" value="10"/>
+            <default type="factory" value="12"/>
         </syntax>
     </parameter>
     </object>
