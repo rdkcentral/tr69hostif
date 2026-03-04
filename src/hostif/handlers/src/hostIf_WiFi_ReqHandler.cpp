@@ -327,6 +327,39 @@ int WiFiReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         }
         ret = pIface->get_Device_WiFi_EnableWiFi(stMsgData);
     }
+
+	 else if (matchComponent(stMsgData->paramName, "Device.WiFi.Radio", &pSetting, instanceNum))
+    {
+        if ((instanceNum <= 0) || (instanceNum > maxRadioInstances))
+        {
+            return NOK;
+        }
+
+        stMsgData->instanceNum = instanceNum;
+        hostIf_WiFi_Radio *pWifiRadio = hostIf_WiFi_Radio::getInstance(stMsgData->instanceNum);
+        hostIf_WiFi_Radio_Stats *pWifiRadioStats = hostIf_WiFi_Radio_Stats::getInstance(stMsgData->instanceNum);
+
+        if ((!pWifiRadio) || (!pWifiRadioStats))
+        {
+            return NOK;
+        }
+		 else if (strcasecmp(pSetting,"OperatingChannelBandwidth") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_OperatingChannelBandwidth(stMsgData,radioIndex);
+        }
+
+		 else if (strcasecmp(pSetting,"Stats.DiscardPacketsReceived") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_DiscardPacketsReceived(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.Noise") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_NoiseFloor(stMsgData,radioIndex);
+        }
+	}
+
+		
+
     #ifdef RDKV_TR69
      else if (matchComponent(stMsgData->paramName, "Device.WiFi.Radio", &pSetting, instanceNum))
     {
