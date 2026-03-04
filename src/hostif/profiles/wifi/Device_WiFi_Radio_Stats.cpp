@@ -44,9 +44,7 @@ extern "C" {
 #endif
 
 GHashTable* hostIf_WiFi_Radio_Stats::ifHash = NULL;
-#ifdef RDKV_NM
 static time_t radioFirstExTime = 0;
-#endif
 
 hostIf_WiFi_Radio_Stats *hostIf_WiFi_Radio_Stats::getInstance(int dev_id)
 {
@@ -119,9 +117,9 @@ hostIf_WiFi_Radio_Stats::hostIf_WiFi_Radio_Stats(int dev_id):
 
 }
 
-#ifdef RDKV_NM
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_Props_Fields(int radioIndex)
 {
+#ifdef RDKV_NM
     IARM_Result_t retVal = IARM_RESULT_SUCCESS;
     IARM_BUS_WiFi_DiagsPropParam_t param = {0};
     int ret;
@@ -153,6 +151,21 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_Props_Fields(int radioI
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
         return NOK;
     }
+#else
+    hostIf_WiFi_Radio_Stats *pDev = hostIf_WiFi_Radio_Stats::getInstance(dev_id);
+    if(pDev)
+    {
+        PacketsReceived = 65568;
+        NoiseFloor = -100;
+        radioFirstExTime = time (NULL);
+        return OK;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
+        return NOK;
+    }
+#endif
 
 }
 
@@ -169,6 +182,8 @@ void hostIf_WiFi_Radio_Stats::checkWifiRadioPropsFetch(int radioIndex)
         }
     }
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_BytesSent(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
@@ -205,6 +220,8 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_PacketsSent(HOSTIF_MsgD
     return OK;
 }
 
+#endif
+
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_PacketsReceived(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
@@ -215,6 +232,8 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_PacketsReceived(HOSTIF_
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_ErrorsSent(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
@@ -259,6 +278,9 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_DiscardPacketsReceived(
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
+
+#endif
+
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_NoiseFloor(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
@@ -269,6 +291,5 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_NoiseFloor(HOSTIF_MsgDa
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
-#endif
 
 #endif /* #ifdef USE_WIFI_PROFILE */
