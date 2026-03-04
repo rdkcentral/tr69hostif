@@ -279,10 +279,10 @@ public:
     int get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *, bool *pChanged = NULL);
     int get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *,bool *pChanged = NULL);
     int set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *,bool *pChanged = NULL);
-    //int get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
-    //int set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
-    //int get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
-    //int set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+    int get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+    int set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+    int get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+    int set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
 
     /**
      * @brief    Get the local time zone definition.
