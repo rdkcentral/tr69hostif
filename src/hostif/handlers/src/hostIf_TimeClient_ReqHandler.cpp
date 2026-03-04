@@ -127,7 +127,7 @@ int TimeClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_Time_Enable(stMsgData);
         }
-	    else if (strcasecmp(stMsgData->paramName,"Device.Time.Chrony.Enable") == 0)
+	    else if (strcasecmp(stMsgData->paramName,"Device.Time.ChronyEnable") == 0)
         {
             ret = pIface->set_Device_Time_Chrony_Enable(stMsgData);
         }
