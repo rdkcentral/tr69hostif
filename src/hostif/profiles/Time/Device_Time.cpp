@@ -55,6 +55,8 @@
 
 #define TIME_ZONE_LENGTH 8
 #define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
+#define NTP_MINPOLL_FILE "/opt/ntp_minpoll"
+#define NTP_MINPOLL_FILE "/opt/ntp_maxpoll"
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
@@ -228,22 +230,7 @@ int hostIf_Time::get_Device_Time_NTPServer5(HOSTIF_MsgData_t *, bool *pChanged )
 {
     return NOK;
 }
-int hostIf_Time::get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged)
-{
-return NOK;
-}
-int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged)
-{
-	return NOK;
-}
-int hostIf_Time::get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged)
-{
-	return NOK;
-}
-int hostIf_Time::set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged)
-{
-	return NOK;
-}
+
 
 int hostIf_Time::get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *stMsgData, bool *pChanged )
 {
@@ -432,6 +419,121 @@ int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool
     return OK;
 }
 
+
+// Get handler for NTPMinpoll
+int hostIf_Time::get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+
+    std::ifstream file(NTP_MINPOLL_FILE);
+    if (file.is_open()) {
+        std::string value;
+        std::getline(file, value);
+        file.close();
+
+        if (value.empty()) {
+            value = "10"; // Default if file is empty
+        }
+
+        strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue) - 1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
+    } else {
+        // If file does not exist, return default value
+        strncpy(stMsgData->paramValue, "10", sizeof(stMsgData->paramValue)-1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = 1;
+    }
+
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+// Set handler for NTPMinpoll
+int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string minpollStr = getStringValue(stMsgData);
+
+    // You may want to validate that minpollStr is a number in a valid range [4, 17] for NTP
+    int minpoll = atoi(minpollStr.c_str());
+    if (minpoll < 4 || minpoll > 24) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid NTPMinpoll value: %s\n",
+                __FUNCTION__, __FILE__, __LINE__, minpollStr.c_str());
+        return NOK;
+    }
+
+    std::ofstream file(NTP_MINPOLL_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open %s for writing\n",
+                __FUNCTION__, __FILE__, __LINE__, NTP_MINPOLL_FILE);
+        return NOK;
+    }
+    file << minpollStr;
+    file.close();
+
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+
+// Get handler for NTPMaxpoll
+int hostIf_Time::get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+
+    std::ifstream file(NTP_MAXPOLL_FILE);
+    if (file.is_open()) {
+        std::string value;
+        std::getline(file, value);
+        file.close();
+
+        if (value.empty()) {
+            value = "12"; // Default if file is empty (NTP typical maxpoll default)
+        }
+
+        strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue) - 1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
+    } else {
+        // If file does not exist, return default value
+        strncpy(stMsgData->paramValue, "12", sizeof(stMsgData->paramValue) - 1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = 2;
+    }
+
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+// Set handler for NTPMaxpoll
+int hostIf_Time::set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string maxpollStr = getStringValue(stMsgData);
+
+    // Validate maxpoll in NTP allowed range [4, 17]
+    int maxpoll = atoi(maxpollStr.c_str());
+    if (maxpoll < 4 || maxpoll > 24) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid NTPMaxpoll value: %s\n",
+                __FUNCTION__, __FILE__, __LINE__, maxpollStr.c_str());
+        return NOK;
+    }
+
+    std::ofstream file(NTP_MAXPOLL_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open %s for writing\n",
+                __FUNCTION__, __FILE__, __LINE__, NTP_MAXPOLL_FILE);
+        return NOK;
+    }
+    file << maxpollStr;
+    file.close();
+
+    if (pChanged) *pChanged = true;
+    return OK;
+}
 
 /** @} */
 /** @} */
