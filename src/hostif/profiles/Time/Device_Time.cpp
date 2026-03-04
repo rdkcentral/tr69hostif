@@ -48,6 +48,10 @@
 #include <string.h>
 #include "Device_Time.h"
 #include "safec_lib.h"
+#include <cstring>
+#include <string>
+#include <fstream>
+#include <cstdio> 
 
 #define TIME_ZONE_LENGTH 8
 #define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
@@ -346,8 +350,6 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
     return OK;
 }
 
-int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged){
-}
 
 int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
