@@ -57,6 +57,7 @@
 #define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
 #define NTP_MINPOLL_FILE "/opt/ntp_minpoll"
 #define NTP_MAXPOLL_FILE "/opt/ntp_maxpoll"
+#define NTP_SERVER1_DIRECTIVE_FILE "/opt/ntp_server1_directive"
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
@@ -529,6 +530,41 @@ int hostIf_Time::set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *p
         return NOK;
     }
     file << maxpollStr;
+    file.close();
+
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+
+int hostIf_Time::get_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER1_DIRECTIVE_FILE);
+    std::string value;
+
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) {
+        value = "server";
+    }
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER1_DIRECTIVE_FILE);
+    if (!file.is_open())
+        return NOK;
+    file << directive;
     file.close();
 
     if (pChanged) *pChanged = true;
