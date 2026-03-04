@@ -50,6 +50,7 @@
 #include "safec_lib.h"
 
 #define TIME_ZONE_LENGTH 8
+#define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
@@ -347,7 +348,119 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
 
 int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged){
 }
-int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged){
+
+int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string chronyEnableStr = getStringValue(stMsgData);
+
+    // If the value is empty, remove the file
+    if (chronyEnableStr.empty()) {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Empty Chrony Enable provided, will clear the stored file\n",
+                __FUNCTION__, __FILE__, __LINE__);
+
+        if (std::remove(CHRONY_ENABLE_FILE) != 0) {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%s:%d] Failed to remove %s\n",
+                    __FUNCTION__, __FILE__, __LINE__,
+                    CHRONY_ENABLE_FILE);
+        }
+        return OK;
+    }
+
+    // Convert value to true/false string - for storage
+    bool chronyEnable = false;
+
+    if (chronyEnableStr == "true" || chronyEnableStr == "1")
+        chronyEnable = true;
+    else if (chronyEnableStr == "false" || chronyEnableStr == "0")
+        chronyEnable = false;
+    else {
+        // Unrecognized value
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid Chrony Enable value: %s\n",
+                __FUNCTION__, __FILE__, __LINE__, chronyEnableStr.c_str());
+        return NOK;
+    }
+
+    std::ofstream file(CHRONY_ENABLE_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open Chrony Enable file for writing\n",
+                __FUNCTION__, __FILE__, __LINE__);
+        return NOK;
+    }
+
+    file << (chronyEnable ? "true" : "false");
+    if (file.fail()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to write Chrony Enable state to file\n",
+                __FUNCTION__, __FILE__, __LINE__);
+        file.close();
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Successfully wrote Chrony Enable: %s\n",
+            __FUNCTION__, __FILE__, __LINE__, chronyEnable ? "true" : "false");
+    file.close();
+
+    // Optionally, set pChanged if you want to indicate a change
+    if (pChanged) {
+        *pChanged = true;
+    }
+
+    return OK;
+}
+
+
+int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    int ret = NOT_HANDLED;
+    stMsgData->paramtype = hostIf_StringType;
+
+    std::string chronyEnableValue;
+    std::ifstream file(CHRONY_ENABLE_FILE);
+
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Chrony Enable file does not exist, returning empty value\n",
+                __FUNCTION__, __FILE__, __LINE__);
+        stMsgData->paramValue[0] = '\0';
+        stMsgData->paramLen = 0;
+        return OK;
+    }
+
+    if (std::getline(file, chronyEnableValue)) {
+        // Remove newline
+        if (!chronyEnableValue.empty() && chronyEnableValue.back() == '\n') {
+            chronyEnableValue.pop_back();
+        }
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Chrony Enable = %s.\n",
+                __FUNCTION__, __FILE__, __LINE__, chronyEnableValue.c_str());
+
+        strncpy(stMsgData->paramValue, chronyEnableValue.c_str(), sizeof(stMsgData->paramValue) - 1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = chronyEnableValue.length();
+
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%s:%d] paramValue: %s stMsgData->paramLen: %d\n",
+                __FUNCTION__, __FILE__, __LINE__, stMsgData->paramValue, stMsgData->paramLen);
+
+        ret = OK;
+    } else {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "%s(): No data in Chrony Enable file, returning empty value.\n", __FUNCTION__);
+        stMsgData->paramValue[0] = '\0';
+        stMsgData->paramLen = 0;
+        ret = OK;
+    }
+
+    file.close();
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s()]\n", __FUNCTION__);
+    return ret;
 }
 /** @} */
 /** @} */
