@@ -532,4 +532,15 @@ int hostIf_WiFi_Radio::get_Device_WiFi_Radio_RegulatoryDomain(HOSTIF_MsgData_t *
 }
 #endif
 
+int hostIf_WiFi_Radio::get_Device_WiFi_Radio_OperatingChannelBandwidth(HOSTIF_MsgData_t *stMsgData,int radioIndex )
+{
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+    checkWifiRadioFetch(radioIndex);
+    strncpy(stMsgData->paramValue, OperatingChannelBandwidth,TR69HOSTIFMGR_MAX_PARAM_LEN);
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(OperatingChannelBandwidth);
+    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+    return OK;
+}
+
 #endif /* #ifdef USE_WIFI_PROFILE */
