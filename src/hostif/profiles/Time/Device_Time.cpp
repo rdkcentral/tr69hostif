@@ -366,119 +366,72 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
     return OK;
 }
 
-
 int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string chronyEnableStr = getStringValue(stMsgData);
 
     // If the value is empty, remove the file
-    if (chronyEnableStr.empty()) {
+    if (chronyEnableStr.empty() || chronyEnableStr == "false" || chronyEnableStr == "0") {
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Empty Chrony Enable provided, will clear the stored file\n",
-                __FUNCTION__, __FILE__, __LINE__);
+                "[%s:%s:%d] Chrony Enable set to false/empty, removing the file %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                CHRONY_ENABLE_FILE);
 
         if (std::remove(CHRONY_ENABLE_FILE) != 0) {
-            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
-                    "[%s:%s:%d] Failed to remove %s\n",
-                    __FUNCTION__, __FILE__, __LINE__,
-                    CHRONY_ENABLE_FILE);
+            if (errno != ENOENT) { // Only log if it's not "file not found"
+                RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                        "[%s:%s:%d] Failed to remove %s: %s\n",
+                        __FUNCTION__, __FILE__, __LINE__,
+                        CHRONY_ENABLE_FILE, strerror(errno));
+            }
         }
+        if (pChanged) *pChanged = true;
         return OK;
     }
 
-    // Convert value to true/false string - for storage
-    bool chronyEnable = false;
-
-    if (chronyEnableStr == "true" || chronyEnableStr == "1")
-        chronyEnable = true;
-    else if (chronyEnableStr == "false" || chronyEnableStr == "0")
-        chronyEnable = false;
-    else {
-        // Unrecognized value
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Invalid Chrony Enable value: %s\n",
-                __FUNCTION__, __FILE__, __LINE__, chronyEnableStr.c_str());
-        return NOK;
-    }
-
-    std::ofstream file(CHRONY_ENABLE_FILE);
-    if (!file.is_open()) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Failed to open Chrony Enable file for writing\n",
-                __FUNCTION__, __FILE__, __LINE__);
-        return NOK;
-    }
-
-    file << (chronyEnable ? "true" : "false");
-    if (file.fail()) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Failed to write Chrony Enable state to file\n",
-                __FUNCTION__, __FILE__, __LINE__);
+    // Only allow "true" or "1" to enable
+    if (chronyEnableStr == "true" || chronyEnableStr == "1") {
+        std::ofstream file(CHRONY_ENABLE_FILE);
+        if (!file.is_open()) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%s:%d] Failed to open %s for writing\n",
+                    __FUNCTION__, __FILE__, __LINE__, CHRONY_ENABLE_FILE);
+            return NOK;
+        }
+        file << "true"; // Always write "true" if enabling
         file.close();
-        return NOK;
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Successfully enabled Chrony\n", __FUNCTION__, __FILE__, __LINE__);
+        if (pChanged) *pChanged = true;
+        return OK;
     }
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-            "[%s:%s:%d] Successfully wrote Chrony Enable: %s\n",
-            __FUNCTION__, __FILE__, __LINE__, chronyEnable ? "true" : "false");
-    file.close();
+    // Unrecognized value
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Invalid Chrony Enable value: %s\n",
+            __FUNCTION__, __FILE__, __LINE__, chronyEnableStr.c_str());
+    return NOK;
+}
 
-    // Optionally, set pChanged if you want to indicate a change
-    if (pChanged) {
-        *pChanged = true;
+int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+
+    // If file exists, Chrony is enabled
+    if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
+        strncpy(stMsgData->paramValue, "true", sizeof(stMsgData->paramValue) - 1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = 4;
+    } else {
+        strncpy(stMsgData->paramValue, "false", sizeof(stMsgData->paramValue) - 1);
+        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+        stMsgData->paramLen = 5;
     }
 
+    if (pChanged) *pChanged = false;
     return OK;
 }
 
 
-int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    int ret = NOT_HANDLED;
-    stMsgData->paramtype = hostIf_StringType;
-
-    std::string chronyEnableValue;
-    std::ifstream file(CHRONY_ENABLE_FILE);
-
-    if (!file.is_open()) {
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Chrony Enable file does not exist, returning empty value\n",
-                __FUNCTION__, __FILE__, __LINE__);
-        stMsgData->paramValue[0] = '\0';
-        stMsgData->paramLen = 0;
-        return OK;
-    }
-
-    if (std::getline(file, chronyEnableValue)) {
-        // Remove newline
-        if (!chronyEnableValue.empty() && chronyEnableValue.back() == '\n') {
-            chronyEnableValue.pop_back();
-        }
-
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Chrony Enable = %s.\n",
-                __FUNCTION__, __FILE__, __LINE__, chronyEnableValue.c_str());
-
-        strncpy(stMsgData->paramValue, chronyEnableValue.c_str(), sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = chronyEnableValue.length();
-
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "[%s:%s:%d] paramValue: %s stMsgData->paramLen: %d\n",
-                __FUNCTION__, __FILE__, __LINE__, stMsgData->paramValue, stMsgData->paramLen);
-
-        ret = OK;
-    } else {
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "%s(): No data in Chrony Enable file, returning empty value.\n", __FUNCTION__);
-        stMsgData->paramValue[0] = '\0';
-        stMsgData->paramLen = 0;
-        ret = OK;
-    }
-
-    file.close();
-    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s()]\n", __FUNCTION__);
-    return ret;
-}
 /** @} */
 /** @} */
