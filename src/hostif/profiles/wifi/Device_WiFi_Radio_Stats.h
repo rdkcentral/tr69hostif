@@ -76,10 +76,8 @@ public:
     static GList* getAllAssociateDevs();
     static void closeInstance(hostIf_WiFi_Radio_Stats *);
     static void closeAllInstances();
-    #ifdef RDKV_NM
     int get_Device_WiFi_Radio_Stats_Props_Fields(int radioIndex);
     void checkWifiRadioPropsFetch(int radioIndex);
-    #endif
 
     unsigned long BytesSent;
     unsigned long BytesReceived;
@@ -89,7 +87,7 @@ public:
     unsigned int ErrorsReceived;
     unsigned int DiscardPacketsSent;
     unsigned int DiscardPacketsReceived;
-    unsigned int NoiseFloor;
+    int NoiseFloor;
 
    /**
      * @ingroup TR69_HOSTIF_WIFI_RADIO_STAT

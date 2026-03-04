@@ -255,9 +255,9 @@ int WiFiReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
     const char *pSetting;
     const int maxSSID_Instances = 1;
     int instanceNum = 0;
+    int radioIndex = 1;
     #ifdef RDKV_TR69
     const int maxRadioInstances = 1;
-    int radioIndex = 1;
     if (strcasecmp(stMsgData->paramName,"Device.WiFi.RadioNumberOfEntries") == 0)
     {
         stMsgData->instanceNum = maxRadioInstances;
@@ -327,6 +327,43 @@ int WiFiReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         }
         ret = pIface->get_Device_WiFi_EnableWiFi(stMsgData);
     }
+    #ifndef RDKV_TR69
+    else if (matchComponent(stMsgData->paramName, "Device.WiFi.Radio", &pSetting, instanceNum))
+    {
+        if (instanceNum != 1)
+        {
+            return NOK;
+        }
+
+        stMsgData->instanceNum = instanceNum;
+        hostIf_WiFi_Radio *pWifiRadio = hostIf_WiFi_Radio::getInstance(stMsgData->instanceNum);
+        hostIf_WiFi_Radio_Stats *pWifiRadioStats = hostIf_WiFi_Radio_Stats::getInstance(stMsgData->instanceNum);
+
+        if ((!pWifiRadio) || (!pWifiRadioStats))
+        {
+            return NOK;
+        }
+
+        if (strcasecmp(pSetting,"OperatingChannelBandwidth") == 0)
+        {
+            ret = pWifiRadio->get_Device_WiFi_Radio_OperatingChannelBandwidth(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.PacketsReceived") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_PacketsReceived(stMsgData,radioIndex);
+        }
+        else if (strcasecmp(pSetting,"Stats.Noise") == 0)
+        {
+            ret = pWifiRadioStats->get_Device_WiFi_Radio_Stats_NoiseFloor(stMsgData,radioIndex);
+        }
+        else
+        {
+           RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d]  Parameter : \'%s\' is Not Supported  \n", __FUNCTION__, __LINE__, stMsgData->paramName);
+           stMsgData->faultCode = fcInvalidParameterName;
+           ret = NOK;
+        }
+    }
+    #endif
     #ifdef RDKV_TR69
      else if (matchComponent(stMsgData->paramName, "Device.WiFi.Radio", &pSetting, instanceNum))
     {
