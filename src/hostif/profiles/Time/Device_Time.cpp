@@ -56,7 +56,7 @@
 #define TIME_ZONE_LENGTH 8
 #define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
 #define NTP_MINPOLL_FILE "/opt/ntp_minpoll"
-#define NTP_MINPOLL_FILE "/opt/ntp_maxpoll"
+#define NTP_MAXPOLL_FILE "/opt/ntp_maxpoll"
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
