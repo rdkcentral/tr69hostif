@@ -57,6 +57,7 @@
 #define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
 #define NTP_MINPOLL_FILE "/opt/secure/RFC/chrony/ntp_minpoll"
 #define NTP_MAXPOLL_FILE "/opt/secure/RFC/chrony/ntp_maxpoll"
+#define NTP_SERVER1_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server1_directive"
 #define NTP_SERVER2_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server2_directive"
 #define NTP_SERVER3_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server3_directive"
 #define NTP_SERVER4_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server4_directive"
