@@ -476,6 +476,36 @@
             <default type="factory" value="12"/>
         </syntax>
     </parameter>
+    <parameter base="NTPServer1Directive" access="readWrite" notification="0" maxNotification="2">
+    <syntax>
+        <string/>
+        <default type="factory" value="server"/>
+    </syntax>
+    </parameter>
+    <parameter base="NTPServer2Directive" access="readWrite" notification="0" maxNotification="2">
+    <syntax>
+      <string/>
+      <default type="factory" value="server"/>
+    </syntax>
+    </parameter>
+    <parameter base="NTPServer3Directive" access="readWrite" notification="0" maxNotification="2">
+    <syntax>
+      <string/>
+      <default type="factory" value="server"/>
+    </syntax>
+    </parameter>
+    <parameter base="NTPServer4Directive" access="readWrite" notification="0" maxNotification="2">
+    <syntax>
+      <string/>
+      <default type="factory" value="server"/>
+     </syntax>
+    </parameter>
+    <parameter base="NTPServer5Directive" access="readWrite" notification="0" maxNotification="2">
+    <syntax>
+      <string/>
+      <default type="factory" value="server"/>
+     </syntax>
+    </parameter>
     </object>
     <object base="Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="AudioStandards" access="readOnly"  notification="0" maxNotification="2" >
