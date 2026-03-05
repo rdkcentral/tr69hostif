@@ -55,9 +55,12 @@
 
 #define TIME_ZONE_LENGTH 8
 #define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
-#define NTP_MINPOLL_FILE "/opt/ntp_minpoll"
-#define NTP_MAXPOLL_FILE "/opt/ntp_maxpoll"
-#define NTP_SERVER1_DIRECTIVE_FILE "/opt/ntp_server1_directive"
+#define NTP_MINPOLL_FILE "/opt/secure/RFC/chrony/ntp_minpoll"
+#define NTP_MAXPOLL_FILE "/opt/secure/RFC/chrony/ntp_maxpoll"
+#define NTP_SERVER2_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server2_directive"
+#define NTP_SERVER3_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server3_directive"
+#define NTP_SERVER4_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server4_directive"
+#define NTP_SERVER5_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server5_directive"
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
@@ -571,5 +574,108 @@ int hostIf_Time::set_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t *stMsgData
     return OK;
 }
 
+int hostIf_Time::get_Device_Time_NTPServer2Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER2_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer2Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER2_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPServer3Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER3_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer3Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER3_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPServer4Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER4_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer4Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER4_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER5_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER5_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
 /** @} */
 /** @} */
