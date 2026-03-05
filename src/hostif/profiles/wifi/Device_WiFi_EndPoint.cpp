@@ -479,7 +479,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Fetching ConnectedSSID from NetworkManager\n", __FUNCTION__);
     postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetConnectedSSID\"}";
     response = getJsonRPCData(postData);
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 12] ConnectedSSID RPC returned\n", __FUNCTION__);
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] ConnectedSSID RPC returned\n", __FUNCTION__);
 
     if(response.c_str())
     {
@@ -541,7 +541,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SignalStrength is sourced from ConnectedSSID RPC\n", __FUNCTION__);
 
     time_of_last_successful_query = time (0);
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 21] Cache timestamp updated\n", __FUNCTION__);
+    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][STEP 21] Cache timestamp updated\n", __FUNCTION__);
 
     //strncpy (Alias, param.data.endPointInfo.alias, BUFF_LENGTH_64);
     //strncpy (ProfileReference, param.data.endPointInfo.ProfileReference, BUFF_LENGTH_256);
@@ -551,12 +551,12 @@ int hostIf_WiFi_EndPoint::refreshCache()
 
     if (false == Enable) // "Disabled" endpoint
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 22] Endpoint disabled path hit\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][STEP 22] Endpoint disabled path hit\n", __FUNCTION__);
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] EndPoint is disabled\n", __FUNCTION__);
         last_call_status = NOK;
         return OK;
     }
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s][STEP 23] refreshCache completed successfully\n", __FUNCTION__);
+    RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][STEP 23] refreshCache completed successfully\n", __FUNCTION__);
     last_call_status = OK;
     return OK;
 }
