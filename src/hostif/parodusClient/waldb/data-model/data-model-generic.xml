@@ -4410,11 +4410,45 @@
         </syntax>
       </parameter>
     </object>
+	<object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UhdEnable." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="Enable" access="writeOnly" notification="0" maxNotification="2" >
+        <syntax>
+           <boolean/>
+        </syntax>
+      </parameter>
+   </object>
+	<object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BootstrapConfig." access="readOnly" minEntries="0" maxEntries="1" >
+     <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <boolean/>
+        </syntax>
+      </parameter>
+     </object>
+	<object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AmazonPrimeVideo." access="readOnly" minEntries="0" maxEntries="1" />
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AmazonPrimeVideo.SyePlayer." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <boolean/>
           <default type="factory" value="false"/>
+        </syntax>
+      </parameter>
+	  <parameter base="DelayInSecResumedToSuspended" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+          <default type="factory" value="30"/>
+        </syntax>
+      </parameter>
+      <parameter base="DelayInSecLaunchedToSuspended" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+          <default type="factory" value="30"/>
         </syntax>
       </parameter>
     </object>
@@ -4519,3 +4553,4 @@
    </object>
   </model>
 </dm:document>
+
