@@ -4553,6 +4553,12 @@
            <unsignedInt/>
         </syntax>
       </parameter>
+      <parameter base="ReassociateTolerance" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <unsignedInt/>
+          <default type="factory" value="20"/>
+        </syntax>
+      </parameter>	   
    </object>   
   </model>
 </dm:document>
