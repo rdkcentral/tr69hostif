@@ -54,7 +54,7 @@
 #include <cstdio> 
 
 #define TIME_ZONE_LENGTH 8
-#define CHRONY_ENABLE_FILE "/opt/chronyd_enabled" 
+#define CHRONY_ENABLE_FILE "/opt/secure/RFC/chrony/chronyd_enabled" 
 #define NTP_MINPOLL_FILE "/opt/secure/RFC/chrony/ntp_minpoll"
 #define NTP_MAXPOLL_FILE "/opt/secure/RFC/chrony/ntp_maxpoll"
 #define NTP_SERVER1_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server1_directive"
@@ -383,6 +383,14 @@ int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool
 
     // Only allow "true" or "1" to enable
     if (chronyEnableStr == "true" || chronyEnableStr == "1") {
+		const char* chronyDir = "/opt/secure/RFC/chrony";
+        if (mkdir(chronyDir, 0755) != 0 && errno != EEXIST) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to create %s: %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                chronyDir, strerror(errno));
+           return NOK;
+        }
         std::ofstream file(CHRONY_ENABLE_FILE);
         if (!file.is_open()) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
