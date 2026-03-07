@@ -108,6 +108,14 @@ static void HTTPRequestHandler(
             if(respSt)
             {
                 jsonResponse = cJSON_CreateObject();
+                if (!jsonResponse)
+                {
+                    soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Failed to create JSON response");
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to create JSON response object\n", __FUNCTION__, __FILE__);
+                    wdmp_free_req_struct(reqSt);
+                    wdmp_free_res_struct(respSt);
+                    return;
+                }
                 wdmp_form_get_response(respSt, jsonResponse);
 
                 // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
@@ -153,6 +161,14 @@ static void HTTPRequestHandler(
             if(respSt)
             {
                 jsonResponse = cJSON_CreateObject();
+                if (!jsonResponse)
+                {
+                    soup_server_message_set_status (msg, SOUP_STATUS_INTERNAL_SERVER_ERROR, "Failed to create JSON response");
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s:%s] Exiting.. Failed to create JSON response object\n", __FUNCTION__, __FILE__);
+                    wdmp_free_req_struct(reqSt);
+                    wdmp_free_res_struct(respSt);
+                    return;
+                }
                 wdmp_form_set_response(respSt, jsonResponse);
                 // WDMP Code sets a generic statusCode, the following lines replace it with an actual error code.
                 int new_st_code = 0;
@@ -199,7 +215,9 @@ static void HTTPRequestHandler(
         wdmp_free_req_struct(reqSt);
         reqSt = NULL;
         cJSON_Delete(jsonRequest);
-        cJSON_Delete(jsonResponse);
+        if (jsonResponse) {
+            cJSON_Delete(jsonResponse);
+        }
         wdmp_free_res_struct(respSt);
         respSt = NULL;
 

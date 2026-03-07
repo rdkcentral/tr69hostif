@@ -209,16 +209,22 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                     cJSON *bssid = cJSON_GetObjectItem(jsonObj, "bssid");
 	            cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
                     //ASSIGN TO OP HERE
-		    rc=strcpy_s(BSSID,sizeof(BSSID),bssid->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s \n", __FUNCTION__, BSSID);
-		    if(rc!=EOK)
-        	    {
-            	        ERR_CHK(rc);
-        	    }
-		    rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
-                    if(rc!=EOK)
+                    if (bssid && bssid->valuestring)
                     {
-                        ERR_CHK(rc);
+		        rc=strcpy_s(BSSID,sizeof(BSSID),bssid->valuestring);
+		        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s \n", __FUNCTION__, BSSID);
+		        if(rc!=EOK)
+        	        {
+            	            ERR_CHK(rc);
+        	        }
+                    }
+                    if (ssid && ssid->valuestring)
+                    {
+		        rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
+                        if(rc!=EOK)
+                        {
+                            ERR_CHK(rc);
+                        }
                     }
 		 }
                  else
@@ -255,28 +261,43 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                 if (jsonObj)
                 {
                     cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
-	            cJSON *interface = NULL; 
-		    cJSON *interfaceType = NULL;
+                    if (interfaces)
+                    {
+	                cJSON *interface = NULL; 
+		        cJSON *interfaceType = NULL;
 
-		     for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
-                        interface = cJSON_GetArrayItem(interfaces, i);
-			interfaceType = cJSON_GetObjectItem(interface, "type");
-			if (strcmp(interfaceType->valuestring, "WIFI") == 0) {
-			    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
-			    break;
-			}
-		    }
-                    //ASSIGN TO OP HERE
-		    cJSON *result = cJSON_GetObjectItem(interface, "mac");
-		    rc=strcpy_s(MACAddress,sizeof(MACAddress),result->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s \n", __FUNCTION__, MACAddress);
-        	    if(rc!=EOK)
-        	    {
-            	        ERR_CHK(rc);
-        	    }
-		    cJSON *isEnabled = cJSON_GetObjectItem(interface, "enabled");
-		    enable=isEnabled->type;
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
+		        for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
+                            interface = cJSON_GetArrayItem(interfaces, i);
+                            if (interface)
+                            {
+			        interfaceType = cJSON_GetObjectItem(interface, "type");
+			        if (interfaceType && interfaceType->valuestring && strcmp(interfaceType->valuestring, "WIFI") == 0) {
+			            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
+			            break;
+			        }
+                            }
+		        }
+                        //ASSIGN TO OP HERE
+                        if (interface)
+                        {
+		            cJSON *result = cJSON_GetObjectItem(interface, "mac");
+                            if (result && result->valuestring)
+                            {
+		                rc=strcpy_s(MACAddress,sizeof(MACAddress),result->valuestring);
+		                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s \n", __FUNCTION__, MACAddress);
+        	                if(rc!=EOK)
+        	                {
+            	                    ERR_CHK(rc);
+        	                }
+                            }
+		            cJSON *isEnabled = cJSON_GetObjectItem(interface, "enabled");
+                            if (isEnabled)
+                            {
+		                enable=isEnabled->type;
+		                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -313,7 +334,9 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                 {
 	            cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
 		    //ASSIGN TO OP HERE
-		    int res = state->valueint;
+                    if (state)
+                    {
+		        int res = state->valueint;
 		    switch (res) {
 			case 0:
 			    rc=strcpy_s(status,sizeof(status),"UNINSTALLED");
@@ -363,6 +386,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 			{
 			    ERR_CHK(rc);
 			}
+                    }
 		}
 	  	else
 		{

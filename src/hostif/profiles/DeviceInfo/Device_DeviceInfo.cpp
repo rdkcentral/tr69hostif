@@ -3169,7 +3169,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
             cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
             if (jsonObj){
                 cJSON* privacyMode = cJSON_GetObjectItem(jsonObj, "privacyMode");
-                if(privacyMode){
+                if(privacyMode && privacyMode->valuestring){
                     privacyModeValue = privacyMode->valuestring;
                     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: PrivacyMode is %s\n", __FUNCTION__, privacyModeValue.c_str());
                     if (privacyModeValue.compare("DO_NOT_SHARE") == 0){
@@ -3291,7 +3291,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HO
    		        }
    	   	    }
    		    cJSON *Component = cJSON_GetArrayItem(ComponentList_obj, i);
-  		    value = value + Component->valuestring ;
+                    if (Component && cJSON_IsString(Component) && Component->valuestring)
+                    {
+  		        value = value + Component->valuestring ;
+                    }
 	        }
     	        else
 	        {
@@ -5244,7 +5247,9 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_LastRebootReason(HOSTIF_MsgData_t *s
         cJSON *root = cJSON_Parse(buffer);
 
         if(root) {
-            reboot_reason = cJSON_GetObjectItem(root, "reason")->valuestring;
+            cJSON *reasonObj = cJSON_GetObjectItem(root, "reason");
+            if (reasonObj && reasonObj->valuestring) {
+                reboot_reason = reasonObj->valuestring;
 
             if(reboot_reason) {
                 ret = OK;
@@ -5253,6 +5258,7 @@ int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_LastRebootReason(HOSTIF_MsgData_t *s
                 stMsgData->paramValue[sizeof(stMsgData->paramValue) -1] = '\0';
                 stMsgData->paramtype = hostIf_StringType;
                 stMsgData->paramLen = strlen(reboot_reason);
+            }
             }
 
             cJSON_Delete(root);

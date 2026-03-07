@@ -355,20 +355,34 @@ int hostIf_WiFi_EndPoint::refreshCache()
             if (jsonObj)
             {
 	        cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
-	        cJSON *interface = nullptr, *interfaceType;
-	        for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
-                    interface = cJSON_GetArrayItem(interfaces, i);
-	            interfaceType = cJSON_GetObjectItem(interface, "type");
-		    if (strcmp(interfaceType->valuestring, "WIFI") == 0)
-		        break;
-	        }
+                if (interfaces)
+                {
+	            cJSON *interface = nullptr, *interfaceType;
+	            for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
+                        interface = cJSON_GetArrayItem(interfaces, i);
+                        if (interface)
+                        {
+	                    interfaceType = cJSON_GetObjectItem(interface, "type");
+		            if (interfaceType && interfaceType->valuestring && strcmp(interfaceType->valuestring, "WIFI") == 0)
+		                break;
+                        }
+	            }
 
-                //ASSIGN TO OP HERE
-		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
-		Enable = result->type;
+                    //ASSIGN TO OP HERE
+                    if (interface)
+                    {
+		        cJSON *result = cJSON_GetObjectItem(interface, "enabled");
+                        if (result)
+                        {
+		            Enable = result->type;
+                        }
+                    }
+                }
 
 		cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
-		int res = state->valueint;
+                if (state)
+                {
+		    int res = state->valueint;
 		switch (res) {
 		case 0:
 		    strncpy(Status, "UNINSTALLED", BUFF_LENGTH_64);
@@ -413,6 +427,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
 		    strncpy(Status, "ERROR", BUFF_LENGTH_64);
 		    break;
 		}
+                }
 	    }
             else
             {
@@ -449,8 +464,11 @@ int hostIf_WiFi_EndPoint::refreshCache()
             {
                 cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
                 //ASSIGN TO OP HERE
-	        strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
-		SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
+                if (ssid && ssid->valuestring)
+                {
+	            strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
+		    SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
+                }
             }
             else
             {
@@ -487,7 +505,10 @@ int hostIf_WiFi_EndPoint::refreshCache()
             {
                 cJSON *sigstr = cJSON_GetObjectItem(jsonObj, "signalStrength");
                 //ASSIGN TO OP HERE
-                stats.SignalStrength = sigstr->valueint;
+                if (sigstr)
+                {
+                    stats.SignalStrength = sigstr->valueint;
+                }
             }
             else
             {

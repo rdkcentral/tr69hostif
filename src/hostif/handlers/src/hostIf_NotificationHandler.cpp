@@ -129,6 +129,10 @@ void NotificationHandler::pushNotification(const char* destination, const char* 
 void NotificationHandler::pushValueChangeNotification(IARM_Bus_tr69HostIfMgr_EventData_t& event)
 {
     cJSON* notifyPayload = cJSON_CreateObject ();
+    if (!notifyPayload) {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to create JSON object\n", __FUNCTION__);
+        return;
+    }
     cJSON_AddStringToObject(notifyPayload, "device_id", getNotifySource ()); // Device ID and Notification source are same
 
     WAL_DATA_TYPE pwalType;
@@ -149,6 +153,10 @@ void NotificationHandler::pushValueChangeNotification(IARM_Bus_tr69HostIfMgr_Eve
 void NotificationHandler::pushKeyValueNotification(const char* destination, const char* key, const char* value)
 {
     cJSON* notifyPayload = cJSON_CreateObject ();
+    if (!notifyPayload) {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to create JSON object\n", __FUNCTION__);
+        return;
+    }
     cJSON_AddStringToObject(notifyPayload, "device_id", getNotifySource ()); // Device ID and Notification source are same
 
     cJSON_AddStringToObject(notifyPayload, key, value);
@@ -163,6 +171,10 @@ void NotificationHandler::pushKeyValueNotification(const char* destination, cons
 
 void addToJsonObject (cJSON* json, const char* key, const char* value, const WAL_DATA_TYPE type)
 {
+    if (!json || !key || !value) {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: NULL parameter - json:%p key:%p value:%p\n", __FUNCTION__, json, key, value);
+        return;
+    }
     switch (type)
     {
     case WAL_STRING:
