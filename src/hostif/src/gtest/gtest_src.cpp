@@ -49,7 +49,7 @@ extern "C"
 using namespace std;
 
 #ifdef GTEST_ENABLE
-extern size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, std::string stream);
+extern size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, void *userdata);
 #endif
 
 XRFCStore* m_rfcStore;
@@ -306,7 +306,7 @@ TEST(srcTest, writeCurlResponse) {
     size_t size = 1;
     size_t nmemb = strlen(input);
     std::string response;
-    size_t written = getWriteCurlResponse()((void*)input, size, nmemb, response);
+    size_t written = getWriteCurlResponse()((void*)input, size, nmemb, &response);
     EXPECT_EQ(written, nmemb);
 }
 

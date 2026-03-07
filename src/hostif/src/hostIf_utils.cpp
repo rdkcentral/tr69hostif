@@ -554,12 +554,17 @@ std::string get_security_token() {
      return sToken;
 }
 
-size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, string stream);
-size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, string stream)
+size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, void *userdata);
+size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
     size_t realsize = size * nmemb;
-    string temp(static_cast<const char*>(ptr), realsize);
-    stream.append(temp);
+    if ((NULL == ptr) || (NULL == userdata))
+    {
+        return 0;
+    }
+
+    string* stream = static_cast<string*>(userdata);
+    stream->append(static_cast<const char*>(ptr), realsize);
     return realsize;
 }
 
@@ -644,7 +649,7 @@ string getJsonRPCData(std::string postData)
 }
 
 #ifdef GTEST_ENABLE
-size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, std::string stream) {
+size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, void *userdata) {
     return &writeCurlResponse;
 }
 #endif
