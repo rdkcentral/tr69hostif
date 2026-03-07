@@ -47,7 +47,7 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
         -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/ \
 		-I=/usr/include/libsoup-3.0/
 
-AM_CXXFLAGS += "-std=c++11" $(PROCPS_CFLAGS)
+AM_CXXFLAGS += "-std=c++17" $(PROCPS_CFLAGS)
 
 if WITH_XRDK_SDCARD_PROFILE
 AM_CXXFLAGS += $(XRDK_SDCARD_PROFILE_FLAG)
@@ -157,3 +157,19 @@ AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/parodusClient/pal \
 libMsgHandlers_la_SOURCES += src/hostIf_NotificationHandler.cpp
 include_HEADERS = include/hostIf_msgHandler.h \
                   include/hostIf_NotificationHandler.h
+
+libMsgHandlers_la_SOURCES += tr69hostif_otlp_instrumentation.cpp
+#AM_CXXFLAGS += -I/usr/include
+
+# OpenTelemetry libraries must be in LIBADD, not LDFLAGS
+libMsgHandlers_la_LIBADD = -lopentelemetry_exporter_otlp_http \
+                           -lopentelemetry_exporter_otlp_http_client \
+                           -lopentelemetry_exporter_otlp_http_metric \
+                           -lopentelemetry_otlp_recordable \
+                           -lopentelemetry_trace \
+                           -lopentelemetry_metrics \
+                           -lopentelemetry_resources \
+                           -lopentelemetry_common \
+                           -lopentelemetry_version \
+                           -lcurl \
+                           -lpthread
