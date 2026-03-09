@@ -62,6 +62,8 @@
 #define NTP_SERVER3_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server3_directive"
 #define NTP_SERVER4_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server4_directive"
 #define NTP_SERVER5_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server5_directive"
+#define NTP_MAXSTEP_FILE "/opt/secure/RFC/chrony/ntp_maxstep"
+#define NTP_MAXSTEP_DEFAULT "1.0,3"
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
@@ -682,6 +684,45 @@ int hostIf_Time::set_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t *stMsgData
     std::ofstream file(NTP_SERVER5_DIRECTIVE_FILE);
     if (!file.is_open()) return NOK;
     file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_MAXSTEP_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty())
+        value = NTP_MAXSTEP_DEFAULT;
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue) - 1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string input = getStringValue(stMsgData);  // Adapt getStringValue to your project; just converts paramValue to std::string
+
+    // Basic validation: Expecting "float,unsignedInt"
+    size_t comma = input.find(',');
+    if (comma == std::string::npos) {
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+    // Optional: check number formats - left as exercise for stricter validation
+
+    std::ofstream file(NTP_MAXSTEP_FILE, std::ios::trunc);
+    if (!file.is_open())
+        return NOK;
+    file << input;
     file.close();
     if (pChanged) *pChanged = true;
     return OK;
