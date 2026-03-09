@@ -485,7 +485,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     {
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
         cJSON* root = cJSON_Parse(response.c_str());
-        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s][STEP 13] ConnectedSSID JSON parse attempted\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] ConnectedSSID JSON parse attempted\n", __FUNCTION__);
         if(root)
         {
             cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
