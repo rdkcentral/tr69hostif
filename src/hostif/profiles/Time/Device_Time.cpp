@@ -445,7 +445,7 @@ int hostIf_Time::get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *p
         // If file does not exist, return default value
         strncpy(stMsgData->paramValue, "10", sizeof(stMsgData->paramValue)-1);
         stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = 1;
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
     }
 
     if (pChanged) *pChanged = false;
