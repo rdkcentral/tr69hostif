@@ -417,19 +417,16 @@ int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool
 
 int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramtype = hostIf_BooleanType;
 
-    // If file exists, Chrony is enabled
-    if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
-        strncpy(stMsgData->paramValue, "true", sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = 4;
-    } else {
-        strncpy(stMsgData->paramValue, "false", sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = 5;
-    }
+	if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
+	 put_boolean(stMsgData, true);
+	} else {
+	  put_boolean(stMsgData, false);
+	}
 
+	stMsgData->paramLen = sizeof(bool);
+	
     if (pChanged) *pChanged = false;
     return OK;
 }
@@ -469,7 +466,7 @@ int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *p
 {
     std::string minpollStr = getStringValue(stMsgData);
 
-    // You may want to validate that minpollStr is a number in a valid range [4, 17] for NTP
+    // Validate that minpollStr is a number in the valid NTP range [4, 24]
     int minpoll = atoi(minpollStr.c_str());
     if (minpoll < 4 || minpoll > 24) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
