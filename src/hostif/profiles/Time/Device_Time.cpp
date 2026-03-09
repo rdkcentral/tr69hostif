@@ -567,8 +567,13 @@ int hostIf_Time::set_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t *stMsgData
 {
     std::string directive = getStringValue(stMsgData);
     std::ofstream file(NTP_SERVER1_DIRECTIVE_FILE);
-    if (!file.is_open())
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open %s for writing: %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                NTP_SERVER1_DIRECTIVE_FILE, strerror(errno));
         return NOK;
+    }
     file << directive;
     file.close();
 
