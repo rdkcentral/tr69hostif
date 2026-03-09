@@ -52,6 +52,8 @@
 #include <string>
 #include <fstream>
 #include <cstdio> 
+#include <errno.h> 
+#include <sys/stat.h>
 
 #define TIME_ZONE_LENGTH 8
 #define CHRONY_ENABLE_FILE "/opt/secure/RFC/chrony/chronyd_enabled" 
