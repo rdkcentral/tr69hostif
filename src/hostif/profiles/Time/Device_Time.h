@@ -293,6 +293,9 @@ public:
     int set_Device_Time_NTPServer4Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
     int get_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
     int set_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
+    int get_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+    int set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+   
 
     /**
      * @brief    Get the local time zone definition.
