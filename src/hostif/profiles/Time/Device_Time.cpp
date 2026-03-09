@@ -459,7 +459,7 @@ int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *p
 {
     std::string minpollStr = getStringValue(stMsgData);
 
-    // You may want to validate that minpollStr is a number in a valid range [4, 17] for NTP
+    // Validate that minpollStr is a number in the valid NTP range [4, 24]
     int minpoll = atoi(minpollStr.c_str());
     if (minpoll < 4 || minpoll > 24) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
