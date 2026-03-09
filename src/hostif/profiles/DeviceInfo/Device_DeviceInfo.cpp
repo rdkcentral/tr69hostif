@@ -5491,6 +5491,84 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
     return OK;
 }
 
+int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgData)
+{
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.Account.getLastCheckoutResetTime\" }";
+ 
+    string resp = getJsonRPCData(std::move(postData)); 
+    if(resp.c_str())
+    {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
+
+        cJSON* root = cJSON_Parse(resp.c_str());
+
+        if(root)
+        {
+            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+            if (jsonObj && jsonObj->type == cJSON_Number)
+            {
+                int value = (int)jsonObj->valuedouble;
+                put_int(stMsgData->paramValue, value);
+                stMsgData->paramtype = hostIf_IntegerType;
+
+            }
+
+            cJSON_Delete(root);
+        }
+        else
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
+            return NOK;
+        }
+    }
+
+    return OK;
+}
+
+int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t*stMsgData)
+{
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.Account.getLastCheckoutResetTime\" }";
+ 
+    string resp = getJsonRPCData(std::move(postData)); 
+    if(resp.c_str())
+    {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
+
+        cJSON* root = cJSON_Parse(resp.c_str());
+
+        stMsgData->paramtype = hostIf_StringType;
+
+        if(root)
+        {
+            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+            if (jsonObj && jsonObj->type == cJSON_Number)
+            {
+                int value = (int)jsonObj->valuedouble;
+                if (value > 0)
+                {
+                    strncpy(stMsgData->paramValue, "success", TR69HOSTIFMGR_MAX_PARAM_LEN -1);
+                }
+                else
+                {
+                    strncpy(stMsgData->paramValue, "unknown", TR69HOSTIFMGR_MAX_PARAM_LEN -1);
+                }
+            }
+            else {
+                strncpy(stMsgData->paramValue, "unknown", TR69HOSTIFMGR_MAX_PARAM_LEN -1);
+            }
+
+            cJSON_Delete(root);
+        }
+        else
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
+            return NOK;
+        }
+    }
+
+    return OK;
+
+}
 
 int hostIf_DeviceInfo::set_X_RDKCENTRAL_COM_LastRebootReason(HOSTIF_MsgData_t *stMsgData)
 {
