@@ -13,7 +13,18 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specific language govern    stMsgData->paramtype = hostIf_BooleanType;
+
+	if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
+	 put_boolean(stMsgData->paramValue, true);
+	} else {
+	 put_boolean(stMsgData->paramValue, false);
+	}
+
+	stMsgData->paramLen = sizeof(bool);
+	
+    if (pChanged) *pChanged = false;
+    return OK;ing permissions and
  * limitations under the License.
 */
 
@@ -408,19 +419,16 @@ int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool
 
 int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramtype = hostIf_BooleanType;
 
-    // If file exists, Chrony is enabled
-    if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
-        strncpy(stMsgData->paramValue, "true", sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = 4;
-    } else {
-        strncpy(stMsgData->paramValue, "false", sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = 5;
-    }
+	if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
+	 put_boolean(stMsgData->paramValue, true);
+	} else {
+	 put_boolean(stMsgData->paramValue, false);
+	}
 
+	stMsgData->paramLen = sizeof(bool);
+	
     if (pChanged) *pChanged = false;
     return OK;
 }
