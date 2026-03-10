@@ -713,9 +713,9 @@ int hostIf_Time::get_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *p
 
 int hostIf_Time::set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string input = getStringValue(stMsgData);  // Adapt getStringValue to your project; just converts paramValue to std::string
+    std::string input = getStringValue(stMsgData);  
 
-    // Basic validation: Expecting "float,unsignedInt"
+    //Format - makestep 1.0 3 
     size_t comma = input.find(',');
     if (comma == std::string::npos) {
         stMsgData->faultCode = fcInvalidParameterValue;
