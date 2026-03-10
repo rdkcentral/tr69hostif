@@ -420,9 +420,9 @@ int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool
     stMsgData->paramtype = hostIf_BooleanType;
 
 	if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
-	 put_boolean(stMsgData, true);
+	 put_boolean(stMsgData->paramValue, true);
 	} else {
-	  put_boolean(stMsgData, false);
+	 put_boolean(stMsgData->paramValue, false);
 	}
 
 	stMsgData->paramLen = sizeof(bool);
@@ -452,7 +452,7 @@ stMsgData->paramtype = hostIf_UnsignedIntType;
         }
     }
 
-    put_uint(stMsgData, minpoll);
+    put_uint(stMsgData->paramValue, minpoll);
     stMsgData->paramLen = sizeof(unsigned int);
 
     if (pChanged) *pChanged = false;
@@ -475,7 +475,7 @@ int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *p
     std::string minpollStr = getStringValue(stMsgData);
     unsigned int minpoll = 0;
     // Use string_to_uint for strict validation
-    if (!string_to_uint(minpollStr, minpoll)) {
+    if (!string_to_uint(minpollStr.c_str(), minpoll)) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
             "[%s:%s:%d] Invalid NTPMinpoll value (not a valid uint): %s\n",
             __FUNCTION__, __FILE__, __LINE__, minpollStr.c_str());
