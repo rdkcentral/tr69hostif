@@ -500,7 +500,9 @@ int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *p
 // Get handler for NTPMaxpoll
 int hostIf_Time::get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+
+    unsigned int maxpoll = 12; // Default if file is empty or missing (NTP typical maxpoll default)
 
     std::ifstream file(NTP_MAXPOLL_FILE);
     if (file.is_open()) {
@@ -508,20 +510,13 @@ int hostIf_Time::get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *p
         std::getline(file, value);
         file.close();
 
-        if (value.empty()) {
-            value = "12"; // Default if file is empty (NTP typical maxpoll default)
+        if (!value.empty()) {
+            maxpoll = static_cast<unsigned int>(atoi(value.c_str()));
         }
-
-        strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = strlen(stMsgData->paramValue);
-    } else {
-        // If file does not exist, return default value
-        strncpy(stMsgData->paramValue, "12", sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = 2;
     }
 
+    put_uint(stMsgData->paramValue, maxpoll);
+    stMsgData->paramLen = sizeof(unsigned int);
     if (pChanged) *pChanged = false;
     return OK;
 }
