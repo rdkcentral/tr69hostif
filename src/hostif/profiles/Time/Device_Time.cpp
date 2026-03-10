@@ -426,27 +426,25 @@ int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool
 // Get handler for NTPMinpoll
 int hostIf_Time::get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramtype = hostIf_UnsignedIntType;
 
+    unsigned int minpoll = 10; // Default value
     std::ifstream file(NTP_MINPOLL_FILE);
     if (file.is_open()) {
         std::string value;
         std::getline(file, value);
         file.close();
-
-        if (value.empty()) {
-            value = "10"; // Default if file is empty
+        if (!value.empty()) {
+            try {
+                minpoll = static_cast<unsigned int>(std::stoul(value));
+            } catch (const std::exception&) {
+                minpoll = 10;
+            }
         }
-
-        strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue) - 1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = strlen(stMsgData->paramValue);
-    } else {
-        // If file does not exist, return default value
-        strncpy(stMsgData->paramValue, "10", sizeof(stMsgData->paramValue)-1);
-        stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-        stMsgData->paramLen = strlen(stMsgData->paramValue);
     }
+
+    put_uint(stMsgData->paramValue, minpoll);
+    stMsgData->paramLen = sizeof(unsigned int);
 
     if (pChanged) *pChanged = false;
     return OK;
@@ -455,25 +453,43 @@ int hostIf_Time::get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *p
 // Set handler for NTPMinpoll
 int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string minpollStr = getStringValue(stMsgData);
+     const char* chronyDir = "/opt/secure/RFC/chrony";
+    if (mkdir(chronyDir, 0755) != 0 && errno != EEXIST) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Failed to create %s: %s\n",
+            __FUNCTION__, __FILE__, __LINE__,
+            chronyDir, strerror(errno));
+        return NOK;
+    }
 
-    // Validate that minpollStr is a number in the valid NTP range [4, 24]
-    int minpoll = atoi(minpollStr.c_str());
+    std::string minpollStr = getStringValue(stMsgData);
+    unsigned int minpoll = 0;
+    // Use string_to_uint for strict validation
+    if (!string_to_uint(minpollStr.c_str(), minpoll)) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Invalid NTPMinpoll value (not a valid uint): %s\n",
+            __FUNCTION__, __FILE__, __LINE__, minpollStr.c_str());
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    // NTP minpoll allowed range: [4, 24]
     if (minpoll < 4 || minpoll > 24) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Invalid NTPMinpoll value: %s\n",
-                __FUNCTION__, __FILE__, __LINE__, minpollStr.c_str());
+            "[%s:%s:%d] NTPMinpoll value %u out of range [4, 24]\n",
+            __FUNCTION__, __FILE__, __LINE__, minpoll);
+        stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 
     std::ofstream file(NTP_MINPOLL_FILE);
     if (!file.is_open()) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Failed to open %s for writing\n",
-                __FUNCTION__, __FILE__, __LINE__, NTP_MINPOLL_FILE);
+            "[%s:%s:%d] Failed to open %s for writing\n",
+            __FUNCTION__, __FILE__, __LINE__, NTP_MINPOLL_FILE);
         return NOK;
     }
-    file << minpollStr;
+    file << minpoll;
     file.close();
 
     if (pChanged) *pChanged = true;
