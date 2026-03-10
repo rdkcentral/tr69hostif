@@ -142,6 +142,7 @@ class hostIf_Time {
     static XBSStore *m_bsStore;
 
     int dev_id;
+  
 
     bool bCalledLocalTimeZone;
     bool bCalledCurrentLocalTime;
@@ -276,6 +277,25 @@ public:
      */
 
     int get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+    
+    int get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+    
+    int get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+    
+    int get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+    
+    int get_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
+    
+    int get_Device_Time_NTPServer2Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
+    
+    int get_Device_Time_NTPServer3Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
+    
+    int get_Device_Time_NTPServer4Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
+    
+    int get_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t*, bool* pChanged = NULL);
+    
+    int get_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+    
 
     /**
      * @brief    Get the local time zone definition.
@@ -419,6 +439,24 @@ public:
      */
     int set_xRDKCentralComBootstrap(HOSTIF_MsgData_t *);
 
+    int set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPServer2Directive(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPServer3Directive(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPServer4Directive(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+
     /**
      * @brief    Get the bootstrap parameters.
      *
@@ -435,6 +473,7 @@ public:
      */
 
     int get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+   
 
 #if defined(GTEST_ENABLE)
     FRIEND_TEST(TimeTest, releaseLock);
