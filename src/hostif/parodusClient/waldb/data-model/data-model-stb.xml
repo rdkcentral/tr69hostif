@@ -290,6 +290,12 @@
            <unsignedInt/>
         </syntax>
       </parameter>
+      <parameter base="ReassociateTolerance" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+          <default type="factory" value="20"/>
+        </syntax>
+      </parameter>     
      </object>
    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UNII3." access="readOnly" minEntries="0" maxEntries="1" >
      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
