@@ -347,7 +347,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
 
     string response = getJsonRPCData(std::move(postData));
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] WifiState RPC returned\n", __FUNCTION__);
-    if(response.c_str())
+    if (!response.empty())
     {
 	RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
 	cJSON* root = cJSON_Parse(response.c_str());
