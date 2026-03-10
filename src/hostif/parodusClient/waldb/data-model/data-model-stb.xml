@@ -259,44 +259,7 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <boolean/>
-        </syntax>
-      </parameter>
-      <parameter base="EthernetLoggingInterval" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="WifiLoggingInterval" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="PacketLossLoggingInterval" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <string/>
-        </syntax>
-      </parameter>
-      <parameter base="WifiReassociateInterval" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="WifiResetIntervalForPacketLoss" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="WifiResetIntervalForDriverIssue" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <unsignedInt/>
-        </syntax>
-      </parameter>
-     </object>
-   <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UNII3." access="readOnly" minEntries="0" maxEntries="1" >
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UNII3." access="readOnly" minEntries="0" maxEntries="1" >
      <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
        <syntax>
          <boolean/>
