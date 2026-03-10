@@ -514,10 +514,19 @@ int hostIf_Time::get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *p
 
 // Set handler for NTPMaxpoll
 int hostIf_Time::set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
+{ 
+	const char* chronyDir = "/opt/secure/RFC/chrony";
+    if (mkdir(chronyDir, 0755) != 0 && errno != EEXIST) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Failed to create %s: %s\n",
+            __FUNCTION__, __FILE__, __LINE__,
+            chronyDir, strerror(errno));
+        return NOK;
+    }
+
     std::string maxpollStr = getStringValue(stMsgData);
 
-    // Validate maxpoll in NTP allowed range [4, 17]
+    // Validate maxpoll in NTP allowed range [4,24]
     int maxpoll = atoi(maxpollStr.c_str());
     if (maxpoll < 4 || maxpoll > 24) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
