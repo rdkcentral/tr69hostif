@@ -155,9 +155,10 @@ hostIf_WiFi_Radio::hostIf_WiFi_Radio(int dev_id):
     memset(TransmitPowerSupported, 0, sizeof(TransmitPowerSupported));
     memset(RegulatoryDomain, 0, sizeof(RegulatoryDomain));
 }
-#ifdef RDKV_NM
+
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_Props_Fields(int radioIndex)
 {
+#ifdef RDKV_NM
     IARM_Result_t retVal = IARM_RESULT_SUCCESS;
     IARM_BUS_WiFi_DiagsPropParam_t param = {0};
     int ret;
@@ -208,6 +209,20 @@ int hostIf_WiFi_Radio::get_Device_WiFi_Radio_Props_Fields(int radioIndex)
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
         return NOK;
     }
+#else
+    hostIf_WiFi_Radio *pDev = hostIf_WiFi_Radio::getInstance(dev_id);
+    if(pDev)
+    {
+        snprintf(OperatingChannelBandwidth,BUFF_MIN_16,"80MHz");
+        radioFirstExTime = time (NULL);
+        return OK;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
+        return NOK;
+    }
+#endif
 }
 
 void hostIf_WiFi_Radio::checkWifiRadioFetch(int radioIndex)
@@ -223,6 +238,8 @@ void hostIf_WiFi_Radio::checkWifiRadioFetch(int radioIndex)
         }
     }
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_Enable(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
@@ -465,6 +482,8 @@ int hostIf_WiFi_Radio::get_Device_WiFi_Radio_ChannelsInUse(HOSTIF_MsgData_t *stM
     return OK;
 }
 
+#endif
+
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_OperatingChannelBandwidth(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
@@ -475,6 +494,8 @@ int hostIf_WiFi_Radio::get_Device_WiFi_Radio_OperatingChannelBandwidth(HOSTIF_Ms
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_ExtensionChannel(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
