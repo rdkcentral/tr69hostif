@@ -121,6 +121,12 @@ static WAL_STATUS getParamAttributes(const char *pParameterName, AttrVal ***attr
     unsigned int i = 0;
     HOSTIF_MsgData_t Param = {0};
 
+    if ((pParameterName == NULL) || (attr == NULL) || (TotalParams == NULL))
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Invalid input parameter(s)\n", __FILE__, __FUNCTION__, __LINE__);
+        return WAL_ERR_INVALID_PARAM;
+    }
+
     memset(&Param, '\0', sizeof(HOSTIF_MsgData_t));
 
     // Check if pParameterName is in the list of notification parameters and check if the parameter is one among them
