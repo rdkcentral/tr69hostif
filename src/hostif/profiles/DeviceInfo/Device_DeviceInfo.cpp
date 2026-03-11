@@ -5507,10 +5507,16 @@ int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgDat
             cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
             if (jsonObj && jsonObj->type == cJSON_Number)
             {
-                int value = (int)jsonObj->valuedouble;
-                put_int(stMsgData->paramValue, value);
-                stMsgData->paramtype = hostIf_IntegerType;
+                unsigned long value = (unsigned long)jsonObj->valuedouble;
+                put_ulong(stMsgData->paramValue, value);
+                stMsgData->paramtype = hostIf_UnsignedLongType;
 
+            }
+            else
+            {
+                cJSON_Delete(root);
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] result id not valid numeric value\n", __FUNCTION__);
+                return NOK;
             }
 
             cJSON_Delete(root);
@@ -5525,7 +5531,7 @@ int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgDat
     return OK;
 }
 
-int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t*stMsgData)
+int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t* stMsgData)
 {
     std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.Account.getLastCheckoutResetTime\" }";
  
