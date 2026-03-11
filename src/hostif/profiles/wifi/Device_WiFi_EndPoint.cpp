@@ -356,18 +356,47 @@ int hostIf_WiFi_EndPoint::refreshCache()
             {
 	        cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
 	        cJSON *interface = nullptr, *interfaceType;
-	        for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
-                    interface = cJSON_GetArrayItem(interfaces, i);
-	            interfaceType = cJSON_GetObjectItem(interface, "type");
-		    if (strcmp(interfaceType->valuestring, "WIFI") == 0)
-		        break;
-	        }
+			if (cJSON_IsArray(interfaces))
+            {
+                for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
+                        interface = cJSON_GetArrayItem(interfaces, i);
+                    interfaceType = cJSON_GetObjectItem(interface, "type");
+                if (cJSON_IsString(interfaceType) && interfaceType->valuestring && (strcmp(interfaceType->valuestring, "WIFI") == 0))
+                    break;
+                }
+            }
+            else
+            {
+                RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] WifiState response has no interfaces array\n", __FUNCTION__);
+            }
+	        if (interface)
+            {
+                cJSON *result = cJSON_GetObjectItem(interface, "enabled");
+                if (cJSON_IsBool(result))
+                {
+                Enable = cJSON_IsTrue(result);
+                }
+                else if (cJSON_IsNumber(result))
+                {
+                Enable = (0 != result->valueint);
+                }
+            }
+            else
+            {
+            RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s][STEP 8-WARN] WIFI interface not found, keeping existing Enable value\n", __FUNCTION__);
+            }
 
                 //ASSIGN TO OP HERE
 		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
 		Enable = result->type;
 
 		cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
+	    if (!cJSON_IsNumber(state))
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s][STEP 9-FAIL] WifiState result missing numeric state\n", __FUNCTION__);
+            cJSON_Delete(root);
+            return NOK;
+        }
 		int res = state->valueint;
 		switch (res) {
 		case 0:
@@ -412,6 +441,9 @@ int hostIf_WiFi_EndPoint::refreshCache()
 		case 13:
 		    strncpy(Status, "ERROR", BUFF_LENGTH_64);
 		    break;
+		default:
+            strncpy(Status, "ERROR", BUFF_LENGTH_64);
+            break;
 		}
 	    }
             else
@@ -449,8 +481,15 @@ int hostIf_WiFi_EndPoint::refreshCache()
             {
                 cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
                 //ASSIGN TO OP HERE
-	        strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
-		SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
+
+			    if (!(cJSON_IsString(ssid) && ssid->valuestring))
+                {
+                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] ConnectedSSID result missing ssid string\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
+			    strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
+		        SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
             }
             else
             {
@@ -486,6 +525,12 @@ int hostIf_WiFi_EndPoint::refreshCache()
             if (jsonObj)
             {
                 cJSON *sigstr = cJSON_GetObjectItem(jsonObj, "signalStrength");
+				if (!cJSON_IsNumber(sigstr))
+                {
+                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WiFiSignalStrength result missing numeric signalStrength\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
                 //ASSIGN TO OP HERE
                 stats.SignalStrength = sigstr->valueint;
             }
