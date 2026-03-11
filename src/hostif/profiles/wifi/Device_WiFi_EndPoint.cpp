@@ -470,7 +470,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: JSON-RPC call failed or returned empty response\n", __FUNCTION__);
         return NOK;
     }
 
@@ -514,7 +514,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     }
     else
     {
-       RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+       RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: JSON-RPC call failed or returned empty response\n", __FUNCTION__);
        return NOK;
     }
 	
@@ -557,7 +557,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: JSON-RPC call failed or returned empty response\n", __FUNCTION__);
         return NOK;
     }
 
