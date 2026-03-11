@@ -44,9 +44,7 @@ extern "C" {
 #endif
 
 GHashTable* hostIf_WiFi_Radio_Stats::ifHash = NULL;
-#ifdef RDKV_NM
 static time_t radioFirstExTime = 0;
-#endif
 
 hostIf_WiFi_Radio_Stats *hostIf_WiFi_Radio_Stats::getInstance(int dev_id)
 {
@@ -119,9 +117,123 @@ hostIf_WiFi_Radio_Stats::hostIf_WiFi_Radio_Stats(int dev_id):
 
 }
 
-#ifdef RDKV_NM
+static bool getNoise(int &noise_value)
+{
+    char cmd[50];
+    snprintf(cmd, sizeof(cmd), "wpa_cli -i wlan0 signal_poll");
+
+    FILE *fp = popen(cmd, "r");
+    if (NULL == fp)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in popen() : signal_poll failed \n");
+        return false;
+    }
+
+    char line[256];
+    char noise[64] = { 0 };
+
+    while (fgets(line, sizeof(line), fp))
+    {
+        if (strncmp(line, "NOISE=", 6) == 0)
+        {
+            strncpy(noise, line + 6, sizeof(noise) - 1);
+            // Strip trailing newline if present
+            size_t len = strlen(noise);
+            if (len > 0 && noise[len - 1] == '\n')
+                noise[len - 1] = '\0';
+        }
+    }
+    pclose(fp);
+
+    if (noise[0] == '\0')
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "NOISE not found in signal_poll.\n");
+        return false;
+    }
+
+    noise_value = atoi(noise);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "\n noise = %d ", noise_value);
+
+    return true;
+}
+
+struct wifi_radioTrafficStats_t
+{
+    unsigned long   bytesSent;
+    unsigned long   bytesReceived;
+    unsigned long   packetsSent;
+    unsigned long   packetsReceived;
+    unsigned int    errorsSent;
+    unsigned int    errorsReceived;
+    unsigned int    discardPacketsSent;
+    unsigned int    discardPacketsReceived;
+};
+
+static int wifi_getRadioTrafficStats(int radioIndex, wifi_radioTrafficStats_t *output_struct)
+{
+    FILE *fp = NULL;
+    char resultBuff[256];
+    char cmd[50];
+    char interfaceName[10] = "wlan0";
+    long long int rx_bytes = 0,rx_packets = 0,rx_err = 0,rx_drop = 0;
+    long long int tx_bytes = 0,tx_packets = 0,tx_err = 0,tx_drop = 0;
+    int numParams = 0;
+
+    if (!output_struct)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "output struct is null");
+        return NOK;
+    }
+
+    memset(resultBuff, 0, sizeof(resultBuff));
+    memset(cmd, 0, sizeof(cmd));
+
+    snprintf(cmd, sizeof(cmd), "cat /proc/net/dev | grep %s", interfaceName);
+
+    if (NULL != (fp = popen(cmd, "r")))
+    {
+        if (fgets(resultBuff, sizeof (resultBuff), fp) != NULL)
+        {
+            numParams = sscanf(resultBuff, " %[^:]: %lld %lld %lld %lld %*u %*u %*u %*u %lld %lld %lld %lld %*u %*u %*u %*u",
+                            interfaceName,
+                            &rx_bytes, &rx_packets, &rx_err, &rx_drop,
+                            &tx_bytes, &tx_packets, &tx_err, &tx_drop);
+            if (numParams != 9)
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in parsing Radio Stats params \n");
+
+            output_struct->packetsSent = tx_packets;
+            output_struct->packetsReceived = rx_packets;
+            output_struct->bytesSent = tx_bytes;
+            output_struct->bytesReceived = rx_bytes;
+            output_struct->errorsReceived = rx_err;
+            output_struct->errorsSent = tx_err;
+            output_struct->discardPacketsSent = tx_drop;
+            output_struct->discardPacketsReceived = rx_drop;
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                    "[tx_packets = %lld] [rx_packets =  %lld] "
+                    "[tx_bytes = %lld] [rx_bytes = %lld] "
+                    "[rx_err = %lld] [tx_err = %lld] "
+                    "[tx_drop = %lld] [rx_drop = %lld] \n",
+                    tx_packets, rx_packets, tx_bytes, rx_bytes,
+                    rx_err, tx_err, tx_drop, rx_drop);
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in reading /proc/net/dev file \n");
+        }
+        pclose(fp);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Error in popen() : Opening /proc/net/dev failed \n");
+    }
+
+    return OK;
+}
+
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_Props_Fields(int radioIndex)
 {
+#ifdef RDKV_NM
     IARM_Result_t retVal = IARM_RESULT_SUCCESS;
     IARM_BUS_WiFi_DiagsPropParam_t param = {0};
     int ret;
@@ -153,6 +265,33 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_Props_Fields(int radioI
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
         return NOK;
     }
+#else
+    hostIf_WiFi_Radio_Stats *pDev = hostIf_WiFi_Radio_Stats::getInstance(dev_id);
+    if (pDev)
+    {
+        int noise;
+        wifi_radioTrafficStats_t stats = {0};
+        wifi_getRadioTrafficStats(0, &stats);
+
+        BytesSent = stats.bytesSent;
+        BytesReceived = stats.bytesReceived;
+        PacketsSent = stats.packetsSent;
+        PacketsReceived = stats.packetsReceived;
+        ErrorsSent = stats.errorsSent;
+        ErrorsReceived = stats.errorsReceived;
+        DiscardPacketsSent = stats.discardPacketsSent;
+        DiscardPacketsReceived = stats.discardPacketsReceived;
+        NoiseFloor = getNoise(noise) ? noise : 0;
+
+        radioFirstExTime = time (NULL);
+        return OK;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
+        return NOK;
+    }
+#endif
 
 }
 
@@ -169,6 +308,8 @@ void hostIf_WiFi_Radio_Stats::checkWifiRadioPropsFetch(int radioIndex)
         }
     }
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_BytesSent(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
@@ -205,6 +346,8 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_PacketsSent(HOSTIF_MsgD
     return OK;
 }
 
+#endif
+
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_PacketsReceived(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
@@ -215,6 +358,8 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_PacketsReceived(HOSTIF_
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_ErrorsSent(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
@@ -259,6 +404,9 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_DiscardPacketsReceived(
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
+
+#endif
+
 int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_NoiseFloor(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
@@ -269,6 +417,5 @@ int hostIf_WiFi_Radio_Stats::get_Device_WiFi_Radio_Stats_NoiseFloor(HOSTIF_MsgDa
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
-#endif
 
 #endif /* #ifdef USE_WIFI_PROFILE */
