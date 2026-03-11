@@ -351,19 +351,49 @@ int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
             if (jsonObj)
             {
                 cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
-	        cJSON *interface = nullptr, *interfaceType;
-	        for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
-                    interface = cJSON_GetArrayItem(interfaces, i);
-	            interfaceType = cJSON_GetObjectItem(interface, "type");
-	            if (strcmp(interfaceType->valuestring, "WIFI") == 0)
-	                break;
-	        }
+                if (interfaces)
+                {
+                    cJSON *interface = nullptr, *interfaceType;
+                    for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
+                        interface = cJSON_GetArrayItem(interfaces, i);
+                        if (interface)
+                        {
+                            interfaceType = cJSON_GetObjectItem(interface, "type");
+                            if (interfaceType && interfaceType->valuestring && strcmp(interfaceType->valuestring, "WIFI") == 0)
+                                break;
+                        }
+                    }
 
-                //ASSIGN TO OP HERE
-		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
-		put_boolean(stMsgData->paramValue, result->type);
-                stMsgData->paramtype = hostIf_BooleanType;
-                stMsgData->paramLen=1;
+                    //ASSIGN TO OP HERE
+                    if (interface)
+                    {
+                        cJSON *result = cJSON_GetObjectItem(interface, "enabled");
+                        if (result)
+                        {
+                            put_boolean(stMsgData->paramValue, result->type);
+                            stMsgData->paramtype = hostIf_BooleanType;
+                            stMsgData->paramLen=1;
+                        }
+                        else
+                        {
+                            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"enabled\" field found\n", __FUNCTION__);
+                            cJSON_Delete(root);
+                            return NOK;
+                        }
+                    }
+                    else
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WIFI interface not found\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                }
+                else
+                {
+                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"interfaces\" in the result\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
             }
             else
             {
@@ -454,7 +484,16 @@ int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
             if (jsonObj)
             {
 	        cJSON *CheckResultObj = cJSON_GetObjectItem(jsonObj, "success");
-	        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Result of Set operation = %s\n", __FUNCTION__, cJSON_IsTrue(CheckResultObj) ? "true" : "false");
+                if (CheckResultObj)
+                {
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Result of Set operation = %s\n", __FUNCTION__, cJSON_IsTrue(CheckResultObj) ? "true" : "false");
+                }
+                else
+                {
+                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"success\" field found\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
             }
             else
             {

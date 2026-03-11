@@ -207,42 +207,51 @@ int getnotifyparamList(char ***notifyParamList,int *ptrnotifyListSize)
     if(readRet < 0){
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s] Failed read from %s.\n", __FUNCTION__, webpaNotifyConfigFile);
         fclose(fp);
+        free(notifycfg_file_content);
         return -1;
     }
     notifycfg_file_content[ch_count] ='\0';
     fclose(fp);   //CID:18630 - NEGATIVE RETURNS
   
     cJSON *notify_cfg = cJSON_Parse(notifycfg_file_content);
-    cJSON *notifyArray = cJSON_GetObjectItem(notify_cfg,"Notify");
-    if(NULL != notifyArray)
+    if (notify_cfg)
     {
-        *ptrnotifyListSize =(int)cJSON_GetArraySize(notifyArray);
-        *notifyParamList = (char **)malloc(sizeof(char *) **ptrnotifyListSize);
-        for (i = 0 ; i < cJSON_GetArraySize(notifyArray) ; i++)
+        cJSON *notifyArray = cJSON_GetObjectItem(notify_cfg,"Notify");
+        if(NULL != notifyArray)
         {
-            temp_ptr = cJSON_GetArrayItem(notifyArray, i)->valuestring;
-            if(temp_ptr)
+            *ptrnotifyListSize =(int)cJSON_GetArraySize(notifyArray);
+            *notifyParamList = (char **)malloc(sizeof(char *) * *ptrnotifyListSize);
+            for (i = 0 ; i < cJSON_GetArraySize(notifyArray) ; i++)
             {
-                (*notifyParamList)[i] = (char *)malloc(sizeof(char ) * (strlen(temp_ptr)+1));
-                rc=strcpy_s((*notifyParamList)[i],(strlen(temp_ptr)+1),temp_ptr);
-		if(rc!=EOK)
-		{
+                cJSON *arrayItem = cJSON_GetArrayItem(notifyArray, i);
+                if (arrayItem && arrayItem->valuestring)
+                {
+                    temp_ptr = arrayItem->valuestring;
+                    (*notifyParamList)[i] = (char *)malloc(sizeof(char ) * (strlen(temp_ptr)+1));
+                    rc=strcpy_s((*notifyParamList)[i],(strlen(temp_ptr)+1),temp_ptr);
+		    if(rc!=EOK)
+		    {
 			ERR_CHK(rc);
-		}
-                RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Notify Param  = %s\n", temp_ptr);
+		    }
+                    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Notify Param  = %s\n", temp_ptr);
+                }
+            }
+            
+            // Update local Parameter list from generic layer
+            if(NULL != notifyParamList && NULL != ptrnotifyListSize)
+            {
+                g_notifyParamList = *notifyParamList;
+                g_notifyListSize = *ptrnotifyListSize;
             }
         }
-        // Update local Parameter list from generic layer
-        if(NULL != notifyParamList && NULL != ptrnotifyListSize)
-        {
-            g_notifyParamList = *notifyParamList;
-            g_notifyListSize = *ptrnotifyListSize;
-        }
+        
+        cJSON_Delete(notify_cfg);
     }
     else
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"Unable to parse Configuration file");
+        RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"Unable to parse JSON from configuration file");
     }
+    
     if(notifycfg_file_content)
     {
         free(notifycfg_file_content);

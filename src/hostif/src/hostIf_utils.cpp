@@ -527,7 +527,7 @@ std::string get_security_token() {
             cJSON* root = cJSON_Parse(pSecurityOutput);
             if (root) {
                 cJSON *res = cJSON_GetObjectItem(root, "success");
-                if(cJSON_IsTrue(res) == 1) {
+                if (res && cJSON_IsTrue(res) == 1) {
                    cJSON* token = cJSON_GetObjectItem(root, "token");
                    if (token != NULL && token->type == cJSON_String && token->valuestring != NULL) {
                        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Security Token retrieved successfully\n", __FUNCTION__);
