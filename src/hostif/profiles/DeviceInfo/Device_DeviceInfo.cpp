@@ -5510,12 +5510,12 @@ int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgDat
                 unsigned long value = (unsigned long)jsonObj->valuedouble;
                 put_ulong(stMsgData->paramValue, value);
                 stMsgData->paramtype = hostIf_UnsignedLongType;
-
+                stMsgData->paramLen  = sizeof(unsigned long);
             }
             else
             {
                 cJSON_Delete(root);
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] result id not valid numeric value\n", __FUNCTION__);
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] JSON-RPC result missing or not a numeric value\n", __FUNCTION__);
                 return NOK;
             }
 
