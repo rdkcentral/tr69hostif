@@ -48,8 +48,25 @@
 #include <string.h>
 #include "Device_Time.h"
 #include "safec_lib.h"
+#include <cstring>
+#include <string>
+#include <fstream>
+#include <cstdio> 
+#include <errno.h> 
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define TIME_ZONE_LENGTH 8
+#define CHRONY_ENABLE_FILE "/opt/secure/RFC/chrony/chronyd_enabled" 
+#define NTP_MINPOLL_FILE "/opt/secure/RFC/chrony/ntp_minpoll"
+#define NTP_MAXPOLL_FILE "/opt/secure/RFC/chrony/ntp_maxpoll"
+#define NTP_SERVER1_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server1_directive"
+#define NTP_SERVER2_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server2_directive"
+#define NTP_SERVER3_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server3_directive"
+#define NTP_SERVER4_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server4_directive"
+#define NTP_SERVER5_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server5_directive"
+#define NTP_MAXSTEP_FILE "/opt/secure/RFC/chrony/ntp_maxstep"
+#define NTP_MAXSTEP_DEFAULT "1.0,3"
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
@@ -224,6 +241,7 @@ int hostIf_Time::get_Device_Time_NTPServer5(HOSTIF_MsgData_t *, bool *pChanged )
     return NOK;
 }
 
+
 int hostIf_Time::get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *stMsgData, bool *pChanged )
 {
     time_t rawtime;
@@ -333,5 +351,385 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
     return OK;
 }
 
+int hostIf_Time::set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string chronyEnableStr = getStringValue(stMsgData);
+
+    // If the value is empty, remove the file
+    if (chronyEnableStr.empty() || chronyEnableStr == "false" || chronyEnableStr == "0") {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Chrony Enable set to false/empty, removing the file %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                CHRONY_ENABLE_FILE);
+
+        if (std::remove(CHRONY_ENABLE_FILE) != 0) {
+            if (errno != ENOENT) { // Only log if it's not "file not found"
+                RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                        "[%s:%s:%d] Failed to remove %s: %s\n",
+                        __FUNCTION__, __FILE__, __LINE__,
+                        CHRONY_ENABLE_FILE, strerror(errno));
+            }
+        }
+        if (pChanged) *pChanged = true;
+        return OK;
+    }
+
+    // Only allow "true" or "1" to enable
+    if (chronyEnableStr == "true" || chronyEnableStr == "1") {
+		const char* chronyDir = "/opt/secure/RFC/chrony";
+        if (mkdir(chronyDir, 0755) != 0 && errno != EEXIST) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to create %s: %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                chronyDir, strerror(errno));
+           return NOK;
+        }
+        std::ofstream file(CHRONY_ENABLE_FILE);
+        if (!file.is_open()) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%s:%d] Failed to open %s for writing\n",
+                    __FUNCTION__, __FILE__, __LINE__, CHRONY_ENABLE_FILE);
+            return NOK;
+        }
+        file << "true"; // Always write "true" if enabling
+        file.close();
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Successfully enabled Chrony\n", __FUNCTION__, __FILE__, __LINE__);
+        if (pChanged) *pChanged = true;
+        return OK;
+    }
+
+    // Unrecognized value
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Invalid Chrony Enable value: %s\n",
+            __FUNCTION__, __FILE__, __LINE__, chronyEnableStr.c_str());
+    return NOK;
+}
+
+int hostIf_Time::get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_BooleanType;
+
+	if (access(CHRONY_ENABLE_FILE, F_OK) == 0) {
+	 put_boolean(stMsgData->paramValue, true);
+	} else {
+	 put_boolean(stMsgData->paramValue, false);
+	}
+
+	stMsgData->paramLen = sizeof(bool);
+	
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+
+// Get handler for NTPMinpoll
+int hostIf_Time::get_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+
+    unsigned int minpoll = 10; // Default value
+    std::ifstream file(NTP_MINPOLL_FILE);
+    if (file.is_open()) {
+        std::string value;
+        std::getline(file, value);
+        file.close();
+        if (!value.empty()) {
+            try {
+                minpoll = static_cast<unsigned int>(std::stoul(value));
+            } catch (const std::exception&) {
+                minpoll = 10;
+            }
+        }
+    }
+
+    put_uint(stMsgData->paramValue, minpoll);
+    stMsgData->paramLen = sizeof(unsigned int);
+
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+// Set handler for NTPMinpoll
+int hostIf_Time::set_Device_Time_NTPMinpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+     const char* chronyDir = "/opt/secure/RFC/chrony";
+    if (mkdir(chronyDir, 0755) != 0 && errno != EEXIST) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Failed to create %s: %s\n",
+            __FUNCTION__, __FILE__, __LINE__,
+            chronyDir, strerror(errno));
+        return NOK;
+    }
+
+    std::string minpollStr = getStringValue(stMsgData);
+
+    // Validate that minpollStr is a number in a valid range [4, 17] for NTP
+    int minpoll = atoi(minpollStr.c_str());
+    if (minpoll < 4 || minpoll > 24) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid NTPMinpoll value: %s\n",
+                __FUNCTION__, __FILE__, __LINE__, minpollStr.c_str());
+        return NOK;
+    }
+
+    std::ofstream file(NTP_MINPOLL_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open %s for writing\n",
+                __FUNCTION__, __FILE__, __LINE__, NTP_MINPOLL_FILE);
+        return NOK;
+    }
+    file << minpollStr;
+    file.close();
+
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+
+// Get handler for NTPMaxpoll
+int hostIf_Time::get_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+
+    unsigned int maxpoll = 12; // Default if file is empty or missing (NTP typical maxpoll default)
+
+    std::ifstream file(NTP_MAXPOLL_FILE);
+    if (file.is_open()) {
+        std::string value;
+        std::getline(file, value);
+        file.close();
+
+        if (!value.empty()) {
+            maxpoll = static_cast<unsigned int>(atoi(value.c_str()));
+        }
+    }
+
+    put_uint(stMsgData->paramValue, maxpoll);
+    stMsgData->paramLen = sizeof(unsigned int);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+// Set handler for NTPMaxpoll
+int hostIf_Time::set_Device_Time_NTPMaxpoll(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{ 
+	const char* chronyDir = "/opt/secure/RFC/chrony";
+    if (mkdir(chronyDir, 0755) != 0 && errno != EEXIST) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "[%s:%s:%d] Failed to create %s: %s\n",
+            __FUNCTION__, __FILE__, __LINE__,
+            chronyDir, strerror(errno));
+        return NOK;
+    }
+
+    std::string maxpollStr = getStringValue(stMsgData);
+
+    // Validate maxpoll in NTP allowed range [4,24]
+    int maxpoll = atoi(maxpollStr.c_str());
+    if (maxpoll < 4 || maxpoll > 24) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid NTPMaxpoll value: %s\n",
+                __FUNCTION__, __FILE__, __LINE__, maxpollStr.c_str());
+        return NOK;
+    }
+
+    std::ofstream file(NTP_MAXPOLL_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open %s for writing\n",
+                __FUNCTION__, __FILE__, __LINE__, NTP_MAXPOLL_FILE);
+        return NOK;
+    }
+    file << maxpollStr;
+    file.close();
+
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+
+int hostIf_Time::get_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER1_DIRECTIVE_FILE);
+    std::string value;
+
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) {
+        value = "server";
+    }
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer1Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER1_DIRECTIVE_FILE);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open %s for writing: %s\n",
+                __FUNCTION__, __FILE__, __LINE__,
+                NTP_SERVER1_DIRECTIVE_FILE, strerror(errno));
+        return NOK;
+    }
+    file << directive;
+    file.close();
+
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPServer2Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER2_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer2Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER2_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPServer3Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER3_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer3Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER3_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPServer4Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER4_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer4Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER4_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_SERVER5_DIRECTIVE_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty()) value = "server";
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue)-1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue)-1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServer5Directive(HOSTIF_MsgData_t *stMsgData, bool *pChanged) {
+    std::string directive = getStringValue(stMsgData);
+    std::ofstream file(NTP_SERVER5_DIRECTIVE_FILE);
+    if (!file.is_open()) return NOK;
+    file << directive;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+int hostIf_Time::get_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+    std::ifstream file(NTP_MAXSTEP_FILE);
+    std::string value;
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty())
+        value = NTP_MAXSTEP_DEFAULT;
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue) - 1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string input = getStringValue(stMsgData);  
+
+    //Format - makestep 1.0 3 
+    size_t comma = input.find(',');
+    if (comma == std::string::npos) {
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+    // Optional: check number formats - left as exercise for stricter validation
+
+    std::ofstream file(NTP_MAXSTEP_FILE, std::ios::trunc);
+    if (!file.is_open())
+        return NOK;
+    file << input;
+    file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
 /** @} */
 /** @} */
