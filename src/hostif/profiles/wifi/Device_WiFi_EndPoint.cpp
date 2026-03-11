@@ -366,8 +366,10 @@ int hostIf_WiFi_EndPoint::refreshCache()
 
             for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
                     interface = cJSON_GetArrayItem(interfaces, i);
-                if (!cJSON_IsObject(interface))
+                if (!cJSON_IsObject(interface)) {
+                    interface = nullptr;
                     continue;
+                }
 	            interfaceType = cJSON_GetObjectItem(interface, "type");
             if (cJSON_IsString(interfaceType) && interfaceType->valuestring && (strcmp(interfaceType->valuestring, "WIFI") == 0))
 		        break;
