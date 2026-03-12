@@ -201,68 +201,59 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
             RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Empty response received from NetworkManager.GetConnectedSSID JSON-RPC request\n", __FUNCTION__);
             return NOK;
         }
-        if(!response.empty())
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+        cJSON* root = cJSON_Parse(response.c_str());
+        if(root)
         {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-            cJSON* root = cJSON_Parse(response.c_str());
-            if(root)
-            {
-                cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
+            cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
 
-                if (jsonObj)
-                {
-                    cJSON *bssid = cJSON_GetObjectItem(jsonObj, "bssid");
+            if (jsonObj)
+            {
+                cJSON *bssid = cJSON_GetObjectItem(jsonObj, "bssid");
                 cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
 
-            if (!bssid || !cJSON_IsString(bssid) || !bssid->valuestring)
-            {
-                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing BSSID\n", __FUNCTION__);
-                 cJSON_Delete(root);
-                 return NOK;
-            }
-
-            if (!ssid || !cJSON_IsString(ssid) || !ssid->valuestring )
-            {
-                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing SSID\n", __FUNCTION__);
-                 cJSON_Delete(root);
-                 return NOK;
-            }
-                    //ASSIGN TO OP HERE
-		    rc=strcpy_s(BSSID,sizeof(BSSID),bssid->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s \n", __FUNCTION__, BSSID);
-		    if(rc!=EOK)
-        	    {
-            	        ERR_CHK(rc);
-        	    }
-		    rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
-                    if(rc!=EOK)
-                    {
-                        ERR_CHK(rc);
-                    }
-						 rc = strcpy_s(name, sizeof(name), ssid->valuestring);
-                          if (rc != EOK)
-                          {
-                             ERR_CHK(rc);
-                          }
-                
-		         }
-                 else
-                 {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+                if (!bssid || !cJSON_IsString(bssid) || !bssid->valuestring)
+                {
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing BSSID\n", __FUNCTION__);
                     cJSON_Delete(root);
                     return NOK;
-                 }
-                 cJSON_Delete(root);
-	    }
+                }
+
+                if (!ssid || !cJSON_IsString(ssid) || !ssid->valuestring)
+                {
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing SSID\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
+                //ASSIGN TO OP HERE
+                rc=strcpy_s(BSSID,sizeof(BSSID),bssid->valuestring);
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: BSSID = %s \n", __FUNCTION__, BSSID);
+                if(rc!=EOK)
+                {
+                    ERR_CHK(rc);
+                }
+                rc=strcpy_s(SSID,sizeof(SSID),ssid->valuestring);
+                if(rc!=EOK)
+                {
+                    ERR_CHK(rc);
+                }
+                rc = strcpy_s(name, sizeof(name), ssid->valuestring);
+                if (rc != EOK)
+                {
+                    ERR_CHK(rc);
+                }
+            }
             else
             {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+                cJSON_Delete(root);
                 return NOK;
             }
-	}
+            cJSON_Delete(root);
+        }
         else
         {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
             return NOK;
         }
 
