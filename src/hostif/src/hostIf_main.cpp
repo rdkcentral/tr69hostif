@@ -539,10 +539,6 @@ int main(int argc, char *argv[])
         if(HTTPServerThread)
             g_thread_join(HTTPServerThread);
     #endif
-    #if defined(PARODUS_ENABLE)
-        if(parodus_init_tid)
-            pthread_join(parodus_init_tid,NULL);
-    #endif
 
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"\n\n----------------------EXITING MAIN PROGRAM----------------------\n");
         return 0 ;
@@ -596,8 +592,10 @@ void quit_handler (int sig_received)
 void exit_gracefully (int sig_received)
 {
     if(isShutdownTriggered == 0) {
+	RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] exit_gracefully called with signal %d\n", __FUNCTION__, __FILE__, sig_received);
         if(pthread_mutex_trylock(&graceful_exit_mutex) == 0) {
             RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
+	    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Starting graceful shutdown steps\n", __FUNCTION__, __FILE__);
             isShutdownTriggered = 1;
 #ifdef T2_EVENT_ENABLED
             t2_uninit();
@@ -613,25 +611,34 @@ void exit_gracefully (int sig_received)
 #endif
 
             /*Stop libSoup server and exit Json Thread */
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping HTTP/Json threads\n", __FUNCTION__, __FILE__);
             hostIf_HttpServerStop();
 
+	    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping update handler\n", __FUNCTION__, __FILE__);
             updateHandler::stop();
-            updateHandler::join(); 
+	    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping XBSStore\n", __FUNCTION__, __FILE__);
             XBSStore::getInstance()->stop();
 
-            if(logfile) fclose (logfile);
+            if(logfile) {
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Closing logfile\n", __FUNCTION__, __FILE__);
+                fclose (logfile);
+            }	    
 
             if(paramMgrhash) {
+		RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Destroying paramMgrhash\n", __FUNCTION__, __FILE__);
                 g_hash_table_destroy(paramMgrhash);
                 paramMgrhash = NULL;
             }
+	    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping IARM IF\n", __FUNCTION__, __FILE__);
             hostIf_IARM_IF_Stop();
 
             RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"[%s:%s] Exiting program gracefully..\n", __FUNCTION__, __FILE__);
             if (g_main_loop_is_running(main_loop)) {
+		RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Quitting main loop\n", __FUNCTION__, __FILE__);
                 g_main_loop_quit(main_loop);
 #ifndef NEW_HTTP_SERVER_DISABLE
                 /*Stop HTTP Server Thread*/
+		RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping HTTP Server Thread\n", __FUNCTION__, __FILE__);
                 HttpServerStop();
 #endif
             }
