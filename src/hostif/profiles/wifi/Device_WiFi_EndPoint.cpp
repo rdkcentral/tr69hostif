@@ -341,7 +341,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     }
 
     
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWifiState\"}";
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.1.GetAvailableInterfaces\"}";
 
     string response = getJsonRPCData(std::move(postData));
     if(!response.empty())
