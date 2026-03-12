@@ -368,10 +368,15 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 
                 if (jsonObj)
                 {
-	            cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
-		    //ASSIGN TO OP HERE
-		    int res = state->valueint;
-		    switch (res) {
+                    cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
+                    if (!state || !cJSON_IsNumber(state))
+                    {
+                        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, \"state\" field missing or not a number\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                    int res = state->valueint;
+                    switch (res) {
 			case 0:
 			    rc=strcpy_s(status,sizeof(status),"UNINSTALLED");
 			    break;
