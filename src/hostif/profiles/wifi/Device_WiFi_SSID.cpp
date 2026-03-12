@@ -275,66 +275,69 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                 if (jsonObj)
                 {
                     cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
-	            cJSON *interface = NULL; 
-		    cJSON *interfaceType = NULL;
+                    cJSON *interface = NULL;
+                    cJSON *interfaceType = NULL;
 
-            if (!cJSON_IsArray(interfaces))
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing interfaces array\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
+                    if (!cJSON_IsArray(interfaces))
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing interfaces array\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
 
-             for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
+                    for (int i = 0; i < cJSON_GetArraySize(interfaces); i++)
+                    {
                         interface = cJSON_GetArrayItem(interfaces, i);
-            if (!cJSON_IsObject(interface)) {
-                interface = NULL;
-                continue;
-            }
-			interfaceType = cJSON_GetObjectItem(interface, "type");
-            if (cJSON_IsString(interfaceType) && interfaceType->valuestring && (strcmp(interfaceType->valuestring, "WIFI") == 0)) {
-			    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
-			    break;
-			}
-            interface = NULL;
-		    }
+                        if (!cJSON_IsObject(interface))
+                        {
+                            interface = NULL;
+                            continue;
+                        }
+                        interfaceType = cJSON_GetObjectItem(interface, "type");
+                        if (cJSON_IsString(interfaceType) && interfaceType->valuestring && (strcmp(interfaceType->valuestring, "WIFI") == 0))
+                        {
+                            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
+                            break;
+                        }
+                        interface = NULL;
+                    }
 
-            if (!interface)
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: WIFI interface not found\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
+                    if (!interface)
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: WIFI interface not found\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
                     //ASSIGN TO OP HERE
-		    cJSON *result = cJSON_GetObjectItem(interface, "mac");
-            if (!cJSON_IsString(result) || !result->valuestring)
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing mac\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-		    rc=strcpy_s(MACAddress,sizeof(MACAddress),result->valuestring);
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s \n", __FUNCTION__, MACAddress);
-        	    if(rc!=EOK)
-        	    {
-            	        ERR_CHK(rc);
-        	    }
-		    cJSON *isEnabled = cJSON_GetObjectItem(interface, "enabled");
-            if (cJSON_IsBool(isEnabled))
-            {
-                enable = cJSON_IsTrue(isEnabled);
-            }
-            else if (cJSON_IsNumber(isEnabled))
-            {
-                enable = (0 != isEnabled->valueint);
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing enabled\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-		    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
+                    cJSON *result = cJSON_GetObjectItem(interface, "mac");
+                    if (!cJSON_IsString(result) || !result->valuestring)
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing mac\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                    rc = strcpy_s(MACAddress, sizeof(MACAddress), result->valuestring);
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: MACAddress = %s \n", __FUNCTION__, MACAddress);
+                    if (rc != EOK)
+                    {
+                        ERR_CHK(rc);
+                    }
+                    cJSON *isEnabled = cJSON_GetObjectItem(interface, "enabled");
+                    if (cJSON_IsBool(isEnabled))
+                    {
+                        enable = cJSON_IsTrue(isEnabled);
+                    }
+                    else if (cJSON_IsNumber(isEnabled))
+                    {
+                        enable = (0 != isEnabled->valueint);
+                    }
+                    else
+                    {
+                        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing enabled\n", __FUNCTION__);
+                        cJSON_Delete(root);
+                        return NOK;
+                    }
+                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: ENABLE = %d \n", __FUNCTION__, enable);
                 }
                 else
                 {
