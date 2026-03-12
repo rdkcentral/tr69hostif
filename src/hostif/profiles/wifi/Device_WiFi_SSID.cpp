@@ -196,7 +196,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
     {
         std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetConnectedSSID\"}";
         string response = getJsonRPCData(std::move(postData));
-        if(response.c_str())
+        if(!response.empty())
         {
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
             cJSON* root = cJSON_Parse(response.c_str());
@@ -359,7 +359,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
         postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWifiState\"}";
         response = getJsonRPCData(std::move(postData));
 
-        if(response.c_str())
+        if(!response.empty())
         {
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
             cJSON* root = cJSON_Parse(response.c_str());
