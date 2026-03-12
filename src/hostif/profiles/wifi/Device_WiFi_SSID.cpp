@@ -196,6 +196,11 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
     {
         std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetConnectedSSID\"}";
         string response = getJsonRPCData(std::move(postData));
+        if (response.empty())
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Empty response received from NetworkManager.GetConnectedSSID JSON-RPC request\n", __FUNCTION__);
+            return NOK;
+        }
         if(!response.empty())
         {
             RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
