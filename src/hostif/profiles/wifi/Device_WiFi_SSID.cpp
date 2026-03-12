@@ -220,6 +220,11 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                     {
                         ERR_CHK(rc);
                     }
+			rc=strcpy_s(name,sizeof(name),ssid->valuestring);
+                    if(rc!=EOK)
+                    {
+                         ERR_CHK(rc);
+                    }
 		 }
                  else
                  {
