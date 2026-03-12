@@ -287,8 +287,10 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 
              for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
                         interface = cJSON_GetArrayItem(interfaces, i);
-            if (!cJSON_IsObject(interface))
+            if (!cJSON_IsObject(interface)) {
+                interface = NULL;
                 continue;
+            }
 			interfaceType = cJSON_GetObjectItem(interface, "type");
             if (cJSON_IsString(interfaceType) && interfaceType->valuestring && (strcmp(interfaceType->valuestring, "WIFI") == 0)) {
 			    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Found WiFi Interface\n", __FUNCTION__);
