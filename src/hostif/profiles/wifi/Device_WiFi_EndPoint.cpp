@@ -490,15 +490,24 @@ int hostIf_WiFi_EndPoint::refreshCache()
             if (jsonObj)
             {
                 cJSON *ssid = cJSON_GetObjectItem(jsonObj, "ssid");
+                cJSON *strength = cJSON_GetObjectItem(jsonObj, "strength");
                 if (!(cJSON_IsString(ssid) && ssid->valuestring))
                 {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] ConnectedSSID result missing valid ssid\n", __FUNCTION__);
                     cJSON_Delete(root);
                     return NOK;
                 }
+                if (!cJSON_IsNumber(strength))
+                {
+                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] ConnectedSSID result missing numeric strength\n", __FUNCTION__);
+                    cJSON_Delete(root);
+                    return NOK;
+                }
                 //ASSIGN TO OP HERE
 	        strncpy (SSIDReference, ssid->valuestring, BUFF_LENGTH_256);
 		SSIDReference[BUFF_LENGTH_256 - 1] = '\0';
+                stats.SignalStrength = strength->valueint;
+                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: strength = %d\n", __FUNCTION__, stats.SignalStrength);
             }
             else
             {
@@ -519,50 +528,6 @@ int hostIf_WiFi_EndPoint::refreshCache()
        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed or returned empty response\n", __FUNCTION__);
        return NOK;
     }
-	
-    postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWiFiSignalStrength\"}";
-    response = getJsonRPCData(std::move(postData));
-
-    if(!response.empty())
-    {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
-
-            if (jsonObj)
-            {
-                cJSON *sigstr = cJSON_GetObjectItem(jsonObj, "signalStrength");
-                if (!cJSON_IsNumber(sigstr))
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] GetWiFiSignalStrength result missing numeric signalStrength\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return NOK;
-                }
-                //ASSIGN TO OP HERE
-                stats.SignalStrength = sigstr->valueint;
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-            return NOK;
-        }
-    }
-    else
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed or returned empty response\n", __FUNCTION__);
-        return NOK;
-    }
-
     time_of_last_successful_query = time (0);
 
     //strncpy (Alias, param.data.endPointInfo.alias, BUFF_LENGTH_64);
