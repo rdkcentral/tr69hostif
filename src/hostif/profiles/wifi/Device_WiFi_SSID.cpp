@@ -220,7 +220,19 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                     {
                         ERR_CHK(rc);
                     }
-		 }
+					if (ssid && cJSON_IsString(ssid) && ssid->valuestring != NULL)
+                    {
+                          rc = strcpy_s(name, sizeof(name), ssid->valuestring);
+                          if (rc != EOK)
+                          {
+                             ERR_CHK(rc);
+                          }
+                   }
+                   else
+                  {
+                  RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing SSID in JSON\n", __FUNCTION__);
+                  }
+		         }
                  else
                  {
                     RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
