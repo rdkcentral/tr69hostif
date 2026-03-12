@@ -220,18 +220,18 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
                     {
                         ERR_CHK(rc);
                     }
-					if (ssid && cJSON_IsString(ssid) && ssid->valuestring != NULL)
+					if (!ssid || !cJSON_IsString(ssid) || !ssid->valuestring )
                     {
-                          rc = strcpy_s(name, sizeof(name), ssid->valuestring);
+                         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing SSID\n", __FUNCTION__);
+                         cJSON_Delete(root);
+                         return NOK;  
+					}
+						 rc = strcpy_s(name, sizeof(name), ssid->valuestring);
                           if (rc != EOK)
                           {
                              ERR_CHK(rc);
                           }
-                   }
-                   else
-                  {
-                  RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing SSID in JSON\n", __FUNCTION__);
-                  }
+                
 		         }
                  else
                  {
