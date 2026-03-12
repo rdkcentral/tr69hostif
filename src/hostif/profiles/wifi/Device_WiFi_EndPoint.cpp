@@ -1,3 +1,4 @@
+
 /*
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
@@ -359,12 +360,10 @@ int hostIf_WiFi_EndPoint::refreshCache()
 
             if (!cJSON_IsArray(interfaces))
             {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WifiState result missing interfaces array\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
+                RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] WifiState result missing interfaces array\n", __FUNCTION__);
             }
 
-            for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
+            for (int i = 0; cJSON_IsArray(interfaces) && i < cJSON_GetArraySize(interfaces); i++) {
                     interface = cJSON_GetArrayItem(interfaces, i);
                 if (!cJSON_IsObject(interface)) {
                     interface = nullptr;
@@ -378,13 +377,13 @@ int hostIf_WiFi_EndPoint::refreshCache()
 
             if (!interface)
             {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WIFI interface not found\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
+                RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] WIFI interface not found, keeping existing Enable value\n", __FUNCTION__);
             }
 
                 //ASSIGN TO OP HERE
-		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
+		if (interface)
+		{
+		    cJSON *result = cJSON_GetObjectItem(interface, "enabled");
         if (cJSON_IsBool(result))
         {
             Enable = cJSON_IsTrue(result);
@@ -395,10 +394,9 @@ int hostIf_WiFi_EndPoint::refreshCache()
         }
         else
         {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WIFI interface missing valid enabled field\n", __FUNCTION__);
-            cJSON_Delete(root);
-            return NOK;
+            RDK_LOG (RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] WIFI interface missing valid enabled field, keeping existing Enable value\n", __FUNCTION__);
         }
+		}
 
 		cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
         if (!cJSON_IsNumber(state))
