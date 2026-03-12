@@ -351,7 +351,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 	}
         else
         {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed\n", __FUNCTION__);
+	    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Empty response received from NetworkManager.GetAvailableInterfaces JSON-RPC request\n", __FUNCTION__);
 	    return NOK;
         }
 	
@@ -442,7 +442,7 @@ int hostIf_WiFi_SSID::get_Device_WiFi_SSID_Fields(int ssidIndex)
 	}
         else
         {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed\n", __FUNCTION__);
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Empty response received from NetworkManager.GetWifiState JSON-RPC request\n", __FUNCTION__);
             return NOK;
         }
         
