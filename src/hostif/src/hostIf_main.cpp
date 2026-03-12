@@ -614,12 +614,7 @@ void exit_gracefully (int sig_received)
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping HTTP/Json threads\n", __FUNCTION__, __FILE__);
             hostIf_HttpServerStop();
 
-            // Stop update polling and wait for the worker to exit before further teardown
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping update handler\n", __FUNCTION__, __FILE__);
             updateHandler::stop();
-            updateHandler::join();
-
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping XBSStore\n", __FUNCTION__, __FILE__);
             XBSStore::getInstance()->stop();
 
             if(logfile) {
