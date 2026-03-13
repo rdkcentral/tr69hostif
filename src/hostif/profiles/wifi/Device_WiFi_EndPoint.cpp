@@ -341,7 +341,7 @@ int hostIf_WiFi_EndPoint::refreshCache()
     }
 
     
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetWifiState\"}";
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.1.GetAvailableInterfaces\"}";
 
     string response = getJsonRPCData(std::move(postData));
     if(!response.empty())
@@ -399,62 +399,6 @@ int hostIf_WiFi_EndPoint::refreshCache()
             cJSON_Delete(root);
             return NOK;
         }
-
-		cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
-        if (!cJSON_IsNumber(state))
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WifiState result missing numeric state\n", __FUNCTION__);
-            cJSON_Delete(root);
-            return NOK;
-        }
-		int res = state->valueint;
-		switch (res) {
-		case 0:
-		    strncpy(Status, "UNINSTALLED", BUFF_LENGTH_64);
-		    break;
-		case 1:
-		    strncpy(Status, "DISABLED", BUFF_LENGTH_64);
-		    break;
-		case 2:
-		    strncpy(Status, "DISCONNECTED", BUFF_LENGTH_64);
-		    break;
-		case 3:
-		    strncpy(Status, "PAIRING", BUFF_LENGTH_64);
-		    break;
-	        case 4:
-		    strncpy(Status, "CONNECTING", BUFF_LENGTH_64);
-		    break;
-		case 5:
-		    strncpy(Status, "CONNECTED", BUFF_LENGTH_64);
-		    break;
-		case 6:
-		    strncpy(Status, "SSID_NOT_FOUND", BUFF_LENGTH_64);
-		    break;
-		case 7:
-		    strncpy(Status, "SSID_CHANGED", BUFF_LENGTH_64);
-		    break;
-		case 8:
-		    strncpy(Status, "CONNECTION_LOST", BUFF_LENGTH_64);
-		    break;
-		case 9:
-		    strncpy(Status, "CONNECTION_FAILED", BUFF_LENGTH_64);
-		    break;
-		case 10:
-		    strncpy(Status, "CONNECTION_INTERRUPTED", BUFF_LENGTH_64);
-		    break;
-		case 11:
-		    strncpy(Status, "INVALID_CREDENTIALS", BUFF_LENGTH_64);
-		    break;
-		case 12:
-		    strncpy(Status, "AUTHENTICATION_FAILED", BUFF_LENGTH_64);
-		    break;
-		case 13:
-		    strncpy(Status, "ERROR", BUFF_LENGTH_64);
-		    break;
-        default:
-            strncpy(Status, "ERROR", BUFF_LENGTH_64);
-            break;
-		}
 	    }
             else
             {
