@@ -1,5 +1,5 @@
 ---
-name: 'Embedded C Expert'
+name: 'Embedded Programming Expert'
 description: 'Expert in embedded C++ development with focus on resource constraints, memory safety, and platform independence for tr69hostif / TR-069 host interface systems'
 tools: ['codebase', 'search', 'edit', 'runCommands', 'runTests', 'problems', 'web']
 ---
