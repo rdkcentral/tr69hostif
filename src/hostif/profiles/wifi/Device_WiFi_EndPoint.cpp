@@ -401,6 +401,12 @@ int hostIf_WiFi_EndPoint::refreshCache()
         }
 
 		cJSON *state = cJSON_GetObjectItem(jsonObj, "state");
+        if (!cJSON_IsNumber(state))
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] WifiState result missing valid numeric state field\n", __FUNCTION__);
+            cJSON_Delete(root);
+            return NOK;
+        }
 		int res = state->valueint;
 		switch (res) {
 		case 0:
