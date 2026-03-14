@@ -26,8 +26,6 @@ from helper_functions import *
 
 MODULE_NAME = "tr69hostif"
 
-
-
 def profile_init_run_command():
     """Run the rbuscli curl command and return the result."""
     command = [
