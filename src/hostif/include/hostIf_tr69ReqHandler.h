@@ -179,6 +179,10 @@ typedef struct _HostIf_MsgData_t {
     HostIf_Source_Type_t requestor;   /*!< Requestor that made the set/get request*/
     HostIf_Source_Type_t bsUpdate; /*!< Bootstrap update level*/
     bool isLengthyParam;
+    /* Distributed tracing support - W3C Trace Context */
+    char trace_id[33];              /*!< Trace ID for distributed tracing (32 hex chars + null) */
+    char span_id[17];               /*!< Parent span ID (16 hex chars + null) */
+    char trace_flags[3];            /*!< Trace flags (2 hex chars + null) */
 } HOSTIF_MsgData_t;
 
 /*! Events published from TR69 host interface */
