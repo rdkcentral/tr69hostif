@@ -2467,8 +2467,28 @@
           <boolean/>
         </syntax>
       </parameter>
+      <parameter base="AccessPointNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+      <parameter base="EndPointNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+      <parameter base="RadioNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
+      <parameter base="SSIDNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+      </parameter>
     </object>
-	<object base="Device.WiFi.SSID.{i}." access="readOnly" minEntries="0" maxEntries="unbounded" >
+    <object base="Device.WiFi.SSID.{i}." access="readOnly" minEntries="0" maxEntries="unbounded" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <boolean/>
