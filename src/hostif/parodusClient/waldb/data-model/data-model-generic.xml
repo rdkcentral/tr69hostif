@@ -63,6 +63,25 @@
         </syntax>
       </parameter>	  
     </object>
+    <object base="Device.WiFi.Radio.{i}." access="readOnly" minEntries="0" maxEntries="unbounded" >
+      <parameter base="OperatingChannelBandwidth" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.WiFi.Radio.{i}.Stats." access="readOnly" minEntries="1" maxEntries="1" >
+	  <parameter base="PacketsReceived" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedLong/>
+        </syntax>
+      </parameter>
+	  <parameter base="Noise" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.DiscoveredDevice.{i}." access="readOnly" minEntries="0" maxEntries="unbounded" >
       <parameter base="Name" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
@@ -3213,6 +3232,18 @@
         </syntax>
      </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout." access="readOnly" minEntries="1" maxEntries="1" >
+     <parameter base="LastResetTime" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedLong/>
+        </syntax>
+     </parameter>
+     <parameter base="Status" access="readOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+     </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC." access="readOnly" minEntries="1" maxEntries="1" >
      <parameter base="ClearParam" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -4595,6 +4626,12 @@
            <unsignedInt/>
         </syntax>
       </parameter>
+      <parameter base="ReassociateTolerance" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+           <unsignedInt/>
+          <default type="factory" value="20"/>
+        </syntax>
+      </parameter>	   
    </object>   
   </model>
 </dm:document>
