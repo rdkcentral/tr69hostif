@@ -130,7 +130,8 @@
 #define MAX_PORT_RANGE 3020
 
 #define MEMINSIGHT_SERVICE                 "meminsight-runner.service"
-#define MEMINSIGHT_TRIGGER_FILE             "/opt/.enable_meminsight"
+#define MEMINSIGHT_TRIGGER_FILE            "/opt/.enable_meminsight"
+#define MEMINSIGHT_TRIGGER_TMP_FILE        "/tmp/.enable_meminsight"
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
@@ -4551,15 +4552,21 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigge
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Triggering MemInsight feature\n", __FUNCTION__, __LINE__);
 
         std::ofstream triggerFile(MEMINSIGHT_TRIGGER_FILE);
-        if (triggerFile.is_open())
+        std::ofstream tmpTriggerFile(MEMINSIGHT_TMP_TRIGGER_FILE);
+        if (triggerFile.is_open() || tmpTriggerFile.is_open())
         {
-            triggerFile.close();
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully triggered MemInsight. File created: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE);
+            if (triggerFile.is_open()) {
+                triggerFile.close();
+            }
+            if (tmpTriggerFile.is_open()) {
+                tmpTriggerFile.close();
+            }
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully triggered MemInsight. File created: %s & %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE, MEMINSIGHT_TMP_TRIGGER_FILE);
             ret = OK;
         }
         else
         {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to create MemInsight trigger file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE, strerror(errno));
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to create MemInsight trigger file: %s or %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE, MEMINSIGHT_TMP_TRIGGER_FILE, strerror(errno));
             stMsgData->faultCode = fcInternalError;
             ret = NOK;
         }
@@ -4569,12 +4576,21 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigge
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Disabling MemInsight feature\n", __FUNCTION__, __LINE__);
 
         std::ifstream checkFile(MEMINSIGHT_TRIGGER_FILE);
-        if (checkFile.is_open())
+        std::ifstream tmpCheckFile(MEMINSIGHT_TMP_TRIGGER_FILE);
+        if (checkFile.is_open() || tmpCheckFile.is_open())
         {
-            checkFile.close();
-            if (remove(MEMINSIGHT_TRIGGER_FILE) == 0)
+            if (checkFile.is_open()) {
+                checkFile.close();
+            }
+            if (tmpCheckFile.is_open()) {
+                tmpCheckFile.close();
+            }
+            int tempTriggerRm = remove(MEMINSIGHT_TMP_TRIGGER_FILE);
+            int triggerRm = remove(MEMINSIGHT_TRIGGER_FILE);
+            
+            if (triggerRm == 0 || tempTriggerRm == 0)
             {
-                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully disabled MemInsight. File removed: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully disabled MemInsight. File removed: %s & %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE, MEMINSIGHT_TMP_TRIGGER_FILE);
                 ret = OK;
 
                 int sysRet = v_secure_system("systemctl is-active %s", MEMINSIGHT_SERVICE);
@@ -4610,7 +4626,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigge
             }
             else
             {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove MemInsight trigger file: %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE, strerror(errno));
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Failed to remove MemInsight trigger file: %s or %s. Error: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE, MEMINSIGHT_TMP_TRIGGER_FILE, strerror(errno));
                 stMsgData->faultCode = fcInternalError;
                 ret = NOK;
             }
