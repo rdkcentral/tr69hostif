@@ -3647,6 +3647,11 @@
           <string/>
         </syntax>
       </parameter>
+      <parameter base="Trigger" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+      </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLDirect." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
