@@ -281,10 +281,10 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     case eEnable:
         hostIf_EthernetInterface::stEthInterface.enable = FALSE;
 
-        snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
             return 0;
 
+	snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	value = readEthernetInterfaceFile(cmd, sizeof(hostIf_EthernetInterface::stEthInterface.enable));
 	if(value == NULL)
 	   return 0;
@@ -300,10 +300,10 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     case eStatus:
         memset(hostIf_EthernetInterface::stEthInterface.status,'\0',sizeof(hostIf_EthernetInterface::stEthInterface.status));   //CID:45367 - OVERRUN
 
-	snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
         if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
             return 0;
 
+	snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	value = readEthernetInterfaceFile(cmd, sizeof(temp));
 	if(value == NULL)
 	   return 0;
@@ -344,10 +344,10 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
     case eUpstream:
         hostIf_EthernetInterface::stEthInterface.upStream = FALSE;
 
-        snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	if (OK != getEthernetInterfaceName (ethInterfaceNum, ethernetInterfaceName))
             return 0;
 
+	 snprintf(cmd,BUFF_LENGTH,"/sys/class/net/%s/carrier", ethernetInterfaceName);
 	 value = readEthernetInterfaceFile(cmd, sizeof(hostIf_EthernetInterface::stEthInterface.upStream));
 	 if(value == NULL)
            return 0;
@@ -472,7 +472,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_InterfaceNumberOfEntries(HOSTI
  * @ingroup TR69_HOSTIF_ETHERNET_INTERFACE_DEVICE_API
  */
 int hostIf_EthernetInterface::get_Device_Ethernet_Interface_Enable(HOSTIF_MsgData_t *stMsgData,bool *pChanged)
-{
+[O{
     get_Device_Ethernet_Interface_Fields(dev_id, eEnable);
 
     if(bCalledEnable && pChanged && (backupEnable != stEthInterface.enable))
@@ -504,7 +504,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_Enable(HOSTIF_MsgDat
  * 'NotPresent'     | if the interface is missing i.e the hardware component is not present.
  *                  |
  * 'Unknown'        | if the state of the interface can not be determined for some reason.
- *
+[I *
  *  - When enable is changed to "true" then status should change to
  * Code             | Description
  * -----------------|------------
