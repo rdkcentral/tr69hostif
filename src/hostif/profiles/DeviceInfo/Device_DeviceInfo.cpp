@@ -5501,7 +5501,7 @@ int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgDat
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Empty outpu from Thunder call\n", __FUNCTION__);
         return NOK;
     }
-    
+
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
 
     cJSON* root = cJSON_Parse(resp.c_str());
@@ -5509,17 +5509,28 @@ int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgDat
     if(root)
     {
         cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-        if (jsonObj && jsonObj->type == cJSON_Number)
+        if (jsonObj)
         {
-            unsigned long value = (unsigned long)jsonObj->valuedouble;
-            put_ulong(stMsgData->paramValue, value);
-            stMsgData->paramtype = hostIf_UnsignedLongType;
-            stMsgData->paramLen  = sizeof(unsigned long);
+            cJSON *resetTimeObj = cJSON_GetObjectItem(jsonObj, "resetTime");
+
+            if (resetTimeObj && resetTimeObj->type == cJSON_Number)
+            {
+                unsigned long value = (unsigned long)resetTimeObj->valuedouble;
+                put_ulong(stMsgData->paramValue, value);
+                stMsgData->paramtype = hostIf_UnsignedLongType;
+                stMsgData->paramLen = sizeof(unsigned long);
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No resetTime in the output from Thunder plugin\n", __FUNCTION__);
+                cJSON_Delete(root);
+                return NOK;
+            }
         }
         else
         {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
             cJSON_Delete(root);
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] JSON-RPC result missing or not a numeric value\n", __FUNCTION__);
             return NOK;
         }
 
@@ -5554,21 +5565,35 @@ int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t* stMsgData)
     if(root)
     {
         cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-        if (jsonObj && jsonObj->type == cJSON_Number)
+        if (jsonObj)
         {
-            unsigned long value = (unsigned long)jsonObj->valuedouble;
-            if (value > 0)
+            cJSON *resetTimeObj = cJSON_GetObjectItem(jsonObj, "resetTime");
+
+            if (resetTimeObj && resetTimeObj->type == cJSON_Number)
             {
-                snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "success");
+                unsigned long value = (unsigned long)resetTimeObj->valuedouble;
+
+                if (value > 0)
+                {
+                    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "success");
+                }
+                else
+                {
+                    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "unknown");
+                }
             }
             else
             {
-                snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "unknown");
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No resetTime in the output from Thunder call\n", __FUNCTION__);
+                cJSON_Delete(root);
+                return NOK;
             }
         }
         else
         {
-            snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "unknown");
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No result from Thunder call\n", __FUNCTION__);
+            cJSON_Delete(root);
+            return NOK;
         }
 
         stMsgData->paramLen = strlen(stMsgData->paramValue);
@@ -5581,9 +5606,7 @@ int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t* stMsgData)
         return NOK;
     }
 
-
     return OK;
-
 }
 
 int hostIf_DeviceInfo::set_X_RDKCENTRAL_COM_LastRebootReason(HOSTIF_MsgData_t *stMsgData)
