@@ -4,30 +4,20 @@
 
 All ingress paths converge on the same internal contract: a populated `HOSTIF_MsgData_t` structure plus a request type. The dispatcher resolves the manager from the parameter name prefix and forwards the call to the appropriate profile handler.
 
-```mermaid
-flowchart LR
-    A["IARM RPC"] --> D["HOSTIF MsgData request"]
-    B[WebPA WRP request] --> D
-    C[Local JSON request] --> D
-    E[RBUS DML provider] --> D
+```text
+IARM RPC -----------+
+WebPA WRP request --+
+Local JSON request -+--> HOSTIF request envelope --> Match parameter prefix
+RBUS DML provider --+
 
-    D --> F{"Match param prefix"}
-    F --> G["deviceMgr"]
-    F --> H["wifiMgr"]
-    F --> I["ipMgr"]
-    F --> J["ethernetMgr"]
-    F --> K["timeMgr"]
-    F --> L["other enabled managers"]
+Match parameter prefix --> deviceMgr ----------+
+Match parameter prefix --> wifiMgr ------------+
+Match parameter prefix --> ipMgr --------------+--> Profile get/set handler
+Match parameter prefix --> ethernetMgr --------+
+Match parameter prefix --> timeMgr ------------+
+Match parameter prefix --> other managers -----+
 
-    G --> M["Profile get/set handler"]
-    H --> M
-    I --> M
-    J --> M
-    K --> M
-    L --> M
-    M --> N["HAL or platform state"]
-    N --> O["Updated request envelope"]
-    O --> P["Caller response"]
+Profile get/set handler --> HAL or platform state --> Updated request envelope --> Caller response
 ```
 
 ## Manager Resolution
@@ -48,41 +38,37 @@ If no manager owns the parameter path, the request fails through the normal faul
 
 ## Synchronous GET and SET Flow
 
-```mermaid
-sequenceDiagram
-    participant SRC as Caller
-    participant DISP as hostIf_msgHandler
-    participant MGR as manager resolver
-    participant PROF as concrete handler
-    participant HAL as device HAL
-
-    SRC->>DISP: call get or set entry point
-    DISP->>DISP: lock request mutex
-    DISP->>MGR: HostIf_GetMgr(paramName)
-    MGR-->>DISP: handler pointer
-    DISP->>PROF: call profile handler
-    PROF->>HAL: read or write platform state
-    HAL-->>PROF: value or status
-    PROF-->>DISP: fill faultCode and payload
-    DISP-->>SRC: return updated request envelope
+```text
+Caller -> hostIf_msgHandler: call get or set entry point
+hostIf_msgHandler -> hostIf_msgHandler: lock request mutex
+hostIf_msgHandler -> manager resolver: HostIf_GetMgr(paramName)
+manager resolver -> hostIf_msgHandler: handler pointer
+hostIf_msgHandler -> concrete handler: call profile handler
+concrete handler -> device HAL: read or write platform state
+device HAL -> concrete handler: value or status
+concrete handler -> hostIf_msgHandler: fill faultCode and payload
+hostIf_msgHandler -> Caller: return updated request envelope
 ```
 
 ## Notification Flow
 
 Profiles that support update callbacks register with `updateHandler::Init()`. The update thread polls them once per minute and rebroadcasts changes over IARM and, when enabled, over Parodus notifications.
 
-```mermaid
-flowchart TD
-    A["updateHandler thread"] --> B["checkForUpdates on each profile"]
-    B --> C{"Change detected?"}
-    C -->|No| D["sleep 60 seconds"]
-    C -->|Yes| E["notifyCallback"]
-    E --> F["IARM broadcast event"]
-    E --> G{"Parodus enabled and value-changed event?"}
-    G -->|Yes| H["NotificationHandler queue"]
-    H --> I["send notification via libparodus"]
-    G -->|No| D
-    I --> D
+```text
+updateHandler thread -> checkForUpdates on each profile
+
+If no change is detected:
+    checkForUpdates -> sleep 60 seconds
+
+If a change is detected:
+    checkForUpdates -> notifyCallback
+    notifyCallback -> IARM broadcast event
+
+If Parodus is enabled and the event is value-changed:
+    notifyCallback -> NotificationHandler queue -> send notification via libparodus -> sleep 60 seconds
+
+Otherwise:
+    notifyCallback -> sleep 60 seconds
 ```
 
 ## RFC and Bootstrap Precedence
