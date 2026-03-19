@@ -123,7 +123,7 @@ sequenceDiagram
     participant DB as waldb data model
     participant Pd as connect_parodus
     participant Notify as notification setup
-    participant Loop as parodus_receive_wait
+    participant Recv as parodus_receive_wait
 
     Main->>Thread: pthread_create(parodus_init_tid)
     Thread->>Thread: create /tmp/webpa directory
@@ -133,7 +133,7 @@ sequenceDiagram
     Pd->>Pd: libparodus_init() with retry backoff
     Thread->>Notify: registerNotifyCallback()
     Thread->>Notify: setInitialNotify()
-    Thread->>Loop: enter receive loop
+    Thread->>Recv: enter receive loop
 ```
 
 Operationally this means:
