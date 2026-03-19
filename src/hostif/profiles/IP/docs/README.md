@@ -44,22 +44,22 @@ src/hostif/profiles/IP/
 graph TB
     ACS[ACS / WebPA / RBUS] -->|GET/SET Device.IP.*| DISP[hostIf_msgHandler]
 
-    DISP --> GIP[hostIf_IP\nDevice.IP]
-    DISP --> IPIF[hostIf_IPInterface\nDevice.IP.Interface.{i}]
-    DISP --> IPV4[hostIf_IPInterfaceIPv4Address\nDevice.IP.Interface.{i}.IPv4Address.{i}]
-    DISP --> IPV6[hostIf_IPInterfaceIPv6Address\nDevice.IP.Interface.{i}.IPv6Address.{i}]
-    DISP --> STATS[hostIf_IPInterfaceStats\nDevice.IP.Interface.{i}.Stats]
-    DISP --> APORT[hostIf_IPActivePort\nDevice.IP.ActivePort.{i}]
+    DISP --> GIP["hostIf_IP<br/>Device.IP"]
+    DISP --> IPIF["hostIf_IPInterface<br/>Device.IP.Interface.(i)"]
+    DISP --> IPV4["hostIf_IPInterfaceIPv4Address<br/>Device.IP.Interface.(i).IPv4Address.(i)"]
+    DISP --> IPV6["hostIf_IPInterfaceIPv6Address<br/>Device.IP.Interface.(i).IPv6Address.(i)"]
+    DISP --> STATS["hostIf_IPInterfaceStats<br/>Device.IP.Interface.(i).Stats"]
+    DISP --> APORT["hostIf_IPActivePort<br/>Device.IP.ActivePort.(i)"]
     DISP --> PING[hostIf_IP_Diagnostics_IPPing]
     DISP --> SPEED[hostIf_IP_Diagnostics_SpeedTest]
 
-    IPIF --> GETIFADDRS[getifaddrs + ioctl\ninterface enumeration]
-    IPV4 --> GETIFADDRS2[getifaddrs\nAF_INET address scan]
-    IPV6 --> GETIFADDRS3[getifaddrs\nAF_INET6 address scan]
+    IPIF --> GETIFADDRS["getifaddrs + ioctl<br/>interface enumeration"]
+    IPV4 --> GETIFADDRS2["getifaddrs<br/>AF_INET address scan"]
+    IPV6 --> GETIFADDRS3["getifaddrs<br/>AF_INET6 address scan"]
     STATS --> SYSFS[/sys/class/net/N/statistics/*]
-    APORT --> PROCNET[/proc/net/tcp\n/proc/net/tcp6]
+    APORT --> PROCNET["/proc/net/tcp<br/>/proc/net/tcp6"]
 
-    IPIF --> SETCMDS[system ifconfig/ifdown/ifup\nEnable/Reset/MTU set]
+    IPIF --> SETCMDS["system ifconfig/ifdown/ifup<br/>Enable/Reset/MTU set"]
 ```
 
 ---

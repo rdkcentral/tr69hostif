@@ -53,23 +53,23 @@ src/hostif/profiles/wifi/
 graph TB
     ACS[ACS / WebPA / RBUS] -->|GET/SET Device.WiFi.*| DISP[hostIf_msgHandler]
 
-    DISP --> WIFI[hostIf_WiFi\nDevice.WiFi top-level]
-    DISP --> RADIO[hostIf_WiFi_Radio\nDevice.WiFi.Radio.{i}.*]
-    DISP --> RADSTA[hostIf_WiFi_Radio_Stats\nDevice.WiFi.Radio.{i}.Stats.*]
-    DISP --> SSID[hostIf_WiFi_SSID\nDevice.WiFi.SSID.{i}.*]
-    DISP --> SSISTAT[hostIf_WiFi_SSID_Stats\nDevice.WiFi.SSID.{i}.Stats.*]
-    DISP --> AP[hostIf_WiFi_AccessPoint\nDevice.WiFi.AccessPoint.{i}.*]
-    DISP --> ASSOC[hostIf_WiFi_AccessPoint_AssociatedDevice\nDevice.WiFi.AccessPoint.{i}.AssociatedDevice.{j}]
-    DISP --> APSEC[hostIf_WiFi_AccessPoint_Security\nDevice.WiFi.AccessPoint.{i}.Security.*]
-    DISP --> APWPS[hostIf_WiFi_AccessPoint_WPS\nDevice.WiFi.AccessPoint.{i}.WPS.*]
-    DISP --> EP[hostIf_WiFi_EndPoint\nDevice.WiFi.EndPoint.{i}.*]
-    DISP --> ROAM[hostIf_WiFi_X_RDKCENTRAL_COM_ClientRoaming\nDevice.WiFi.X_RDKCENTRAL-COM_ClientRoaming.*]
+    DISP --> WIFI["hostIf_WiFi<br/>Device.WiFi top-level"]
+    DISP --> RADIO["hostIf_WiFi_Radio<br/>Device.WiFi.Radio.(i).*"]
+    DISP --> RADSTA["hostIf_WiFi_Radio_Stats<br/>Device.WiFi.Radio.(i).Stats.*"]
+    DISP --> SSID["hostIf_WiFi_SSID<br/>Device.WiFi.SSID.(i).*"]
+    DISP --> SSISTAT["hostIf_WiFi_SSID_Stats<br/>Device.WiFi.SSID.(i).Stats.*"]
+    DISP --> AP["hostIf_WiFi_AccessPoint<br/>Device.WiFi.AccessPoint.(i).*"]
+    DISP --> ASSOC["hostIf_WiFi_AccessPoint_AssociatedDevice<br/>Device.WiFi.AccessPoint.(i).AssociatedDevice.(j)"]
+    DISP --> APSEC["hostIf_WiFi_AccessPoint_Security<br/>Device.WiFi.AccessPoint.(i).Security.*"]
+    DISP --> APWPS["hostIf_WiFi_AccessPoint_WPS<br/>Device.WiFi.AccessPoint.(i).WPS.*"]
+    DISP --> EP["hostIf_WiFi_EndPoint<br/>Device.WiFi.EndPoint.(i).*"]
+    DISP --> ROAM["hostIf_WiFi_X_RDKCENTRAL_COM_ClientRoaming<br/>Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.*"]
 
     subgraph RDKVNM[RDKV_NM build path]
-        IARM[IARM Bus\nIARM_BUS_NM_SRV_MGR_NAME\nIARM_BUS_WIFI_MGR_API_*]
+        IARM["IARM Bus<br/>IARM_BUS_NM_SRV_MGR_NAME<br/>IARM_BUS_WIFI_MGR_API_*"]
     end
     subgraph NONRDKV[Non-RDKV build path]
-        CURL[libcurl + cJSON\nJSON-RPC to WPEFramework]
+        CURL["libcurl + cJSON<br/>JSON-RPC to WPEFramework"]
     end
 
     RADIO --> RDKVNM
@@ -190,11 +190,11 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    GET[GET request\ndev_id] --> IFHASH[(ifHash\nGHashTable)]
+    GET["GET request<br/>dev_id"] --> IFHASH[("ifHash<br/>GHashTable")]
     IFHASH -->|hit| RET[return cached instance]
-    IFHASH -->|miss| NEW[new hostIf_WiFi_*\ndev_id]
+    IFHASH -->|miss| NEW["new hostIf_WiFi_*<br/>dev_id"]
     NEW --> IFHASH
-    RET --> HAL[Call IARM / JSON-RPC\nper parameter]
+    RET --> HAL["Call IARM / JSON-RPC<br/>per parameter"]
 ```
 
 ---

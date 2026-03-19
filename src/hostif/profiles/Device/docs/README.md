@@ -28,9 +28,9 @@ graph TB
     DISP --> INST[X_rdk_profile::getInstance]
     INST --> GET[handleGetMsg]
     INST --> SET[handleSetMsg]
-    GET --> BSSTORE[XBSStore::getValue\nBootstrap store]
-    SET --> BSSTORE2[XBSStore::overrideValue\nBootstrap store]
-    BSSTORE --> JSON[/etc/partners_defaults.json\nor /opt/partners_defaults.json]
+    GET --> BSSTORE["XBSStore::getValue<br/>Bootstrap store"]
+    SET --> BSSTORE2["XBSStore::overrideValue<br/>Bootstrap store"]
+    BSSTORE --> JSON["/etc/partners_defaults.json<br/>or /opt/partners_defaults.json"]
 ```
 
 ---

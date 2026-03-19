@@ -30,19 +30,19 @@ graph TB
     DISP --> NUMENT[hostif_InterfaceStack::get_numberOfEntries]
 
     subgraph BuildPhase[Table Build - populateInterfaceStack]
-        SYSNET[/sys/class/net/*\n enumerate all interfaces]
-        BRCTL[bridge fdb / ip link show\n bridge membership]
-        ETH_IFACE[Device.Ethernet.Interface.*\n from hostIf_EthernetInterface]
-        MOCA_IFACE[Device.MoCA.Interface.*\n from MoCAInterface optional]
-        IP_IFACE[Device.IP.Interface.*\n from hostIf_IPInterface]
+        SYSNET["/sys/class/net/*<br/>enumerate all interfaces"]
+        BRCTL["bridge fdb / ip link show<br/>bridge membership"]
+        ETH_IFACE["Device.Ethernet.Interface.*<br/>from hostIf_EthernetInterface"]
+        MOCA_IFACE["Device.MoCA.Interface.*<br/>from MoCAInterface optional"]
+        IP_IFACE["Device.IP.Interface.*<br/>from hostIf_IPInterface"]
 
         SYSNET --> BRCTL
-        ETH_IFACE --> LAYERMAP[LayerInfo map\n higher+lower layer tracking]
+        ETH_IFACE --> LAYERMAP["LayerInfo map<br/>higher+lower layer tracking"]
         MOCA_IFACE --> LAYERMAP
-        BRCTL --> BRIDGETABLE[(stBridgeTableHash\n bridge → members)]
+        BRCTL --> BRIDGETABLE[("stBridgeTableHash<br/>bridge to members")]
         BRIDGETABLE --> LAYERMAP
         IP_IFACE --> LAYERMAP
-        LAYERMAP --> STKHASH[(stIshash\n dev_id → InterfaceStack)]
+        LAYERMAP --> STKHASH[("stIshash<br/>dev_id to InterfaceStack")]
     end
 
     IFS --> STKHASH

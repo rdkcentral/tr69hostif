@@ -46,21 +46,21 @@ src/hostif/profiles/DeviceInfo/
 ```mermaid
 graph TB
     ACS[ACS / WebPA / RBUS] -->|GET/SET Device.DeviceInfo.*| DISP[hostIf_msgHandler]
-    DISP --> DI[hostIf_DeviceInfo\nhandleGetMsg / handleSetMsg]
-    DISP --> PROC[hostIf_DeviceProcessorInterface\nDevice.DeviceInfo.Processor.{i}]
-    DISP --> PSTAT[hostIf_DeviceProcessStatusInterface\nDevice.DeviceInfo.ProcessStatus]
-    DISP --> PPROC[DeviceProcessStatusProcess\nDevice.DeviceInfo.ProcessStatus.Process.{i}]
-    DISP --> BT[XrdkBluetoothMgr\nDevice.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.*]
+    DISP --> DI["hostIf_DeviceInfo<br/>handleGetMsg / handleSetMsg"]
+    DISP --> PROC["hostIf_DeviceProcessorInterface<br/>Device.DeviceInfo.Processor.(i)"]
+    DISP --> PSTAT["hostIf_DeviceProcessStatusInterface<br/>Device.DeviceInfo.ProcessStatus"]
+    DISP --> PPROC["DeviceProcessStatusProcess<br/>Device.DeviceInfo.ProcessStatus.Process.(i)"]
+    DISP --> BT["XrdkBluetoothMgr<br/>Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.*"]
 
-    DI --> BSSTORE[XBSStore\nBootstrap store]
-    DI --> RFCSTORE[XRFCStore\nRFC store]
-    DI --> PROCFS[/proc/meminfo\n/proc/uptime\n/proc/version]
-    DI --> SCRIPTS[triggerResetScript\nfactory/cold/warm reset]
-    DI --> IARMBUS[IARM Bus\nDevice/MFR services]
+    DI --> BSSTORE["XBSStore<br/>Bootstrap store"]
+    DI --> RFCSTORE["XRFCStore<br/>RFC store"]
+    DI --> PROCFS["/proc/meminfo<br/>/proc/uptime<br/>/proc/version"]
+    DI --> SCRIPTS["triggerResetScript<br/>factory/cold/warm reset"]
+    DI --> IARMBUS["IARM Bus<br/>Device/MFR services"]
 
-    BSSTORE --> BSJSON[partners_defaults.json\ntr181store.ini]
-    BSSTORE --> BSJOURNAL[XBSStoreJournal\nfwValue tracking]
-    RFCSTORE --> RFCINI[/opt/RFC/*.ini\n/etc/rfcdefaults/]
+    BSSTORE --> BSJSON["partners_defaults.json<br/>tr181store.ini"]
+    BSSTORE --> BSJOURNAL["XBSStoreJournal<br/>fwValue tracking"]
+    RFCSTORE --> RFCINI["/opt/RFC/*.ini<br/>/etc/rfcdefaults/"]
     PSTAT --> PROCFS2[/proc/stat]
     PPROC --> PROCFSPID[/proc/PID/status]
     BT --> BTMGR[btmgr HAL]
@@ -161,15 +161,15 @@ When `XBSStore::overrideValue()` is called, it records the old firmware value, n
 
 ```mermaid
 flowchart LR
-    GET[GET request\nDevice.X_RDK*.*] --> BS[XBSStore::getValue]
+    GET["GET request<br/>Device.X_RDK*"] --> BS[XBSStore::getValue]
     BS --> CACHE{In-memory map}
     CACHE -->|hit| STR[Return string value]
     CACHE -->|miss| NOK[Return NOK]
     
     SET[SET request] --> OV[XBSStore::overrideValue]
     OV --> MAP[Update in-memory map]
-    MAP --> INI[Flush to tr181store.ini\nentire file rewritten]
-    OV --> JOURN[XBSStoreJournal::setJournalValue\nRecord provenance]
+    MAP --> INI["Flush to tr181store.ini<br/>entire file rewritten"]
+    OV --> JOURN["XBSStoreJournal::setJournalValue<br/>Record provenance"]
 ```
 
 ---

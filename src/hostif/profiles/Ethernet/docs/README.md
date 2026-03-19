@@ -27,18 +27,18 @@ src/hostif/profiles/Ethernet/
 ```mermaid
 graph TB
     ACS[ACS / WebPA] -->|GET/SET Device.Ethernet.Interface.*| DISP[hostIf_msgHandler]
-    DISP --> IFACE[hostIf_EthernetInterface::getInstance\ndev_id]
-    DISP --> STATS[hostIf_EthernetInterfaceStats::getInstance\ndev_id]
+    DISP --> IFACE["hostIf_EthernetInterface::getInstance<br/>dev_id"]
+    DISP --> STATS["hostIf_EthernetInterfaceStats::getInstance<br/>dev_id"]
     IFACE --> HASH[(ifHash GHashTable)]
-    IFACE --> SYS1[/sys/class/net/ethN/carrier\nenable + status]
-    IFACE --> SYS2[/sys/class/net/ethN/address\nMAC address]
-    IFACE --> SYS3[/sys/class/net/ethN/speed\nmax bit rate]
-    IFACE --> SYS4[/sys/class/net/ethN/duplex\nduplex mode]
-    STATS --> SYS5[/sys/class/net/ethN/statistics/\nbytes_sent, packets_received ...]
+    IFACE --> SYS1["/sys/class/net/ethN/carrier<br/>enable + status"]
+    IFACE --> SYS2["/sys/class/net/ethN/address<br/>MAC address"]
+    IFACE --> SYS3["/sys/class/net/ethN/speed<br/>max bit rate"]
+    IFACE --> SYS4["/sys/class/net/ethN/duplex<br/>duplex mode"]
+    STATS --> SYS5["/sys/class/net/ethN/statistics/<br/>bytes_sent, packets_received ..."]
 
     subgraph NameResolution[Interface Name Resolution]
-        NAMER[getEthernetInterfaceName\ndev_id → ethN]
-        NAMER --> IFNAMEIDX[if_nameindex API\nenumerate eth* interfaces]
+        NAMER["getEthernetInterfaceName<br/>dev_id to ethN"]
+        NAMER --> IFNAMEIDX["if_nameindex API<br/>enumerate eth* interfaces"]
     end
 
     IFACE --> NameResolution

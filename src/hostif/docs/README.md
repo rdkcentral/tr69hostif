@@ -57,13 +57,9 @@ graph TB
     end
 
     subgraph Dispatch[Dispatch Layer - handlers/]
-        MSG[hostIf_msgHandler
-HostIf_GetMgr lookup
-paramMgrhash]
-        UPD[updateHandler
-polling thread]
-        NOTIF[NotificationHandler
-GAsyncQueue]
+        MSG["hostIf_msgHandler<br/>HostIf_GetMgr lookup<br/>paramMgrhash"]
+        UPD["updateHandler<br/>polling thread"]
+        NOTIF["NotificationHandler<br/>GAsyncQueue"]
     end
 
     subgraph Profiles[Profile Layer - profiles/ + snmpAdapter/]
@@ -76,12 +72,9 @@ GAsyncQueue]
     end
 
     subgraph Core[Core Layer - src/]
-        MAIN[hostIf_main.cpp
-daemon lifecycle]
-        UTILS[hostIf_utils.cpp
-type helpers]
-        DM[Data Model
-/tmp/data-model.xml]
+        MAIN["hostIf_main.cpp<br/>daemon lifecycle"]
+        UTILS["hostIf_utils.cpp<br/>type helpers"]
+        DM["Data Model<br/>/tmp/data-model.xml"]
     end
 
     ACS --> IARM
@@ -159,16 +152,13 @@ Before the data model is loaded, `mergeDataModel()` builds `/tmp/data-model.xml`
 
 ```mermaid
 flowchart LR
-    PROPS[/etc/device.properties
-RDK_PROFILE=STB|TV] --> MERGE[mergeDataModel]
+    PROPS["/etc/device.properties<br/>RDK_PROFILE=STB or TV"] --> MERGE[mergeDataModel]
     GENERIC[/etc/data-model-generic.xml] --> MERGE
     STB[/etc/data-model-stb.xml] --> MERGE
     TV[/etc/data-model-tv.xml] --> MERGE
-    BASE[/etc/data-model.xml
-RDKV only] --> MERGE
+    BASE["/etc/data-model.xml<br/>RDKV only"] --> MERGE
     MERGE --> OUT[/tmp/data-model.xml]
-    OUT --> WALDB[loadDataModel
-waldb handle]
+    OUT --> WALDB["loadDataModel<br/>waldb handle"]
 ```
 
 For `RDKV_TR69` builds: base is merged with generic as an intermediate step, then the profile-specific file is applied.  

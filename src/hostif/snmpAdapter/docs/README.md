@@ -35,11 +35,8 @@ graph TB
 
     subgraph Adapter[snmpAdapter]
         CLASS[hostIf_snmpAdapter]
-        MAP[tr181Map
-key: TR-181 param name
-value: OID + interface]
-        LOCK[m_mutex
-GMutex]
+        MAP["tr181Map<br/>key: TR-181 param name<br/>value: OID + interface"]
+        LOCK["m_mutex<br/>GMutex"]
     end
 
     subgraph OS[OS subprocess]
@@ -48,10 +45,8 @@ GMutex]
     end
 
     subgraph Targets[SNMP agents]
-        STB[STB agent
-127.0.0.1]
-        CM[CM agent
-192.168.100.1]
+        STB["STB agent<br/>127.0.0.1"]
+        CM["CM agent<br/>192.168.100.1"]
     end
 
     CONF[/etc/tr181_snmpOID.conf] --> CLASS

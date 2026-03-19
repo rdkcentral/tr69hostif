@@ -41,25 +41,25 @@ src/hostif/profiles/STBService/
 graph TB
     ACS[ACS / WebPA] -->|GET/SET Device.Services.STBService.1.*| DISP[hostIf_msgHandler]
 
-    DISP --> CAP[hostIf_STBServiceCapabilities\nCapabilities.*]
-    DISP --> AUD[hostIf_STBServiceAudioOutput\nComponents.AudioOutput.{i}.*]
-    DISP --> HDMI[hostIf_STBServiceHDMI\nComponents.HDMI.{i}.*]
-    DISP --> DISP2[hostIf_STBServiceDisplayDevice\nComponents.HDMI.{i}.DisplayDevice.*]
-    DISP --> SPDIF[hostIf_STBServiceSPDIF\nComponents.SPDIF.{i}.*]
-    DISP --> VDEC[hostIf_STBServiceVideoDecoder\nComponents.VideoDecoder.{i}.*]
-    DISP --> VOUT[hostIf_STBServiceVideoOutput\nComponents.VideoOutput.{i}.*]
-    DISP --> EMMC[hostIf_STBServiceXeMMC\nComponents.X_RDKCENTRAL-COM_eMMCFlash.*]
-    DISP --> SDCARD[hostIf_STBServiceXSDCard\nComponents.X_RDKCENTRAL-COM_SDCard.*]
+    DISP --> CAP["hostIf_STBServiceCapabilities<br/>Capabilities.*"]
+    DISP --> AUD["hostIf_STBServiceAudioOutput<br/>Components.AudioOutput.(i).*"]
+    DISP --> HDMI["hostIf_STBServiceHDMI<br/>Components.HDMI.(i).*"]
+    DISP --> DISP2["hostIf_STBServiceDisplayDevice<br/>Components.HDMI.(i).DisplayDevice.*"]
+    DISP --> SPDIF["hostIf_STBServiceSPDIF<br/>Components.SPDIF.(i).*"]
+    DISP --> VDEC["hostIf_STBServiceVideoDecoder<br/>Components.VideoDecoder.(i).*"]
+    DISP --> VOUT["hostIf_STBServiceVideoOutput<br/>Components.VideoOutput.(i).*"]
+    DISP --> EMMC["hostIf_STBServiceXeMMC<br/>Components.X_RDKCENTRAL-COM_eMMCFlash.*"]
+    DISP --> SDCARD["hostIf_STBServiceXSDCard<br/>Components.X_RDKCENTRAL-COM_SDCard.*"]
 
-    CAP --> DSHAL[DS HAL\ndevice::Host\ndevice::VideoOutputPort\ndevice::AudioOutputPort]
+    CAP --> DSHAL["DS HAL<br/>device::Host<br/>device::VideoOutputPort<br/>device::AudioOutputPort"]
     AUD --> DSHAL
     HDMI --> DSHAL
     DISP2 --> DSHAL
     SPDIF --> DSHAL
     VDEC --> DSHAL
     VOUT --> DSHAL
-    EMMC --> STORHAL[rdkStorageMgr HAL\nSTRM_GetEMMCFlashStatus]
-    SDCARD --> STORHAL2[rdkStorageMgr HAL\nSTRM_GetSDCardStatus]
+    EMMC --> STORHAL["rdkStorageMgr HAL<br/>STRM_GetEMMCFlashStatus"]
+    SDCARD --> STORHAL2["rdkStorageMgr HAL<br/>STRM_GetSDCardStatus"]
 ```
 
 ---

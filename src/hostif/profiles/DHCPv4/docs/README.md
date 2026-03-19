@@ -24,12 +24,12 @@ src/hostif/profiles/DHCPv4/
 
 ```mermaid
 graph TB
-    ACS[ACS / WebPA] -->|GET Device.DHCPv4.Client.{i}.*| DISP[hostIf_msgHandler]
-    DISP --> INST[hostIf_DHCPv4Client::getInstance\ndev_id]
-    INST --> HASH[(dhcpv4ClientHash\nGHashTable)]
+    ACS[ACS / WebPA] -->|GET Device.DHCPv4.Client.i.*| DISP[hostIf_msgHandler]
+    DISP --> INST["hostIf_DHCPv4Client::getInstance<br/>dev_id"]
+    INST --> HASH[("dhcpv4ClientHash<br/>GHashTable")]
     INST --> GET[get_Device_DHCPv4_Client_Fields]
-    GET -->|eDHCPv4Interface| IPIFS[hostIf_IP / hostIf_IPInterface\nname match lookup]
-    GET -->|eDHCPv4Dnsservers| RESOLV[/etc/resolv.conf\nplus ip route get per DNS]
+    GET -->|eDHCPv4Interface| IPIFS["hostIf_IP / hostIf_IPInterface<br/>name match lookup"]
+    GET -->|eDHCPv4Dnsservers| RESOLV["/etc/resolv.conf<br/>plus ip route get per DNS"]
     GET -->|eDHCPv4Iprouters| IPROUTE[ip r grep default grep ifname]
     GET -->|Count| DEFROUTE[ip r grep default wc -l]
 ```

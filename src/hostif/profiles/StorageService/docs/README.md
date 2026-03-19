@@ -26,16 +26,16 @@ src/hostif/profiles/StorageService/
 ```mermaid
 graph TB
     ACS[ACS / WebPA] -->|GET Device.StorageService.*| DISP[hostIf_msgHandler]
-    DISP --> SS[hostIf_StorageSrvc\nDevice.StorageService.{i}]
-    DISP --> PM[hostIf_PhysicalMedium\nDevice.StorageService.{i}.PhysicalMedium.{j}]
+    DISP --> SS["hostIf_StorageSrvc<br/>Device.StorageService.(i)"]
+    DISP --> PM["hostIf_PhysicalMedium<br/>Device.StorageService.(i).PhysicalMedium.(j)"]
 
-    SS --> FDISK1[fdisk -l grep Disk wc -l\nPhysicalMediumNumberOfEntries]
-    PM --> FDISK2[fdisk -l grep Disk sed -n Np awk '$2'\ndisk device path /dev/sdX]
-    PM --> SMARTCTL[smartctl --scan\nsmartctl -A /dev/sdX SMART attrs]
-    PM --> UDEV[udevadm info\nvendor, model, serial number]
-    PM --> FDISK3[fdisk -l /dev/sdX\ncapacity in bytes]
+    SS --> FDISK1["fdisk -l grep Disk wc -l<br/>PhysicalMediumNumberOfEntries"]
+    PM --> FDISK2["fdisk -l grep Disk sed Np awk<br/>disk device path /dev/sdX"]
+    PM --> SMARTCTL["smartctl --scan<br/>smartctl -A /dev/sdX SMART attrs"]
+    PM --> UDEV["udevadm info<br/>vendor, model, serial number"]
+    PM --> FDISK3["fdisk -l /dev/sdX<br/>capacity in bytes"]
 
-    subgraph HashKey[Instance Key: storageServiceNum×100 + phyMedNum]
+    subgraph HashKey["Instance Key: storageServiceNum x 100 + phyMedNum"]
         PHASH[(phyMedHash GHashTable)]
     end
     PM --> HashKey
@@ -103,11 +103,11 @@ Each GET parameter triggers a dedicated subprocess:
 
 ```mermaid
 flowchart LR
-    GET[GET request\nfor a PhyMed field] --> SWITCH{switch field}
+    GET["GET request<br/>for a PhyMed field"] --> SWITCH{switch field}
     SWITCH -->|Name| FDISK[fdisk -l grep Disk sed n Xp awk 2]
     SWITCH -->|Vendor/Model/Serial| UDEV[udevadm info -q property -n /dev/sdX]
     SWITCH -->|Capacity| FDISKCAP[fdisk -l /dev/sdX awk bytes]
-    SWITCH -->|Status/Health| SMART[smartctl --scan\nsmartctl -A /dev/sdX grep SMART_PARAMS]
+    SWITCH -->|Status/Health| SMART["smartctl --scan<br/>smartctl -A /dev/sdX grep SMART_PARAMS"]
 ```
 
 ### SMART Health Check
