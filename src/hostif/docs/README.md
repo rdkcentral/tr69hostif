@@ -152,13 +152,13 @@ Before the data model is loaded, `mergeDataModel()` builds `/tmp/data-model.xml`
 
 ```mermaid
 flowchart LR
-    PROPS["/etc/device.properties<br/>RDK_PROFILE=STB or TV"] --> MERGE[mergeDataModel]
-    GENERIC[/etc/data-model-generic.xml] --> MERGE
-    STB[/etc/data-model-stb.xml] --> MERGE
-    TV[/etc/data-model-tv.xml] --> MERGE
-    BASE["/etc/data-model.xml<br/>RDKV only"] --> MERGE
-    MERGE --> OUT[/tmp/data-model.xml]
-    OUT --> WALDB["loadDataModel<br/>waldb handle"]
+    PROPS["/etc/device.properties<br/>RDK_PROFILE=STB or TV"] --> MERGE["mergeDataModel"];
+    GENERIC["/etc/data-model-generic.xml"] --> MERGE;
+    STBXML["/etc/data-model-stb.xml"] --> MERGE;
+    TVXML["/etc/data-model-tv.xml"] --> MERGE;
+    BASE["/etc/data-model.xml<br/>RDKV only"] --> MERGE;
+    MERGE --> OUT["/tmp/data-model.xml"];
+    OUT --> WALDB["loadDataModel<br/>waldb handle"];
 ```
 
 For `RDKV_TR69` builds: base is merged with generic as an intermediate step, then the profile-specific file is applied.  
