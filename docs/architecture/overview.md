@@ -71,7 +71,7 @@ sequenceDiagram
     participant IARM as IARM bus
     participant DM as data model merge/load
     participant THR as background workers
-    participant LOOP as GLib main loop
+    participant GMAINLOOP as GLib main loop
 
     MAIN->>CFG: parse argv and load config
     MAIN->>IARM: hostIf_IARM_IF_Start()
@@ -82,7 +82,7 @@ sequenceDiagram
     MAIN->>THR: optionally start Parodus client thread
     MAIN->>THR: optionally start WebConfig thread
     MAIN->>MAIN: optionally init RBUS provider
-    MAIN->>LOOP: g_main_loop_run()
+    MAIN->>GMAINLOOP: g_main_loop_run()
 ```
 
 ## Major Subsystems
