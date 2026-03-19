@@ -9,6 +9,17 @@
 
 The daemon runs as a persistent systemd service, initializes all TR-181 profile handlers at startup, and then services get/set requests over multiple IPC channels simultaneously.
 
+## Documentation
+
+Implementation-oriented documentation lives under `docs/`.
+
+- `docs/README.md` provides the documentation index.
+- `docs/architecture/overview.md` describes the daemon structure and startup sequence.
+- `docs/architecture/threading-model.md` documents worker threads, locks, and shutdown behavior.
+- `docs/architecture/data-flow.md` traces request routing and change-notification flow.
+- `docs/api/public-api.md` documents the shared request envelope and dispatcher entry points.
+- `docs/integration/build-setup.md` and `docs/integration/testing.md` cover build and validation workflows.
+
 ## Architecture
 
 ### High-Level Component Diagram
