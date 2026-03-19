@@ -28,7 +28,7 @@ src/hostif/profiles/Time/
 graph TB
     ACS[ACS / WebPA] -->|GET/SET Device.Time.*| DISP[hostIf_msgHandler]
     DISP --> TIME[hostIf_Time::getInstance\ndev_id]
-    TIME --> LOCALTIME[get_Device_Time_CurrentLocalTime\ngettimeofday + localtime]
+    TIME --> LOCALTIME[get_Device_Time_CurrentLocalTime\ntime + localtime]
     TIME --> UTCTIME[get_Device_Time_CurrentUTCTime\ntime + gmtime]
     TIME --> TZ[get_Device_Time_LocalTimeZone\ngettimeofday + strftime %Z]
     TIME --> CHRONY[Chrony RFC files\n/opt/secure/RFC/chrony/*]
@@ -64,7 +64,7 @@ graph TB
 | `NTPServer3` | ❌ (returns NOK) | ❌ (returns NOK) | Not implemented |
 | `NTPServer4` | ❌ (returns NOK) | ❌ (returns NOK) | Not implemented |
 | `NTPServer5` | ❌ (returns NOK) | ❌ (returns NOK) | Not implemented |
-| `CurrentLocalTime` | ✅ | — | `gettimeofday` + `localtime` + `strftime` |
+| `CurrentLocalTime` | ✅ | — | `time` + `localtime` + `strftime` |
 | `CurrentUTCTime` | ✅ | — | `time` + `gmtime` + `strftime` |
 | `LocalTimeZone` | ✅ | ❌ (returns NOK) | `%Z` from `strftime` |
 | `LocalTimeZoneName` | ❌ | ❌ | Not implemented |
