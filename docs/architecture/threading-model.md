@@ -71,13 +71,13 @@ sequenceDiagram
     participant UPD as updateHandler
     participant IARM as IARM bus
     participant NQ as notification queue
-    participant PAR as Parodus sender
+    participant PD as Parodus sender
 
     PROF->>UPD: notifyCallback(event, paramName, value)
     UPD->>IARM: IARM_Bus_BroadcastEvent(...)
     alt value change and valid parameter name
         UPD->>NQ: pushValueChangeNotification(eventData)
-        NQ->>PAR: send outbound WebPA notification
+        NQ->>PD: send outbound WebPA notification
     end
 ```
 
