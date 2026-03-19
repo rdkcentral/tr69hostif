@@ -137,6 +137,7 @@ These functions initialize and tear down the daemon's IARM registration.
 | `IARM_BUS_TR69HOSTIFMGR_API_GetAttributes` | `tr69HostIfSetAttributes` |
 | `IARM_BUS_TR69HOSTIFMGR_API_RegisterForEvents` | `tr69HostIfRegisterForEvents` |
 
+Note: The `SetAttributes` / `GetAttributes` RPC string names are intentionally reversed relative to the macro names for legacy/backward-compatibility. This mirrors the mappings in `hostIf_tr69ReqHandler.h`.
 ### Events
 
 | Event | Meaning |
