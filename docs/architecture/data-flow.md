@@ -6,28 +6,28 @@ All ingress paths converge on the same internal contract: a populated `HOSTIF_Ms
 
 ```mermaid
 flowchart LR
-    A[IARM RPC] --> D[HOSTIF_MsgData_t]
+    A["IARM RPC"] --> D["HOSTIF MsgData request"]
     B[WebPA WRP request] --> D
     C[Local JSON request] --> D
     E[RBUS DML provider] --> D
 
-    D --> F{Match param prefix}
-    F --> G[deviceMgr]
-    F --> H[wifiMgr]
-    F --> I[ipMgr]
-    F --> J[ethernetMgr]
-    F --> K[timeMgr]
-    F --> L[other enabled managers]
+    D --> F{"Match param prefix"}
+    F --> G["deviceMgr"]
+    F --> H["wifiMgr"]
+    F --> I["ipMgr"]
+    F --> J["ethernetMgr"]
+    F --> K["timeMgr"]
+    F --> L["other enabled managers"]
 
-    G --> M[Profile get/set handler]
+    G --> M["Profile get/set handler"]
     H --> M
     I --> M
     J --> M
     K --> M
     L --> M
-    M --> N[HAL or platform state]
-    N --> O[Updated HOSTIF_MsgData_t]
-    O --> P[Caller response]
+    M --> N["HAL or platform state"]
+    N --> O["Updated request envelope"]
+    O --> P["Caller response"]
 ```
 
 ## Manager Resolution
@@ -56,15 +56,15 @@ sequenceDiagram
     participant PROF as concrete handler
     participant HAL as device HAL
 
-    SRC->>DISP: hostIf_GetMsgHandler() / hostIf_SetMsgHandler()
-    DISP->>DISP: lock GET or SET mutex
+    SRC->>DISP: call get or set entry point
+    DISP->>DISP: lock request mutex
     DISP->>MGR: HostIf_GetMgr(paramName)
-    MGR-->>DISP: msgHandler*
-    DISP->>PROF: handleGetMsg() / handleSetMsg()
+    MGR-->>DISP: handler pointer
+    DISP->>PROF: call profile handler
     PROF->>HAL: read or write platform state
     HAL-->>PROF: value or status
     PROF-->>DISP: fill faultCode and payload
-    DISP-->>SRC: updated HOSTIF_MsgData_t
+    DISP-->>SRC: return updated request envelope
 ```
 
 ## Notification Flow
@@ -73,14 +73,14 @@ Profiles that support update callbacks register with `updateHandler::Init()`. Th
 
 ```mermaid
 flowchart TD
-    A[updateHandler thread] --> B[checkForUpdates on each profile]
-    B --> C{Change detected?}
-    C -->|No| D[sleep 60 seconds]
-    C -->|Yes| E[notifyCallback]
-    E --> F[IARM_Bus_BroadcastEvent]
-    E --> G{Parodus enabled and value-changed event?}
-    G -->|Yes| H[NotificationHandler queue]
-    H --> I[sendNotification via libparodus]
+    A["updateHandler thread"] --> B["checkForUpdates on each profile"]
+    B --> C{"Change detected?"}
+    C -->|No| D["sleep 60 seconds"]
+    C -->|Yes| E["notifyCallback"]
+    E --> F["IARM broadcast event"]
+    E --> G{"Parodus enabled and value-changed event?"}
+    G -->|Yes| H["NotificationHandler queue"]
+    H --> I["send notification via libparodus"]
     G -->|No| D
     I --> D
 ```
