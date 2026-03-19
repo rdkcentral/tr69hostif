@@ -61,9 +61,9 @@ graph TB
     BSSTORE --> BSJSON["partners_defaults.json<br/>tr181store.ini"]
     BSSTORE --> BSJOURNAL["XBSStoreJournal<br/>fwValue tracking"]
     RFCSTORE --> RFCINI["/opt/RFC/*.ini<br/>/etc/rfcdefaults/"]
-    PSTAT --> PROCFS2[/proc/stat]
-    PPROC --> PROCFSPID[/proc/PID/status]
-    BT --> BTMGR[btmgr HAL]
+    PSTAT --> PROCFS2["/proc/stat"]
+    PPROC --> PROCFSPID["/proc/PID/status"]
+    BT --> BTMGR["btmgr HAL"]
 ```
 
 ---

@@ -56,7 +56,7 @@ graph TB
     IPIF --> GETIFADDRS["getifaddrs + ioctl<br/>interface enumeration"]
     IPV4 --> GETIFADDRS2["getifaddrs<br/>AF_INET address scan"]
     IPV6 --> GETIFADDRS3["getifaddrs<br/>AF_INET6 address scan"]
-    STATS --> SYSFS[/sys/class/net/N/statistics/*]
+    STATS --> SYSFS["/sys/class/net/N/statistics/*"]
     APORT --> PROCNET["/proc/net/tcp<br/>/proc/net/tcp6"]
 
     IPIF --> SETCMDS["system ifconfig/ifdown/ifup<br/>Enable/Reset/MTU set"]
