@@ -7,6 +7,7 @@ This directory contains implementation-oriented documentation for the tr69hostif
 ### Architecture
 
 - [System Overview](architecture/overview.md) describes the daemon's major components, startup sequence, and runtime boundaries.
+- [JSON Usage](architecture/json-usage.md) maps the module's JSON request, config, notification, and JSON-RPC paths and records the current robustness gaps.
 - [Threading Model](architecture/threading-model.md) documents worker threads, synchronization primitives, and shutdown behavior.
 - [Data Flow](architecture/data-flow.md) traces request routing, event propagation, and RFC/bootstrap precedence.
 
