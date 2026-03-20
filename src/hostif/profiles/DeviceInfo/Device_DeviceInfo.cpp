@@ -131,7 +131,7 @@
 
 #define MEMINSIGHT_SERVICE                 "meminsight-runner.service"
 #define MEMINSIGHT_TRIGGER_FILE            "/opt/.enable_meminsight"
-#define MEMINSIGHT_TRIGGER_TMP_FILE        "/tmp/.enable_meminsight"
+#define MEMINSIGHT_TMP_TRIGGER_FILE        "/tmp/.enable_meminsight"
 #define DEVICEID_SCRIPT_PATH "/lib/rdk/getDeviceId.sh"
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
