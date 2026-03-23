@@ -4545,7 +4545,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigge
         return NOK;
     }
 
-    is_xmem_triggered = getStringValue(stMsgData->paramValue);
+    is_xmem_triggered = getStringValue(stMsgData);
 
     if (strncmp(is_xmem_triggered.c_str(), "start", 5) == 0)
     {
@@ -4633,14 +4633,14 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigge
         }
         else
         {
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight is already disabled. File not found: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] MemInsight is already set to stop. File not found: %s\n", __FUNCTION__, __LINE__, MEMINSIGHT_TRIGGER_FILE);
             ret = OK;
         }
     }
 
     if (ret == OK)
     {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully set MemInsight enable to %s\n", __FUNCTION__, __LINE__, is_xmem_enabled ? "true" : "false");
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully set MemInsight Triggered to %s\n", __FUNCTION__, __LINE__, is_xmem_triggered);
     }
     return ret;
 }
