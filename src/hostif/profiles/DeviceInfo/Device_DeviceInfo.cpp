@@ -4640,7 +4640,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigge
 
     if (ret == OK)
     {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully set MemInsight Triggered to %s\n", __FUNCTION__, __LINE__, is_xmem_triggered);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Successfully set MemInsight Triggered to %s\n", __FUNCTION__, __LINE__, is_xmem_triggered.c_str());
     }
     return ret;
 }
