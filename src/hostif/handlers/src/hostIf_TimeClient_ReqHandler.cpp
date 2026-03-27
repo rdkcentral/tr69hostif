@@ -343,6 +343,7 @@ int TimeClientReqHandler::handleGetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         {
             *notifyValuePtr = 1;
 	    errno_t rc = -1;
+            // coverity[array_null]
             rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,stMsgData->paramName);
 	    ERR_CHK(rc);
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
@@ -393,6 +394,7 @@ int TimeClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         {
             *notifyValuePtr = 1;
 	    errno_t rc = -1;
+            // coverity[array_null]
             rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,stMsgData->paramName);
 	    ERR_CHK(rc);
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);

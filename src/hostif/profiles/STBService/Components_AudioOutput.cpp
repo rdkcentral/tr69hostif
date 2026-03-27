@@ -165,25 +165,34 @@ void hostIf_STBServiceAudioInterface::releaseLock()
 hostIf_STBServiceAudioInterface::hostIf_STBServiceAudioInterface(int devid, device::AudioOutputPort& port) : dev_id(devid), aPort(port)
 {
     errno_t rc = -1;
+    // coverity[array_null]
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
     ERR_CHK(rc);
     backupCancelMute = false;
+    // coverity[array_null]
     rc=strcpy_s(backupAudioStereoMode,sizeof(backupAudioStereoMode)," ");
     ERR_CHK(rc);
     backupAudioLevel=0;
+    // coverity[array_null]
     rc=strcpy_s(backupAudioDB,sizeof(backupAudioDB)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupAudioLoopThru,sizeof(backupAudioLoopThru)," ");
     ERR_CHK(rc);
     backupAudioCompression=0;
+    // coverity[array_null]
     rc=strcpy_s(backupAudioEncoding,sizeof(backupAudioEncoding)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupAudioGain,sizeof(backupAudioGain)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupMinAudioDB,sizeof(backupMinAudioDB)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupMaxAudioDB,sizeof(backupMaxAudioDB)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupAudioOptimalLevel,sizeof(backupAudioOptimalLevel)," ");
     ERR_CHK(rc);
     backupDialogEnhancement=0;

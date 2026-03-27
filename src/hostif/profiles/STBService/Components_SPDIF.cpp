@@ -153,6 +153,7 @@ hostIf_STBServiceSPDIF::hostIf_STBServiceSPDIF(int devid, device::AudioOutputPor
 {
     backupEnable = false;
     errno_t rc = -1;
+    // coverity[array_null]
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
     ERR_CHK(rc);
     backupForcePCM = false;

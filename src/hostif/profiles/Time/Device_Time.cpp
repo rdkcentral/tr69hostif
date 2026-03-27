@@ -265,8 +265,10 @@ int hostIf_Time::get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *stMsgData, b
     }
 
     bCalledCurrentLocalTime = true;
+    // coverity[array_null]
     rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue), buffer);
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupCurrentLocalTime,sizeof(backupCurrentLocalTime),buffer);
     ERR_CHK(rc);
 
@@ -338,8 +340,10 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
     }
 
     bCalledCurrentUTCTime = true;
+    // coverity[array_null]
     rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), buffer);
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupCurrentUTCTime, sizeof(backupCurrentUTCTime), buffer);
     ERR_CHK(rc);
 

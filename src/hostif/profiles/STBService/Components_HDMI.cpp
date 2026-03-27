@@ -189,10 +189,13 @@ hostIf_STBServiceHDMI::hostIf_STBServiceHDMI(int devid, device::VideoOutputPort&
 {
     errno_t rc = -1;
     backupEnable = false;
+    // coverity[array_null]
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupResolutionValue,sizeof(backupResolutionValue)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupName,sizeof(backupName)," ");
     ERR_CHK(rc);
 
