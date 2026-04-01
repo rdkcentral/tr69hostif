@@ -3460,10 +3460,7 @@
       <parameter base="global" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
-      <parameter base="rf4ce" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <string/> </syntax>
-      </parameter>
-      <parameter base="ble" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="rcu" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
       <parameter base="ip" access="readWrite" notification="0" maxNotification="2" >
