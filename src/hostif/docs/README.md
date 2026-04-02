@@ -316,8 +316,7 @@ This file provides all type-neutral helpers used across the subsystems.
 |----------|---------|
 | `matchComponent()` | Prefix and instance-number parsing for TR-181 paths |
 | `triggerResetScript()` | Executes cold / factory / warehouse / customer reset scripts |
-| `getJsonRPCData()` | `libcurl` POST to WPEFramework JSON-RPC endpoint with Bearer token |
-| `get_security_token()` | Calls `/usr/bin/WPEFrameworkSecurityUtility` via popen, parses JWT token |
+| `getJsonRPCData()` | `libcurl` POST to WPEFramework JSON-RPC endpoint using the current request/auth configuration |
 | `getCurrentTime()` / `timeValDiff()` | Wall-clock timing for request duration logging |
 | `setLegacyRFCEnabled()` / `legacyRFCEnabled()` | Runtime flag for legacy vs new HTTP server mode |
 | `getBSUpdateEnum()` | Maps "rfcUpdate" / "allUpdate" / "default" strings to `HostIf_Source_Type_t` |
