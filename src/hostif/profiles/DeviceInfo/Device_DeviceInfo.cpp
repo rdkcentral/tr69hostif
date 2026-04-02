@@ -4202,54 +4202,24 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
 int hostIf_DeviceInfo::get_xRDKCentralComRFCAccountId(HOSTIF_MsgData_t *stMsgData)
 {
     int ret=NOK;
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getServiceAccountId\" }";
         
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Account ID..\n", __FUNCTION__);
-        
-    string response = getJsonRPCData(std::move(postData)); 
-    if(response.c_str())
+    std::string response;
+    std::string serviceAccountId;
+
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call plugin to get Account ID..\n", __FUNCTION__);
+    if (invokeThunderPluginMethod("org.rdk.AuthService.getServiceAccountId", "", response) &&
+        thunderExtractResultStringField(response, "serviceAccountId", serviceAccountId))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
-            if (jsonObj)
-            {
-                cJSON *accountIdObj = cJSON_GetObjectItem(jsonObj, "serviceAccountId");
-
-                if (accountIdObj && accountIdObj->type == cJSON_String && accountIdObj->valuestring)
-                {
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Found serviceAccountId value = %s\n", accountIdObj->valuestring);
-                    putValue(stMsgData, accountIdObj->valuestring);
-                    stMsgData->faultCode = fcNoFault;
-                    ret = OK;
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"serviceAccountId\" in the output from Thunder plugin\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return NOK;
-                }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-        }
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Found serviceAccountId value = %s\n", serviceAccountId.c_str());
+        putValue(stMsgData, serviceAccountId);
+        stMsgData->faultCode = fcNoFault;
+        ret = OK;
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
-    }
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: failed to fetch serviceAccountId\n", __FUNCTION__);
+    }   
     return ret;
 }
 
@@ -5720,48 +5690,17 @@ void hostIf_DeviceInfo::systemMgmtTimePathMonitorThr()
 int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgData)
 {
     string experience = "";
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
- 
-    string resp = getJsonRPCData(std::move(postData)); 
-    if(resp.c_str())
+    std::string response;
+
+    if (invokeThunderPluginMethod("org.rdk.AuthService.getExperience", "", response) &&
+        thunderExtractResultStringField(response, "experience", experience))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
-
-        cJSON* root = cJSON_Parse(resp.c_str());
-
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
-            if (jsonObj)
-            {
-                cJSON *experienceObj = cJSON_GetObjectItem(jsonObj, "experience");
-                if(experienceObj && experienceObj->type == cJSON_String && experienceObj->valuestring && (strlen(experienceObj->valuestring) > 0))
-                {
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s]The parameter [%s] value is [%s].\n", __FUNCTION__, stMsgData->paramName, experienceObj->valuestring);
-                    experience = experienceObj->valuestring;
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"experience\" in the output from Thunder plugin\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return NOK;
-                }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
-            return NOK;
-        }
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s]The parameter [%s] value is [%s].\n", __FUNCTION__, stMsgData->paramName, experience.c_str());
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to fetch experience from AuthService\n", __FUNCTION__);
+        return NOK;
     }
 
     if(!experience.empty()) {

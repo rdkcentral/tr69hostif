@@ -183,6 +183,28 @@ std::string get_security_token();
 */
 string getJsonRPCData(std::string postData);
 
+/**
+ * Invoke a Thunder JSON-RPC method and return the complete response payload.
+ *
+ * @param[in] method Thunder method name, for example org.rdk.AuthService.getExperience.
+ * @param[in] paramsJson JSON object string for params, pass empty string when params are not required.
+ * @param[out] response Full JSON response payload from Thunder.
+ *
+ * @return true on transport success with non-empty payload, false otherwise.
+ */
+bool invokeThunderPluginMethod(const std::string& method, const std::string& paramsJson, std::string& response);
+
+/**
+ * Parse and validate a JSON-RPC response and extract a string field from result object.
+ */
+bool thunderExtractResultStringField(const std::string& response, const char* fieldName, std::string& value);
+
+/**
+ * Parse and validate a JSON-RPC response and extract a boolean field from result object.
+ * Accepts both JSON booleans and numeric 0/1 values.
+ */
+bool thunderExtractResultBoolField(const std::string& response, const char* fieldName, bool& value);
+
 #endif /* HOSTIF_UTILS_H_*/
 
 

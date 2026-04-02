@@ -643,6 +643,156 @@ string getJsonRPCData(std::string postData)
     }
 }
 
+static bool parseThunderResultObject(const std::string& response, cJSON** rootOut, cJSON** resultOut)
+{
+    if ((rootOut == NULL) || (resultOut == NULL))
+    {
+        return false;
+    }
+
+    *rootOut = NULL;
+    *resultOut = NULL;
+
+    if (response.empty())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Empty Thunder response payload\n", __FUNCTION__);
+        return false;
+    }
+
+    cJSON* root = cJSON_Parse(response.c_str());
+    if (root == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
+        return false;
+    }
+
+    cJSON* errorObj = cJSON_GetObjectItem(root, "error");
+    if (cJSON_IsObject(errorObj))
+    {
+        cJSON* errorCode = cJSON_GetObjectItem(errorObj, "code");
+        cJSON* errorMessage = cJSON_GetObjectItem(errorObj, "message");
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "%s: Thunder returned error code=%d message=%s\n",
+                __FUNCTION__,
+                cJSON_IsNumber(errorCode) ? errorCode->valueint : -1,
+                (cJSON_IsString(errorMessage) && errorMessage->valuestring) ? errorMessage->valuestring : "unknown");
+        cJSON_Delete(root);
+        return false;
+    }
+
+    cJSON* resultObj = cJSON_GetObjectItem(root, "result");
+    if (!cJSON_IsObject(resultObj))
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+        cJSON_Delete(root);
+        return false;
+    }
+
+    *rootOut = root;
+    *resultOut = resultObj;
+    return true;
+}
+
+bool invokeThunderPluginMethod(const std::string& method, const std::string& paramsJson, std::string& response)
+{
+    response.clear();
+
+    if (method.empty())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: method name is empty\n", __FUNCTION__);
+        return false;
+    }
+
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"" + method + "\"";
+    if (!paramsJson.empty())
+    {
+        postData += ", \"params\" : " + paramsJson;
+    }
+    postData += "}";
+
+    response = getJsonRPCData(std::move(postData));
+    if (response.empty())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Empty response for method %s\n", __FUNCTION__, method.c_str());
+        return false;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+    return true;
+}
+
+bool thunderExtractResultStringField(const std::string& response, const char* fieldName, std::string& value)
+{
+    value.clear();
+
+    if (fieldName == NULL)
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* fieldObj = cJSON_GetObjectItem(resultObj, fieldName);
+    bool ok = false;
+    if (cJSON_IsString(fieldObj) && fieldObj->valuestring && (strlen(fieldObj->valuestring) > 0))
+    {
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Found %s value = %s\n", fieldName, fieldObj->valuestring);
+        value = fieldObj->valuestring;
+        ok = true;
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"%s\" in the output from Thunder plugin\n", __FUNCTION__, fieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
+bool thunderExtractResultBoolField(const std::string& response, const char* fieldName, bool& value)
+{
+    value = false;
+
+    if (fieldName == NULL)
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* fieldObj = cJSON_GetObjectItem(resultObj, fieldName);
+    bool ok = false;
+
+    if (cJSON_IsBool(fieldObj))
+    {
+        value = cJSON_IsTrue(fieldObj);
+        ok = true;
+    }
+    else if (cJSON_IsNumber(fieldObj))
+    {
+        value = (fieldObj->valueint != 0);
+        ok = true;
+    }
+
+    if (!ok)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Missing/invalid bool field %s in Thunder result\n", __FUNCTION__, fieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
 #ifdef GTEST_ENABLE
 size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, std::string stream) {
     return &writeCurlResponse;
