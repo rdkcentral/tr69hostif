@@ -305,7 +305,7 @@ static WDMP_STATUS handleRFCRequest(REQ_TYPE reqType, param_t *param)
     return wdmpStatus;
 }
 
-static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Source_Type_t bsUpdate, const char *pcCallerID)
+static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Source_Type_t bsUpdate, const char *pcCallerID, const char* traceparent_header)
 {
     WDMP_STATUS wdmpStatus = WDMP_SUCCESS;
     int result = NOK;
@@ -319,6 +319,47 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"Entering %s\n", __FUNCTION__);
 
     getHostIfParamStFromRequest(reqType, param, &hostIfParam);
+    
+    // Parse W3C Trace Context if present
+    if (traceparent_header && strlen(traceparent_header) > 0) {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s:%d] Processing traceparent header: %s\n",
+            __FUNCTION__, __LINE__, traceparent_header);
+            
+        // Parse W3C traceparent format: 00-<trace_id>-<span_id>-<trace_flags>
+        char version[3] = {0};
+        char trace_id[33] = {0};
+        char span_id[17] = {0};
+        char trace_flags[3] = {0};
+        
+        int parsed = sscanf(traceparent_header, "%2[0-9a-fA-F]-%32[0-9a-fA-F]-%16[0-9a-fA-F]-%2[0-9a-fA-F]",
+                           version, trace_id, span_id, trace_flags);
+                           
+        if (parsed == 4 && strcmp(version, "00") == 0) {
+            // Successfully parsed W3C trace context
+            strncpy(hostIfParam.trace_id, trace_id, sizeof(hostIfParam.trace_id) - 1);
+            strncpy(hostIfParam.span_id, span_id, sizeof(hostIfParam.span_id) - 1);
+            strncpy(hostIfParam.trace_flags, trace_flags, sizeof(hostIfParam.trace_flags) - 1);
+            
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s:%d] ✓ Trace context parsed successfully:\n"
+                "  TraceID: %s\n"
+                "  SpanID: %s\n"
+                "  Flags: %s\n",
+                __FUNCTION__, __LINE__, 
+                hostIfParam.trace_id, 
+                hostIfParam.span_id, 
+                hostIfParam.trace_flags);
+        } else {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                "[%s:%d] ⚠ Failed to parse traceparent header: %s (parsed=%d)\n",
+                __FUNCTION__, __LINE__, traceparent_header, parsed);
+        }
+    } else {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s:%d] No traceparent header present\n",
+            __FUNCTION__, __LINE__);
+    }
 
     switch(reqType)
     {
@@ -520,7 +561,7 @@ static bool allocate_res_struct_members(res_struct *respSt, req_struct *reqSt)
     return true;
 }
 
-res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
+res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt, const char* traceparent_header)
 {
     unsigned int paramIndex = 0;
     res_struct *respSt = NULL;
@@ -600,7 +641,7 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
                         childParams[childParamIndex].value = NULL;
 
                         //retStatus represents the first error while trying to retrieve the values of a wild card parameter name.
-                        if(WDMP_SUCCESS != invokeHostIfAPI(reqSt->reqType, childParams+childParamIndex, HOSTIF_NONE, pcCallerID) && respSt->retStatus[paramIndex] == WDMP_SUCCESS)
+                        if(WDMP_SUCCESS != invokeHostIfAPI(reqSt->reqType, childParams+childParamIndex, HOSTIF_NONE, pcCallerID, traceparent_header) && respSt->retStatus[paramIndex] == WDMP_SUCCESS)
                         {
                             respSt->retStatus[paramIndex] = WDMP_ERR_VALUE_IS_EMPTY;
                         }
@@ -651,7 +692,7 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
                 if(WDMP_SUCCESS == respSt->retStatus[paramIndex])
                 {
                     if(!rfcParam)
-                        respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, respSt->u.getRes->params[paramIndex], bsUpdate, pcCallerID);
+                        respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, respSt->u.getRes->params[paramIndex], bsUpdate, pcCallerID, traceparent_header);
                     else // Temporary handling for RFC Variables - handled using RFC API.
                         respSt->retStatus[paramIndex] = handleRFCRequest(reqSt->reqType, respSt->u.getRes->params[paramIndex]);
 
@@ -724,7 +765,7 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Operation not permitted : %d\n", respSt->retStatus[paramIndex]);
                     continue;
                 }
-                respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, reqSt->u.setReq->param + paramIndex, bsUpdate, pcCallerID);
+                respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, reqSt->u.setReq->param + paramIndex, bsUpdate, pcCallerID, traceparent_header);
             }
         }
         break;
@@ -760,7 +801,7 @@ WDMP_STATUS (*handleRFCRequestFunc())(REQ_TYPE reqType, param_t *param)
     return &handleRFCRequest;
 }
 
-WDMP_STATUS (*invokeHostIfAPIFunc())(REQ_TYPE reqType, param_t *param, HostIf_Source_Type_t bsUpdate, const char *pcCallerID)
+WDMP_STATUS (*invokeHostIfAPIFunc())(REQ_TYPE reqType, param_t *param, HostIf_Source_Type_t bsUpdate, const char *pcCallerID, const char* traceparent_header)
 {
     return &invokeHostIfAPI;
 }

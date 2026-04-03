@@ -79,6 +79,7 @@ static void HTTPRequestHandler(
 
     SoupMessageHeaders *req_headers = soup_server_message_get_request_headers(msg);
     const char *pcCallerID = (char *)soup_message_headers_get_one(req_headers, "CallerID");
+    const char *traceparent_header = (char *)soup_message_headers_get_one(req_headers, "traceparent");
 
     jsonRequest = cJSON_Parse((const char *) req_body->data);
 
@@ -104,7 +105,7 @@ static void HTTPRequestHandler(
             else
                 RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%s] GET with CallerID : %s..\n", __FUNCTION__, __FILE__, pcCallerID);
             parse_get_request(jsonRequest, &reqSt, WDMP_TR181);
-            respSt = handleRequest(pcCallerID, reqSt);
+            respSt = handleRequest(pcCallerID, reqSt, traceparent_header);
             if(respSt)
             {
                 jsonResponse = cJSON_CreateObject();
@@ -149,7 +150,7 @@ static void HTTPRequestHandler(
 
             parse_set_request(jsonRequest, &reqSt, WDMP_TR181);
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"Calling handleRequest...\n");
-            respSt = handleRequest(pcCallerID, reqSt);
+            respSt = handleRequest(pcCallerID, reqSt, traceparent_header);
             if(respSt)
             {
                 jsonResponse = cJSON_CreateObject();
