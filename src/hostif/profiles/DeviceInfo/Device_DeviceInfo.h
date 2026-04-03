@@ -201,9 +201,10 @@
 #define CANARY_START_TIME                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart"
 #define CANARY_END_TIME                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"
 
-/* Profile: X_RDKCENTRAL-COM_RFC.Feature.xMemInsight */
-#define X_MEMINSIGHT_ENABLE                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable"
-#define X_MEMINSIGHT_ARGS                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Args"
+/* Profile: X_RDKCENTRAL-COM_RFC.Feature.meminsight */
+#define MEMINSIGHT_ENABLE                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Enable"
+#define MEMINSIGHT_ARGS                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Args"
+#define MEMINSIGHT_TRIGGER                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Trigger"
 
 /* Profile: X_RDKCENTRAL-COM_xAccount.HotelCheckout */
 #define HOTEL_CHECKOUT_LAST_RESET_TIME                  "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.LastResetTime"
@@ -1324,6 +1325,7 @@ public:
       * @retval NOK if operation fails.
       */
 
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigger(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *);
 
 
