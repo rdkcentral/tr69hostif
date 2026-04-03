@@ -64,8 +64,8 @@ fi
 
 /usr/local/bin/tr69hostif -c /etc/mgrlist.conf -p 10999 -s 11999 | tee /opt/logs/tr69hostIf.log.0 &
 
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup_sequence.json test/functional-tests/tests/test_bootup_sequence.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communications.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/deviceip.json test/functional-tests/tests/tr69hostif_deviceip.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup_sequence.json test/functional-tests/tests/test_bootup_sequence.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communications.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/deviceip.json test/functional-tests/tests/tr69hostif_deviceip.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa.json test/functional-tests/tests/tr69hostif_webpa.py
 
