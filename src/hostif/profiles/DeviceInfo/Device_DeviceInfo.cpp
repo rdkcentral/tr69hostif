@@ -3012,6 +3012,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] File not exists, IpRemoteInterface file open failed \n", __FUNCTION__);
 
             //values not populated so unknown.
+            // coverity[array_null]
             rc=strcpy_s(ipAddress,sizeof(ipAddress),"unknown");
             ERR_CHK(rc);
             snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
@@ -3062,6 +3063,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] File not exists, IpRemoteInterface file open failed \n", __FUNCTION__);
 
             //values not populated so unknown.
+            // coverity[array_null]
             rc=strcpy_s(macAddress,sizeof(macAddress),"unknown");
             ERR_CHK(rc);
             snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
@@ -3118,7 +3120,7 @@ int hostIf_DeviceInfo::findLocalPortAvailable()
 {
     struct sockaddr_in address = {0,0,0};
     int sockfd = -1, status;
-    int port = MIN_PORT_RANGE;
+    uint16_t port = MIN_PORT_RANGE;
 
     while (port <= MAX_PORT_RANGE) {
         address.sin_family = AF_INET;
@@ -3558,11 +3560,13 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
            	}*/
         if (get_boolean(stMsgData->paramValue))
         {
+            // coverity[array_null]
             rc=strcpy_s(ForwardSSH,sizeof(ForwardSSH),"true");
             ERR_CHK(rc);
         }
         else
         {
+            // coverity[array_null]
             rc=strcpy_s(ForwardSSH,sizeof(ForwardSSH),"false");
             ERR_CHK(rc);
         }
@@ -5400,6 +5404,7 @@ int hostIf_DeviceInfo::set_xOpsRPCDevManageableNotification(HOSTIF_MsgData_t *st
     m_strXOpsDevManageableNotification.clear();
 
     HOSTIF_MsgData_t stRfcData = {0};
+    // coverity[array_null]
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
     if(rc!=EOK)
     {
@@ -5427,6 +5432,7 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldStartedNotification(HOSTIF_MsgData_t *st
     m_strXOpsRPCFwDwldStartedNotification.clear();
     /* Check for RFC */
     HOSTIF_MsgData_t stRfcData = {0};
+    // coverity[array_null]
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
     ERR_CHK(rc);
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
@@ -5448,6 +5454,7 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldCompletedNotification(HOSTIF_MsgData_t *
     errno_t rc = -1;
     /* Check for RFC */
     HOSTIF_MsgData_t stRfcData = {0};
+    // coverity[array_null]
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
     ERR_CHK(rc);
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
@@ -5472,6 +5479,7 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
     /* Check for RFC */
     errno_t rc = -1;
     HOSTIF_MsgData_t stRfcData = {0};
+    // coverity[array_null]
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
     ERR_CHK(rc);
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))

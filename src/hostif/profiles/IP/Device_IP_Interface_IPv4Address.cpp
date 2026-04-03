@@ -126,6 +126,7 @@ hostIf_IPv4Address::hostIf_IPv4Address(int dev_id):
     backupStatus[0]='\0';
     backupIPAddress[0]='\0';
     backupSubnetMask[0]='\0';
+    // coverity[array_null]
     rc=strcpy_s (backupAddressingType,sizeof(backupAddressingType), "Static");
     ERR_CHK(rc);
 }
@@ -352,11 +353,13 @@ int hostIf_IPv4Address::get_IPv4Address_Status(HOSTIF_MsgData_t *stMsgData,int s
     //rc=strcpy_s (status,sizeof(status) ,(OK == getIPv4AddressAndMask (subInstanceNo, in_address, in_mask)) ? "Enabled" : "Disabled");
     if(OK == getIPv4AddressAndMask (subInstanceNo, in_address, in_mask))
     {
+	    // coverity[array_null]
 	    rc=strcpy_s (status,sizeof(status) ,"Enabled");
 	    ERR_CHK(rc);
     }
     else
     {
+	    // coverity[array_null]
 	    rc=strcpy_s (status,sizeof(status) ,"Disabled");
 	    ERR_CHK(rc);
     }
@@ -566,11 +569,13 @@ int hostIf_IPv4Address::get_IPv4Address_AddressingType(HOSTIF_MsgData_t *stMsgDa
     char addressingType[BUFF_LENGTH_16];
     if (hostIf_IPInterface::isLoopback (nameOfInterface))
     {
+        // coverity[array_null]
         rc=strcpy_s (addressingType,sizeof(addressingType), "Static");
 	ERR_CHK(rc);
     }
     else if (isLinkLocalAddress (in_address))
     {
+        // coverity[array_null]
         rc=strcpy_s (addressingType,sizeof(addressingType), "AutoIP");
 	ERR_CHK(rc);
     }
@@ -584,11 +589,13 @@ int hostIf_IPv4Address::get_IPv4Address_AddressingType(HOSTIF_MsgData_t *stMsgDa
              ((hasPhysicalInterfaceAs (getenvOrDefault ("WIFI_INTERFACE", ""))) &&
               (0 == strcmp (ipv4Address, getenvOrDefault ("DEFAULT_WIFI_IFACE_IP", "")))))
     {
+        // coverity[array_null]
         rc=strcpy_s (addressingType,sizeof(addressingType), "Static");
         ERR_CHK(rc);
     }
     else
     {
+        // coverity[array_null]
         rc=strcpy_s (addressingType,sizeof(addressingType), "DHCP"); // DHCP - otherwise (assume)
         ERR_CHK(rc);
     }

@@ -153,15 +153,20 @@ void hostIf_STBServiceVideoOutput::releaseLock()
 hostIf_STBServiceVideoOutput::hostIf_STBServiceVideoOutput(int devid, device::VideoOutputPort& port) : dev_id(devid), vPort(port)
 {
     errno_t rc = -1;
+    // coverity[array_null]
     rc=strcpy_s(backupAspectRatioBehaviour,sizeof(backupAspectRatioBehaviour)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupDisplayFormat,sizeof(backupDisplayFormat)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupDisplayName,sizeof(backupDisplayName)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupVideoFormat,sizeof(backupVideoFormat)," ");
     ERR_CHK(rc);
     backupHDCP = false;
+    // coverity[array_null]
     rc=strcpy_s(backupVideoOutputStatus,sizeof(backupVideoOutputStatus)," ");
     ERR_CHK(rc);
 

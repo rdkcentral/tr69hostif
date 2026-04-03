@@ -84,8 +84,10 @@ void libpd_set_notifyConfigFile(const char* configFile)
 
 void stop_parodus_recv_wait()
 {
+    pthread_mutex_lock(&parodus_lock);
     exit_parodus_recv = true;
     pthread_cond_signal(&parodus_cond);
+    pthread_mutex_unlock(&parodus_lock);
 }
 /**
  * Initialize libpd and Load Data model, Invoke connection to parodus
@@ -155,16 +157,19 @@ static void parodus_receive_wait()
             clock_gettime(CLOCK_MONOTONIC, &currTime);
             currTime.tv_sec += 5;
             pthread_mutex_lock(&parodus_lock);
-            int wait_ret = pthread_cond_timedwait(&parodus_cond, &parodus_lock,&currTime);
-            if(wait_ret == ETIMEDOUT)
+            if (!exit_parodus_recv)
             {
-                RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"parodus_receive_wait(): wait for key acquisition timed out");
+                int wait_ret = pthread_cond_timedwait(&parodus_cond, &parodus_lock,&currTime);
+                if(wait_ret == ETIMEDOUT)
+                {
+                    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"parodus_receive_wait(): wait for key acquisition timed out");
+                }
+                else if(wait_ret != 0)
+                {
+                    RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"parodus_receive_wait(): pthread_cond_timedwait failed with error %d", wait_ret);
+                }
             }
-            else if(wait_ret != 0)
-            {
-                RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"parodus_receive_wait(): pthread_cond_timedwait failed with error %d", wait_ret);
-            }
-	    RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+            RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
             pthread_mutex_unlock(&parodus_lock);
             continue;
         }

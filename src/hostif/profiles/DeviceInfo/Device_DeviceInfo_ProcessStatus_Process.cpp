@@ -264,6 +264,7 @@ int getProcessFields(int iProcInstanceNum, EProcessMembers eProcessMem)
         break;
     case eProcessCommand:
         memset(processStatus.cCommand,'\0',_COMMAND_LENGTH);
+        // coverity[array_null]
         safec_rc=strcpy_s(processStatus.cCommand, sizeof(processStatus.cCommand) ,procTask.cmd);
         ERR_CHK(safec_rc);
 	RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"ProcessInstance: %d Command: %s\n",iProcInstanceNum, procTask.cmd);
@@ -273,18 +274,22 @@ int getProcessFields(int iProcInstanceNum, EProcessMembers eProcessMem)
         switch(procTask.state)
         {
         case 'R':
+            // coverity[array_null]
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_RUNNING);
             ERR_CHK(safec_rc);
 	    break;
         case 'S':
+            // coverity[array_null]
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_SLEEPING);
             ERR_CHK(safec_rc);
 	    break;
         case 'T':
+            // coverity[array_null]
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_STOPPED);
             ERR_CHK(safec_rc);
 	    break;
         case 'Z':
+            // coverity[array_null]
             safec_rc=strcpy_s(processStatus.cState, sizeof(processStatus.cState) ,PROCESS_STATE_ZOMBIE);
             ERR_CHK(safec_rc);
 	    break;
@@ -399,6 +404,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Command(HO
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
+    // coverity[array_null]
     rc=strcpy_s(backupProcessCommand,sizeof(backupProcessCommand),processStatus.cCommand);
     ERR_CHK(rc);
 
@@ -407,9 +413,11 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_Command(HO
         *pChanged =  true;
     }
     bCalledProcessCommand = true;
+    // coverity[array_null]
     rc=strcpy_s(backupProcessCommand,sizeof(backupProcessCommand),processStatus.cCommand);
     ERR_CHK(rc);
 
+    // coverity[array_null]
     rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue),processStatus.cCommand);
     ERR_CHK(rc);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
@@ -544,6 +552,7 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_State(HOST
         g_mutex_unlock(&hostIf_DeviceProcess::m_libproc_lock);
         return NOK;
     }
+    // coverity[array_null]
     rc=strcpy_s(backupProcessState,sizeof(backupProcessState),processStatus.cState);
     ERR_CHK(rc);
 
@@ -552,9 +561,11 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_State(HOST
         *pChanged =  true;
     }
     bCalledProcessState = true;
+    // coverity[array_null]
     rc=strcpy_s(backupProcessState,sizeof(backupProcessState),processStatus.cState);
     ERR_CHK(rc);
 
+    // coverity[array_null]
     rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue),processStatus.cState);
     ERR_CHK(rc);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);

@@ -200,7 +200,7 @@ static int getEthernetInterfaceName (unsigned int ethInterfaceNum, char* name)
         unsigned int count = 0;
         for (struct if_nameindex* ifnp = ifname; ifnp->if_index != 0; ifnp++)
         {
-            if ((strncmp (ifnp->if_name, "eth", 3) == 0) && (++count == ethInterfaceNum))
+            if ((ifnp->if_name != NULL) && (strncmp (ifnp->if_name, "eth", 3) == 0) && (++count == ethInterfaceNum))
             {
                 rc=strcpy_s (name, BUFF_LENGTH_64,ifnp->if_name);
 		ERR_CHK(rc);
@@ -315,11 +315,13 @@ static int get_Device_Ethernet_Interface_Fields(unsigned int ethInterfaceNum,EEt
         //rc=strcpy_s (hostIf_EthernetInterface::stEthInterface.status,sizeof(hostIf_EthernetInterface::stEthInterface.status) ,(TRUE == temp) ? "Up" : "Down");
 	if(TRUE==temp)
 	{
+		// coverity[array_null]
 		rc=strcpy_s (hostIf_EthernetInterface::stEthInterface.status,sizeof(hostIf_EthernetInterface::stEthInterface.status) ,"Up");
 		ERR_CHK(rc);
 	}
 	else
 	{
+		// coverity[array_null]
 		rc=strcpy_s (hostIf_EthernetInterface::stEthInterface.status,sizeof(hostIf_EthernetInterface::stEthInterface.status) ,"Down");
 		ERR_CHK(rc);
 	}
@@ -537,6 +539,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_Status(HOSTIF_MsgDat
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s:%d] Ethernet Interface Status Changed..", __FUNCTION__, __FILE__, __LINE__);
     }
     bCalledStatus = true;
+    // coverity[array_null]
     rc=strcpy_s(backupStatus,sizeof(backupStatus), stEthInterface.status);
     ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.status,_BUF_LEN_16-1 );
@@ -568,6 +571,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_Name(HOSTIF_MsgData_
         *pChanged = true;
     }
     bCalledName = true;
+    // coverity[array_null]
     rc=strcpy_s(backupName,sizeof(backupName), stEthInterface.name);
     ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.name,_BUF_LEN_16-1 );
@@ -681,6 +685,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_MACAddress(HOSTIF_Ms
         *pChanged = true;
     }
     bCalledMACAddress = true;
+    // coverity[array_null]
     rc=strcpy_s(backupMACAddress,sizeof(backupMACAddress), stEthInterface.mACAddress);
     ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.mACAddress,S_LENGTH );
@@ -745,6 +750,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_DuplexMode(HOSTIF_Ms
         *pChanged = true;
     }
     bCalledDuplexMode = true;
+    // coverity[array_null]
     rc=strcpy_s(backupDuplexMode,sizeof(backupDuplexMode), stEthInterface.duplexMode);
     ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.duplexMode,_BUF_LEN_16-1 );

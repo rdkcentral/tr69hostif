@@ -357,6 +357,7 @@ void hostIf_Init_Dummy_stMsgData (HOSTIF_MsgData_t **stMsgData)
     if(NULL == *stMsgData)
     {
         stMsgDummyData = new HOSTIF_MsgData_t();
+        // coverity[array_null]
         rc=strcpy_s(stMsgDummyData->paramName,sizeof(stMsgDummyData->paramName), TEST_STR);
         ERR_CHK(rc);
         stMsgDummyData->reqType = HOSTIF_GET;

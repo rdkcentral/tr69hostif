@@ -61,14 +61,19 @@
 hostIf_STBServiceDisplayDevice::hostIf_STBServiceDisplayDevice(int devId, device::VideoOutputPort& port) : dev_id(devId), vPort(port)
 {
     errno_t rc = -1;
+    // coverity[array_null]
     rc=strcpy_s(backupDisplayDeviceStatus,sizeof(backupDisplayDeviceStatus)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupEDID,sizeof(backupEDID)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupEDIDBytes,sizeof(backupEDIDBytes)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupSupportedResolution,sizeof(backupSupportedResolution)," ");
     ERR_CHK(rc);
+    // coverity[array_null]
     rc=strcpy_s(backupPreferredResolution,sizeof(backupPreferredResolution)," ");
     ERR_CHK(rc);
 

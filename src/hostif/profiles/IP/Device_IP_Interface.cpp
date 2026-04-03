@@ -648,6 +648,7 @@ int hostIf_IPInterface::get_Interface_Name(HOSTIF_MsgData_t *stMsgData, bool *pC
     LOG_ENTRY_EXIT;
 
     errno_t rc = -1;
+    // coverity[array_null]
     rc=strcpy_s (stIPInterfaceInstance.name,sizeof(stIPInterfaceInstance.name), nameOfInterface);
     ERR_CHK(rc);
 
@@ -840,16 +841,19 @@ int hostIf_IPInterface::get_Interface_Type(HOSTIF_MsgData_t *stMsgData, bool *pC
     errno_t rc = -1;
     if (isLoopback (nameOfInterface))
     {
+        // coverity[array_null]
         rc=strcpy_s (stIPInterfaceInstance.type,sizeof(stIPInterfaceInstance.type), "Loopback");
 	ERR_CHK(rc);
     }
     else if (0 == strncmp (nameOfInterface, "eth", 3) || 0 == strncmp (nameOfInterface, "wlan", 4))
     {
+        // coverity[array_null]
         rc=strcpy_s (stIPInterfaceInstance.type,sizeof(stIPInterfaceInstance.type), "Normal");
 	ERR_CHK(rc);
     }
     else
     {
+        // coverity[array_null]
         rc=strcpy_s (stIPInterfaceInstance.type,sizeof(stIPInterfaceInstance.type), "Tunneled");
 	ERR_CHK(rc);
     }
