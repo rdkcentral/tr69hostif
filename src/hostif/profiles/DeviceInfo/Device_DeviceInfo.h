@@ -191,6 +191,8 @@
 #define RDK_REMOTE_DEBUGGER_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.Enable"
 #define RDK_REMOTE_DEBUGGER_ISSUETYPE                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType"
 #define RDK_REMOTE_DEBUGGER_WEBCFGDATA                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData"
+#define RDK_REMOTE_DEBUGGER_SET_PROFILE_DATA            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.setProfileData"
+#define RDK_REMOTE_DEBUGGER_GET_PROFILE_DATA            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.getProfileData"
 #endif
 
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.RebootStop */
@@ -274,6 +276,11 @@ class hostIf_DeviceInfo {
     static XBSStore *m_bsStore;
     static string       m_xrPollingAction;
 
+#ifdef USE_REMOTE_DEBUGGER
+    static string       m_rdkRemoteDebuggerProfileCategory;
+    static string       m_rdkRemoteDebuggerProfileData;
+#endif
+
     std::string         m_strXOpsDevManageableNotification;
     std::string         m_strXOpsRPCFwDwldStartedNotification;
     bool                m_bXOpsRPCFwDwldCompletedNotification;
@@ -305,6 +312,10 @@ class hostIf_DeviceInfo {
     int ScheduleAutoReboot(bool);
 
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
+
+#ifdef USE_REMOTE_DEBUGGER
+    int set_xRDKCentralComRDKRemoteDebuggerSetProfileData(HOSTIF_MsgData_t *);
+#endif
 
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);
