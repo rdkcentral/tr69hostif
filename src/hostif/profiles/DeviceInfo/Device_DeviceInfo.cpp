@@ -4357,7 +4357,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
 
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
-    stMsgData->paramtype = hostIf_StringType;
+  stMsgData->paramtype = hostIf_StringType;
     int retStatus = NOK;
     const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *fp = nullptr;
@@ -4412,18 +4412,71 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
     
     // Check if setProfileData was called to determine response format
     if (strcasecmp(m_rdkRemoteDebuggerProfileCategory.c_str(), "all") == 0) {
-        // Return complete profile data
-        response = cJSON_Duplicate(root, 1);
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Returning all profile data\n", __FUNCTION__);
+        // Return filtered profile data for all categories - exclude Commands and Timeout fields
+        response = cJSON_CreateObject();
+        if (!response) {
+            free(fileBuf);
+            cJSON_Delete(root);
+            return retStatus;
+        }
+        
+        cJSON *category = NULL;
+        cJSON_ArrayForEach(category, root) {
+            if (cJSON_IsObject(category)) {
+                cJSON *issueTypesArray = cJSON_CreateArray();
+                if (!issueTypesArray) {
+                    free(fileBuf);
+                    cJSON_Delete(root);
+                    cJSON_Delete(response);
+                    return retStatus;
+                }
+                
+                cJSON *issueType = NULL;
+                cJSON_ArrayForEach(issueType, category) {
+                    // Only add the issue type name, ignore Commands/Timeout/DebugCommands/DebugTimeout
+                    if (cJSON_IsObject(issueType) && issueType->string) {
+                        cJSON_AddItemToArray(issueTypesArray, cJSON_CreateString(issueType->string));
+                    }
+                }
+                
+                if (cJSON_GetArraySize(issueTypesArray) > 0) {
+                    cJSON_AddItemToObject(response, category->string, issueTypesArray);
+                } else {
+                    cJSON_Delete(issueTypesArray);
+                }
+            }
+        }
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Returning filtered profile data for all categories\n", __FUNCTION__);
     } else if (!m_rdkRemoteDebuggerProfileCategory.empty() && 
                strcasecmp(m_rdkRemoteDebuggerProfileCategory.c_str(), "all") != 0) {
-        // Return issue types for specific category
+        // Return filtered issue types for specific category
         cJSON* category = cJSON_GetObjectItem(root, m_rdkRemoteDebuggerProfileCategory.c_str());
-        if (category) {
+        if (category && cJSON_IsObject(category)) {
             response = cJSON_CreateObject();
-            cJSON* categoryObj = cJSON_Duplicate(category, 1);
-            cJSON_AddItemToObject(response, m_rdkRemoteDebuggerProfileCategory.c_str(), categoryObj);
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Returning profile data for category: %s\n", 
+            cJSON *issueTypesArray = cJSON_CreateArray();
+            if (!response || !issueTypesArray) {
+                free(fileBuf);
+                cJSON_Delete(root);
+                if (response) cJSON_Delete(response);
+                if (issueTypesArray) cJSON_Delete(issueTypesArray);
+                return retStatus;
+            }
+            
+            cJSON *issueType = NULL;
+            cJSON_ArrayForEach(issueType, category) {
+                // Only add the issue type name, ignore Commands/Timeout/DebugCommands/DebugTimeout
+                if (cJSON_IsObject(issueType) && issueType->string) {
+                    cJSON_AddItemToArray(issueTypesArray, cJSON_CreateString(issueType->string));
+                }
+            }
+            
+            if (cJSON_GetArraySize(issueTypesArray) > 0) {
+                cJSON_AddItemToObject(response, m_rdkRemoteDebuggerProfileCategory.c_str(), issueTypesArray);
+            } else {
+                cJSON_Delete(issueTypesArray);
+            }
+            
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Returning filtered profile data for category: %s\n", 
                     __FUNCTION__, m_rdkRemoteDebuggerProfileCategory.c_str());
         } else {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Category '%s' not found\n", 
@@ -4433,7 +4486,7 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
             return retStatus;
         }
     } else {
-        // Default behavior: return category names only (original logic)
+        // Default behavior: return category names with issue types only (filtered)
         response = cJSON_CreateObject();
         if (!response) {
             free(fileBuf);
@@ -4441,27 +4494,33 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
             return retStatus;
         }
         
-        for (cJSON *top = root->child; top; top = top->next) {
-            if (top->type != cJSON_Object) {
-                continue;
-            }
-            cJSON *arr = cJSON_CreateArray();
-            if (!arr) {
-                free(fileBuf);
-                cJSON_Delete(root);
-                cJSON_Delete(response);
-                return retStatus;
-            }
-            for (cJSON *sub = top->child; sub; sub = sub->next) {
-                cJSON_AddItemToArray(arr, cJSON_CreateString(sub->string));
-            }
-            if (cJSON_GetArraySize(arr) > 0) {
-                cJSON_AddItemToObject(response, top->string, arr);
-            } else {
-                cJSON_Delete(arr);
+        cJSON *category = NULL;  
+        cJSON_ArrayForEach(category, root) {
+            if (cJSON_IsObject(category)) {
+                cJSON *issueTypesArray = cJSON_CreateArray();
+                if (!issueTypesArray) {
+                    free(fileBuf);
+                    cJSON_Delete(root);
+                    cJSON_Delete(response);
+                    return retStatus;
+                }
+                
+                cJSON *issueType = NULL;
+                cJSON_ArrayForEach(issueType, category) {
+                    // Only add the issue type name, ignore Commands/Timeout/DebugCommands/DebugTimeout
+                    if (cJSON_IsObject(issueType) && issueType->string) {
+                        cJSON_AddItemToArray(issueTypesArray, cJSON_CreateString(issueType->string));
+                    }
+                }
+                
+                if (cJSON_GetArraySize(issueTypesArray) > 0) {
+                    cJSON_AddItemToObject(response, category->string, issueTypesArray);
+                } else {
+                    cJSON_Delete(issueTypesArray);
+                }
             }
         }
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Returning category names (default)\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Returning filtered category names and issue types (default)\n", __FUNCTION__);
     }
     
     outStr = cJSON_PrintUnformatted(response);
