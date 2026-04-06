@@ -314,7 +314,8 @@ class hostIf_DeviceInfo {
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
 
 #ifdef USE_REMOTE_DEBUGGER
-    int set_xRDKCentralComRDKRemoteDebuggerSetProfileData(HOSTIF_MsgData_t *);
+    int get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(HOSTIF_MsgData_t *);
 #endif
 
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
