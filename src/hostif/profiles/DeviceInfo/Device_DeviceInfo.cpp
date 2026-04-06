@@ -4051,7 +4051,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_SET_PROFILE_DATA) == 0)
     {
-        ret = set_xRDKCentralComRDKRemoteDebuggerSetProfileData(stMsgData);
+        ret = int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(stMsgData);
     }
 #endif
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
@@ -4175,7 +4175,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *stMsgDat
 }
 
 #ifdef USE_REMOTE_DEBUGGER
-int hostIf_DeviceInfo::set_xRDKCentralComRDKRemoteDebuggerSetProfileData(HOSTIF_MsgData_t *stMsgData)
+int hostIf_DeviceInfo::int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
     LOG_ENTRY_EXIT;
