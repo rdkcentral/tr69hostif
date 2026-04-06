@@ -305,19 +305,12 @@ class hostIf_DeviceInfo {
 #ifdef ENABLE_VIDEO_TELEMETRY
     int set_xRDKCentralComRFCVideoTelFreq(HOSTIF_MsgData_t *);
 #endif
-
     /* AutoReboot handlers */
     int set_xRDKCentralComRFCAutoRebootUptime(HOSTIF_MsgData_t*);
     int set_xRDKCentralComRFCAutoRebootEnable(HOSTIF_MsgData_t*);
     int ScheduleAutoReboot(bool);
 
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
-
-#ifdef USE_REMOTE_DEBUGGER
-    int get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *);
-    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(HOSTIF_MsgData_t *);
-#endif
-
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);
     int get_xOpsRPCDevManageableNotification(HOSTIF_MsgData_t *);
@@ -1305,6 +1298,7 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
     int get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(HOSTIF_MsgData_t *);
 #endif
 
     /*
