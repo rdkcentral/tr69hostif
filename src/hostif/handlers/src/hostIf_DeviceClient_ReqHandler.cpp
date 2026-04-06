@@ -501,7 +501,7 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
 	    }
 		else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.setProfileData") == 0)
         {
-            ret = pIface->set_xRDKCentralComRDKRemoteDebuggerSetProfileData(stMsgData);
+            ret = pIface->int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(stMsgData);
         }
         else if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_PreferredGatewayType") == 0)
         {
