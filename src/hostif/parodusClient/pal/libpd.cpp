@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <pthread.h>
+#include <atomic>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -66,7 +67,7 @@ static long timeValDiff(struct timespec *starttime, struct timespec *finishtime)
 libpd_instance_t libparodus_instance = NULL;
 char parodus_url[URL_SIZE] = {'\0'};
 char client_url[URL_SIZE] = {'\0'};
-bool exit_parodus_recv = false;
+std::atomic_bool exit_parodus_recv(false);
 pthread_cond_t parodus_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t parodus_lock = PTHREAD_MUTEX_INITIALIZER;
 /*----------------------------------------------------------------------------*/
@@ -85,7 +86,7 @@ void libpd_set_notifyConfigFile(const char* configFile)
 void stop_parodus_recv_wait()
 {
     pthread_mutex_lock(&parodus_lock);
-    exit_parodus_recv = true;
+    exit_parodus_recv.store(true);
     pthread_cond_signal(&parodus_cond);
     pthread_mutex_unlock(&parodus_lock);
 }
@@ -145,7 +146,7 @@ static void parodus_receive_wait()
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Entering parodus_receive_wait.. \n");
 
-    while (!exit_parodus_recv)
+    while (!exit_parodus_recv.load())
     {
         rtn = libparodus_receive (libparodus_instance, &wrp_msg, 2000);
         if (rtn == 1)
@@ -157,7 +158,7 @@ static void parodus_receive_wait()
             clock_gettime(CLOCK_MONOTONIC, &currTime);
             currTime.tv_sec += 5;
             pthread_mutex_lock(&parodus_lock);
-            if (!exit_parodus_recv)
+            if (!exit_parodus_recv.load())
             {
                 int wait_ret = pthread_cond_timedwait(&parodus_cond, &parodus_lock,&currTime);
                 if(wait_ret == ETIMEDOUT)
