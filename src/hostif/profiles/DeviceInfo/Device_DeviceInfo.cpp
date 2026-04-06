@@ -4051,7 +4051,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else if (strcasecmp(stMsgData->paramName,RDK_REMOTE_DEBUGGER_SET_PROFILE_DATA) == 0)
     {
-        ret = int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(stMsgData);
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggersetProfileData(stMsgData);
     }
 #endif
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
