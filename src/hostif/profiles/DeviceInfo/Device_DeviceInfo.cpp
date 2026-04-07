@@ -4357,7 +4357,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
 
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *stMsgData)
 {
-  stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramtype = hostIf_StringType;
     int retStatus = NOK;
     const char *filename = "/etc/rrd/remote_debugger.json";
     FILE *fp = nullptr;
@@ -4423,6 +4423,21 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         cJSON *category = NULL;
         cJSON_ArrayForEach(category, root) {
             if (cJSON_IsObject(category)) {
+                // Skip categories with nested subcategories (no direct Commands/Timeout)
+                bool hasDirectCommands = false;
+                cJSON *item = NULL;
+                cJSON_ArrayForEach(item, category) {
+                    if (cJSON_IsObject(item)) {
+                        cJSON *commands = cJSON_GetObjectItem(item, "Commands");
+                        if (commands && cJSON_IsString(commands)) {
+                            hasDirectCommands = true;
+                            break;
+                        }
+                    }
+                }
+                if (!hasDirectCommands) {
+                    continue;
+                }
                 cJSON *issueTypesArray = cJSON_CreateArray();
                 if (!issueTypesArray) {
                     free(fileBuf);
@@ -4497,6 +4512,21 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerg
         cJSON *category = NULL;  
         cJSON_ArrayForEach(category, root) {
             if (cJSON_IsObject(category)) {
+                // Skip categories with nested subcategories (no direct Commands/Timeout)
+                bool hasDirectCommands = false;
+                cJSON *item = NULL;
+                cJSON_ArrayForEach(item, category) {
+                    if (cJSON_IsObject(item)) {
+                        cJSON *commands = cJSON_GetObjectItem(item, "Commands");
+                        if (commands && cJSON_IsString(commands)) {
+                            hasDirectCommands = true;
+                            break;
+                        }
+                    }
+                }
+                if (!hasDirectCommands) {
+                    continue;
+                }
                 cJSON *issueTypesArray = cJSON_CreateArray();
                 if (!issueTypesArray) {
                     free(fileBuf);
