@@ -4055,7 +4055,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else if (strcasecmp(stMsgData->paramName, MEMINSIGHT_TRIGGER) == 0)
     {
-        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigger(stMsgData);
+        ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(stMsgData);
     }
     else if (strcasecmp(stMsgData->paramName,RDK_REBOOTSTOP_ENABLE) == 0)
     {
@@ -4527,7 +4527,7 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd (
     return retVal;
 }
 
-int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigger(HOSTIF_MsgData_t *stMsgData)
+int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
     std::string is_xmem_triggered = "stop"; // default to stop if invalid value is passed
