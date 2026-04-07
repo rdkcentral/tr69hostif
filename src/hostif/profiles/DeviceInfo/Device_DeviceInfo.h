@@ -1314,19 +1314,19 @@ public:
 
 
       /*
-      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable
+      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Enable
       *
-      * This method is used to enable/disable the xmeminsight memory & CPU Analysis Tool.
+      * This method is used to enable/disable the meminsight memory & CPU Analysis Tool.
       * with following TR-069 definition:
-      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable
-      *   Data type: boolean - Enable (True)/ disable (False) xmeminsight tool.
+      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MemInsight.Enable
+      *   Data type: boolean - Enable (True)/ disable (False) meminsight tool.
       *
       * @retval OK if it is successful.
       * @retval NOK if operation fails.
       */
 
-    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Trigger(HOSTIF_MsgData_t *);
-    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Enable(HOSTIF_MsgData_t *);
 
 
 
