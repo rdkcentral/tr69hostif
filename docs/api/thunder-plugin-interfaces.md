@@ -24,6 +24,116 @@ flowchart LR
     F --> A
 ```
 
+## Current Handler Workflow and Parse Logic
+
+The current implementation centralizes only the HTTP transport in `getJsonRPCData()`. Each
+handler still constructs its own JSON-RPC request body, parses the raw response with `cJSON`,
+walks the response tree, validates result fields, and maps those fields into `HOSTIF_MsgData_t`.
+
+```mermaid
+flowchart TD
+    A[TR-181 GET or SET handler] --> B[Build JSON-RPC request string inline]
+    B --> C[getJsonRPCData in hostIf_utils.cpp]
+    C --> D[get_security_token]
+    D --> E[WPEFrameworkSecurityUtility]
+    C --> F[libcurl POST to /jsonrpc]
+    F --> G[Thunder plugin org.rdk.*]
+    G --> H[Raw JSON response string]
+    H --> I[cJSON_Parse inside handler]
+    I --> J[result lookup]
+    J --> K[field lookup and type checks]
+    K --> L[Convert to TR-181 output type]
+    L --> M[Populate HOSTIF_MsgData_t]
+
+    I -. duplicated across handlers .-> N[Repeated parse/validation code]
+    K -. inconsistent checks .-> N
+```
+
+### Parse Flow Seen in Current Code
+
+Representative handlers follow the same pattern:
+
+1. Build a JSON string inline for a specific method call.
+2. Call `getJsonRPCData()` to get a raw response buffer.
+3. Parse the response with `cJSON_Parse(response.c_str())`.
+4. Read `result` and then one or more nested keys such as `interfaces`, `enabled`, `ssid`, `strength`, `ipaddress`, or `success`.
+5. Convert the extracted field into TR-181 output storage.
+
+This pattern is present in multiple places, including:
+
+- [src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp)
+- [src/hostif/profiles/wifi/Device_WiFi.cpp](../../src/hostif/profiles/wifi/Device_WiFi.cpp)
+- [src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp)
+- [src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp)
+- [src/hostif/profiles/wifi/Device_WiFi_SSID.cpp](../../src/hostif/profiles/wifi/Device_WiFi_SSID.cpp)
+
+### Review of Current Implementation
+
+The refactor proposal is valid and should be pursued. The code already shows that the problem is
+not the transport alone, but the handler-local parsing contract.
+
+Key observations from the current implementation:
+
+- `getJsonRPCData()` already centralizes token retrieval, headers, timeout setup, and `curl_easy_perform()`.
+- The current curl write callback is also part of the transport contract and should be normalized during the refactor, so the common helper owns response buffering with the expected libcurl callback shape.
+- Response parsing is duplicated per handler, so fixes to JSON validation have to be repeated in many files.
+- Some handlers use weak response checks such as `if(response.c_str())`, which is always non-null for a `std::string`; the real intent should be an emptiness check.
+- Field validation is inconsistent. Some handlers validate array/object/string types carefully, while others dereference `cJSON` members with minimal checking.
+- JSON-RPC error payload handling is not centralized. Callers mostly look only for `result`, with no shared handling for an `error` object or malformed schema.
+- Request construction is duplicated as raw string concatenation, which makes method-specific bugs harder to audit.
+
+### Recommended Common Helper Direction
+
+The next step should be to extend [src/hostif/src/hostIf_utils.cpp](../../src/hostif/src/hostIf_utils.cpp) with a common Thunder helper layer that owns both transport and response validation.
+
+Suggested split:
+
+- `invokeThunderJsonRpc(method, params, responseRoot)`
+  Returns parsed root JSON after curl, HTTP, and top-level JSON-RPC validation.
+- `getThunderResultObject(root)`
+  Returns validated `result` object or reports JSON-RPC `error` details.
+- Typed extractors such as `readThunderString`, `readThunderBool`, `readThunderInt`, `readThunderArrayItemByKey`
+  Eliminate repeated field/type checks in handlers.
+
+```mermaid
+flowchart TD
+    A[TR-181 handler] --> B[Common Thunder helper API]
+    B --> C[Build request object]
+    C --> D[getJsonRPCData or successor transport helper]
+    D --> E[libcurl + token + timeouts]
+    E --> F[Thunder JSON-RPC endpoint]
+    F --> G[Raw response]
+    G --> H[Central cJSON_Parse]
+    H --> I[Central JSON-RPC validation]
+    I --> J[Central result extraction]
+    J --> K[Typed field extractor]
+    K --> L[Handler receives validated value]
+    L --> M[Populate HOSTIF_MsgData_t]
+
+    I --> N[Shared error logging]
+    K --> O[Consistent type checks]
+```
+
+### Expected Benefits of Centralizing Parse Logic
+
+- One implementation of timeout, HTTP status, JSON parse failure, and JSON-RPC error handling.
+- Consistent empty-response and missing-field behavior across all Thunder-backed TR-181 parameters.
+- Less duplicate code in handlers, especially for Wi-Fi and DeviceInfo parameters.
+- Easier unit testing of success, malformed JSON, missing `result`, missing field, and wrong-type scenarios.
+- Lower risk of handler-specific parsing bugs when new Thunder methods are added.
+
+### Recommended Refactor Scope
+
+Prioritize the highest-duplication handlers first:
+
+1. `org.rdk.NetworkManager.GetAvailableInterfaces`
+2. `org.rdk.NetworkManager.GetConnectedSSID`
+3. `org.rdk.NetworkManager.GetIPSettings`
+4. `org.rdk.Account.getLastCheckoutResetTime`
+5. `org.rdk.AuthService.*`
+
+These methods account for most of the repeated request/parse logic in the current codebase.
+
 ## Request/Response Infrastructure
 
 ### Endpoint
