@@ -190,6 +190,29 @@ Effective value precedence for bootstrap-backed parameters is:
 
 Operationally, the JSON files provide firmware defaults, while runtime changes are kept in the bootstrap store and journal under `/opt/secure/RFC/`.
 
+### How `bootstrap.ini` Is Created And Updated
+
+The bootstrap store file is owned by `tr69hostif` itself. The file path is obtained from `/etc/rfc.properties` through the `BS_STORE_FILENAME` property, and in the current environment that path resolves to `/opt/secure/RFC/bootstrap.ini`.
+
+The creation and update flow is:
+
+1. `XBSStore::init()` loads the configured bootstrap-store filename.
+2. `loadBSPropertiesIntoCache()` attempts to read the existing file into the in-memory dictionary.
+3. If the file does not yet exist, startup continues and `loadFromJson()` marks the bootstrap load as an initial update.
+4. During the initial update, each selected JSON default is written through `setRawValue()`, which creates the `/opt/secure/RFC` directory if needed and appends `key=value` entries into `bootstrap.ini`.
+5. After initial creation, later updates rewrite the full file from the in-memory dictionary so the persistent store remains synchronized with the active bootstrap cache.
+
+This means the firmware JSON files are the source of default values, but `bootstrap.ini` is the persistent runtime copy managed by `XBSStore`.
+
+### PartnerId Read Dependency On `bootstrap.ini`
+
+When AuthService has not yet created `/opt/www/authService/partnerId3.dat`, PartnerId lookup falls back to `/opt/secure/RFC/bootstrap.ini`.
+
+That fallback matters in two ways:
+
+1. it allows a previously persisted PartnerId to survive reboot
+2. if no PartnerId is present in either location, the system remains in the `default_boot` path until a later reload occurs
+
 ## Error Handling And Fallbacks
 
 | Condition | Behavior |
@@ -201,6 +224,119 @@ Operationally, the JSON files provide firmware defaults, while runtime changes a
 | malformed JSON in device-specific defaults file | device-specific merge fails and logs an error |
 
 One deliberate behavior is that the firmware initial management notification is skipped when the store is still using `default_boot`. That notification is sent only once the active configuration is no longer the boot-time fallback.
+
+## Scenario Guide
+
+### Scenario 1: First Boot With No PartnerId Available Yet
+
+In this case:
+
+1. `/opt/www/authService/partnerId3.dat` does not exist yet
+2. `/opt/secure/RFC/bootstrap.ini` either does not exist yet or does not contain a PartnerId
+3. `loadFromJson()` falls back to `default_boot`
+
+Expected behavior:
+
+- `XBSStore` populates the cache from the `default_boot` section
+- `bootstrap.ini` is created if this is the first persistent bootstrap load
+- only the reduced early-boot parameter set is available
+
+This is the intended startup-safe behavior, not an error condition by itself.
+
+### Scenario 2: Parameter Exists In JSON But Has An Empty Default Value
+
+Some `default_boot` parameters intentionally use empty strings as placeholders.
+
+For a GET request, `XBSStore::getValue()` checks whether the resolved value length is greater than zero. If the stored value is an empty string, the code treats the request the same way it treats a missing value.
+
+Expected behavior:
+
+- the parameter may exist in the selected JSON section
+- the stored value may still be empty
+- the GET path returns an internal-error-style result because `getValue()` requires a non-empty string to treat the lookup as successful
+
+This behavior most commonly appears during the `default_boot` stage for parameters such as early NTP or URL placeholders.
+
+### Scenario 3: Parameter Missing From `default_boot` But Present In `default`
+
+If the system is still using `default_boot`, only keys present in that section are loaded into the bootstrap cache.
+
+Expected behavior:
+
+- parameters missing from `default_boot` are not available yet
+- the same parameter may become available later after PartnerId resolution reloads the store into a partner-specific section or `default`
+
+This explains why a parameter can appear unavailable early in boot and available later without any manual repair step.
+
+### Scenario 4: PartnerId Resolves Later And Store Reloads
+
+Once the watcher thread detects creation or modification of `partnerId3.dat`, it re-reads PartnerId and compares it with the currently stored PartnerId value.
+
+If the value changed:
+
+1. the stored PartnerId entry is updated
+2. `loadFromJson()` runs again
+3. the active bootstrap configuration moves from `default_boot` to either the matching partner section or `default`
+
+Expected behavior:
+
+- more steady-state parameters become available
+- placeholder empty defaults may be replaced by actual partner defaults
+- firmware-initial notification is allowed once the active configuration is no longer `default_boot`
+
+### Scenario 5: Unknown Partner In `partners_defaults.json`
+
+If PartnerId is resolved successfully but the base defaults file does not contain a matching partner block, `XBSStore` falls back to the `default` section.
+
+Expected behavior:
+
+- the daemon stays operational
+- the bootstrap store uses generic steady-state defaults
+- no partner-specific entries from the missing section are applied
+
+This is a base-defaults fallback, not a bootstrap-store corruption case.
+
+### Scenario 6: Unknown Partner In `partners_defaults_device.json`
+
+The device-specific overlay file is processed separately from the base partner-defaults file.
+
+If the resolved PartnerId is absent only in `partners_defaults_device.json`:
+
+- base partner selection may still succeed normally from `partners_defaults.json`
+- the device-specific overlay path falls back to `default` inside the device-specific file
+- generic device-specific overrides are applied instead of partner-specific device overrides
+
+This scenario means the overlay file is incomplete for that partner. It does not necessarily mean the main partner-defaults file is wrong.
+
+### Scenario 7: Persisted Overrides Present
+
+If RFC or WebPA has previously overridden bootstrap-backed values, those persisted values remain active even when firmware defaults are reloaded.
+
+Expected behavior:
+
+- the runtime override remains the effective value
+- firmware defaults are still refreshed in the journal as reference values
+- a firmware update does not silently replace the higher-precedence override
+
+This is why runtime behavior may differ from the raw value currently visible in `partners_defaults.json`.
+
+## Troubleshooting Without Logs
+
+When investigating partner-default behavior, validate the following in order:
+
+1. `/etc/rfc.properties` points `BS_STORE_FILENAME` to the expected bootstrap file.
+2. `/etc/partners_defaults.json` contains the expected `default_boot`, `default`, and partner-specific sections.
+3. `/etc/partners_defaults_device.json` contains the expected partner section if device-specific overrides are required.
+4. `/opt/secure/RFC/bootstrap.ini` exists and contains the persisted bootstrap state expected for that device.
+5. `/opt/www/authService/partnerId3.dat` exists when the device is expected to have completed PartnerId discovery.
+
+If a parameter appears unavailable, determine which of these cases applies first:
+
+1. the system is still in `default_boot`
+2. the parameter is present but intentionally empty
+3. the parameter is absent from the currently selected section
+4. PartnerId resolved to a section that does not exist and the system fell back to `default`
+5. the device-specific overlay is missing the active partner section
 
 ## Operational Notes
 
