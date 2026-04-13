@@ -415,70 +415,37 @@
           <string/>
         </syntax>
       </parameter>
-      <parameter base="ChronyEnable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-            <boolean/>
-            <default type="factory" value="false"/>
-        </syntax>
-    </parameter>
-    <parameter base="NTPMinpoll" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-            <unsignedInt/>
-            <default type="factory" value="10"/>
-        </syntax>
-    </parameter>
-    <parameter base="NTPMaxpoll" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-            <unsignedInt/>
-            <default type="factory" value="12"/>
-        </syntax>
-    </parameter>
-    <parameter base="NTPServer1Directive" access="readWrite" notification="0" maxNotification="2">
-    <syntax>
-        <string/>
-        <default type="factory" value="server"/>
-    </syntax>
-    </parameter>
-    <parameter base="NTPServer2Directive" access="readWrite" notification="0" maxNotification="2">
-    <syntax>
-      <string/>
-      <default type="factory" value="server"/>
-    </syntax>
-    </parameter>
-    <parameter base="NTPServer3Directive" access="readWrite" notification="0" maxNotification="2">
-    <syntax>
-      <string/>
-      <default type="factory" value="server"/>
-    </syntax>
-    </parameter>
-    <parameter base="NTPServer4Directive" access="readWrite" notification="0" maxNotification="2">
-    <syntax>
-      <string/>
-      <default type="factory" value="server"/>
-     </syntax>
-    </parameter>
-    <parameter base="NTPServer5Directive" access="readWrite" notification="0" maxNotification="2">
-    <syntax>
-      <string/>
-      <default type="factory" value="server"/>
-     </syntax>
-    </parameter>
-    <parameter base="NTPMaxstep" access="readWrite" notification="0" maxNotification="2" >
-    <syntax>
-    <string/>
-    <default type="factory" value="1.0,3"/>
-    </syntax>
-    <!-- Format: "threshold,updateCount" (threshold: float in seconds, updateCount: unsignedInt) -->
-    </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-           <boolean/>
+   <object base="Device.Time.Chrony." access="readWrite" minEntries="1" maxEntries="1">
+  <parameter base="Enable" access="readWrite" notification="0" maxNotification="2">
+    <syntax>
+      <boolean/>
       <default type="factory" value="false"/>
-        </syntax>
-      </parameter>
-    </object>
+    </syntax>
+  </parameter>
+  <parameter base="Makestep" access="readWrite" notification="0" maxNotification="2">
+    <syntax>
+      <string/>
+      <default type="factory" value="1.0,3"/>
+      <!-- Format: "threshold,updateCount" -->
+    </syntax>
+  </parameter>
+  <object base="NTPServer." access="readWrite" minEntries="0" maxEntries="unbounded">
+    <parameter base="Settings" access="readWrite" notification="0" maxNotification="2">
+      <syntax>
+        <string/>
+        <default type="factory" value="server,0,false,10,12"/>
+        <!-- Format: "Type,Maxsources,Iburt,Minpoll,Maxpoll"
+             Example: "server,0,true,5,12"
+             Allowed Type values: server, pool
+             Maxsources only relevant for 'pool', else set to 0
+             Iburt: true/false
+             Minpoll, Maxpoll: uint
+        -->
+      </syntax>
+    </parameter>
+  </object>
+</object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.TR069support." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
