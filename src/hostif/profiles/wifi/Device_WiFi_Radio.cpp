@@ -155,9 +155,103 @@ hostIf_WiFi_Radio::hostIf_WiFi_Radio(int dev_id):
     memset(TransmitPowerSupported, 0, sizeof(TransmitPowerSupported));
     memset(RegulatoryDomain, 0, sizeof(RegulatoryDomain));
 }
-#ifdef RDKV_NM
+
+static int wifi_getRadioOperatingChannelBandwidth(int radioIndex, char *output_buffer, size_t output_buffer_size)
+{
+    char resultBuff[64];
+    char cmd[64];
+    char interfaceName[10] = "wlan0";
+    int  bandWidth = 0;
+    FILE *fp = NULL;
+    int ret = NOK;
+    bool iw_info_failed = false;
+    char *bandwidth_string = NULL;
+    char *bandwidth_token = NULL;
+    bool bandwidth_found = false;
+
+    if (!output_buffer)
+        return ret;
+
+    memset(cmd, 0, sizeof(cmd));
+    memset(resultBuff, 0, sizeof(resultBuff));
+
+    snprintf(cmd, sizeof(cmd), "iw dev %s info | grep channel | cut -f 2 -d ','", interfaceName);
+
+    if (NULL != (fp = popen(cmd,"r")))
+    {
+        if ((fgets(resultBuff, sizeof (resultBuff), fp) != NULL) && (resultBuff[0] != '\0'))
+        {
+            sscanf(resultBuff,"%*s%d%*s", &bandWidth);    /* Expected output :-  " width: 80 MHz" */
+            if (bandWidth != 0)
+            {
+                snprintf(output_buffer, output_buffer_size, "%dMHz", bandWidth);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "OperatingChannelBandwidth =  %s\n", output_buffer);
+                ret = OK;
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failure in getting bandwidth \n");
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unable to read Channel width from iw \n");
+            iw_info_failed = true;
+        }
+        pclose(fp);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "popen() failed. failure in getting Channel Bandwidth\n");
+        iw_info_failed = true;
+    }
+
+    if (iw_info_failed) // iw info fallback
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "iw info command failed, fall back to iw link command\n");
+
+        memset(cmd, 0, sizeof(cmd));
+        memset(resultBuff, 0, sizeof(resultBuff));
+
+        snprintf(cmd, sizeof(cmd), "iw dev %s link | grep tx", interfaceName);
+
+        if (NULL != (fp = popen(cmd,"r")))
+        {
+            if ((fgets(resultBuff, sizeof (resultBuff), fp) != NULL) && (resultBuff[0] != '\0'))
+            {
+                char *resultBuff_P = resultBuff;
+                while ((bandwidth_string = strtok_r(resultBuff_P, " ", &resultBuff_P)))
+                {
+                    bandwidth_token = strcasestr(bandwidth_string, "MHz");
+                    if (NULL != bandwidth_token)
+                    {
+                        snprintf(output_buffer, output_buffer_size, "%s", bandwidth_string);
+                        bandwidth_found = true;
+                        break;
+                    }
+                }
+                if (!bandwidth_found)
+                {
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "MHz information missing in iw link o/p \n");
+                    snprintf(output_buffer, output_buffer_size, "%s", "20MHz"); // assume 20MHz
+                }
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "OperatingChannelBandwidth =  %s\n", output_buffer);
+                ret = OK;
+            }
+            else
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failure in getting bandwidth \n");
+
+            pclose(fp);
+        }
+        else
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "popen() failed. failure in getting Channel Bandwidth\n");
+    }
+    return ret;
+}
+
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_Props_Fields(int radioIndex)
 {
+#ifdef RDKV_NM
     IARM_Result_t retVal = IARM_RESULT_SUCCESS;
     IARM_BUS_WiFi_DiagsPropParam_t param = {0};
     int ret;
@@ -208,21 +302,39 @@ int hostIf_WiFi_Radio::get_Device_WiFi_Radio_Props_Fields(int radioIndex)
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
         return NOK;
     }
+#else
+    hostIf_WiFi_Radio *pDev = hostIf_WiFi_Radio::getInstance(dev_id);
+    if (pDev)
+    {
+//        snprintf(OperatingChannelBandwidth, BUFF_MIN_16, "80MHz");
+        wifi_getRadioOperatingChannelBandwidth(0, OperatingChannelBandwidth, sizeof (OperatingChannelBandwidth));
+        // TODO: what's this for?
+        radioFirstExTime = time (NULL);
+        return OK;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s]Error!  Unable to connect to wifi instance\n", __FILE__, __FUNCTION__);
+        return NOK;
+    }
+#endif
 }
 
 void hostIf_WiFi_Radio::checkWifiRadioFetch(int radioIndex)
 {
-    int retVal=NOK;
+    int retVal = NOK;
     time_t currExTime = time (NULL);
-    if((currExTime - radioFirstExTime ) > QUERY_INTERVAL)
+    if ((currExTime - radioFirstExTime) > QUERY_INTERVAL)
     {
         retVal = get_Device_WiFi_Radio_Props_Fields(radioIndex);
-        if( OK != retVal)
+        if (OK != retVal)
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] Failed to fetch   : %d.\n", __FILE__, __FUNCTION__, retVal);
         }
     }
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_Enable(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
@@ -465,6 +577,8 @@ int hostIf_WiFi_Radio::get_Device_WiFi_Radio_ChannelsInUse(HOSTIF_MsgData_t *stM
     return OK;
 }
 
+#endif
+
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_OperatingChannelBandwidth(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
@@ -475,6 +589,8 @@ int hostIf_WiFi_Radio::get_Device_WiFi_Radio_OperatingChannelBandwidth(HOSTIF_Ms
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return OK;
 }
+
+#ifdef RDKV_NM
 
 int hostIf_WiFi_Radio::get_Device_WiFi_Radio_ExtensionChannel(HOSTIF_MsgData_t *stMsgData,int radioIndex )
 {
