@@ -76,9 +76,168 @@ Because `connect_parodus()` detaches the thread, the main thread cannot `pthread
 
 `startParodus` is a separate compiled binary but lives inside the same source tree and build system. Its job is to read device identity parameters — many of which are TR-181 parameters — and launch the `parodus` daemon with them as command-line arguments. It reads several values via `getRFCParameter()` (serial number, boot time, server URL, token server URL) and reads partner ID directly from `/opt/www/authService/partnerId3.dat`, replicating the same PartnerId resolution logic that already exists in `XBSStore`.
 
----
+### 1.6 Startup Sequence
 
-## 2. Drawbacks and Issues with the Current Design
+Two independent activities bring the full WebPA channel online. They are not directly coordinated; `libpd_client_mgr` retries until the parodus daemon is reachable regardless of how it was launched.
+
+```mermaid
+sequenceDiagram
+    participant SYS as System / systemd
+    participant SP as startParodus binary
+    participant PD as parodus daemon
+    participant MAIN as hostIf_main.cpp
+    participant LPD as libpd_client_mgr thread
+    participant LIBP as libparodus.so
+
+    SYS->>SP: launch startParodus
+    SP->>SP: read HW MAC from /tmp/.macAddress
+    SP->>SP: read PartnerId from partnerId3.dat
+    SP->>SP: read SerialNumber / BootTime via getRFCParameter()
+    SP->>SP: read WebPA URL / JWT / network interface from webpa_cfg.json
+    SP->>PD: v_secure_system backgroundrun /usr/bin/parodus --hw-mac=... --partner-id=...
+    PD-->>SP: daemon launched (background)
+
+    MAIN->>MAIN: init profile handlers, HTTP server, RFC store
+    MAIN->>LPD: pthread_create(libpd_client_mgr)
+    LPD->>LPD: checkDataModelStatus() load /tmp/data-model.xml via waldb
+    LPD->>LPD: connect_parodus() → pthread_detach(self)
+    LPD->>LPD: get_parodus_url() from /etc/webpa_cfg.json
+
+    loop exponential backoff until parodus responds
+        LPD->>LIBP: libparodus_init(&cfg)
+        LIBP->>PD: ZeroMQ connect tcp://127.0.0.1:6666
+        PD-->>LIBP: accept or reject
+        LIBP-->>LPD: ret == 0 (success) or error
+    end
+
+    LPD->>LPD: registerNotifyCallback()
+    LPD->>LPD: setInitialNotify()
+    LPD->>LPD: write /tmp/webpa/start_time
+    LPD->>LPD: enter parodus_receive_wait() loop
+```
+
+### 1.7 Inbound WRP Request Flow (Cloud GET / SET)
+
+This is the complete path from a cloud-originated WebPA GET or SET request to the TR-181 profile handler and back to the cloud.
+
+```mermaid
+sequenceDiagram
+    participant CLOUD as Cloud / XMiDT
+    participant PD as parodus daemon
+    participant LIBP as libparodus.so
+    participant RW as parodus_receive_wait()
+    participant WA as webpa_adapter processRequest()
+    participant WP as webpa_parameter getValues / setValues
+    participant WALDB as waldb checkDataModelStatus
+    participant MSG as hostIf_GetMsgHandler / hostIf_SetMsgHandler
+    participant PROF as TR-181 Profile Handler
+
+    CLOUD->>PD: WebSocket WRP REQ (GET or SET)
+    PD->>LIBP: deliver via ZeroMQ
+    LIBP-->>RW: libparodus_receive() returns wrp_msg
+
+    RW->>WA: processRequest(payload, transaction_uuid)
+    WA->>WA: wdmp_parse_request() parse WDMP JSON
+
+    alt GET request
+        WA->>WP: getValues(paramNames, count)
+        WP->>WALDB: checkDataModelStatus / wildcard expand
+        WALDB-->>WP: validated param list
+        WP->>MSG: hostIf_GetMsgHandler(HOSTIF_MsgData_t)
+        MSG->>PROF: profile handler get()
+        PROF-->>MSG: value in paramValue
+        MSG-->>WP: return OK / NOK
+        WP-->>WA: param_t array
+    else SET request
+        WA->>WP: setValues(paramVal, count)
+        WP->>MSG: hostIf_SetMsgHandler(HOSTIF_MsgData_t) with requestor=HOSTIF_SRC_WEBPA
+        MSG->>PROF: profile handler set()
+        PROF-->>MSG: faultCode
+        MSG-->>WP: return OK / NOK
+        WP-->>WA: WDMP_STATUS
+    end
+
+    WA->>WA: wdmp_form_response() build JSON response
+    WA-->>RW: resPayload string
+    RW->>LIBP: libparodus_send(res_wrp_msg)
+    LIBP->>PD: ZeroMQ reply
+    PD->>CLOUD: WebSocket WRP response
+```
+
+**Key timing note:** `processRequest()` runs synchronously on the same thread as the receive loop. While `hostIf_GetMsgHandler()` is executing, no further WRP messages can be received from the parodus daemon. HAL calls inside profile handlers can take 100–500 ms on some device platforms, which causes visible WebPA latency.
+
+### 1.8 Notification Push Flow (Parameter Change to Cloud)
+
+When a TR-181 parameter that has been marked for WebPA notification changes, the change is pushed proactively to the cloud without waiting for a GET from the cloud.
+
+```mermaid
+sequenceDiagram
+    participant PROF as TR-181 Profile Handler
+    participant NH as NotificationHandler
+    participant WN as webpa_notification.cpp
+    participant LPD as libpd.cpp sendNotification()
+    participant LIBP as libparodus.so
+    participant PD as parodus daemon
+    participant CLOUD as Cloud / XMiDT
+
+    PROF->>NH: notifyCallback() on param change
+    NH->>WN: build notification JSON payload
+    WN->>WN: getNotifySource() → mac:device_mac
+    WN->>LPD: sendNotification(payload, source, destination)
+
+    LPD->>LPD: build WRP_MSG_TYPE__EVENT struct
+    loop retry up to 3 times with exponential backoff
+        LPD->>LIBP: libparodus_send(notif_wrp_msg)
+        LIBP->>PD: ZeroMQ event message
+        PD-->>LIBP: send status
+        LIBP-->>LPD: sendStatus == 0 (success) or error
+    end
+
+    PD->>CLOUD: WebSocket WRP EVENT push
+```
+
+Initial notification state is configured at startup by `setInitialNotify()`, which reads `notify_webpa_cfg.json` (checked from `/opt/` first, falling back to `/etc/`) to determine which parameters should have notifications enabled on connect.
+
+### 1.9 Threading Model
+
+#### Thread Inventory
+
+| Thread | Created by | Entry point | Detached? | Purpose |
+|---|---|---|---|---|
+| Main (GLib loop) | OS | `hostIf_main::main()` | No | Init, signal handling, profile router |
+| Parodus IPC | `pthread_create` in `hostIf_main` | `libpd_client_mgr()` | Yes (self-detaches in `connect_parodus`) | libparodus connect, receive loop, notification send |
+
+#### Synchronization Primitives Used by the Parodus Subsystem
+
+| Primitive | Declared in | Purpose |
+|---|---|---|
+| `pthread_cond_t parodus_cond` | `libpd.cpp` (global) | Wakes the receive loop retry wait when `stop_parodus_recv_wait()` is called |
+| `pthread_mutex_t parodus_lock` | `libpd.cpp` (global) | Guards `parodus_cond` during `pthread_cond_timedwait` in the error retry path |
+| `std::mutex g_db_mutex` | `waldb.cpp` | Serializes access to the XML data model handle during `loadDataModel()` |
+
+#### Thread State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created : pthread_create in hostIf_main
+    Created --> DataModelLoad : libpd_client_mgr entry
+    DataModelLoad --> DataModelFail : checkDataModelStatus != 0
+    DataModelFail --> [*] : return NULL
+    DataModelLoad --> Connecting : checkDataModelStatus == 0
+    Connecting --> Connecting : libparodus_init failed → sleep backoff
+    Connecting --> Detached : pthread_detach(self) called inside connect_parodus
+    Detached --> Connected : libparodus_init ret == 0
+    Connected --> ReceiveLoop : parodus_receive_wait entered
+    ReceiveLoop --> ReceiveLoop : receive and dispatch WRP messages
+    ReceiveLoop --> ErrorRetry : libparodus_receive returned non-zero
+    ErrorRetry --> ReceiveLoop : pthread_cond_timedwait timeout or signal
+    ReceiveLoop --> Shutdown : exit_parodus_recv == true
+    Shutdown --> [*] : libparodus_close_receiver + libparodus_shutdown
+```
+
+**Note on the Detached state:** once `connect_parodus()` calls `pthread_detach(pthread_self())`, the thread handle `parodus_init_tid` in `hostIf_main.cpp` becomes invalid for any join operation. The thread will run until `exit_parodus_recv` is set true via `stop_parodus_recv_wait()`.
+
+---
 
 ### 2.1 Thread Detachment Causes Crash-Risk on Shutdown
 
@@ -211,7 +370,36 @@ A clean incremental migration is possible without rewriting everything at once:
 
 4. **Phase 4 — Move the parodus thread into the standalone process.** The thread entry point `libpd_client_mgr` becomes `main()`. The `PARODUS_ENABLE` guard in `hostIf_main.cpp` is removed entirely.
 
-### 3.5 Benefits of Separation
+### 3.5 Target Startup Sequence After Separation
+
+```mermaid
+sequenceDiagram
+    participant SYS as systemd
+    participant TR69 as tr69hostif process
+    participant PCC as parodus-client process
+    participant PD as parodus daemon
+    participant CLOUD as Cloud / XMiDT
+
+    SYS->>TR69: start (existing service)
+    TR69->>TR69: init profile handlers, RFC store, RBUS provider
+    TR69-->>SYS: READY (sd_notify)
+
+    SYS->>PCC: start parodus-client service (new)
+    PCC->>PCC: read device identity via RBUS from tr69hostif
+    PCC->>PD: launch parodus daemon with collected args
+    PCC->>PCC: libparodus_init retry loop
+    PD-->>PCC: ZeroMQ ready
+
+    PCC->>PCC: enter receive loop
+    CLOUD->>PD: WebSocket WRP REQ
+    PD->>PCC: ZeroMQ deliver
+    PCC->>TR69: RBUS get/set TR-181 parameter
+    TR69-->>PCC: value or fault
+    PCC->>PD: ZeroMQ reply
+    PD->>CLOUD: WebSocket WRP response
+```
+
+### 3.6 Benefits of Separation
 
 | Concern | Current | After Separation |
 |---|---|---|
