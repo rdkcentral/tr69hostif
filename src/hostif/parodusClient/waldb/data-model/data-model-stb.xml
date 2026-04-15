@@ -430,7 +430,7 @@
       <!-- Format: "threshold,updateCount" -->
     </syntax>
   </parameter>
-  <object base="NTPServer." access="readWrite" minEntries="0" maxEntries="unbounded">
+  <object base="NTPServer.{i}." access="readWrite" minEntries="0" maxEntries="unbounded">
     <parameter base="Settings" access="readWrite" notification="0" maxNotification="2">
       <syntax>
         <string/>
