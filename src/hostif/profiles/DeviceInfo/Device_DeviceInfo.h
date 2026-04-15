@@ -184,6 +184,7 @@
 
 #define FWDNLD_DEFER_REBOOT                             "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadDeferReboot"
 #define IUI_VERSION                                     "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version"
+#define IUI_APPSVERSION                                 "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion"
 
 /* Profile: X_RDKCENTRAL-COM_RDKRemoteDebugger */
 #ifdef USE_REMOTE_DEBUGGER
@@ -1122,6 +1123,9 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadUseCodebig(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadDeferReboot(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_IUI_Version(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_IUI_AppsVersion(HOSTIF_MsgData_t *);
+    int get_Device_DeviceInfo_IUI_AppsVersion(HOSTIF_MsgData_t *, bool *pChanged = NULL);
+
 
     /**
     * @brief set_xOpsDMUploadLogsNow.
