@@ -3119,7 +3119,7 @@ int hostIf_DeviceInfo::findLocalPortAvailable()
 {
     struct sockaddr_in address = {0,0,0};
     int sockfd = -1, status;
-    int port = MIN_PORT_RANGE;
+    uint16_t port = MIN_PORT_RANGE;
 
     while (port <= MAX_PORT_RANGE) {
         address.sin_family = AF_INET;
