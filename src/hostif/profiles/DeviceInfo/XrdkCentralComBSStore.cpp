@@ -119,7 +119,7 @@ bool createBspCompleteFiles()
 
 void XBSStore::getAuthServicePartnerID()
 {
-    const std::string partnerIdPath = "/opt/www/authService/partnerId3.dat";
+    const std::string filePath = "/opt/www/authService/partnerId3.dat";
 
     // Initialize inotify
     int inotifyFd = inotify_init();
@@ -129,7 +129,6 @@ void XBSStore::getAuthServicePartnerID()
     }
 
     // Extracting the parent directories dynamically
-    std::string filePath(partnerIdPath);
     std::string authServiceDir = getParentDirectory(filePath);  // "/opt/www/authService"
     std::string wwwDir = getParentDirectory(authServiceDir);    // "/opt/www"
     std::string parentDir = getParentDirectory(wwwDir);         // "/opt"
