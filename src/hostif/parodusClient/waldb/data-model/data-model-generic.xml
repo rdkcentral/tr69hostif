@@ -3607,11 +3607,6 @@
           <default type="factory" value="false"/>
         </syntax>
       </parameter>
-      <parameter base="getProfileData" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
       <parameter base="IssueType" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
