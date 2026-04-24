@@ -40,6 +40,7 @@
 
 #include "hostIf_updateHandler.h"
 #include "XrdkCentralComBSStore.h"
+#include "tr69hostif_otlp_instrumentation.h"
 
 #if defined(USE_WIFI_PROFILE)
 #include "Device_WiFi.h"
@@ -397,6 +398,15 @@ int main(int argc, char *argv[])
         if(false == hostIf_initalize_ConfigManger())
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to hostIf_initalize_ConfigManger()\n");
+        }
+        
+        // Initialize OpenTelemetry metrics
+        extern void tr69hostif_metrics_init();
+        try {
+            tr69hostif_metrics_init();
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"OpenTelemetry metrics initialized successfully\n");
+        } catch (const std::exception& e) {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Failed to initialize OpenTelemetry metrics: %s\n", e.what());
         }
 
     #ifndef NEW_HTTP_SERVER_DISABLE
