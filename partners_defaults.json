@@ -2,8 +2,8 @@
    "default_boot" : {
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfRecoveryUrl" : "",
-        "Device.Time.NTPServer1" : "",
-        "Device.Time.NTPServer2" : "",
+        "Device.Time.NTPServer1" : "global-bootstrap-time1.xfinity.com"",
+        "Device.Time.NTPServer2" : "global-bootstrap-time2.xfinity.com"",
         "Device.X_RDK_WebPA_Server.URL" : "",
         "Device.X_RDK_WebPA_TokenServer.URL" : "",
         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DefaultSupportedLocales" : ""
