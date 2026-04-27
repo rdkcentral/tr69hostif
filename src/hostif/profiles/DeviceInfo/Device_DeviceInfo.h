@@ -201,9 +201,10 @@
 #define CANARY_START_TIME                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart"
 #define CANARY_END_TIME                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"
 
-/* Profile: X_RDKCENTRAL-COM_RFC.Feature.xMemInsight */
-#define X_MEMINSIGHT_ENABLE                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable"
-#define X_MEMINSIGHT_ARGS                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Args"
+/* Profile: X_RDKCENTRAL-COM_RFC.Feature.meminsight */
+#define MEMINSIGHT_ENABLE                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Enable"
+#define MEMINSIGHT_ARGS                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Args"
+#define MEMINSIGHT_TRIGGER                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Trigger"
 
 /* Profile: X_RDKCENTRAL-COM_xAccount.HotelCheckout */
 #define HOTEL_CHECKOUT_LAST_RESET_TIME                  "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.LastResetTime"
@@ -1292,7 +1293,6 @@ public:
 
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
-    int get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(HOSTIF_MsgData_t *);
 #endif
 
     /*
@@ -1313,18 +1313,19 @@ public:
 
 
       /*
-      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable
+      * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Enable
       *
-      * This method is used to enable/disable the xmeminsight memory & CPU Analysis Tool.
+      * This method is used to enable/disable the meminsight memory & CPU Analysis Tool.
       * with following TR-069 definition:
-      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable
-      *   Data type: boolean - Enable (True)/ disable (False) xmeminsight tool.
+      *   Parameter Name: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MemInsight.Enable
+      *   Data type: boolean - Enable (True)/ disable (False) meminsight tool.
       *
       * @retval OK if it is successful.
       * @retval NOK if operation fails.
       */
 
-    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(HOSTIF_MsgData_t *);
+    int set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Enable(HOSTIF_MsgData_t *);
 
 
 
