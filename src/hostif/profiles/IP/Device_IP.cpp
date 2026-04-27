@@ -320,6 +320,9 @@ char* hostIf_IP::getVirtualInterfaceName (struct if_nameindex *phy_if_list, unsi
     char *p, *v;
     for (struct ifaddrs *ifa_node = ifa; ifa_node; ifa_node = ifa_node->ifa_next)
     {
+        if ((ifa_node->ifa_name == NULL) || (ifa_node->ifa_addr == NULL))
+            continue;
+
         if (ifa_node->ifa_addr->sa_family == AF_INET) // virtual interfaces are IPv4-specific, so use IPv4 address family to hunt for them.
         {
             for (struct if_nameindex *phy_if = phy_if_list; phy_if->if_index != 0; phy_if++)
