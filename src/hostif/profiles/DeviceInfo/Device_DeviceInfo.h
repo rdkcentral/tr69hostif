@@ -205,6 +205,11 @@
 #define X_MEMINSIGHT_ENABLE                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable"
 #define X_MEMINSIGHT_ARGS                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Args"
 
+/* Profile: X_RDKCENTRAL-COM_xAccount.HotelCheckout */
+#define HOTEL_CHECKOUT_LAST_RESET_TIME                  "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.LastResetTime"
+#define HOTEL_CHECKOUT_STATUS                           "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.Status"
+
+
 char* getLastField(char* line, char delimiter);
 
 /**
@@ -1582,6 +1587,10 @@ public:
 
     int set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *);
     int set_xRDKDownloadManager_DownloadStatus(HOSTIF_MsgData_t *);
+
+    int get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t*);
+    int get_HotelCheckoutStatus(HOSTIF_MsgData_t*);
+
 };
 /* End of doxygen group */
 /**
