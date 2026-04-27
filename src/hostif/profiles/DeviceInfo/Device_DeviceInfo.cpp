@@ -1288,92 +1288,24 @@ string hostIf_DeviceInfo::getEstbIp()
         retAddr=param.activeIfaceIpaddr;
     }
     #else
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetPrimaryInterface\"}";
-
-    string response = getJsonRPCData(std::move(postData));
-    if(response.c_str())
+    if (!invokeThunderPluginMethodAndExtractStringField("org.rdk.NetworkManager.GetPrimaryInterface", "", "interface", ifc))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to fetch interface from NetworkManager\n", __FUNCTION__);
+        return retAddr;
+    }
 
-            if (jsonObj)
-            {
-                cJSON *IpAddrObj = cJSON_GetObjectItem(jsonObj, "interface");
-                if (IpAddrObj && IpAddrObj->valuestring)
-                {
-                    // ASSIGN TO OP HERE
-                    ifc = IpAddrObj->valuestring;
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No interface in the output from Thunder plugin\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return retAddr;
-                }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return retAddr;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-        }
+    std::string paramsJson = "{\"interface\":\"" + ifc + "\"}";
+    if (invokeThunderPluginMethodAndExtractStringField("org.rdk.NetworkManager.GetIPSettings", paramsJson, "ipaddress", retAddr))
+    {
+        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] successfully fetched ipaddress from NetworkManager\n", __FUNCTION__);
+        return retAddr;
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData failed\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to fetch ipaddress from NetworkManager\n", __FUNCTION__);
+        return retAddr;
     }
 
-    postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetIPSettings\", \"params\" : { \"interface\" : \"" +  ifc + "\"}}";
-    response = getJsonRPCData(std::move(postData));
-    if(response.c_str())
-    {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
-            if (jsonObj)
-            {
-                cJSON *IpAddrObj = cJSON_GetObjectItem(jsonObj, "ipaddress");
-                if (IpAddrObj && IpAddrObj->valuestring)
-                {
-                    //ASSIGN TO OP HERE
-                    retAddr = IpAddrObj->valuestring;
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No IP in the output from Thunder plugin\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return retAddr;
-                }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return retAddr;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-        }
-    }
-    else
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData failed\n", __FUNCTION__);
-    }
     #endif
 ////Legacy way of getting estb ip.
 #else
@@ -2720,91 +2652,23 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_Partne
     {
         if( n_PartnerId.compare(current_PartnerId) )
         {
-            CURL *curl = curl_easy_init();
             bool upload_flag = false;
-            std::string postData;
-            std::string tokenheader;
+            bool success = false;
+            std::string paramsJson = "{ \"partnerId\" : \"" + n_PartnerId + "\"}";
 
-            if(curl)
+            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] call plugin to set partner ID.. with New PartnerId = %s \n", __FUNCTION__, n_PartnerId.c_str());
+            if (invokeThunderPluginMethodAndExtractBoolField("org.rdk.AuthService.setPartnerId", paramsJson, "success", success) && success)
             {
-                /* We have different partner IDs
-                 * set the partnerId using setpartnerid() */
-                long http_code = 0;
-                RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] call curl to set partner ID.. with New PartnerId = %s \n", __FUNCTION__, n_PartnerId.c_str());
-
-                std::string sToken = get_security_token();
-
-                tokenheader = "Authorization: Bearer " + sToken;
-
-                postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.setPartnerId\", \"params\" : { \"partnerId\" : \"";
-                postData += n_PartnerId;
-                postData += "\"}}";
-
-                struct curl_slist *list = NULL;
-
-                list = curl_slist_append(list, tokenheader.c_str());
-                list = curl_slist_append(list, "Content-Type: application/json");
-
-                if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK) {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] curl setup failed for CURLOPT_HTTPHEADER\n", __FUNCTION__, __LINE__);
-                    curl_easy_cleanup(curl);
-                    curl_slist_free_all(list);
-                    return NOK;
-                }
-                if(curl_easy_setopt(curl, CURLOPT_POST, 1L) != CURLE_OK) {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: curl setup failed for CURLOPT_POST\n", __FUNCTION__, __LINE__);
-                    curl_easy_cleanup(curl);
-                    curl_slist_free_all(list);
-                    return NOK;
-                }
-                if(curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)postData.length()) != CURLE_OK) {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: curl setup failed for CURLOPT_POSTFIELDSIZE\n", __FUNCTION__, __LINE__);
-                    curl_easy_cleanup(curl);
-                    curl_slist_free_all(list);
-                    return NOK;
-                }
-                if(curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str()) != CURLE_OK) {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: curl setup failed for CURLOPT_POSTFIELDS\n", __FUNCTION__, __LINE__);
-                    curl_easy_cleanup(curl);
-                    curl_slist_free_all(list);
-                    return NOK;
-                }
-                if(curl_easy_setopt(curl, CURLOPT_URL, JSONRPC_URL) != CURLE_OK) {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: curl setup failed for CURLOPT_URL\n", __FUNCTION__, __LINE__);
-                    curl_easy_cleanup(curl);
-                    curl_slist_free_all(list);
-                    return NOK;
-                }
-
-                CURLcode res = curl_easy_perform(curl);
-
-                if ( res == CURLE_OK )
-                {
-                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-                    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response : %d http response code: %ld\n", __FUNCTION__, res, http_code);
-                }
-
-                curl_easy_cleanup(curl);
-                curl_slist_free_all(list);
-
-                if( res == CURLE_OK && http_code == HTTP_OK )
-                {
-                    upload_flag = true;
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] PartnerID uploaded using Curl Success \n",__FUNCTION__);
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] curl returned with error : %d http response code: %ld\n",\
-                             __FUNCTION__, res, http_code);
-                    return NOK;
-                }
+                upload_flag = true;
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] PartnerID uploaded using AuthService plugin call success \n",__FUNCTION__);
             }
-            else {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] curl init failed\n", __FUNCTION__);
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] setPartnerId plugin request failed for value %s\n", __FUNCTION__, n_PartnerId.c_str());
                 return NOK;
             }
-
-            /* Reload the bootstrap config if CURLE_OK */
+ 
+	    /* Reload the bootstrap config if CURLE_OK */
             int ret=NOK;
 
             if (upload_flag)
@@ -3158,34 +3022,21 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
     #ifdef PRIVACYMODES_CONTROL
-    string privacyModeValue; 
-    string queryJsonPrivacy = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.System.getPrivacyMode\" }";
-    string response = getJsonRPCData(queryJsonPrivacy);
-    //string response = '{"jsonrpc":"2.0","id":3,"result":{"privacyMode":"SHARE","success":true}}';
-    if(response.c_str())
+    string privacyModeValue;
+
+    if (invokeThunderPluginMethodAndExtractScalarStringResult("org.rdk.UserSettings.getPrivacyMode", "", privacyModeValue))
     {
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: PrivacyMode is %s\n", __FUNCTION__, privacyModeValue.c_str());
+        if (privacyModeValue.compare("DO_NOT_SHARE") == 0)
         {
-            cJSON* jsonObj = cJSON_GetObjectItem(root, "result");
-            if (jsonObj){
-                cJSON* privacyMode = cJSON_GetObjectItem(jsonObj, "privacyMode");
-                if(privacyMode){
-                    privacyModeValue = privacyMode->valuestring;
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: PrivacyMode is %s\n", __FUNCTION__, privacyModeValue.c_str());
-                    if (privacyModeValue.compare("DO_NOT_SHARE") == 0){
-                        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: Revssh is disabled\n", __FUNCTION__);
-                        cJSON_Delete(root);
-                        return NOK;
-                    }
-                }
-            }
-            cJSON_Delete(root);
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: Revssh is disabled\n", __FUNCTION__);
+            return NOK;
         }
-        else{
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"%s: Response from the rdkservices is not valid \n", __FUNCTION__);
-        }
-    }  
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Failed to get privacy mode from UserSettings.getPrivacyMode\n", __FUNCTION__);
+    }
 #endif
     string inputStr(stMsgData->paramValue);
     const string startShorts = "start shorts";
@@ -3259,63 +3110,14 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_MigrationPreparer_MigrationReady(HOSTIF_MsgData_t * stMsgData, bool *pChanged)
 {
-    std::string response;
-    std::string postData;
     std::string value;
-    int i = 0;
 
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Components that are Ready..\n", __FUNCTION__);
 
-    postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.MigrationPreparer.getComponentReadiness\" }";
-    response = getJsonRPCData(std::move(postData)); 
-
-    if(response.c_str())
-    {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-            if (jsonObj)
-            {
-                cJSON *ComponentList_obj = cJSON_GetObjectItem(jsonObj, "ComponentList");
-    		if (ComponentList_obj != NULL && cJSON_IsArray(ComponentList_obj)) 
-		{
-		    int ComponentList_obj_count = cJSON_GetArraySize(ComponentList_obj);
-		    for ( ; i < ComponentList_obj_count-1; i++) 
-		    {
-		        cJSON *Component = cJSON_GetArrayItem(ComponentList_obj, i);
-    	 	        if (cJSON_IsString(Component)) 
-			{
-			    printf(" - %s\n", Component->valuestring);
-    			    value = value + Component->valuestring + "_";
-   		        }
-   	   	    }
-   		    cJSON *Component = cJSON_GetArrayItem(ComponentList_obj, i);
-  		    value = value + Component->valuestring ;
-	        }
-    	        else
-	        {
-	            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] componentList is not present \n", __FUNCTION__);
-		    return NOK;
-  	        }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-             RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-        }
-    }
-    else
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
+    if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
+            "org.rdk.MigrationPreparer.getComponentReadiness", "", "ComponentList", "_", value)) {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to get/parse ComponentList\n", __FUNCTION__);
+        return NOK;
     }
 
     stMsgData->paramtype = hostIf_StringType;
@@ -4203,54 +4005,21 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
 int hostIf_DeviceInfo::get_xRDKCentralComRFCAccountId(HOSTIF_MsgData_t *stMsgData)
 {
     int ret=NOK;
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getServiceAccountId\" }";
         
     RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: call curl to get Account ID..\n", __FUNCTION__);
-        
-    string response = getJsonRPCData(std::move(postData)); 
-    if(response.c_str())
+    std::string serviceAccountId;
+
+    if (invokeThunderPluginMethodAndExtractStringField("org.rdk.AuthService.getServiceAccountId", "", "serviceAccountId", serviceAccountId))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
-            if (jsonObj)
-            {
-                cJSON *accountIdObj = cJSON_GetObjectItem(jsonObj, "serviceAccountId");
-
-                if (accountIdObj && accountIdObj->type == cJSON_String && accountIdObj->valuestring)
-                {
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Found serviceAccountId value = %s\n", accountIdObj->valuestring);
-                    putValue(stMsgData, accountIdObj->valuestring);
-                    stMsgData->faultCode = fcNoFault;
-                    ret = OK;
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"serviceAccountId\" in the output from Thunder plugin\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return NOK;
-                }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-        }
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "Found serviceAccountId value = %s\n", serviceAccountId.c_str());
+        putValue(stMsgData, serviceAccountId);
+        stMsgData->faultCode = fcNoFault;
+        ret = OK;
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
-    }
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: failed to fetch serviceAccountId\n", __FUNCTION__);
+    }   
     return ret;
 }
 
@@ -5388,52 +5157,18 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
 
 int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgData)
 {
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.Account.getLastCheckoutResetTime\" }";
  
-    string resp = getJsonRPCData(std::move(postData)); 
-    if (resp.empty())
+    unsigned long value = 0;
+
+    if (invokeThunderPluginMethodAndExtractULongField("org.rdk.Account.getLastCheckoutResetTime", "", "resetTime", value))
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Empty output from Thunder call\n", __FUNCTION__);
-        return NOK;
-    }
-
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
-
-    cJSON* root = cJSON_Parse(resp.c_str());
-
-    if(root)
-    {
-        cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-        if (jsonObj)
-        {
-            cJSON *resetTimeObj = cJSON_GetObjectItem(jsonObj, "resetTime");
-
-            if (resetTimeObj && resetTimeObj->type == cJSON_Number)
-            {
-                unsigned long value = (unsigned long)resetTimeObj->valuedouble;
-                put_ulong(stMsgData->paramValue, value);
-                stMsgData->paramtype = hostIf_UnsignedLongType;
-                stMsgData->paramLen = sizeof(unsigned long);
-            }
-            else
-            {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No resetTime in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-        }
-        else
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-            cJSON_Delete(root);
-            return NOK;
-        }
-
-        cJSON_Delete(root);
+        put_ulong(stMsgData->paramValue, value);
+        stMsgData->paramtype = hostIf_UnsignedLongType;
+        stMsgData->paramLen = sizeof(unsigned long);
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to extract resetTime from Account.getLastCheckoutResetTime\n", __FUNCTION__);
         return NOK;
     }
 
@@ -5442,65 +5177,26 @@ int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgDat
 
 int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t* stMsgData)
 {
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.Account.getLastCheckoutResetTime\" }";
- 
-    string resp = getJsonRPCData(std::move(postData)); 
-    if (resp.empty())
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Empty outpu from Thunder call\n", __FUNCTION__);
-        return NOK;
-    }
-    
-    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
-
-    cJSON* root = cJSON_Parse(resp.c_str());
 
     stMsgData->paramtype = hostIf_StringType;
 
-    if(root)
+    unsigned long value = 0;
+    if (!invokeThunderPluginMethodAndExtractULongField("org.rdk.Account.getLastCheckoutResetTime", "", "resetTime", value))
     {
-        cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-        if (jsonObj)
-        {
-            cJSON *resetTimeObj = cJSON_GetObjectItem(jsonObj, "resetTime");
-
-            if (resetTimeObj && resetTimeObj->type == cJSON_Number)
-            {
-                unsigned long value = (unsigned long)resetTimeObj->valuedouble;
-
-                if (value > 0)
-                {
-                    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "success");
-                }
-                else
-                {
-                    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "unknown");
-                }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No resetTime in the output from Thunder call\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No result from Thunder call\n", __FUNCTION__);
-            cJSON_Delete(root);
-            return NOK;
-        }
-
-        stMsgData->paramLen = strlen(stMsgData->paramValue);
-
-        cJSON_Delete(root);
-    }
-    else
-    {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to extract resetTime from Account.getLastCheckoutResetTime\n", __FUNCTION__);
         return NOK;
     }
 
+    if (value > 0)
+    {
+        snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "success");
+    }
+    else
+    {
+        snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "unknown");
+    }
+
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
     return OK;
 }
 
@@ -5615,48 +5311,15 @@ void hostIf_DeviceInfo::systemMgmtTimePathMonitorThr()
 int hostIf_DeviceInfo::get_X_RDKCENTRAL_COM_experience( HOSTIF_MsgData_t *stMsgData)
 {
     string experience = "";
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.AuthService.getExperience\" }";
- 
-    string resp = getJsonRPCData(std::move(postData)); 
-    if(resp.c_str())
+
+    if (invokeThunderPluginMethodAndExtractStringField("org.rdk.AuthService.getExperience", "", "experience", experience))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
-
-        cJSON* root = cJSON_Parse(resp.c_str());
-
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
-            if (jsonObj)
-            {
-                cJSON *experienceObj = cJSON_GetObjectItem(jsonObj, "experience");
-                if(experienceObj && experienceObj->type == cJSON_String && experienceObj->valuestring && (strlen(experienceObj->valuestring) > 0))
-                {
-                    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s]The parameter [%s] value is [%s].\n", __FUNCTION__, stMsgData->paramName, experienceObj->valuestring);
-                    experience = experienceObj->valuestring;
-                }
-                else
-                {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"experience\" in the output from Thunder plugin\n", __FUNCTION__);
-                    cJSON_Delete(root);
-                    return NOK;
-                }
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
-            return NOK;
-        }
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s]The parameter [%s] value is [%s].\n", __FUNCTION__, stMsgData->paramName, experience.c_str());
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to fetch experience from AuthService\n", __FUNCTION__);
+        return NOK;
     }
 
     if(!experience.empty()) {

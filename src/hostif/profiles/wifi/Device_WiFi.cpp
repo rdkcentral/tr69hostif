@@ -337,53 +337,26 @@ int hostIf_WiFi::get_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
 
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetAvailableInterfaces\"}";
-    string response = getJsonRPCData(std::move(postData));
-
-    if(response.c_str())
+    std::string response;
+    if (!invokeThunderPluginMethod("org.rdk.NetworkManager.GetAvailableInterfaces", "", response))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: failed to fetch interfaces from NetworkManager.GetAvailableInterfaces\n", __FUNCTION__);
+        return NOK;
+    }
 
-            if (jsonObj)
-            {
-                cJSON *interfaces = cJSON_GetObjectItem(jsonObj, "interfaces");
-	        cJSON *interface = nullptr, *interfaceType;
-	        for (int i = 0; i < cJSON_GetArraySize(interfaces); i++) {
-                    interface = cJSON_GetArrayItem(interfaces, i);
-	            interfaceType = cJSON_GetObjectItem(interface, "type");
-	            if (strcmp(interfaceType->valuestring, "WIFI") == 0)
-	                break;
-	        }
-
-                //ASSIGN TO OP HERE
-		cJSON *result = cJSON_GetObjectItem(interface, "enabled");
-		put_boolean(stMsgData->paramValue, result->type);
-                stMsgData->paramtype = hostIf_BooleanType;
-                stMsgData->paramLen=1;
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-	    return NOK;
-        }
+    bool enabled = false;
+    if (readThunderArrayItemByKey(response, "interfaces", "type", "WIFI", "enabled", enabled))
+    {
+        put_boolean(stMsgData->paramValue, enabled);
+        stMsgData->paramtype = hostIf_BooleanType;
+        stMsgData->paramLen = 1;
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed\n", __FUNCTION__);
-	return NOK;
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Invalid or missing enabled for WIFI interface\n", __FUNCTION__);
+        return NOK;
     }
+
     return OK;
 }
 #endif
@@ -426,6 +399,7 @@ int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
 int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
 {
     LOG_ENTRY_EXIT;
+    string paramsJson;
 
     if (stMsgData->paramtype != hostIf_BooleanType)
     {
@@ -434,45 +408,28 @@ int hostIf_WiFi::set_Device_WiFi_EnableWiFi(HOSTIF_MsgData_t *stMsgData)
         return NOK;
     }
 
-    std::string postData;
     if(get_boolean(stMsgData->paramValue)) {
-        postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.EnableInterface\", \"params\" : { \"type\" : \"WIFI\"}}";
+        paramsJson = "{\"interface\": \"wlan0\", \"enabled\": true}";
     }
     else {
-        postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.DisableInterface\", \"params\" : { \"type\" : \"WIFI\"}}";
-    }  
+        paramsJson = "{\"interface\": \"wlan0\", \"enabled\": false}";
+    } 
 
-    string response = getJsonRPCData(std::move(postData));
-    if(response.c_str())
+    bool result = false;
+    if (invokeThunderPluginMethodAndExtractBoolField("org.rdk.NetworkManager.SetInterfaceState", paramsJson, "success", result))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-	cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
+        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Result of Set operation = %s\n",
+            __FUNCTION__, result ? "true" : "false");
+	if (!result)
         {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
-
-            if (jsonObj)
-            {
-	        cJSON *CheckResultObj = cJSON_GetObjectItem(jsonObj, "success");
-	        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Result of Set operation = %s\n", __FUNCTION__, cJSON_IsTrue(CheckResultObj) ? "true" : "false");
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-	    return NOK;
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: WiFi SetInterfaceState rejected by Thunder\n", __FUNCTION__);
+            stMsgData->faultCode = fcRequestDenied;
+            return NOK;
         }
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: WiFi SetInterfaceState call failed\n", __FUNCTION__);
         return NOK;
     }
     return OK;

@@ -105,8 +105,8 @@ public:
     static GList* getAllInstances();
     static void closeInstance(hostIf_WiFi_SSID *);
     static void closeAllInstances();
-    int get_Device_WiFi_SSID_Fields(int ssidIndex);
-    void checkWifiSSIDFetch(int radioIndex);
+    int get_Device_WiFi_SSID_Fields(int ssidIndex, unsigned int fetchMask);
+    void checkWifiSSIDFetch(int radioIndex, unsigned int fetchMask);
 
     bool enable;
     char status[BUFF_LENGTH_64];
