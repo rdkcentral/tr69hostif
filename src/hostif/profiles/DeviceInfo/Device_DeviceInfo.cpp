@@ -5691,7 +5691,7 @@ int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t* stMsgData)
     string resp = getJsonRPCData(std::move(postData)); 
     if (resp.empty())
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Empty outpu from Thunder call\n", __FUNCTION__);
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Empty output from Thunder call\n", __FUNCTION__);
         return NOK;
     }
     
