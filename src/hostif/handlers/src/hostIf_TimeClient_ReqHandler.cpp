@@ -158,6 +158,11 @@ int TimeClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
 		else if (strcasecmp(stMsgData->paramName,"Device.Time.chrony.Makestep") == 0) {
 			ret = pIface->set_Device_Time_NTPMaxstep(stMsgData);
 		}
+        else if (strncasecmp(stMsgData->paramName, "Device.Time.Chrony.NTPServer.",
+                             strlen("Device.Time.Chrony.NTPServer.")) == 0 &&
+                 strstr(stMsgData->paramName, ".Settings") != NULL) {
+            ret = pIface->set_Device_Time_NTPServerSettings(stMsgData);
+        }
         else
         {
            RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s:%d] parameter : \'%s\' Not handled \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
@@ -293,6 +298,11 @@ int TimeClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
 		else if (strcasecmp(stMsgData->paramName,"Device.Time.Chrony.Makestep") == 0) {
 			ret = pIface->get_Device_Time_NTPMaxstep(stMsgData);
 		}
+        else if (strncasecmp(stMsgData->paramName, "Device.Time.Chrony.NTPServer.",
+                             strlen("Device.Time.Chrony.NTPServer.")) == 0 &&
+                 strstr(stMsgData->paramName, ".Settings") != NULL) {
+            ret = pIface->get_Device_Time_NTPServerSettings(stMsgData);
+        }
         else
         {
            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] parameter : \'%s\' Not handled \n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
