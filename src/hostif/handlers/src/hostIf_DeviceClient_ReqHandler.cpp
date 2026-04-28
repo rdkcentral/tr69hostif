@@ -730,6 +730,14 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_X_RDK_FirmwareName(stMsgData);
         }
+        else if (!strcasecmp(stMsgData->paramName, HOTEL_CHECKOUT_LAST_RESET_TIME))
+        {
+            ret = pIface->get_HotelCheckoutLastResetTime(stMsgData);
+        }
+        else if (!strcasecmp(stMsgData->paramName, HOTEL_CHECKOUT_STATUS))
+        {
+            ret = pIface->get_HotelCheckoutStatus(stMsgData);
+        }
         else
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Parameter : \'%s\' is Not Supported  \n", __FUNCTION__, __LINE__, stMsgData->paramName);

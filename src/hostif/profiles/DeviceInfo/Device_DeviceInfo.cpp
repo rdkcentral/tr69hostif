@@ -5630,6 +5630,123 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
     return OK;
 }
 
+int hostIf_DeviceInfo::get_HotelCheckoutLastResetTime(HOSTIF_MsgData_t* stMsgData)
+{
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.Account.getLastCheckoutResetTime\" }";
+ 
+    string resp = getJsonRPCData(std::move(postData)); 
+    if (resp.empty())
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Empty output from Thunder call\n", __FUNCTION__);
+        return NOK;
+    }
+
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
+
+    cJSON* root = cJSON_Parse(resp.c_str());
+
+    if(root)
+    {
+        cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+        if (jsonObj)
+        {
+            cJSON *resetTimeObj = cJSON_GetObjectItem(jsonObj, "resetTime");
+
+            if (resetTimeObj && resetTimeObj->type == cJSON_Number)
+            {
+                unsigned long value = (unsigned long)resetTimeObj->valuedouble;
+                put_ulong(stMsgData->paramValue, value);
+                stMsgData->paramtype = hostIf_UnsignedLongType;
+                stMsgData->paramLen = sizeof(unsigned long);
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No resetTime in the output from Thunder plugin\n", __FUNCTION__);
+                cJSON_Delete(root);
+                return NOK;
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+            cJSON_Delete(root);
+            return NOK;
+        }
+
+        cJSON_Delete(root);
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
+        return NOK;
+    }
+
+    return OK;
+}
+
+int hostIf_DeviceInfo::get_HotelCheckoutStatus(HOSTIF_MsgData_t* stMsgData)
+{
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"org.rdk.Account.getLastCheckoutResetTime\" }";
+ 
+    string resp = getJsonRPCData(std::move(postData)); 
+    if (resp.empty())
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Empty output from Thunder call\n", __FUNCTION__);
+        return NOK;
+    }
+    
+    RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] curl response string = %s\n", __FUNCTION__, resp.c_str());
+
+    cJSON* root = cJSON_Parse(resp.c_str());
+
+    stMsgData->paramtype = hostIf_StringType;
+
+    if(root)
+    {
+        cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+        if (jsonObj)
+        {
+            cJSON *resetTimeObj = cJSON_GetObjectItem(jsonObj, "resetTime");
+
+            if (resetTimeObj && resetTimeObj->type == cJSON_Number)
+            {
+                unsigned long value = (unsigned long)resetTimeObj->valuedouble;
+
+                if (value > 0)
+                {
+                    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "success");
+                }
+                else
+                {
+                    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", "unknown");
+                }
+            }
+            else
+            {
+                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No resetTime in the output from Thunder call\n", __FUNCTION__);
+                cJSON_Delete(root);
+                return NOK;
+            }
+        }
+        else
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] No result from Thunder call\n", __FUNCTION__);
+            cJSON_Delete(root);
+            return NOK;
+        }
+
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
+
+        cJSON_Delete(root);
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
+        return NOK;
+    }
+
+    return OK;
+}
 
 int hostIf_DeviceInfo::set_X_RDKCENTRAL_COM_LastRebootReason(HOSTIF_MsgData_t *stMsgData)
 {
