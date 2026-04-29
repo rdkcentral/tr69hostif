@@ -44,7 +44,7 @@ git clone https://github.com/rdkcentral/remote_debugger.git
 # TODO This is not present in mainline versions. Component maintainers will have to provide this in future.
 cd $ROOT
 rm -rf devicesettings
-git clone https://github.com/rdkcentral/devicesettings.git -b feature/RDKE-539
+git clone https://github.com/rdkcentral/devicesettings.git
 cd devicesettings
 autoreconf -i
 sed -i '/#include "dsAudio.h"/d' /usr/devicesettings/rpc/cli/dsAudio.c
