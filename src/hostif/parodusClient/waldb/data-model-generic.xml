@@ -467,6 +467,30 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.Time.Chrony." access="readWrite" minEntries="1" maxEntries="1">
+      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2">
+        <syntax>
+          <boolean/>
+          <default type="factory" value="false"/>
+        </syntax>
+      </parameter>
+      <parameter base="Makestep" access="readWrite" notification="0" maxNotification="2">
+        <syntax>
+          <string/>
+          <default type="factory" value="1.0,3"/>
+          <!-- Format: "threshold,updateCount" (threshold: float in seconds, updateCount: unsignedInt) -->
+        </syntax>
+      </parameter>
+    </object>
+    <object base="Device.Time.Chrony.NTPServer.{i}." access="readWrite" minEntries="0" maxEntries="unbounded">
+      <parameter base="Settings" access="readWrite" notification="0" maxNotification="2">
+        <syntax>
+          <string/>
+          <default type="factory" value="server,0,false,10,12"/>
+          <!-- Format: "Type,Maxsources,Iburst,Minpoll,Maxpoll" e.g. "server,0,true,5,12" -->
+        </syntax>
+      </parameter>
+    </object>
   </model>
 </dm:document>
 

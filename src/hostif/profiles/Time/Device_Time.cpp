@@ -744,13 +744,26 @@ static void getNTPServerSettingsFilePath(int idx, char *pathBuf, size_t pathBufL
 }
 
 /* Extract the NTPServer instance index from a param name like
- * "Device.Time.Chrony.NTPServer.2.Settings".  Returns -1 on failure. */
+ * "Device.Time.Chrony.NTPServer.2.Settings".  Returns -1 on failure.
+ * Matching is case-insensitive for the "Chrony" component. */
 static int parseNTPServerInstance(const char *paramName)
 {
-    int idx = -1;
-    if (sscanf(paramName, "Device.Time.Chrony.NTPServer.%d.Settings", &idx) == 1)
-        return idx;
-    return -1;
+    /* Prefix before the instance number */
+    static const char prefix[] = "Device.Time.Chrony.NTPServer.";
+    static const char suffix[] = ".Settings";
+    const size_t prefixLen = sizeof(prefix) - 1;
+
+    if (strncasecmp(paramName, prefix, prefixLen) != 0)
+        return -1;
+
+    const char *after = paramName + prefixLen;
+    char *end = NULL;
+    long idx = strtol(after, &end, 10);
+    if (end == after || end == NULL)
+        return -1;
+    if (strcasecmp(end, suffix) != 0)
+        return -1;
+    return (int)idx;
 }
 
 int hostIf_Time::get_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged)

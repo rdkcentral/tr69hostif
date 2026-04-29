@@ -155,7 +155,7 @@ int TimeClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer5Directive") == 0) {
             ret = pIface->set_Device_Time_NTPServer5Directive(stMsgData);
         }
-		else if (strcasecmp(stMsgData->paramName,"Device.Time.chrony.Makestep") == 0) {
+		else if (strcasecmp(stMsgData->paramName,"Device.Time.Chrony.Makestep") == 0) {
 			ret = pIface->set_Device_Time_NTPMaxstep(stMsgData);
 		}
         else if (strncasecmp(stMsgData->paramName, "Device.Time.Chrony.NTPServer.",
