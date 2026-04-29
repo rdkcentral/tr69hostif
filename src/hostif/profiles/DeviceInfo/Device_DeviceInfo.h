@@ -211,11 +211,6 @@
 #define HOTEL_CHECKOUT_STATUS                           "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.Status"
 
 
-/* Profile: X_RDKCENTRAL-COM_xAccount.HotelCheckout */
-#define HOTEL_CHECKOUT_LAST_RESET_TIME                  "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.LastResetTime"
-#define HOTEL_CHECKOUT_STATUS                           "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.Status"
-
-
 char* getLastField(char* line, char delimiter);
 
 /**
