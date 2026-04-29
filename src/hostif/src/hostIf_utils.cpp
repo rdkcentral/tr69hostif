@@ -403,10 +403,6 @@ char* getenvOrDefault (const char* name, const char* defaultValue)
  *
  * @param[in] Time spec timer
  */
-void getCurrentTime(struct timespec *timer)
-{
-    clock_gettime(CLOCK_REALTIME, timer);
-}
 
 
 long timeValDiff(struct timespec *starttime, struct timespec *finishtime)
