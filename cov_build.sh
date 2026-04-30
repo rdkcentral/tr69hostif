@@ -50,6 +50,7 @@ cp $WORKDIR/src/unittest/stubs/dsVideoResolutionSettings.h /usr/rdkvhal-devicese
 cp $WORKDIR/src/unittest/stubs/dsVideoDeviceSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsVideoDeviceSettings.h
 
 gcc -fPIC -shared -o /usr/local/lib/libtelemetry_msgsender.so $WORKDIR/src/unittest/stubs/telemetry_msgsender_stub.c
+rm -f $WORKDIR/src/unittest/stubs/rdk_debug.h
 
 cd $ROOT
 rm -rf devicesettings
@@ -89,7 +90,7 @@ cp libWPEFrameworkPowerController.so /usr/local/lib/libWPEFrameworkPowerControll
 echo "##### Building tr69hostif module"
 cd $WORKDIR
 sed -i '/PKG_CHECK_MODULES(\[PROCPS\], \[libproc >= 3.2.8\])/s/^/#/' ./configure.ac
-rm -f ./src/unittest/stubs/rdk_debug.h
+
 autoreconf -i
 ./configure  --enable-IPv6=yes
 
