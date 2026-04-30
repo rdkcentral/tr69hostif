@@ -6,6 +6,7 @@ apt-get update && apt-get install -y libsoup-3.0
 
 #Build rfc
 cd $ROOT
+rm -rf rfc
 git clone https://github.com/rdkcentral/rfc.git
 cd rfc
 autoreconf -i
@@ -21,13 +22,14 @@ cd ../utils
 make && make install
 
 #Build yajl - tr69 alone needs this specific version
-cd $ROOT 
+cd $ROOT
+rm -rf yajl
 git clone https://github.com/lloyd/yajl.git -b 1.x
 cd yajl
 mkdir build
 cd build
 cmake ..
-make 
+make
 make install
 
 cd $ROOT
@@ -40,7 +42,15 @@ git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 git clone https://github.com/rdkcentral/iarmbus.git
 git clone https://github.com/rdkcentral/remote_debugger.git
 
-# Build devicesettings from mainline using standard automake variables.
+cp $WORKDIR/src/unittest/stubs/telemetry_busmessage_sender.h /usr/local/include/
+cp $WORKDIR/src/unittest/stubs/dsVideoResolutionSettings.h /usr/rdk-halif-device_settings/include/dsVideoResolutionSettings.h
+cp $WORKDIR/src/unittest/stubs/dsAudioSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsAudioSettings.h
+cp $WORKDIR/src/unittest/stubs/dsVideoPortSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsVideoPortSettings.h
+cp $WORKDIR/src/unittest/stubs/dsVideoResolutionSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsVideoResolutionSettings.h
+cp $WORKDIR/src/unittest/stubs/dsVideoDeviceSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsVideoDeviceSettings.h
+
+gcc -fPIC -shared -o /usr/local/lib/libtelemetry_msgsender.so $WORKDIR/src/unittest/stubs/telemetry_msgsender_stub.c
+
 cd $ROOT
 rm -rf devicesettings
 git clone https://github.com/rdkcentral/devicesettings.git
@@ -48,13 +58,6 @@ cd devicesettings
 autoreconf -i
 sed -i '/#include "dsAudio.h"/d' /usr/devicesettings/rpc/cli/dsAudio.c
 sed -i '/device::HdmiInput::getInstance().isPortConnected(portId);/d' /usr/devicesettings/ds/audioOutputPort.cpp
-# Fix: RDK_DSHAL_NAME is used at line ~281 in dsHost.cpp and at multiple places in
-# dsAudio.c before it is #defined later in those files.
-# Prepend #ifndef guard to both files so the macro is always defined before use.
-for _f in /usr/devicesettings/rpc/srv/dsHost.cpp /usr/devicesettings/rpc/srv/dsAudio.c; do
-    { printf '#ifndef RDK_DSHAL_NAME\n#define RDK_DSHAL_NAME "libds.so"\n#endif\n'; cat "$_f"; } > /tmp/_dshal_compat.tmp
-    mv /tmp/_dshal_compat.tmp "$_f"
-done
 ./configure
 DS_COMMON_INCLUDES="-I/usr/rdk-halif-device_settings/include \
     -I/usr/rpc/include \
@@ -66,8 +69,8 @@ DS_COMMON_INCLUDES="-I/usr/rdk-halif-device_settings/include \
     -I/usr/rdkvhal-devicesettings-raspberrypi4"
 make \
     CPPFLAGS="$DS_COMMON_INCLUDES" \
-    libds_la_CPPFLAGS="-I/usr/rdk-halif-device_settings/include -I/usr/devicesettings/ds/include -I$WORKDIR/src/unittest/stubs/ -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/cli/ -I/usr/devicesettings/rpc/srv -I/usr/devicesettings/ds/include -I/usr/devicesettings/ds/" \
-    libdshalsrv_la_CPPFLAGS="-I/usr/iarmbus/core/include -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/srv -I/usr/rdk-halif-device_settings/include -I$WORKDIR/src/unittest/stubs -isystem $WORKDIR/src/unittest/stubs" \
+    libds_la_CPPFLAGS="-I/usr/rdk-halif-device_settings/include -I/usr/devicesettings/ds/include -I$WORKDIR/src/unittest/stubs/ -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/cli/ -I/usr/devicesettings/rpc/srv -I/usr/devicesettings/ds/include -I/usr/devicesettings/ds/ -DRDK_DSHAL_NAME='\"libdshal.so\"'" \
+    libdshalsrv_la_CPPFLAGS="-I/usr/iarmbus/core/include -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/srv -I/usr/rdk-halif-device_settings/include -I$WORKDIR/src/unittest/stubs -isystem $WORKDIR/src/unittest/stubs -DDSMGR_LOGGER_ENABLED=ON -DRDK_DSHAL_NAME='\"libdshal.so\"'" \
     CFLAGS="-fpermissive" \
     install
 
@@ -98,4 +101,4 @@ cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
 
 ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
-rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true 
+rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true
