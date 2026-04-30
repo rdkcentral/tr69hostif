@@ -15,6 +15,15 @@
 
 #include "dsAVDTypes.h"
 
+/* Scan-mode convenience macros used by both kResolutions[] entries and
+ * devicesettings ds/ C++ sources (e.g. videoOutputPortConfig.cpp). */
+#ifndef _PROGRESSIVE
+#define _PROGRESSIVE false
+#endif
+#ifndef _INTERLACED
+#define _INTERLACED  true
+#endif
+
 static dsVideoPortResolution_t kResolutions[] = {
     /* name       pixelResolution                aspectRatio                  stereoScopicMode    frameRate                interlaced */
     {"480i60",  dsVIDEO_PIXELRES_720x480,  dsVIDEO_ASPECT_RATIO_4x3,  dsVIDEO_SSMODE_2D, dsVIDEO_FRAMERATE_60,    true  },
