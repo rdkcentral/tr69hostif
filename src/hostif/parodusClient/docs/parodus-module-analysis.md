@@ -76,8 +76,6 @@ Because `connect_parodus()` detaches the thread, the main thread cannot `pthread
 
 `startParodus` is a separate compiled binary but lives inside the same source tree and build system. Its job is to read device identity parameters — many of which are TR-181 parameters — and launch the `parodus` daemon with them as command-line arguments. It reads several values via `getRFCParameter()` (serial number, boot time, server URL, token server URL) and reads partner ID directly from `/opt/www/authService/partnerId3.dat`, replicating the same PartnerId resolution logic that already exists in `XBSStore`.
 
-<<<<<<< HEAD
----
 
 ## 2. Drawbacks and Issues with the Current Design
 =======
@@ -243,7 +241,6 @@ stateDiagram-v2
 **Note on the Detached state:** once `connect_parodus()` calls `pthread_detach(pthread_self())`, the thread handle `parodus_init_tid` in `hostIf_main.cpp` becomes invalid for any join operation. The thread will run until `exit_parodus_recv` is set true via `stop_parodus_recv_wait()`.
 
 ---
->>>>>>> 22b609abda3573678a880df3716a5f25e968b7f6
 
 ### 2.1 Thread Detachment Causes Crash-Risk on Shutdown
 
@@ -376,9 +373,7 @@ A clean incremental migration is possible without rewriting everything at once:
 
 4. **Phase 4 — Move the parodus thread into the standalone process.** The thread entry point `libpd_client_mgr` becomes `main()`. The `PARODUS_ENABLE` guard in `hostIf_main.cpp` is removed entirely.
 
-<<<<<<< HEAD
-### 3.5 Benefits of Separation
-=======
+
 ### 3.5 Target Startup Sequence After Separation
 
 ```mermaid
@@ -409,7 +404,6 @@ sequenceDiagram
 ```
 
 ### 3.6 Benefits of Separation
->>>>>>> 22b609abda3573678a880df3716a5f25e968b7f6
 
 | Concern | Current | After Separation |
 |---|---|---|
