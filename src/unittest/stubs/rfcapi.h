@@ -22,7 +22,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "Device_DeviceInfo.h"
 
 #define RFCVAR_FILE "/opt/secure/RFC/rfcVariable.ini"
 #define TR181STORE_FILE "/opt/secure/RFC/tr181store.ini"
