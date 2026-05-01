@@ -34,16 +34,14 @@ walks the response tree, validates result fields, and maps those fields into `HO
 flowchart TD
     A[TR-181 GET or SET handler] --> B[Build JSON-RPC request string inline]
     B --> C[getJsonRPCData in hostIf_utils.cpp]
-    C --> D[get_security_token]
-    D --> E[WPEFrameworkSecurityUtility]
-    C --> F[libcurl POST to /jsonrpc]
-    F --> G[Thunder plugin org.rdk.*]
-    G --> H[Raw JSON response string]
-    H --> I[cJSON_Parse inside handler]
-    I --> J[result lookup]
-    J --> K[field lookup and type checks]
-    K --> L[Convert to TR-181 output type]
-    L --> M[Populate HOSTIF_MsgData_t]
+    C --> D[libcurl POST to /jsonrpc]
+    D --> E[Thunder plugin org.rdk.*]
+    E --> F[Raw JSON response string]
+    F --> G[cJSON_Parse inside handler]
+    G --> H[result lookup]
+    H --> I[field lookup and type checks]
+    I --> J[Convert to TR-181 output type]
+    J --> K[Populate HOSTIF_MsgData_t]
 
     I -. duplicated across handlers .-> N[Repeated parse/validation code]
     K -. inconsistent checks .-> N
@@ -74,7 +72,7 @@ not the transport alone, but the handler-local parsing contract.
 
 Key observations from the current implementation:
 
-- `getJsonRPCData()` already centralizes token retrieval, headers, timeout setup, and `curl_easy_perform()`.
+- `getJsonRPCData()` centralizes the HTTP transport setup (JSON content type header, timeouts, `curl_easy_perform()`), but does not add an `Authorization` header.
 - The current curl write callback is also part of the transport contract and should be normalized during the refactor, so the common helper owns response buffering with the expected libcurl callback shape.
 - Response parsing is duplicated per handler, so fixes to JSON validation have to be repeated in many files.
 - Some handlers use weak response checks such as `if(response.c_str())`, which is always non-null for a `std::string`; the real intent should be an emptiness check.
@@ -100,7 +98,7 @@ flowchart TD
     A[TR-181 handler] --> B[Common Thunder helper API]
     B --> C[Build request object]
     C --> D[getJsonRPCData or successor transport helper]
-    D --> E[libcurl + token + timeouts]
+    D --> E[libcurl + Content-Type + timeouts]
     E --> F[Thunder JSON-RPC endpoint]
     F --> G[Raw response]
     G --> H[Central cJSON_Parse]
@@ -159,14 +157,13 @@ All calls follow JSON-RPC 2.0:
 
 ### Authentication
 
-Every request carries a Bearer token in the `Authorization` header:
+Current implementation sends only the JSON content type header:
 
 ```
-Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-The token is fetched at call time via `get_security_token()` (same file).
+`getJsonRPCData()` currently does not fetch or attach a Bearer token.
 
 ### Core Helper Function
 
@@ -177,10 +174,9 @@ string getJsonRPCData(std::string postData);
 
 **Behaviour:**
 
-1. Calls `get_security_token()` and builds the Authorization header.
-2. Initialises a `CURL` handle via `curl_easy_init()`.
-3. Sets `CURLOPT_POST`, `CURLOPT_POSTFIELDS`, `CURLOPT_HTTPHEADER`,
-   `CURLOPT_WRITEFUNCTION` / `CURLOPT_WRITEDATA`.
+1. Initialises a `CURL` handle via `curl_easy_init()`.
+2. Appends `Content-Type: application/json` and sets `CURLOPT_HTTPHEADER`.
+3. Sets `CURLOPT_POST`, `CURLOPT_POSTFIELDS`, `CURLOPT_WRITEFUNCTION` / `CURLOPT_WRITEDATA`.
 4. Sets `CURLOPT_CONNECTTIMEOUT = 5 s`, `CURLOPT_TIMEOUT = 10 s`.
 5. Calls `curl_easy_perform()` and returns the raw response string.
 6. On failure returns an empty string; callers must check before parsing.
@@ -554,9 +550,8 @@ sequenceDiagram
     participant Plugin as org.rdk.* Plugin
 
     Profile->>Utils: postData JSON string
-    Utils->>Utils: get_security_token()
     Utils->>Curl: curl_easy_init()
-    Utils->>Curl: setopt (URL, POST, headers, timeout)
+    Utils->>Curl: setopt (URL, POST, Content-Type header, timeout)
     Curl->>Thunder: HTTP POST /jsonrpc
     Thunder->>Plugin: dispatch method
     Plugin-->>Thunder: JSON result
