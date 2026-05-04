@@ -4731,7 +4731,6 @@
         <syntax>
           <string/>
           <default type="factory" value="1.0,3"/>
-          <!-- Format: "threshold,updateCount" (threshold: float in seconds, updateCount: unsignedInt) -->
         </syntax>
       </parameter>
     </object>
@@ -4740,7 +4739,6 @@
         <syntax>
           <string/>
           <default type="factory" value="server,0,false,10,12"/>
-          <!-- Format: "Type,Maxsources,Iburst,Minpoll,Maxpoll" e.g. "server,0,true,5,12" -->
         </syntax>
       </parameter>
     </object>
