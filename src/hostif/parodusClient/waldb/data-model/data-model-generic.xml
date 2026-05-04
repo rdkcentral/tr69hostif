@@ -4734,7 +4734,7 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.Time.Chrony.NTPServer.{i}." access="readWrite" minEntries="0" maxEntries="unbounded">
+    <object base="Device.Time.Chrony.NTPServer.{i}." access="readWrite" minEntries="0" maxEntries="5">
       <parameter base="Settings" access="readWrite" notification="0" maxNotification="2">
         <syntax>
           <string/>
