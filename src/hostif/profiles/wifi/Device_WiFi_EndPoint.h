@@ -66,7 +66,7 @@ class hostIf_WiFi_EndPoint {
     hostIf_WiFi_EndPoint(int dev_id);
     ~hostIf_WiFi_EndPoint() {};
 
-    int refreshCache ();
+    int refreshCache (unsigned int fetchMask);
 
 public:
     static class hostIf_WiFi_EndPoint *getInstance(int dev_id);

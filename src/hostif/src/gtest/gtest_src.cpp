@@ -361,12 +361,6 @@ TEST(srcTest, getResetState)
     EXPECT_EQ(state, FactoryReset);
 }
 
-TEST(srcTest, get_security_token)
-{
-    std::string token = get_security_token();
-    EXPECT_EQ(token, "");
-}
-
 TEST(srcTest, putBoolValue)
 {
     HOSTIF_MsgData_t param = { 0 };
@@ -454,6 +448,174 @@ TEST(srcTest, getStringValue)
     std::string value = getStringValue(&param);
     cout << "param.paramValue = " << param.paramValue << endl;
     EXPECT_EQ(value, "true");
+}
+
+TEST(srcTest, invokeThunderPluginMethodEmptyMethod)
+{
+    std::string response = "stale";
+    EXPECT_FALSE(invokeThunderPluginMethod("", "", response));
+    EXPECT_TRUE(response.empty());
+}
+
+TEST(srcTest, thunderExtractResultStringFieldSuccess)
+{
+    const std::string response = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":{\"ssid\":\"HomeWiFi\"}}";
+    std::string value;
+    EXPECT_TRUE(thunderExtractResultStringField(response, "ssid", value));
+    EXPECT_EQ(value, "HomeWiFi");
+}
+
+TEST(srcTest, thunderExtractResultStringFieldInvalidJson)
+{
+    const std::string response = "{\"result\":{\"ssid\":\"HomeWiFi\"}";
+    std::string value;
+    EXPECT_FALSE(thunderExtractResultStringField(response, "ssid", value));
+}
+
+TEST(srcTest, thunderExtractResultStringFieldMissingResult)
+{
+    const std::string response = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"params\":{\"ssid\":\"HomeWiFi\"}}";
+    std::string value;
+    EXPECT_FALSE(thunderExtractResultStringField(response, "ssid", value));
+}
+
+TEST(srcTest, thunderExtractResultStringFieldWithErrorObject)
+{
+    const std::string response = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"error\":{\"code\":-32000,\"message\":\"Plugin call failed\"}}";
+    std::string value;
+    EXPECT_FALSE(thunderExtractResultStringField(response, "ssid", value));
+}
+
+TEST(srcTest, thunderExtractResultStringFieldWrongType)
+{
+    const std::string response = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":{\"ssid\":123}}";
+    std::string value;
+    EXPECT_FALSE(thunderExtractResultStringField(response, "ssid", value));
+}
+
+TEST(srcTest, thunderExtractResultNumberFieldSuccess)
+{
+    const std::string response = "{\"result\":{\"strength\":75}}";
+    int value = 0;
+    EXPECT_TRUE(thunderExtractResultNumberField(response, "strength", value));
+    EXPECT_EQ(value, 75);
+}
+
+TEST(srcTest, thunderExtractResultNumberFieldWrongType)
+{
+    const std::string response = "{\"result\":{\"strength\":\"strong\"}}";
+    int value = 0;
+    EXPECT_FALSE(thunderExtractResultNumberField(response, "strength", value));
+}
+
+TEST(srcTest, thunderExtractResultBoolFieldAcceptsBoolAndNumber)
+{
+    bool boolValue = false;
+    EXPECT_TRUE(thunderExtractResultBoolField("{\"result\":{\"enabled\":true}}", "enabled", boolValue));
+    EXPECT_TRUE(boolValue);
+
+    bool numericValue = false;
+    EXPECT_TRUE(thunderExtractResultBoolField("{\"result\":{\"enabled\":0}}", "enabled", numericValue));
+    EXPECT_FALSE(numericValue);
+}
+
+TEST(srcTest, thunderExtractResultBoolFieldWrongType)
+{
+    const std::string response = "{\"result\":{\"enabled\":\"yes\"}}";
+    bool value = false;
+    EXPECT_FALSE(thunderExtractResultBoolField(response, "enabled", value));
+}
+
+TEST(srcTest, thunderExtractResultULongFieldSuccessAndWrongType)
+{
+    unsigned long goodValue = 0;
+    EXPECT_TRUE(thunderExtractResultULongField("{\"result\":{\"uptime\":123456}}", "uptime", goodValue));
+    EXPECT_EQ(goodValue, 123456UL);
+
+    unsigned long badValue = 0;
+    EXPECT_FALSE(thunderExtractResultULongField("{\"result\":{\"uptime\":\"123456\"}}", "uptime", badValue));
+}
+
+TEST(srcTest, extractThunderStringArrayAsDelimitedStringSuccess)
+{
+    cJSON* arrayObj = cJSON_Parse("[\"wlan0\",\"wlan1\"]");
+    ASSERT_NE(arrayObj, nullptr);
+
+    std::string value;
+    EXPECT_TRUE(extractThunderStringArrayAsDelimitedString(arrayObj, "_", value));
+    EXPECT_EQ(value, "wlan0_wlan1");
+
+    cJSON_Delete(arrayObj);
+}
+
+TEST(srcTest, extractThunderStringArrayAsDelimitedStringInvalidInput)
+{
+    cJSON* notArrayObj = cJSON_Parse("{\"iface\":\"wlan0\"}");
+    ASSERT_NE(notArrayObj, nullptr);
+
+    std::string value;
+    EXPECT_FALSE(extractThunderStringArrayAsDelimitedString(notArrayObj, "_", value));
+
+    cJSON_Delete(notArrayObj);
+}
+
+TEST(srcTest, readThunderArrayItemByKeyStringSuccess)
+{
+    const std::string response =
+        "{\"result\":{\"interfaces\":[{\"name\":\"wlan0\",\"type\":\"WIFI\",\"ssid\":\"HomeWiFi\"},{\"name\":\"eth0\",\"type\":\"ETHERNET\",\"ssid\":\"HomeWiFi\"}]}}";
+
+    std::string value;
+    EXPECT_TRUE(readThunderArrayItemByKey(response, "interfaces", "type", "WIFI", "ssid", value));
+    EXPECT_EQ(value, "HomeWiFi");
+}
+
+TEST(srcTest, readThunderArrayItemByKeyStringMissingArray)
+{
+    const std::string response = "{\"result\":{\"ifaces\":[]}}";
+    std::string value;
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "type", "WIFI", "ssid", value));
+}
+
+TEST(srcTest, readThunderArrayItemByKeyStringNoMatchingItem)
+{
+    const std::string response =
+        "{\"result\":{\"interfaces\":[{\"name\":\"eth0\",\"type\":\"ETHERNET\",\"ssid\":\"HomeWiFi\"}]}}";
+
+    std::string value;
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "type", "WIFI", "ssid", value));
+}
+
+TEST(srcTest, readThunderArrayItemByKeyStringWrongFieldType)
+{
+    const std::string response =
+        "{\"result\":{\"interfaces\":[{\"name\":\"wlan0\",\"type\":\"WIFI\",\"ssid\":123}]}}";
+
+    std::string value;
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "type", "WIFI", "ssid", value));
+}
+
+TEST(srcTest, readThunderArrayItemByKeyBoolAcceptsBoolAndNumber)
+{
+    const std::string boolResponse =
+        "{\"result\":{\"interfaces\":[{\"type\":\"WIFI\",\"enabled\":true}]}}";
+    bool boolValue = false;
+    EXPECT_TRUE(readThunderArrayItemByKey(boolResponse, "interfaces", "type", "WIFI", "enabled", boolValue));
+    EXPECT_TRUE(boolValue);
+
+    const std::string numberResponse =
+        "{\"result\":{\"interfaces\":[{\"type\":\"WIFI\",\"enabled\":0}]}}";
+    bool numberValue = true;
+    EXPECT_TRUE(readThunderArrayItemByKey(numberResponse, "interfaces", "type", "WIFI", "enabled", numberValue));
+    EXPECT_FALSE(numberValue);
+}
+
+TEST(srcTest, readThunderArrayItemByKeyBoolWrongType)
+{
+    const std::string response =
+        "{\"result\":{\"interfaces\":[{\"type\":\"WIFI\",\"enabled\":\"yes\"}]}}";
+
+    bool value = false;
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "type", "WIFI", "enabled", value));
 }
 
 GTEST_API_ int main(int argc, char *argv[]){

@@ -62,6 +62,28 @@
 #include "hostIf_updateHandler.h"
 #include "Device_WiFi.h"
 
+/*
+ * Fetch mask uses bit flags (1, 2, 4) so callers can request multiple
+ * independent Thunder data groups in one refresh call using bitwise OR.
+ *
+ * Example:
+ *   mask = WIFI_SSID_FETCH_CONNECTED_SSID | WIFI_SSID_FETCH_WIFI_STATE;
+ *   if (mask & WIFI_SSID_FETCH_CONNECTED_SSID) { ... }
+ *   if (mask & WIFI_SSID_FETCH_WIFI_STATE) { ... }
+ *
+ * Sequential enum values (0, 1, 2) are not suitable here because:
+ * - 0 cannot behave as a settable flag.
+ * - OR-combined results become ambiguous for membership checks.
+ *
+ * This flag-based design is required for selective refresh and avoids
+ * unnecessary RPC calls for unrelated parameters.
+ */
+enum WiFiSSIDFetchMask {
+    WIFI_SSID_FETCH_CONNECTED_SSID = 1 << 0,
+    WIFI_SSID_FETCH_AVAILABLE_INTERFACES = 1 << 1,
+    WIFI_SSID_FETCH_WIFI_STATE = 1 << 2
+};
+
 /** @defgroup TR_069_DEVICE_WIFI_API TR-069 Device.WiFi object API.
  *  @ingroup TR_069_API
  *
@@ -105,8 +127,8 @@ public:
     static GList* getAllInstances();
     static void closeInstance(hostIf_WiFi_SSID *);
     static void closeAllInstances();
-    int get_Device_WiFi_SSID_Fields(int ssidIndex);
-    void checkWifiSSIDFetch(int radioIndex);
+    int get_Device_WiFi_SSID_Fields(int ssidIndex, unsigned int fetchMask);
+    void checkWifiSSIDFetch(int radioIndex, unsigned int fetchMask);
 
     bool enable;
     char status[BUFF_LENGTH_64];

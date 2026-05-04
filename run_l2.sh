@@ -68,4 +68,3 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communications.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/deviceip.json test/functional-tests/tests/tr69hostif_deviceip.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa.json test/functional-tests/tests/tr69hostif_webpa.py
-
