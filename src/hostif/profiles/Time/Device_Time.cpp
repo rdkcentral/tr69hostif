@@ -819,10 +819,12 @@ int hostIf_Time::set_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, 
     int  minpoll       = 0;
     int  maxpoll       = 0;
 
-    if (sscanf(input.c_str(), "%15[^,],%d,%7[^,],%d,%d",
-               typeStr, &maxsources, iburstStr, &minpoll, &maxpoll) != 5) {
+    int consumed = 0;
+    if (sscanf(input.c_str(), "%15[^,],%d,%7[^,],%d,%d%n",
+               typeStr, &maxsources, iburstStr, &minpoll, &maxpoll, &consumed) != 5
+        || input.c_str()[consumed] != '\0') {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%s:%d] Invalid Settings format (expected Type,Maxsources,Iburst,Minpoll,Maxpoll): '%s'\n",
+                "[%s:%s:%d] Invalid Settings format (expected exactly Type,Maxsources,Iburst,Minpoll,Maxpoll): '%s'\n",
                 __FUNCTION__, __FILE__, __LINE__, input.c_str());
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
