@@ -2,7 +2,7 @@ name: Unit tests tr69hostif
 
 on:
   pull_request:
-    branches: [ develop, main ]
+    branches: [ develop, main, topic/RDKEMW-15249 ]
 
 env:
   AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME }}
