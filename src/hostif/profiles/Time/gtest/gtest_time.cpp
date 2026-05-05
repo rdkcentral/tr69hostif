@@ -465,6 +465,40 @@ TEST(TimeTest, set_Device_Time_NTPServerSettings_InvalidInstance_Six)
     }
 }
 
+TEST(TimeTest, get_Device_Time_NTPServerSettings_InvalidInstance_Zero)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.0.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->get_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+        EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+    }
+}
+
+TEST(TimeTest, get_Device_Time_NTPServerSettings_InvalidInstance_Six)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.6.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->get_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+        EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+    }
+}
+
 TEST(TimeTest, set_Device_Time_NTPServerSettings_TrailingGarbage)
 {
     int instanceNumber = 0;
