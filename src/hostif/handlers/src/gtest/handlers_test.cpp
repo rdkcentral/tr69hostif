@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <iostream>
+#include <cstdio>
 #include "dm_stubs.h"
 #include "startParodus.h"
 #include "file_writer.h"
@@ -324,6 +325,147 @@ TEST(handlersTest, TimeClientReqHandler_handleSetMsg) {
     }
 }
 
+
+/* ------------------------------------------------------------------ */
+/* Chrony RFC parameter handler tests                                   */
+/* ------------------------------------------------------------------ */
+
+TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyEnable) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy(param.paramName, "Device.Time.Chrony.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen  = sizeof(bool);
+
+    TimeClientReqHandler* reqHandler = static_cast<TimeClientReqHandler*>(TimeClientReqHandler::getInstance());
+    if (reqHandler)
+    {
+        int ret = reqHandler->handleGetMsg(&param);
+        EXPECT_EQ(ret, OK);
+    }
+}
+
+TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyEnable) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.Time.Chrony.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    strncpy(param.paramValue, "true", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    TimeClientReqHandler* reqHandler = static_cast<TimeClientReqHandler*>(TimeClientReqHandler::getInstance());
+    if (reqHandler)
+    {
+        int ret = reqHandler->handleSetMsg(&param);
+        EXPECT_EQ(ret, OK);
+        std::remove("/opt/secure/RFC/chrony/chronyd_enabled");
+    }
+}
+
+TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyMakestep) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy(param.paramName, "Device.Time.Chrony.Makestep", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = sizeof(hostIf_StringType);
+
+    TimeClientReqHandler* reqHandler = static_cast<TimeClientReqHandler*>(TimeClientReqHandler::getInstance());
+    if (reqHandler)
+    {
+        int ret = reqHandler->handleGetMsg(&param);
+        EXPECT_EQ(ret, OK);
+    }
+}
+
+TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyMakestep) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.Time.Chrony.Makestep", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    strncpy(param.paramValue, "1.0,3", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    TimeClientReqHandler* reqHandler = static_cast<TimeClientReqHandler*>(TimeClientReqHandler::getInstance());
+    if (reqHandler)
+    {
+        int ret = reqHandler->handleSetMsg(&param);
+        EXPECT_EQ(ret, OK);
+        std::remove("/opt/secure/RFC/chrony/ntp_maxstep");
+    }
+}
+
+TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyNTPServerSettings) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = sizeof(hostIf_StringType);
+
+    TimeClientReqHandler* reqHandler = static_cast<TimeClientReqHandler*>(TimeClientReqHandler::getInstance());
+    if (reqHandler)
+    {
+        int ret = reqHandler->handleGetMsg(&param);
+        EXPECT_EQ(ret, OK);
+    }
+}
+
+TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyNTPServerSettings_Valid) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.2.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    strncpy(param.paramValue, "server,0,true,6,12", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    TimeClientReqHandler* reqHandler = static_cast<TimeClientReqHandler*>(TimeClientReqHandler::getInstance());
+    if (reqHandler)
+    {
+        int ret = reqHandler->handleSetMsg(&param);
+        EXPECT_EQ(ret, OK);
+        std::remove("/opt/secure/RFC/chrony/ntp_server2_settings");
+    }
+}
+
+TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyNTPServerSettings_Invalid) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    /* trailing garbage field should be rejected */
+    strncpy(param.paramValue, "server,0,false,10,12,extra", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    TimeClientReqHandler* reqHandler = static_cast<TimeClientReqHandler*>(TimeClientReqHandler::getInstance());
+    if (reqHandler)
+    {
+        int ret = reqHandler->handleSetMsg(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
 
 TEST(handlersTest, TimeClientReqHandler_handleGetAttributesMsg) {
     int instanceNumber = 0;
