@@ -159,7 +159,7 @@ int TimeClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
 			ret = pIface->set_Device_Time_NTPMaxstep(stMsgData);
 		}
         else if (strncasecmp(stMsgData->paramName, "Device.Time.Chrony.NTPServer.",
-                             strlen("Device.Time.Chrony.NTPServer.")) == 0 &&
+                             sizeof("Device.Time.Chrony.NTPServer.") - 1) == 0 &&
                  strcasestr(stMsgData->paramName, ".Settings") != NULL) {
             ret = pIface->set_Device_Time_NTPServerSettings(stMsgData);
         }
@@ -299,7 +299,7 @@ int TimeClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
 			ret = pIface->get_Device_Time_NTPMaxstep(stMsgData);
 		}
         else if (strncasecmp(stMsgData->paramName, "Device.Time.Chrony.NTPServer.",
-                             strlen("Device.Time.Chrony.NTPServer.")) == 0 &&
+                             sizeof("Device.Time.Chrony.NTPServer.") - 1) == 0 &&
                  strcasestr(stMsgData->paramName, ".Settings") != NULL) {
             ret = pIface->get_Device_Time_NTPServerSettings(stMsgData);
         }
