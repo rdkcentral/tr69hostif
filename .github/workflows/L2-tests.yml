@@ -2,7 +2,7 @@ name: L2 Integration Tests for tr69hostif
 
 on:
   pull_request:
-    branches: [ develop, feature/RDK-55468_tr69hostif_L2 ]
+    branches: [ develop, feature/RDK-55468_tr69hostif_L2, topic/RDKEMW-15249 ]
 
 env:
   AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME }}
