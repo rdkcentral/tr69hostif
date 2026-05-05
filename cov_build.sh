@@ -3,14 +3,14 @@ export ROOT=/usr
 export INSTALL_DIR=${ROOT}/local
 mkdir -p $INSTALL_DIR
 
-# Detect architecture for multi-platform support (x86_64 and Apple Silicon/aarch64)
+# Detect architecture for multi-platform Linux support (x86_64 and aarch64/arm64)
 ARCH=$(uname -m)
 case $ARCH in
     x86_64)
         ARCH_LIB_PATH="/usr/lib/x86_64-linux-gnu"
         ARCH_LIB_PATH_ALT="/lib/x86_64-linux-gnu"
         ;;
-    aarch64)
+    aarch64|arm64)
         ARCH_LIB_PATH="/usr/lib/aarch64-linux-gnu"
         ARCH_LIB_PATH_ALT="/lib/aarch64-linux-gnu"
         ;;
@@ -22,7 +22,11 @@ case $ARCH in
 esac
 
 # Set up library path for both architectures (aligned with L2-tests.yml)
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ARCH_LIB_PATH:$ARCH_LIB_PATH_ALT:/usr/local/lib
+if [ -n "${LD_LIBRARY_PATH:-}" ]; then
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${ARCH_LIB_PATH}:${ARCH_LIB_PATH_ALT}:/usr/local/lib"
+else
+    export LD_LIBRARY_PATH="${ARCH_LIB_PATH}:${ARCH_LIB_PATH_ALT}:/usr/local/lib"
+fi
 
 apt-get update && apt-get install -y libsoup-3.0
 
