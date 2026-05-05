@@ -19,6 +19,7 @@
 
 
 import subprocess
+import os
 import pytest
 from time import sleep
 
@@ -180,7 +181,6 @@ def test_Bootstrap_Set_Get_Handler():
 
 @pytest.mark.run(order=24)
 def test_Bootstrap_File_Creation():
-    import os
 
     sleep(5)
 
@@ -216,7 +216,6 @@ def test_Bootstrap_File_Creation():
 
 @pytest.mark.run(order=25)
 def test_Chrony_Enable_Set_Get_Handler():
-    import os
 
     ENABLE_PARAM  = "Device.Time.Chrony.Enable"
     ENABLE_VALUE  = "true"
@@ -245,7 +244,6 @@ def test_Chrony_Enable_Set_Get_Handler():
 
 @pytest.mark.run(order=26)
 def test_Chrony_Makestep_Set_Get_Handler():
-    import os
 
     MAKESTEP_PARAM = "Device.Time.Chrony.Makestep"
     MAKESTEP_VALUE = "1.0,3"
@@ -280,7 +278,6 @@ def test_Chrony_Makestep_Set_Get_Handler():
 
 @pytest.mark.run(order=27)
 def test_Chrony_NTPServerSettings_Set_Get_Handler():
-    import os
 
     SETTINGS_PARAM = "Device.Time.Chrony.NTPServer.1.Settings"
     SETTINGS_VALUE = "server,0,true,6,12"
@@ -315,7 +312,6 @@ def test_Chrony_NTPServerSettings_Set_Get_Handler():
 
 @pytest.mark.run(order=28)
 def test_Chrony_NTPServerSettings_Default_On_Missing_File():
-    import os
 
     SETTINGS_PARAM = "Device.Time.Chrony.NTPServer.2.Settings"
     DEFAULT_VALUE  = "server,0,false,10,12"
