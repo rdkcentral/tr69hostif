@@ -36,6 +36,7 @@
 #include "hostIf_main.h"
 #include "hostIf_tr69ReqHandler.h"
 #include <curl/curl.h>
+#include "cJSON.h"
 
 #define REBOOT_SCR "backgroundrun sh /rebootNow.sh -s hostIf_utils"
 #define SCR_PATH "/lib/rdk"
@@ -172,16 +173,116 @@ unsigned long get_system_manageble_ntp_time();
 unsigned long get_device_manageble_time();
 
 /**
- * This function retrieves the security token for Thunder.
- * @return A string containing the security token or an empty string.
- */
-std::string get_security_token();
-
-/**
 * This function makes jsonrpc call and returns the result.
 * @return A string contiaining the jsonrpc call result.
 */
 string getJsonRPCData(std::string postData);
+
+/**
+ * Invoke a Thunder JSON-RPC method and return the complete response payload.
+ *
+ * @param[in] method Thunder method name, for example org.rdk.AuthService.getExperience.
+ * @param[in] paramsJson JSON object string for params, pass empty string when params are not required.
+ * @param[out] response Full JSON response payload from Thunder.
+ *
+ * @return true on transport success with non-empty payload, false otherwise.
+ */
+bool invokeThunderPluginMethod(const std::string& method, const std::string& paramsJson, std::string& response);
+
+/**
+ * Invoke a Thunder JSON-RPC method and extract a string field from result object.
+ */
+bool invokeThunderPluginMethodAndExtractStringField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, std::string& value);
+
+/**
+ * Invoke a Thunder JSON-RPC method and extract a numeric field from result object.
+ */
+bool invokeThunderPluginMethodAndExtractNumberField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, int& value);
+
+/**
+ * Invoke a Thunder JSON-RPC method and extract a boolean field from result object.
+ * Accepts both JSON booleans and numeric 0/1 values.
+ */
+bool invokeThunderPluginMethodAndExtractBoolField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, bool& value);
+
+/**
+ * Parse and validate a JSON-RPC response and extract a string field from result object.
+ * Also handles arrays and objects by serializing them to a JSON string.
+ */
+bool thunderExtractResultStringField(const std::string& response, const char* fieldName, std::string& value);
+
+/**
+ * Parse and validate a JSON-RPC response and extract a numeric field from result object.
+ */
+bool thunderExtractResultNumberField(const std::string& response, const char* fieldName, int& value);
+
+/**
+ * Parse and validate a JSON-RPC response and extract a boolean field from result object.
+ * Accepts both JSON booleans and numeric 0/1 values.
+ */
+bool thunderExtractResultBoolField(const std::string& response, const char* fieldName, bool& value);
+
+/**
+ * Intended for non-negative numeric values (for example, Unix timestamps) that fit in
+ * unsigned long. Since JSON numbers may be represented internally as floating-point values,
+ * very large integers can lose precision and values outside the target range are not safe.
+ */
+bool invokeThunderPluginMethodAndExtractULongField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, unsigned long& value);
+
+/**
+ * Parse and validate a JSON-RPC response and extract an unsigned long numeric field from result object.
+ */
+bool thunderExtractResultULongField(const std::string& response, const char* fieldName, unsigned long& value);
+
+/**
+ * Parse Thunder response, locate an object in result[arrayFieldName] where matchKey == matchValue,
+ * and read a string field from that object.
+ */
+bool readThunderArrayItemByKey(const std::string& response,
+    const char* arrayFieldName,
+    const char* matchKey,
+    const char* matchValue,
+    const char* fieldName,
+    std::string& value);
+
+/**
+ * Parse Thunder response, locate an object in result[arrayFieldName] where matchKey == matchValue,
+ * and read a boolean field from that object. Accepts both JSON booleans and numeric 0/1 values.
+ */
+bool readThunderArrayItemByKey(const std::string& response,
+    const char* arrayFieldName,
+    const char* matchKey,
+    const char* matchValue,
+    const char* fieldName,
+    bool& value);
+
+/**
+ * Extract string values from a cJSON array and concatenate them with a delimiter.
+ * @param[in] arrayObj The cJSON array object to process.
+ * @param[in] delimiter The string to use as separator between array elements.
+ * @param[out] value The resulting concatenated string.
+ * @return true if successful, false if arrayObj is not a valid array.
+ */
+bool extractThunderStringArrayAsDelimitedString(cJSON* arrayObj, const std::string& delimiter, std::string& value);
+
+/**
+ * Invoke a Thunder JSON-RPC method and extract a result array field as a delimited string.
+ * Example: ["A","B"] with delimiter "_" becomes "A_B".
+ */
+bool invokeThunderPluginMethodAndExtractDelimitedStringArrayField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName,
+    const std::string& delimiter, std::string& value);
+
+/**
+ * Invoke a Thunder JSON-RPC method and extract the top-level "result" field as a plain string.
+ * Use this when the response shape is {"result": "VALUE"} rather than {"result": {"field": "VALUE"}}.
+ */
+bool invokeThunderPluginMethodAndExtractScalarStringResult(const std::string& method,
+    const std::string& paramsJson, std::string& value);
 
 #endif /* HOSTIF_UTILS_H_*/
 

@@ -518,42 +518,6 @@ unsigned long get_device_manageble_time()
     return epoch_time;
 }
 
-std::string get_security_token() {
-    std::string sToken = "";
-    char pSecurityOutput[256] = {0};
-    FILE *pSecurity = v_secure_popen("r", "/usr/bin/WPEFrameworkSecurityUtility");
-    if(pSecurity) {
-        if (fgets(pSecurityOutput, 256, pSecurity) != NULL) {
-            cJSON* root = cJSON_Parse(pSecurityOutput);
-            if (root) {
-                cJSON *res = cJSON_GetObjectItem(root, "success");
-                if(cJSON_IsTrue(res) == 1) {
-                   cJSON* token = cJSON_GetObjectItem(root, "token");
-                   if (token != NULL && token->type == cJSON_String && token->valuestring != NULL) {
-                       RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: Security Token retrieved successfully\n", __FUNCTION__);
-                       sToken = token->valuestring;
-                    }
-                 }
-                 else {
-                    RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF,"%s: Security Token retrieval failed!\n", __FUNCTION__);
-                 }
-                 cJSON_Delete(root);
-             }
-             else {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error\n", __FUNCTION__);
-             }
-        }
-	v_secure_pclose(pSecurity);
-     }
-     
-     else {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF,"%s: Failed to open security utility\n", __FUNCTION__);
-     }
-    
-
-     return sToken;
-}
-
 size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, string stream);
 size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, string stream)
 {
@@ -565,17 +529,12 @@ size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, string str
 
 string getJsonRPCData(std::string postData)
 {
-    std::string tokenheader;
     string response;
 	
     CURL *curl = curl_easy_init();
     if(curl)
     {
-        std::string sToken = get_security_token();
-	tokenheader = "Authorization: Bearer " + sToken;
-
 	struct curl_slist *list = NULL;
-	list = curl_slist_append(list, tokenheader.c_str());
         list = curl_slist_append(list, "Content-Type: application/json");
 
         if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list) != CURLE_OK){
@@ -641,6 +600,530 @@ string getJsonRPCData(std::string postData)
 	RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: curl init failed\n", __FUNCTION__);
 	return response;
     }
+}
+
+static bool parseThunderResultObject(const std::string& response, cJSON** rootOut, cJSON** resultOut)
+{
+    if ((rootOut == NULL) || (resultOut == NULL))
+    {
+        return false;
+    }
+
+    *rootOut = NULL;
+    *resultOut = NULL;
+
+    if (response.empty())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Empty Thunder response payload\n", __FUNCTION__);
+        return false;
+    }
+
+    cJSON* root = cJSON_Parse(response.c_str());
+    if (root == NULL)
+    {
+        const char* errPtr = cJSON_GetErrorPtr();
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to parse Thunder response JSON near: [%s]\n",
+                __FUNCTION__, errPtr ? errPtr : "unknown");
+        return false;
+    }
+
+    cJSON* errorObj = cJSON_GetObjectItem(root, "error");
+    if (cJSON_IsObject(errorObj))
+    {
+        cJSON* errorCode = cJSON_GetObjectItem(errorObj, "code");
+        cJSON* errorMessage = cJSON_GetObjectItem(errorObj, "message");
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "%s: Thunder returned error code=%d message=%s\n",
+                __FUNCTION__,
+                cJSON_IsNumber(errorCode) ? errorCode->valueint : -1,
+                (cJSON_IsString(errorMessage) && errorMessage->valuestring) ? errorMessage->valuestring : "unknown");
+        cJSON_Delete(root);
+        return false;
+    }
+
+    cJSON* resultObj = cJSON_GetObjectItem(root, "result");
+    if (!cJSON_IsObject(resultObj))
+    {      
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
+        cJSON_Delete(root);
+        return false;
+    }
+
+    *rootOut = root;
+    *resultOut = resultObj;
+    return true;
+}
+
+bool invokeThunderPluginMethod(const std::string& method, const std::string& paramsJson, std::string& response)
+{
+    response.clear();
+
+    if (method.empty())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: method name is empty\n", __FUNCTION__);
+        return false;
+    }
+
+    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"method\": \"" + method + "\"";
+    if (!paramsJson.empty())
+    {
+        postData += ", \"params\" : " + paramsJson;
+    }
+    postData += "}";
+
+    response = getJsonRPCData(std::move(postData));
+    if (response.empty())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData failed\n", __FUNCTION__);
+        return false;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
+    return true;
+}
+
+bool thunderExtractResultStringField(const std::string& response, const char* fieldName, std::string& value)
+{
+    value.clear();
+
+    if (fieldName == NULL)
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* fieldObj = cJSON_GetObjectItem(resultObj, fieldName);
+    bool ok = false;
+    if (cJSON_IsString(fieldObj) && (fieldObj->valuestring != NULL))
+    {
+        value = fieldObj->valuestring;
+        ok = true;
+    }
+    else if (cJSON_IsArray(fieldObj) || cJSON_IsObject(fieldObj))
+    {
+        char* serialized = cJSON_PrintUnformatted(fieldObj);
+        if (serialized != NULL)
+        {
+            value = serialized;
+            cJSON_free(serialized);
+            ok = !value.empty();
+        }
+
+        if (!ok)
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to serialize \"%s\" from Thunder result\n", __FUNCTION__, fieldName);
+        }
+    }
+    else
+    {
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"%s\" in the output from Thunder plugin\n", __FUNCTION__, fieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
+
+bool thunderExtractResultNumberField(const std::string& response, const char* fieldName, int& value)
+{
+    value = 0;
+
+    if (fieldName == NULL)
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* fieldObj = cJSON_GetObjectItem(resultObj, fieldName);
+    bool ok = false;
+    if (cJSON_IsNumber(fieldObj))
+    {
+        value = fieldObj->valueint;
+        ok = true;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, missing/invalid \"%s\" in result\n", __FUNCTION__, fieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
+bool thunderExtractResultBoolField(const std::string& response, const char* fieldName, bool& value)
+{
+    value = false;
+
+    if (fieldName == NULL)
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* fieldObj = cJSON_GetObjectItem(resultObj, fieldName);
+    bool ok = false;
+
+    if (cJSON_IsBool(fieldObj))
+    {
+        value = cJSON_IsTrue(fieldObj);
+        ok = true;
+    }
+    else if (cJSON_IsNumber(fieldObj))
+    {
+        value = (fieldObj->valueint != 0);
+        ok = true;
+    }
+
+    if (!ok)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Missing/invalid bool field %s in Thunder result\n", __FUNCTION__, fieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
+bool thunderExtractResultULongField(const std::string& response, const char* fieldName, unsigned long& value)
+{
+    value = 0;
+
+    if (fieldName == NULL)
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* fieldObj = cJSON_GetObjectItem(resultObj, fieldName);
+    bool ok = false;
+    if (cJSON_IsNumber(fieldObj))
+    {
+        value = (unsigned long)fieldObj->valuedouble;
+        ok = true;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Missing/invalid unsigned long field %s in Thunder result\n", __FUNCTION__, fieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
+bool invokeThunderPluginMethodAndExtractStringField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, std::string& value)
+{
+    std::string response;
+
+    if (!invokeThunderPluginMethod(method, paramsJson, response)) {
+        return false;
+    }
+
+    if (!thunderExtractResultStringField(response, fieldName.c_str(), value)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool invokeThunderPluginMethodAndExtractNumberField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, int& value)
+{
+    std::string response;
+
+    if (!invokeThunderPluginMethod(method, paramsJson, response)) {
+        return false;
+    }
+
+    if (!thunderExtractResultNumberField(response, fieldName.c_str(), value)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool invokeThunderPluginMethodAndExtractBoolField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, bool& value)
+{
+    std::string response;
+
+    if (!invokeThunderPluginMethod(method, paramsJson, response)) {
+        return false;
+    }
+
+    if (!thunderExtractResultBoolField(response, fieldName.c_str(), value)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool readThunderArrayItemByKey(const std::string& response,
+    const char* arrayFieldName,
+    const char* matchKey,
+    const char* matchValue,
+    const char* fieldName,
+    std::string& value)
+{
+    value.clear();
+
+    if ((arrayFieldName == NULL) || (matchKey == NULL) || (matchValue == NULL) || (fieldName == NULL))
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* arrayObj = cJSON_GetObjectItem(resultObj, arrayFieldName);
+    if (!cJSON_IsArray(arrayObj))
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Missing/invalid array field %s in Thunder result\n", __FUNCTION__, arrayFieldName);
+        cJSON_Delete(root);
+        return false;
+    }
+
+    bool ok = false;
+    for (int i = 0; i < cJSON_GetArraySize(arrayObj); i++)
+    {
+        cJSON* itemObj = cJSON_GetArrayItem(arrayObj, i);
+        if (!cJSON_IsObject(itemObj))
+        {
+            continue;
+        }
+
+        cJSON* matchObj = cJSON_GetObjectItem(itemObj, matchKey);
+        if (!cJSON_IsString(matchObj) || (matchObj->valuestring == NULL) || (strcmp(matchObj->valuestring, matchValue) != 0))
+        {
+            continue;
+        }
+
+        cJSON* fieldObj = cJSON_GetObjectItem(itemObj, fieldName);
+        if (cJSON_IsString(fieldObj) && fieldObj->valuestring)
+        {
+            value = fieldObj->valuestring;
+            ok = true;
+        }
+        else if (cJSON_IsArray(fieldObj) || cJSON_IsObject(fieldObj))
+        {
+            char* serialized = cJSON_PrintUnformatted(fieldObj);
+            if (serialized != NULL)
+            {
+                value = serialized;
+                cJSON_free(serialized);
+                ok = !value.empty();
+            }
+        }
+
+        break;
+    }
+
+    if (!ok)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "%s: Missing/invalid field %s for %s=%s in array %s\n",
+            __FUNCTION__, fieldName, matchKey, matchValue, arrayFieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
+bool readThunderArrayItemByKey(const std::string& response,
+    const char* arrayFieldName,
+    const char* matchKey,
+    const char* matchValue,
+    const char* fieldName,
+    bool& value)
+{
+    value = false;
+
+    if ((arrayFieldName == NULL) || (matchKey == NULL) || (matchValue == NULL) || (fieldName == NULL))
+    {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj))
+    {
+        return false;
+    }
+
+    cJSON* arrayObj = cJSON_GetObjectItem(resultObj, arrayFieldName);
+    if (!cJSON_IsArray(arrayObj))
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Missing/invalid array field %s in Thunder result\n", __FUNCTION__, arrayFieldName);
+        cJSON_Delete(root);
+        return false;
+    }
+
+    bool ok = false;
+    for (int i = 0; i < cJSON_GetArraySize(arrayObj); i++)
+    {
+        cJSON* itemObj = cJSON_GetArrayItem(arrayObj, i);
+        if (!cJSON_IsObject(itemObj))
+        {
+            continue;
+        }
+
+        cJSON* matchObj = cJSON_GetObjectItem(itemObj, matchKey);
+        if (!cJSON_IsString(matchObj) || (matchObj->valuestring == NULL) || (strcmp(matchObj->valuestring, matchValue) != 0))
+        {
+            continue;
+        }
+
+        cJSON* fieldObj = cJSON_GetObjectItem(itemObj, fieldName);
+        if (cJSON_IsBool(fieldObj))
+        {
+            value = cJSON_IsTrue(fieldObj);
+            ok = true;
+        }
+        else if (cJSON_IsNumber(fieldObj))
+        {
+            value = (fieldObj->valueint != 0);
+            ok = true;
+        }
+
+        break;
+    }
+
+    if (!ok)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+            "%s: Missing/invalid bool field %s for %s=%s in array %s\n",
+            __FUNCTION__, fieldName, matchKey, matchValue, arrayFieldName);
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
+bool invokeThunderPluginMethodAndExtractULongField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName, unsigned long& value)
+{
+    std::string response;
+
+    if (!invokeThunderPluginMethod(method, paramsJson, response)) {
+        return false;
+    }
+
+    if (!thunderExtractResultULongField(response, fieldName.c_str(), value)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool extractThunderStringArrayAsDelimitedString(cJSON* arrayObj, const std::string& delimiter, std::string& value)
+{
+    value.clear();
+
+    if (!cJSON_IsArray(arrayObj))
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Input is not a valid cJSON array\n", __FUNCTION__);
+        return false;
+    }
+
+    int arraySize = cJSON_GetArraySize(arrayObj);
+    if (arraySize <= 0)
+    {
+        return true; // Empty array is valid, return empty string
+    }
+
+    for (int i = 0; i < arraySize; i++)
+    {
+        cJSON* item = cJSON_GetArrayItem(arrayObj, i);
+        if (cJSON_IsString(item) && item->valuestring)
+        {
+            if (i > 0)
+            {
+                value += delimiter;
+            }
+            value += item->valuestring;
+        }
+    }
+
+    return true;
+}
+
+bool invokeThunderPluginMethodAndExtractDelimitedStringArrayField(const std::string& method,
+    const std::string& paramsJson, const std::string& fieldName,
+    const std::string& delimiter, std::string& value)
+{
+    value.clear();
+
+    std::string response;
+    if (!invokeThunderPluginMethod(method, paramsJson, response)) {
+        return false;
+    }
+
+    cJSON* root = NULL;
+    cJSON* resultObj = NULL;
+    if (!parseThunderResultObject(response, &root, &resultObj)) {
+        return false;
+    }
+
+    cJSON* arrayObj = cJSON_GetObjectItem(resultObj, fieldName.c_str());
+    const bool ok = extractThunderStringArrayAsDelimitedString(arrayObj, delimiter, value);
+    cJSON_Delete(root);
+    return ok;
+}
+
+bool invokeThunderPluginMethodAndExtractScalarStringResult(const std::string& method,
+    const std::string& paramsJson, std::string& value)
+{
+    value.clear();
+
+    std::string response;
+    if (!invokeThunderPluginMethod(method, paramsJson, response)) {
+        return false;
+    }
+
+    cJSON* root = cJSON_Parse(response.c_str());
+    if (root == NULL) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error for method %s\n", __FUNCTION__, method.c_str());
+        return false;
+    }
+
+    cJSON* resultObj = cJSON_GetObjectItem(root, "result");
+    bool ok = false;
+    if (cJSON_IsString(resultObj) && (resultObj->valuestring != NULL)) {
+        value = resultObj->valuestring;
+        ok = true;
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Missing/invalid scalar string result for method %s\n", __FUNCTION__, method.c_str());
+    }
+
+    cJSON_Delete(root);
+    return ok;
 }
 
 #ifdef GTEST_ENABLE
