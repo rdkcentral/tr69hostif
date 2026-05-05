@@ -330,6 +330,10 @@ TEST(handlersTest, TimeClientReqHandler_handleSetMsg) {
 /* Chrony RFC parameter handler tests                                   */
 /* ------------------------------------------------------------------ */
 
+static const char *kHandlerChronyEnable   = "/opt/secure/RFC/chrony/chronyd_enabled";
+static const char *kHandlerNtpMaxstep     = "/opt/secure/RFC/chrony/ntp_maxstep";
+static const char *kHandlerNtpServer2File = "/opt/secure/RFC/chrony/ntp_server2_settings";
+
 TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyEnable) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param, 0, sizeof(HOSTIF_MsgData_t));
@@ -364,7 +368,7 @@ TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyEnable) {
     {
         int ret = reqHandler->handleSetMsg(&param);
         EXPECT_EQ(ret, OK);
-        std::remove("/opt/secure/RFC/chrony/chronyd_enabled");
+        std::remove(kHandlerChronyEnable);
     }
 }
 
@@ -402,7 +406,7 @@ TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyMakestep) {
     {
         int ret = reqHandler->handleSetMsg(&param);
         EXPECT_EQ(ret, OK);
-        std::remove("/opt/secure/RFC/chrony/ntp_maxstep");
+        std::remove(kHandlerNtpMaxstep);
     }
 }
 
@@ -442,7 +446,7 @@ TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyNTPServerSettings_Val
     {
         int ret = reqHandler->handleSetMsg(&param);
         EXPECT_EQ(ret, OK);
-        std::remove("/opt/secure/RFC/chrony/ntp_server2_settings");
+        std::remove(kHandlerNtpServer2File);
     }
 }
 
