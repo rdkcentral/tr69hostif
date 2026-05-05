@@ -19,6 +19,10 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <iostream>
+#include <cstdio>
+#include <cerrno>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "hostIf_utils.h"
 #include "Device_Time.h"
@@ -161,13 +165,22 @@ static const char *kChronyDir    = "/opt/secure/RFC/chrony";
 static const char *kChronyEnable = "/opt/secure/RFC/chrony/chronyd_enabled";
 static const char *kNtpMaxstep   = "/opt/secure/RFC/chrony/ntp_maxstep";
 
-/* Helper: create parent directory recursively (simple two-level) */
-static void ensureChronyDir()
+/* Helper: create parent directory recursively (simple two-level).
+ * Returns false and prints an error message if any mkdir() fails
+ * for a reason other than the directory already existing.         */
+static bool ensureChronyDir()
 {
-    mkdir("/opt", 0755);
-    mkdir("/opt/secure", 0755);
-    mkdir("/opt/secure/RFC", 0755);
-    mkdir(kChronyDir, 0755);
+    const char * const dirs[] = {
+        "/opt", "/opt/secure", "/opt/secure/RFC", kChronyDir
+    };
+    for (size_t i = 0; i < sizeof(dirs) / sizeof(dirs[0]); ++i) {
+        if (mkdir(dirs[i], 0755) != 0 && errno != EEXIST) {
+            ADD_FAILURE() << "ensureChronyDir: mkdir(" << dirs[i]
+                          << ") failed: " << strerror(errno);
+            return false;
+        }
+    }
+    return true;
 }
 
 /* Helper: remove a file silently */
@@ -180,7 +193,7 @@ static void removeFile(const char *path)
 
 TEST(TimeTest, get_Device_Time_Chrony_Enable_FileAbsent)
 {
-    ensureChronyDir();
+    ASSERT_TRUE(ensureChronyDir());
     removeFile(kChronyEnable);
 
     int instanceNumber = 0;
@@ -201,7 +214,7 @@ TEST(TimeTest, get_Device_Time_Chrony_Enable_FileAbsent)
 
 TEST(TimeTest, set_get_Device_Time_Chrony_Enable_True)
 {
-    ensureChronyDir();
+    ASSERT_TRUE(ensureChronyDir());
     removeFile(kChronyEnable);
 
     int instanceNumber = 0;
@@ -253,7 +266,7 @@ TEST(TimeTest, set_Device_Time_Chrony_Enable_InvalidValue)
 
 TEST(TimeTest, get_Device_Time_NTPMaxstep_DefaultValue)
 {
-    ensureChronyDir();
+    ASSERT_TRUE(ensureChronyDir());
     removeFile(kNtpMaxstep);
 
     int instanceNumber = 0;
@@ -272,7 +285,7 @@ TEST(TimeTest, get_Device_Time_NTPMaxstep_DefaultValue)
 
 TEST(TimeTest, set_get_Device_Time_NTPMaxstep_ValidValue)
 {
-    ensureChronyDir();
+    ASSERT_TRUE(ensureChronyDir());
     removeFile(kNtpMaxstep);
 
     int instanceNumber = 0;
@@ -328,7 +341,7 @@ static std::string ntpSettingsFile(int idx)
 
 TEST(TimeTest, get_Device_Time_NTPServerSettings_DefaultValue)
 {
-    ensureChronyDir();
+    ASSERT_TRUE(ensureChronyDir());
     std::string fp = ntpSettingsFile(1);
     removeFile(fp.c_str());
 
@@ -350,7 +363,7 @@ TEST(TimeTest, get_Device_Time_NTPServerSettings_DefaultValue)
 
 TEST(TimeTest, set_get_Device_Time_NTPServerSettings_ValidServer)
 {
-    ensureChronyDir();
+    ASSERT_TRUE(ensureChronyDir());
     std::string fp = ntpSettingsFile(1);
     removeFile(fp.c_str());
 
@@ -383,7 +396,7 @@ TEST(TimeTest, set_get_Device_Time_NTPServerSettings_ValidServer)
 
 TEST(TimeTest, set_get_Device_Time_NTPServerSettings_ValidPool)
 {
-    ensureChronyDir();
+    ASSERT_TRUE(ensureChronyDir());
     std::string fp = ntpSettingsFile(3);
     removeFile(fp.c_str());
 

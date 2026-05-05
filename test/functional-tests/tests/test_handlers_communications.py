@@ -251,6 +251,12 @@ def test_Chrony_Makestep_Set_Get_Handler():
     MAKESTEP_VALUE = "1.0,3"
     MAKESTEP_FILE  = "/opt/secure/RFC/chrony/ntp_maxstep"
 
+    # Remove any stale file so we know the SET actually created it
+    try:
+        os.remove(MAKESTEP_FILE)
+    except FileNotFoundError:
+        pass
+
     rbus_set_data(MAKESTEP_PARAM, "string", MAKESTEP_VALUE)
     rstdout = rbus_get_data(MAKESTEP_PARAM)
     assert RBUS_EXCEPTION_STRING not in rstdout, \
@@ -260,6 +266,11 @@ def test_Chrony_Makestep_Set_Get_Handler():
 
     assert os.path.exists(MAKESTEP_FILE), \
         "ntp_maxstep file was not created after setting Chrony.Makestep"
+
+    with open(MAKESTEP_FILE, "r") as f:
+        content = f.read().strip()
+        assert content == MAKESTEP_VALUE, \
+            f"File content '{content}' does not match expected '{MAKESTEP_VALUE}'"
 
     try:
         os.remove(MAKESTEP_FILE)
@@ -275,6 +286,12 @@ def test_Chrony_NTPServerSettings_Set_Get_Handler():
     SETTINGS_VALUE = "server,0,true,6,12"
     SETTINGS_FILE  = "/opt/secure/RFC/chrony/ntp_server1_settings"
 
+    # Remove any stale file so we know the SET actually wrote a new value
+    try:
+        os.remove(SETTINGS_FILE)
+    except FileNotFoundError:
+        pass
+
     rbus_set_data(SETTINGS_PARAM, "string", SETTINGS_VALUE)
     rstdout = rbus_get_data(SETTINGS_PARAM)
     assert RBUS_EXCEPTION_STRING not in rstdout, \
@@ -286,9 +303,9 @@ def test_Chrony_NTPServerSettings_Set_Get_Handler():
         "ntp_server1_settings file was not created"
 
     with open(SETTINGS_FILE, "r") as f:
-        content = f.read()
-        assert SETTINGS_VALUE in content, \
-            f"Settings not found in file. Content: {content}"
+        content = f.read().strip()
+        assert content == SETTINGS_VALUE, \
+            f"File content '{content}' does not exactly match expected '{SETTINGS_VALUE}'"
 
     try:
         os.remove(SETTINGS_FILE)

@@ -19,6 +19,9 @@
 #include <gmock/gmock.h>
 #include <iostream>
 #include <cstdio>
+#include <cerrno>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "dm_stubs.h"
 #include "startParodus.h"
 #include "file_writer.h"
@@ -334,6 +337,22 @@ static const char *kHandlerChronyEnable   = "/opt/secure/RFC/chrony/chronyd_enab
 static const char *kHandlerNtpMaxstep     = "/opt/secure/RFC/chrony/ntp_maxstep";
 static const char *kHandlerNtpServer2File = "/opt/secure/RFC/chrony/ntp_server2_settings";
 
+/* Ensure the full directory tree required by chrony SET handlers exists. */
+static bool ensureHandlerChronyDir()
+{
+    const char * const dirs[] = {
+        "/opt", "/opt/secure", "/opt/secure/RFC", "/opt/secure/RFC/chrony"
+    };
+    for (size_t i = 0; i < sizeof(dirs) / sizeof(dirs[0]); ++i) {
+        if (mkdir(dirs[i], 0755) != 0 && errno != EEXIST) {
+            ADD_FAILURE() << "ensureHandlerChronyDir: mkdir(" << dirs[i]
+                          << ") failed: " << strerror(errno);
+            return false;
+        }
+    }
+    return true;
+}
+
 TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyEnable) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param, 0, sizeof(HOSTIF_MsgData_t));
@@ -353,6 +372,7 @@ TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyEnable) {
 }
 
 TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyEnable) {
+    ASSERT_TRUE(ensureHandlerChronyDir());
     HOSTIF_MsgData_t param = { 0 };
     memset(&param, 0, sizeof(HOSTIF_MsgData_t));
     param.reqType = HOSTIF_SET;
@@ -391,6 +411,7 @@ TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyMakestep) {
 }
 
 TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyMakestep) {
+    ASSERT_TRUE(ensureHandlerChronyDir());
     HOSTIF_MsgData_t param = { 0 };
     memset(&param, 0, sizeof(HOSTIF_MsgData_t));
     param.reqType = HOSTIF_SET;
@@ -430,6 +451,7 @@ TEST(handlersTest, TimeClientReqHandler_handleGetMsg_ChronyNTPServerSettings) {
 }
 
 TEST(handlersTest, TimeClientReqHandler_handleSetMsg_ChronyNTPServerSettings_Valid) {
+    ASSERT_TRUE(ensureHandlerChronyDir());
     HOSTIF_MsgData_t param = { 0 };
     memset(&param, 0, sizeof(HOSTIF_MsgData_t));
     param.reqType = HOSTIF_SET;
