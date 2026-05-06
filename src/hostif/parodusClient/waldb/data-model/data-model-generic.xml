@@ -4738,7 +4738,6 @@
       <parameter base="Settings" access="readWrite" notification="0" maxNotification="2">
         <syntax>
           <string/>
-          <default type="factory" value="server,0,false,10,12"/>
         </syntax>
       </parameter>
     </object>

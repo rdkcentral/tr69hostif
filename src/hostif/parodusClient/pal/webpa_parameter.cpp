@@ -660,8 +660,7 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
     status = hostIf_GetMsgHandler(ptrParam);
 
     if(status != 0) {
-        if (dmParam != NULL && dmParam->defaultValue &&
-            ptrParam->faultCode != fcInvalidParameterName)
+        if (dmParam != NULL && dmParam->defaultValue)
         {    
             strncpy(ptrParam->paramValue, dmParam->defaultValue, MAX_PARAM_LENGTH - 1);
             ptrParam->paramValue[MAX_PARAM_LENGTH - 1] = '\0';
