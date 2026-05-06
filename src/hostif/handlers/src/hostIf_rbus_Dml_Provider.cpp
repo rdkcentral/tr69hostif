@@ -248,7 +248,7 @@ rbusError_t TR_Dml_GetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rb
                 }
                 else
                 {
-                    if(defaultValue)
+                    if(defaultValue && param.faultCode != fcInvalidParameterName)
                     {
 		        int ival=0;
 			unsigned int uval=0;
