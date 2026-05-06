@@ -19,6 +19,7 @@
 
 
 import subprocess
+import os
 import pytest
 from time import sleep
 
@@ -180,7 +181,6 @@ def test_Bootstrap_Set_Get_Handler():
 
 @pytest.mark.run(order=24)
 def test_Bootstrap_File_Creation():
-    import os
 
     sleep(5)
 
@@ -212,3 +212,118 @@ def test_Bootstrap_File_Creation():
 
 
                                                
+
+
+@pytest.mark.run(order=25)
+def test_Chrony_Enable_Set_Get_Handler():
+
+    ENABLE_PARAM  = "Device.Time.Chrony.Enable"
+    ENABLE_VALUE  = "true"
+    CHRONY_FILE   = "/opt/secure/RFC/chrony/chronyd_enabled"
+
+    try:
+        os.remove(CHRONY_FILE)
+    except FileNotFoundError:
+        pass
+
+    rbus_set_data(ENABLE_PARAM, "boolean", ENABLE_VALUE)
+    rstdout = rbus_get_data(ENABLE_PARAM)
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"RBUS error on GET after SET: {rstdout}"
+    assert ENABLE_VALUE in rstdout, \
+        f"Expected '{ENABLE_VALUE}' in GET result, got: {rstdout}"
+
+    assert os.path.exists(CHRONY_FILE), \
+        "chronyd_enabled file was not created after setting Chrony.Enable=true"
+
+    try:
+        os.remove(CHRONY_FILE)
+    except FileNotFoundError:
+        pass
+
+
+@pytest.mark.run(order=26)
+def test_Chrony_Makestep_Set_Get_Handler():
+
+    MAKESTEP_PARAM = "Device.Time.Chrony.Makestep"
+    MAKESTEP_VALUE = "1.0,3"
+    MAKESTEP_FILE  = "/opt/secure/RFC/chrony/ntp_maxstep"
+
+    # Remove any stale file so we know the SET actually created it
+    try:
+        os.remove(MAKESTEP_FILE)
+    except FileNotFoundError:
+        pass
+
+    rbus_set_data(MAKESTEP_PARAM, "string", MAKESTEP_VALUE)
+    rstdout = rbus_get_data(MAKESTEP_PARAM)
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"RBUS error on GET after SET: {rstdout}"
+    assert MAKESTEP_VALUE in rstdout, \
+        f"Expected '{MAKESTEP_VALUE}' in GET result, got: {rstdout}"
+
+    assert os.path.exists(MAKESTEP_FILE), \
+        "ntp_maxstep file was not created after setting Chrony.Makestep"
+
+    with open(MAKESTEP_FILE, "r") as f:
+        content = f.read().strip()
+        assert content == MAKESTEP_VALUE, \
+            f"File content '{content}' does not match expected '{MAKESTEP_VALUE}'"
+
+    try:
+        os.remove(MAKESTEP_FILE)
+    except FileNotFoundError:
+        pass
+
+
+@pytest.mark.run(order=27)
+def test_Chrony_NTPServerSettings_Set_Get_Handler():
+
+    SETTINGS_PARAM = "Device.Time.Chrony.NTPServer.1.Settings"
+    SETTINGS_VALUE = "server,0,true,6,12"
+    SETTINGS_FILE  = "/opt/secure/RFC/chrony/ntp_server1_settings"
+
+    # Remove any stale file so we know the SET actually wrote a new value
+    try:
+        os.remove(SETTINGS_FILE)
+    except FileNotFoundError:
+        pass
+
+    rbus_set_data(SETTINGS_PARAM, "string", SETTINGS_VALUE)
+    rstdout = rbus_get_data(SETTINGS_PARAM)
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"RBUS error on GET after SET: {rstdout}"
+    assert SETTINGS_VALUE in rstdout, \
+        f"Expected '{SETTINGS_VALUE}' in GET result, got: {rstdout}"
+
+    assert os.path.exists(SETTINGS_FILE), \
+        "ntp_server1_settings file was not created"
+
+    with open(SETTINGS_FILE, "r") as f:
+        content = f.read().strip()
+        assert content == SETTINGS_VALUE, \
+            f"File content '{content}' does not exactly match expected '{SETTINGS_VALUE}'"
+
+    try:
+        os.remove(SETTINGS_FILE)
+    except FileNotFoundError:
+        pass
+
+
+@pytest.mark.run(order=28)
+def test_Chrony_NTPServerSettings_Default_On_Missing_File():
+
+    SETTINGS_PARAM = "Device.Time.Chrony.NTPServer.2.Settings"
+    DEFAULT_VALUE  = "server,0,false,10,12"
+    SETTINGS_FILE  = "/opt/secure/RFC/chrony/ntp_server2_settings"
+
+    try:
+        os.remove(SETTINGS_FILE)
+    except FileNotFoundError:
+        pass
+
+    rstdout = rbus_get_data(SETTINGS_PARAM)
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"RBUS error: {rstdout}"
+    assert DEFAULT_VALUE in rstdout, \
+        f"Expected factory default '{DEFAULT_VALUE}' when file absent, got: {rstdout}"
