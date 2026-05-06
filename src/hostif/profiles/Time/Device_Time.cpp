@@ -758,11 +758,17 @@ static int parseNTPServerInstance(const char *paramName)
 
     const char *after = paramName + prefixLen;
     char *end = NULL;
+    errno = 0;
     long idx = strtol(after, &end, 10);
-    if (end == after || end == NULL)
+    if (end == NULL || end == after)
+        return -1;
+    if (errno == ERANGE)
         return -1;
     if (strcasecmp(end, suffix) != 0)
         return -1;
+    if (idx < 1 || idx > NTP_SERVER_MAX_INSTANCES)
+        return -1;
+
     return (int)idx;
 }
 
