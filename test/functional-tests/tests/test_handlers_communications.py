@@ -226,7 +226,7 @@ def test_Chrony_Enable_Set_Get_Handler():
     except FileNotFoundError:
         pass
 
-    rbus_set_data(ENABLE_PARAM, "string", ENABLE_VALUE)
+    rbus_set_data(ENABLE_PARAM, "boolean", ENABLE_VALUE)
     rstdout = rbus_get_data(ENABLE_PARAM)
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"RBUS error on GET after SET: {rstdout}"
