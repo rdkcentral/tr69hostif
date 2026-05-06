@@ -285,7 +285,8 @@ rbusError_t TR_Dml_GetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rb
                     }
                     else {
                         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s][rbusdml] Get Parameter [%s] Invalid format to send across.\n", __FUNCTION__, name);
-                        rc = RBUS_ERROR_BUS_ERROR;
+                        rc = (param.faultCode == fcInvalidParameterName) ?
+                             RBUS_ERROR_ELEMENT_DOES_NOT_EXIST : RBUS_ERROR_BUS_ERROR;
                     }
                 }
 
