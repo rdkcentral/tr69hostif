@@ -67,6 +67,10 @@
 #define NTP_SERVER5_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server5_directive"
 #define NTP_MAXSTEP_FILE "/opt/secure/RFC/chrony/ntp_maxstep"
 #define NTP_MAXSTEP_DEFAULT "1.0,3"
+#define NTP_SERVER_SETTINGS_FILE_PREFIX "/opt/secure/RFC/chrony/ntp_server"
+#define NTP_SERVER_SETTINGS_FILE_SUFFIX "_settings"
+#define NTP_SERVER_SETTINGS_DEFAULT "server,0,true,10,12"
+#define NTP_SERVER_MAX_INSTANCES 5
 
 GHashTable* hostIf_Time::ifHash = NULL;
 GMutex hostIf_Time::m_mutex;
@@ -728,6 +732,197 @@ int hostIf_Time::set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *p
         return NOK;
     file << input;
     file.close();
+    if (pChanged) *pChanged = true;
+    return OK;
+}
+
+/* Build the settings file path for a given NTPServer instance index (1-based). */
+static void getNTPServerSettingsFilePath(int idx, char *pathBuf, size_t pathBufLen)
+{
+    snprintf(pathBuf, pathBufLen, "%s%d%s",
+             NTP_SERVER_SETTINGS_FILE_PREFIX, idx, NTP_SERVER_SETTINGS_FILE_SUFFIX);
+}
+
+/* Extract the NTPServer instance index from a param name like
+ * "Device.Time.Chrony.NTPServer.2.Settings".  Returns -1 on failure.
+ * Matching is case-insensitive for the "Chrony" component. */
+static int parseNTPServerInstance(const char *paramName)
+{
+    /* Prefix before the instance number */
+    static const char prefix[] = "Device.Time.Chrony.NTPServer.";
+    static const char suffix[] = ".Settings";
+    const size_t prefixLen = sizeof(prefix) - 1;
+
+    if (strncasecmp(paramName, prefix, prefixLen) != 0)
+        return -1;
+
+    const char *after = paramName + prefixLen;
+    char *end = NULL;
+    errno = 0;
+    long idx = strtol(after, &end, 10);
+    if (end == NULL || end == after)
+        return -1;
+    if (errno == ERANGE)
+        return -1;
+    if (strcasecmp(end, suffix) != 0)
+        return -1;
+    if (idx < 1 || idx > NTP_SERVER_MAX_INSTANCES)
+        return -1;
+
+    return (int)idx;
+}
+
+int hostIf_Time::get_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    stMsgData->paramtype = hostIf_StringType;
+
+    int idx = parseNTPServerInstance(stMsgData->paramName);
+    if (idx < 1 || idx > NTP_SERVER_MAX_INSTANCES) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid NTPServer instance %d in param '%s'\n",
+                __FUNCTION__, __FILE__, __LINE__, idx, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterName;
+        return NOK;
+    }
+
+    char filePath[128];
+    getNTPServerSettingsFilePath(idx, filePath, sizeof(filePath));
+
+    std::string value;
+    std::ifstream file(filePath);
+    if (file.is_open()) {
+        std::getline(file, value);
+        file.close();
+    }
+    if (value.empty())
+        value = NTP_SERVER_SETTINGS_DEFAULT;
+
+    strncpy(stMsgData->paramValue, value.c_str(), sizeof(stMsgData->paramValue) - 1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+
+    if (pChanged) *pChanged = false;
+    return OK;
+}
+
+int hostIf_Time::set_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    int idx = parseNTPServerInstance(stMsgData->paramName);
+    if (idx < 1 || idx > NTP_SERVER_MAX_INSTANCES) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid NTPServer instance %d in param '%s'\n",
+                __FUNCTION__, __FILE__, __LINE__, idx, stMsgData->paramName);
+        stMsgData->faultCode = fcInvalidParameterName;
+        return NOK;
+    }
+
+    std::string input = getStringValue(stMsgData);
+
+    /* Parse and validate format: "Type,Maxsources,Iburst,Minpoll,Maxpoll" */
+    char typeStr[16]   = {0};
+    char iburstStr[8]  = {0};
+    int  maxsources    = 0;
+    int  minpoll       = 0;
+    int  maxpoll       = 0;
+
+    int consumed = 0;
+    if (sscanf(input.c_str(), "%15[^,],%d,%7[^,],%d,%d%n",
+               typeStr, &maxsources, iburstStr, &minpoll, &maxpoll, &consumed) != 5
+        || input.c_str()[consumed] != '\0') {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid Settings format (expected exactly Type,Maxsources,Iburst,Minpoll,Maxpoll): '%s'\n",
+                __FUNCTION__, __FILE__, __LINE__, input.c_str());
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    /* Validate Type: must be "server" or "pool" */
+    if (strcasecmp(typeStr, "server") != 0 && strcasecmp(typeStr, "pool") != 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid Type '%s'; allowed values are 'server' or 'pool'\n",
+                __FUNCTION__, __FILE__, __LINE__, typeStr);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    /* Maxsources must be 0 for type "server" (not applicable) */
+    if (strcasecmp(typeStr, "server") == 0 && maxsources != 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Maxsources must be 0 for type 'server', got %d\n",
+                __FUNCTION__, __FILE__, __LINE__, maxsources);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    /* Maxsources must be non-negative */
+    if (maxsources < 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Maxsources must be >= 0, got %d\n",
+                __FUNCTION__, __FILE__, __LINE__, maxsources);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    /* Validate Iburst: must be "true" or "false" */
+    if (strcasecmp(iburstStr, "true") != 0 && strcasecmp(iburstStr, "false") != 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Invalid Iburst value '%s'; must be 'true' or 'false'\n",
+                __FUNCTION__, __FILE__, __LINE__, iburstStr);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    /* Validate Minpoll in chrony allowed range [4, 24] */
+    if (minpoll < 4 || minpoll > 24) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Minpoll %d out of valid range [4, 24]\n",
+                __FUNCTION__, __FILE__, __LINE__, minpoll);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    /* Validate Maxpoll in chrony allowed range [4, 24] and >= Minpoll */
+    if (maxpoll < 4 || maxpoll > 24) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Maxpoll %d out of valid range [4, 24]\n",
+                __FUNCTION__, __FILE__, __LINE__, maxpoll);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+    if (maxpoll < minpoll) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Maxpoll %d must be >= Minpoll %d\n",
+                __FUNCTION__, __FILE__, __LINE__, maxpoll, minpoll);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    /* Ensure the chrony RFC directory exists */
+    const char *chronyDir = "/opt/secure/RFC/chrony";
+    if (mkdir(chronyDir, 0755) != 0 && errno != EEXIST) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to create directory %s: %s\n",
+                __FUNCTION__, __FILE__, __LINE__, chronyDir, strerror(errno));
+        return NOK;
+    }
+
+    char filePath[128];
+    getNTPServerSettingsFilePath(idx, filePath, sizeof(filePath));
+
+    std::ofstream file(filePath, std::ios::trunc);
+    if (!file.is_open()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%s:%d] Failed to open %s for writing\n",
+                __FUNCTION__, __FILE__, __LINE__, filePath);
+        return NOK;
+    }
+    file << input;
+    file.close();
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s:%s:%d] NTPServer.%d.Settings set to '%s'\n",
+            __FUNCTION__, __FILE__, __LINE__, idx, input.c_str());
+
     if (pChanged) *pChanged = true;
     return OK;
 }

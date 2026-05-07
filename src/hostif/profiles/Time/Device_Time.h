@@ -457,6 +457,10 @@ public:
 
     int set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
 
+    int get_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+
+    int set_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+
     /**
      * @brief    Get the bootstrap parameters.
      *
