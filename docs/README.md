@@ -8,6 +8,8 @@ This directory contains implementation-oriented documentation for the tr69hostif
 
 - [System Overview](architecture/overview.md) describes the daemon's major components, startup sequence, and runtime boundaries.
 - [JSON Usage](architecture/json-usage.md) maps the module's JSON request, config, notification, and JSON-RPC paths and records the current robustness gaps.
+- [Partner Defaults Workflow](architecture/partner-defaults-workflow.md) explains how `XBSStore` selects `default_boot`, `default`, or a partner-specific section and reloads when PartnerId becomes available.
+- [Parodus Module Analysis](architecture/parodus-module-analysis.md) explains the current embedded Parodus design, its drawbacks, and the proposed path to separate it as an independent process.
 - [Threading Model](architecture/threading-model.md) documents worker threads, synchronization primitives, and shutdown behavior.
 - [Data Flow](architecture/data-flow.md) traces request routing, event propagation, and RFC/bootstrap precedence.
 

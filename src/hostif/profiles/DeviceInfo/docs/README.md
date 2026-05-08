@@ -109,6 +109,8 @@ sequenceDiagram
 2. `/opt/partners_defaults.json` — operator-installed overrides
 3. `/opt/tr181store.ini` — RFC/ACS-programmed runtime overrides
 
+For the complete startup, fallback, reload, and overlay workflow, see [Partner Defaults Workflow](../../../../../docs/architecture/partner-defaults-workflow.md).
+
 ### 3. RFC Store (XRFCStore)
 
 The RFC store manages feature enablement flags with a four-tier dictionary:
