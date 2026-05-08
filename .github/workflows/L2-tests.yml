@@ -29,17 +29,17 @@ jobs:
 
       - name: Pull Mock XConf, Native Platform, and Docker RDK CI Images
         run: |
-          docker pull ghcr.io/rdkcentral/docker-device-mgt-service-test/mockxconf:latest
-          docker pull ghcr.io/rdkcentral/docker-device-mgt-service-test/native-platform:latest
+          docker pull ghcr.io/rdkcentral/docker-device-mgt-service-test/mockxconf:1.7.12
+          docker pull ghcr.io/rdkcentral/docker-device-mgt-service-test/native-platform:1.7.12
           docker pull ghcr.io/rdkcentral/docker-rdk-ci:latest
 
       - name: Start mock-xconf service
         run: |
-          docker run -d --name mockxconf -p 50050:50050 -p 50051:50051 -p 50052:50052 -p 50053:50053 -v ${{ github.workspace }}:/mnt/L2_CONTAINER_SHARED_VOLUME ghcr.io/rdkcentral/docker-device-mgt-service-test/mockxconf:latest
+          docker run -d --name mockxconf -p 50050:50050 -p 50051:50051 -p 50052:50052 -p 50053:50053 -v ${{ github.workspace }}:/mnt/L2_CONTAINER_SHARED_VOLUME ghcr.io/rdkcentral/docker-device-mgt-service-test/mockxconf:1.7.12
 
       - name: Start l2-container service
         run: |
-          docker run -d --name native-platform --link mockxconf -v ${{ github.workspace }}:/mnt/L2_CONTAINER_SHARED_VOLUME ghcr.io/rdkcentral/docker-device-mgt-service-test/native-platform:latest
+          docker run -d --name native-platform --link mockxconf -v ${{ github.workspace }}:/mnt/L2_CONTAINER_SHARED_VOLUME ghcr.io/rdkcentral/docker-device-mgt-service-test/native-platform:1.7.12
 
       - name: Build tr69hostif and Run L2 inside Native Platform Container
         run: |
