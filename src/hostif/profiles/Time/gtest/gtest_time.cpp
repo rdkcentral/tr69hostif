@@ -19,6 +19,10 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <iostream>
+#include <cstdio>
+#include <cerrno>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "hostIf_utils.h"
 #include "Device_Time.h"
@@ -150,6 +154,505 @@ TEST(TimeTest, closeInstance) {
     {
        hostIf_Time::closeInstance(hostIfTime);
        hostIfTime->closeAllInstances();
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Chrony RFC parameter tests                                           */
+/* ------------------------------------------------------------------ */
+
+static const char *kChronyDir    = "/opt/secure/RFC/chrony";
+static const char *kChronyEnable = "/opt/secure/RFC/chrony/chronyd_enabled";
+static const char *kNtpMaxstep   = "/opt/secure/RFC/chrony/ntp_maxstep";
+
+/* Helper: create parent directory recursively (simple two-level).
+ * Returns false and prints an error message if any mkdir() fails
+ * for a reason other than the directory already existing.         */
+static bool ensureChronyDir()
+{
+    const char * const dirs[] = {
+        "/opt", "/opt/secure", "/opt/secure/RFC", kChronyDir
+    };
+    for (size_t i = 0; i < sizeof(dirs) / sizeof(dirs[0]); ++i) {
+        if (mkdir(dirs[i], 0755) != 0 && errno != EEXIST) {
+            ADD_FAILURE() << "ensureChronyDir: mkdir(" << dirs[i]
+                          << ") failed: " << strerror(errno);
+            return false;
+        }
+    }
+    return true;
+}
+
+/* Helper: remove a file silently */
+static void removeFile(const char *path)
+{
+    std::remove(path);
+}
+
+/* ---- Device.Time.Chrony.Enable ------------------------------------ */
+
+TEST(TimeTest, get_Device_Time_Chrony_Enable_FileAbsent)
+{
+    ASSERT_TRUE(ensureChronyDir());
+    removeFile(kChronyEnable);
+
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->get_Device_Time_Chrony_Enable(&param);
+        EXPECT_EQ(ret, OK);
+        EXPECT_EQ(param.paramtype, hostIf_BooleanType);
+        bool val = false;
+        memcpy(&val, param.paramValue, sizeof(bool));
+        EXPECT_EQ(val, false);
+    }
+}
+
+TEST(TimeTest, set_get_Device_Time_Chrony_Enable_True)
+{
+    ASSERT_TRUE(ensureChronyDir());
+    removeFile(kChronyEnable);
+
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "true", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_Chrony_Enable(&param);
+        EXPECT_EQ(ret, OK);
+
+        /* Now read back */
+        HOSTIF_MsgData_t getParam = { 0 };
+        memset(&getParam, 0, sizeof(HOSTIF_MsgData_t));
+        ret = pIface->get_Device_Time_Chrony_Enable(&getParam);
+        EXPECT_EQ(ret, OK);
+        bool val = false;
+        memcpy(&val, getParam.paramValue, sizeof(bool));
+        EXPECT_EQ(val, true);
+
+        removeFile(kChronyEnable);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_Chrony_Enable_InvalidValue)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "yes", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_Chrony_Enable(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+/* ---- Device.Time.Chrony.Makestep ---------------------------------- */
+
+TEST(TimeTest, get_Device_Time_NTPMaxstep_DefaultValue)
+{
+    ASSERT_TRUE(ensureChronyDir());
+    removeFile(kNtpMaxstep);
+
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->get_Device_Time_NTPMaxstep(&param);
+        EXPECT_EQ(ret, OK);
+        EXPECT_EQ(param.paramtype, hostIf_StringType);
+        EXPECT_STREQ(param.paramValue, "1.0,3");
+    }
+}
+
+TEST(TimeTest, set_get_Device_Time_NTPMaxstep_ValidValue)
+{
+    ASSERT_TRUE(ensureChronyDir());
+    removeFile(kNtpMaxstep);
+
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.Makestep", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "0.5,5", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPMaxstep(&param);
+        EXPECT_EQ(ret, OK);
+
+        HOSTIF_MsgData_t getParam = { 0 };
+        memset(&getParam, 0, sizeof(HOSTIF_MsgData_t));
+        ret = pIface->get_Device_Time_NTPMaxstep(&getParam);
+        EXPECT_EQ(ret, OK);
+        EXPECT_STREQ(getParam.paramValue, "0.5,5");
+
+        removeFile(kNtpMaxstep);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPMaxstep_MissingComma)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.Makestep", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "1.0", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPMaxstep(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+/* ---- Device.Time.Chrony.NTPServer.{i}.Settings ------------------- */
+
+static std::string ntpSettingsFile(int idx)
+{
+    char buf[128];
+    snprintf(buf, sizeof(buf), "/opt/secure/RFC/chrony/ntp_server%d_settings", idx);
+    return std::string(buf);
+}
+
+TEST(TimeTest, get_Device_Time_NTPServerSettings_DefaultValue)
+{
+    ASSERT_TRUE(ensureChronyDir());
+    std::string fp = ntpSettingsFile(1);
+    removeFile(fp.c_str());
+
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->get_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, OK);
+        EXPECT_EQ(param.paramtype, hostIf_StringType);
+        EXPECT_STREQ(param.paramValue, "server,0,false,10,12");
+    }
+}
+
+TEST(TimeTest, set_get_Device_Time_NTPServerSettings_ValidServer)
+{
+    ASSERT_TRUE(ensureChronyDir());
+    std::string fp = ntpSettingsFile(1);
+    removeFile(fp.c_str());
+
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "server,0,true,6,12", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, OK);
+
+        HOSTIF_MsgData_t getParam = { 0 };
+        memset(&getParam, 0, sizeof(HOSTIF_MsgData_t));
+        strncpy(getParam.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+                TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+        ret = pIface->get_Device_Time_NTPServerSettings(&getParam);
+        EXPECT_EQ(ret, OK);
+        EXPECT_STREQ(getParam.paramValue, "server,0,true,6,12");
+
+        removeFile(fp.c_str());
+    }
+}
+
+TEST(TimeTest, set_get_Device_Time_NTPServerSettings_ValidPool)
+{
+    ASSERT_TRUE(ensureChronyDir());
+    std::string fp = ntpSettingsFile(3);
+    removeFile(fp.c_str());
+
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.3.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "pool,4,false,4,24", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, OK);
+
+        HOSTIF_MsgData_t getParam = { 0 };
+        memset(&getParam, 0, sizeof(HOSTIF_MsgData_t));
+        strncpy(getParam.paramName, "Device.Time.Chrony.NTPServer.3.Settings",
+                TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+        ret = pIface->get_Device_Time_NTPServerSettings(&getParam);
+        EXPECT_EQ(ret, OK);
+        EXPECT_STREQ(getParam.paramValue, "pool,4,false,4,24");
+
+        removeFile(fp.c_str());
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_InvalidInstance_Zero)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.0.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "server,0,false,6,12", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_InvalidInstance_Six)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.6.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "server,0,false,6,12", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, get_Device_Time_NTPServerSettings_InvalidInstance_Zero)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.0.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->get_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+        EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+    }
+}
+
+TEST(TimeTest, get_Device_Time_NTPServerSettings_InvalidInstance_Six)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.6.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->get_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+        EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_TrailingGarbage)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "server,0,false,10,12,unexpected",
+            sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_InvalidType)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "peer,0,false,6,12", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_ServerNonZeroMaxsources)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "server,2,false,6,12", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_InvalidIburst)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "server,0,yes,6,12", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_MinpollOutOfRange)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    /* minpoll = 3 is below the allowed minimum of 4 */
+    strncpy(param.paramValue, "server,0,false,3,12", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_MaxpollOutOfRange)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    /* maxpoll = 25 is above the allowed maximum of 24 */
+    strncpy(param.paramValue, "server,0,false,6,25", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_MaxpollLessThanMinpoll)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    /* maxpoll(6) < minpoll(10) */
+    strncpy(param.paramValue, "server,0,false,10,6", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(TimeTest, set_Device_Time_NTPServerSettings_MissingFields)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(param.paramName, "Device.Time.Chrony.NTPServer.1.Settings",
+            TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    /* only 3 fields instead of 5 */
+    strncpy(param.paramValue, "server,0,false", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen  = strlen(param.paramValue);
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    if (pIface)
+    {
+        int ret = pIface->set_Device_Time_NTPServerSettings(&param);
+        EXPECT_EQ(ret, NOK);
     }
 }
 

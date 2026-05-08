@@ -200,7 +200,7 @@ static int getEthernetInterfaceName (unsigned int ethInterfaceNum, char* name)
         unsigned int count = 0;
         for (struct if_nameindex* ifnp = ifname; ifnp->if_index != 0; ifnp++)
         {
-            if ((strncmp (ifnp->if_name, "eth", 3) == 0) && (++count == ethInterfaceNum))
+            if ((ifnp->if_name != NULL) && (strncmp (ifnp->if_name, "eth", 3) == 0) && (++count == ethInterfaceNum))
             {
                 rc=strcpy_s (name, BUFF_LENGTH_64,ifnp->if_name);
 		ERR_CHK(rc);
