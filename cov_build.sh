@@ -6,6 +6,7 @@ apt-get update && apt-get install -y libsoup-3.0
 
 #Build rfc
 cd $ROOT
+rm -rf rfc
 git clone https://github.com/rdkcentral/rfc.git
 cd rfc
 autoreconf -i
@@ -21,13 +22,14 @@ cd ../utils
 make && make install
 
 #Build yajl - tr69 alone needs this specific version
-cd $ROOT 
+cd $ROOT
+rm -rf yajl
 git clone https://github.com/lloyd/yajl.git -b 1.x
 cd yajl
 mkdir build
 cd build
 cmake ..
-make 
+make
 make install
 
 cd $ROOT
@@ -40,6 +42,7 @@ git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 git clone https://github.com/rdkcentral/iarmbus.git
 git clone https://github.com/rdkcentral/remote_debugger.git
 
+<<<<<<< HEAD
 # Install stubs into system paths before any dependent build:
 #   1. telemetry_busmessage_sender.h — needed by dsTelemetry.h (angle-bracket include);
 #      /usr/local/include is on gcc's default system search path so no -isystem flag required.
@@ -82,6 +85,18 @@ rm -f $WORKDIR/src/unittest/stubs/rdk_debug.h
 #   3. libdshalsrv_la_CPPFLAGS must be set explicitly so rpc/srv picks up iarmUtil.h.
 #   4. make + make install are merged into one invocation so CPPFLAGS are not lost during
 #      the libtool relink phase triggered by install.
+=======
+cp $WORKDIR/src/unittest/stubs/telemetry_busmessage_sender.h /usr/local/include/
+cp $WORKDIR/src/unittest/stubs/dsVideoResolutionSettings.h /usr/rdk-halif-device_settings/include/dsVideoResolutionSettings.h
+cp $WORKDIR/src/unittest/stubs/dsAudioSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsAudioSettings.h
+cp $WORKDIR/src/unittest/stubs/dsVideoPortSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsVideoPortSettings.h
+cp $WORKDIR/src/unittest/stubs/dsVideoResolutionSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsVideoResolutionSettings.h
+cp $WORKDIR/src/unittest/stubs/dsVideoDeviceSettings.h /usr/rdkvhal-devicesettings-raspberrypi4/dsVideoDeviceSettings.h
+
+gcc -fPIC -shared -o /usr/local/lib/libtelemetry_msgsender.so $WORKDIR/src/unittest/stubs/telemetry_msgsender_stub.c
+rm -f $WORKDIR/src/unittest/stubs/rdk_debug.h
+
+>>>>>>> be553849fc3dca6895c5af1515e205ff57ea0a47
 cd $ROOT
 rm -rf devicesettings
 git clone https://github.com/rdkcentral/devicesettings.git
@@ -120,6 +135,10 @@ cp libWPEFrameworkPowerController.so /usr/local/lib/libWPEFrameworkPowerControll
 echo "##### Building tr69hostif module"
 cd $WORKDIR
 sed -i '/PKG_CHECK_MODULES(\[PROCPS\], \[libproc >= 3.2.8\])/s/^/#/' ./configure.ac
+<<<<<<< HEAD
+=======
+
+>>>>>>> be553849fc3dca6895c5af1515e205ff57ea0a47
 autoreconf -i
 ./configure  --enable-IPv6=yes
 
@@ -131,4 +150,4 @@ cd ./src/hostif/parodusClient/pal/mock-parodus/
 sh mock_parodus_build.sh
 
 ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
-rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true 
+rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true

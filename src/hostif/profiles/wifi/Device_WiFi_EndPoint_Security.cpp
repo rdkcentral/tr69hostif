@@ -159,50 +159,20 @@ int hostIf_WiFi_EndPoint_Security::get_hostIf_WiFi_EndPoint_Security_ModesEnable
         return retVal;
     }
 
-    std::string postData = "{\"jsonrpc\":\"2.0\",\"id\":\"42\",\"method\": \"org.rdk.NetworkManager.GetConnectedSSID\"}";
-
-    string response = getJsonRPCData(std::move(postData));
-    if(response.c_str())
+    int security = 0;
+    if (invokeThunderPluginMethodAndExtractNumberField("org.rdk.NetworkManager.GetConnectedSSID", "", "security", security))
     {
-        RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: curl response string = %s\n", __FUNCTION__, response.c_str());
-        cJSON* root = cJSON_Parse(response.c_str());
-        if(root)
-        {
-            cJSON* jsonObj    = cJSON_GetObjectItem(root, "result");
+        put_int(stMsgData->paramValue, security);
+        stMsgData->paramtype = hostIf_IntegerType;
+        stMsgData->paramLen = sizeof(int);
 
-            if (jsonObj)
-            {
-                cJSON *securityModeObj = cJSON_GetObjectItem(jsonObj, "securityMode");
-
-                //ASSIGN TO OP HERE
-	        strncpy(stMsgData->paramValue,securityModeObj->valuestring,sizeof(stMsgData->paramValue) -1);
-		stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
-                stMsgData->paramtype = hostIf_StringType;
-                stMsgData->paramLen = strlen(stMsgData->paramValue);
-
-		RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] WiFi Security Mode : %s\n",__FUNCTION__, stMsgData->paramValue);
-		RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] WiFi Security Mode : %s\n",__FUNCTION__, securityModeObj->valuestring);
-	        retVal = OK;
-
-            }
-            else
-            {
-                RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] json parse error, no \"result\" in the output from Thunder plugin\n", __FUNCTION__);
-                cJSON_Delete(root);
-                return NOK;
-            }
-            cJSON_Delete(root);
-	}            
-	else
-        {
-            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error\n", __FUNCTION__);
-	    return NOK;
-        }
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] WiFi Security Mode : %d\n",__FUNCTION__, security);
+        retVal = OK;
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: getJsonRPCData() failed\n", __FUNCTION__);
-	return NOK;
+        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: failed to fetch security from NetworkManager.GetConnectedSSID\n", __FUNCTION__);
+        return NOK;
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return retVal;

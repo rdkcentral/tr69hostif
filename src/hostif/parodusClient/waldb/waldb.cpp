@@ -663,6 +663,10 @@ void checkforParameterNameMatch(XMLNode *pParent, const char *ObjectName, const 
                 pSyntaxNode = pElement->FirstChildElement("syntax");
                 for(pSyntaxChildNode = pSyntaxNode->FirstChild(); pSyntaxChildNode != NULL; pSyntaxChildNode = pSyntaxChildNode->NextSibling())
                 {
+                    /* Skip non-element nodes (whitespace text nodes, XML comments, etc.)
+                     * to avoid overwriting dmParam->dataType with comment or whitespace text */
+                    if(pSyntaxChildNode->ToElement() == NULL)
+                        continue;
                     if(!strcmp("default", pSyntaxChildNode->Value()))
                     {
                         XMLElement *pDefaultElement = pSyntaxChildNode->ToElement();

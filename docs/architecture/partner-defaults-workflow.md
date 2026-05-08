@@ -55,12 +55,15 @@ This file contains the generic and per-partner bootstrap defaults. The current l
 
 If present, this file overlays device-specific values on top of the selected partner configuration. Existing keys are replaced; missing keys are appended.
 
+<<<<<<< HEAD
 ### `XRFCStore`
 
 `XRFCStore` is a separate singleton that manages RFC Feature parameters, distinct from the bootstrap store. It reads from `tr181store.ini` (path configured by `TR181_STORE_FILENAME` in `/etc/rfc.properties`), with `/etc/rfcdefaults/*.ini` files as a lowest-priority fallback for missing entries.
 
 Bootstrap parameters under `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.*` are handled exclusively by `XBSStore`. RFC Feature parameters under `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.*` and related paths are handled exclusively by `XRFCStore`. There is no cross-store fallback between these two at GET time.
 
+=======
+>>>>>>> be553849fc3dca6895c5af1515e205ff57ea0a47
 ### PartnerId sources
 
 The store resolves PartnerId in this order:
@@ -231,6 +234,7 @@ That fallback matters in two ways:
 
 One deliberate behavior is that the firmware initial management notification is skipped when the store is still using `default_boot`. That notification is sent only once the active configuration is no longer the boot-time fallback.
 
+<<<<<<< HEAD
 ## Xconf Integration and RFC Parameter Delivery
 
 ### Role of XconfUrl in Bootstrap Parameters
@@ -297,6 +301,8 @@ The `partners_defaults.json` defaults are re-applied to `bootstrap.ini` by `load
 1. The device runs for the first time and `bootstrap.ini` does not yet exist.
 2. `loadFromJson()` is triggered again after a PartnerId change, and the parameter is not already protected by a higher-precedence RFC or WebPA source.
 
+=======
+>>>>>>> be553849fc3dca6895c5af1515e205ff57ea0a47
 ## Scenario Guide
 
 ### Scenario 1: First Boot With No PartnerId Available Yet
@@ -392,6 +398,7 @@ Expected behavior:
 
 This is why runtime behavior may differ from the raw value currently visible in `partners_defaults.json`.
 
+<<<<<<< HEAD
 ### Scenario 8: Xconf Delivers a Bootstrap Parameter Override After Boot
 
 After the device has resolved its PartnerId and the partner section has loaded, the Xconf service becomes active:
@@ -415,6 +422,8 @@ If the device is still in the `default_boot` phase and a GET is requested for a 
 
 After the watcher thread detects a PartnerId and `loadFromJson()` reloads with a partner section or `default`, if that section includes `NTPServer3`, the value is written into `bootstrap.ini` and subsequent GETs succeed.
 
+=======
+>>>>>>> be553849fc3dca6895c5af1515e205ff57ea0a47
 ## Troubleshooting Without Logs
 
 When investigating partner-default behavior, validate the following in order:
