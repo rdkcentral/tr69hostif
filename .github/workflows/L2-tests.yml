@@ -40,6 +40,14 @@ jobs:
       - name: Start l2-container service
         run: |
           docker run -d --name native-platform --link mockxconf -v ${{ github.workspace }}:/mnt/L2_CONTAINER_SHARED_VOLUME ghcr.io/rdkcentral/docker-device-mgt-service-test/native-platform:latest
+ 
+      - name: Copy thunder-mock-server.js file to Native Platform Container
+        run: |
+           docker cp ${{ github.workspace }}/test/test-artifacts/native-platform/thunder-mock-server.js native-platform:/usr/local/bin/thunder-mock-server.js
+       
+      - name: Run thunder-mock-server.js in background
+        run: |
+          docker exec -d native-platform sh -c "node /usr/local/bin/thunder-mock-server.js > /tmp/thunder-mock.log 2>&1"
 
       - name: Build tr69hostif and Run L2 inside Native Platform Container
         run: |
