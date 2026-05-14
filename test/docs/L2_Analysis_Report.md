@@ -1,8 +1,9 @@
-# L2 Functional Test — BDD Feature Documentation & Gap Analysis
+# L2 Functional Test — BDD Feature Analysis Report
 
 > Generated: May 14, 2026
 > Source: `test/functional-tests/` — 4 test files, **47 ordered pytest functions**
-> Feature files: `docs/features/` — 4 BDD feature files documenting all implemented tests
+> Feature files: `test/functional-tests/features/` — 4 BDD feature files documenting all implemented tests
+> Detailed coverage data: [`test/docs/L2_Test_Coverage.md`](../../test/docs/L2_Test_Coverage.md)
 
 ---
 
@@ -10,10 +11,10 @@
 
 | Feature File | Source Test File | Scenarios | Description |
 |---|---|:---:|---|
-| [`bootup_sequence.feature`](bootup_sequence.feature) | `tests/test_bootup_sequence.py` | 18 | Daemon startup, thread init, rbus registration, data model, bootstrap, power controller |
-| [`handler_communications.feature`](handler_communications.feature) | `tests/test_handlers_communications.py` | 22 | RFC, Non-RFC, Bootstrap, Time, Chrony SET/GET via rbus DML |
-| [`device_ip_profiles.feature`](device_ip_profiles.feature) | `tests/tr69hostif_deviceip.py` | 17 | DeviceInfo defaults, Device.IP, Services, ReverseSSH GET/SET |
-| [`webpa_parodus.feature`](webpa_parodus.feature) | `tests/tr69hostif_webpa.py` | 16 | WebPA SET/GET via mock parodus binary |
+| [`tr69hostif_bootup_sequence.feature`](../../test/functional-tests/features/tr69hostif_bootup_sequence.feature) | `tests/test_bootup_sequence.py` | 18 | Daemon startup, thread init, rbus registration, data model, bootstrap, power controller |
+| [`tr69hostif_handlers_communications.feature`](../../test/functional-tests/features/tr69hostif_handlers_communications.feature) | `tests/test_handlers_communications.py` | 22 | RFC, Non-RFC, Bootstrap, Time, Chrony SET/GET via rbus DML |
+| [`tr69hostif_deviceip.feature`](../../test/functional-tests/features/tr69hostif_deviceip.feature) | `tests/tr69hostif_deviceip.py` | 17 | DeviceInfo defaults, Device.IP, Services, ReverseSSH GET/SET |
+| [`tr69hostif_webpa.feature`](../../test/functional-tests/features/tr69hostif_webpa.feature) | `tests/tr69hostif_webpa.py` | 16 | WebPA SET/GET via mock parodus binary |
 
 **Total documented scenarios: 73** (expanded from the 47 pytest functions to individual parameter-level scenarios)
 
@@ -51,7 +52,9 @@ Based on `src/Makefile.am`, the following directories are compiled:
 
 ### Gap 1 — Original Feature Files vs Actual Tests
 
-The original `.feature` files in `test/functional-tests/features/` are **documentation only** (not wired to `pytest-bdd`). They also contain significant discrepancies with the actual test code:
+The original `.feature` files in `test/functional-tests/features/` were **documentation only** (not wired to `pytest-bdd`). They have now been replaced with comprehensive BDD scenarios that fully document all 47 implemented pytest functions.
+
+Prior state comparison:
 
 | Original Feature File | Scenarios in Feature | Tests Actually Implemented | Discrepancy |
 |---|:---:|:---:|---|
@@ -63,7 +66,7 @@ The original `.feature` files in `test/functional-tests/features/` are **documen
 
 ### Gap 2 — Implemented Tests vs Module Surface
 
-Based on the [L2_Test_Coverage.md](../test/docs/L2_Test_Coverage.md) analysis:
+Based on the [`test/docs/L2_Test_Coverage.md`](../../test/docs/L2_Test_Coverage.md) analysis:
 
 | Category | Total Testable | Currently Tested | Gap | Coverage |
 |---|:---:|:---:|:---:|:---:|
@@ -188,6 +191,7 @@ All feature files follow Gherkin syntax with:
 
 ## Related Files
 
-- [`test/docs/L2_Test_Coverage.md`](../test/docs/L2_Test_Coverage.md) — Detailed per-parameter coverage analysis
-- [`test/functional-tests/features/`](../test/functional-tests/features/) — Original (incomplete) feature files
-- [`test/functional-tests/automatics/`](../test/functional-tests/automatics/) — Automatics gap analysis tooling
+- [`test/docs/L2_Test_Coverage.md`](../../test/docs/L2_Test_Coverage.md) — Detailed per-parameter coverage analysis
+- [`test/functional-tests/features/`](../../test/functional-tests/features/) — BDD feature files (updated)
+- [`test/functional-tests/tests/`](../../test/functional-tests/tests/) — Runnable pytest implementations
+- [`test/functional-tests/automatics/`](../../test/functional-tests/automatics/) — Automatics gap analysis tooling
