@@ -14,15 +14,16 @@ This document identifies dead, unused, and deprecated code in the tr69hostif mod
 | 2 | **Ghost External Dependency** | RF4CE Profile (USE_XRDK_RF4CE_PROFILE) | High | Remove |
 | 3 | **Ghost External Dependency** | HW Self-Test (USE_HWSELFTEST_PROFILE) | High | Remove |
 | 4 | **Dead Source File** | `hostIf_sysScriptHandler.cpp` | High | Remove |
-| 5 | **Commented-Out Feature** | HAVE_VALUE_CHANGE_EVENT polling | Medium | Remove |
+| 5 | **Dormant Legacy Mechanism** | HAVE_VALUE_CHANGE_EVENT polling | Medium | Deprecate → Remove |
 | 6 | **Legacy Protocol** | SNMP Adapter (`snmpAdapter/`) | Medium | Deprecate → Remove |
-| 7 | **Legacy HTTP Server** | `httpserver/` (NEW_HTTP_SERVER_DISABLE path) | Medium | Consolidate |
+| 7 | **Dual Code Path** | `NEW_HTTP_SERVER_DISABLE` ifdef guards + `legacyRFCEnabled()` | Medium | Consolidate |
 | 8 | **Orphan Service File** | `ip-iface-monitor.service` | Low | Remove |
 | 9 | **Unused Build Artifact** | `snmp-data-model.xml` | Low | Remove |
 | 10 | **Dead Build Flag** | `WEBCONFIG_LITE_FLAG` / `WEB_CONFIG_ENABLE` | Low | Remove |
 | 11 | **Dead Build Flag** | `WEBPA_RFC_ENABLED` (broken function) | Medium | Remove |
 | 12 | **Stale Data-Model Entries** | Xcalibur objects in `data-model-generic.xml` | Medium | Remove with XRE |
 | 13 | **Dead Config Entries** | `xreMgr` in `mgrlist.conf` / `tr69hostIf.conf` | Medium | Remove with XRE |
+| 14 | **Unreachable Code Blocks** | `#if 0` blocks, missing headers, commented-out calls | Low | Remove with parent items |
 
 ---
 
@@ -77,6 +78,7 @@ This document identifies dead, unused, and deprecated code in the tr69hostif mod
 **Evidence:**
 - The external library `libtr69ProfileHwSelfTest` is not in this repository.
 - No source implementation exists in-tree; it's an out-of-tree profile library.
+- The include `DeviceInfo_hwHealthTest.h` (referenced in `Device_DeviceInfo.cpp` line 100 under `#if USE_HWSELFTEST_PROFILE`) also does not exist in this repository.
 - HW self-test is a legacy diagnostics feature not used in modern RDKE deployments.
 
 **Impact:** ~20 lines of guarded code + build system entries. Requires phantom library.
@@ -96,7 +98,7 @@ This document identifies dead, unused, and deprecated code in the tr69hostif mod
 
 ---
 
-### 5. HAVE_VALUE_CHANGE_EVENT Polling Code
+### 5. HAVE_VALUE_CHANGE_EVENT Polling Code (Dormant Legacy Mechanism)
 
 **Files Affected (large code blocks):**
 - `hostIf_DeviceClient_ReqHandler.cpp` (lines 895–1321: ~426 lines)
@@ -111,8 +113,10 @@ This document identifies dead, unused, and deprecated code in the tr69hostif mod
 
 **Evidence:**
 - The define is **commented out** at the top of every file: `//#define HAVE_VALUE_CHANGE_EVENT`
-- While it can be enabled via `--enable-notification` build flag (`-DHAVE_VALUE_CHANGE_EVENT`), the code inside these blocks implements a legacy TR-069 Active Notification polling mechanism that has been superseded by RBUS event-driven notifications.
-- **Estimated ~2,877+ lines** of dead conditional code across 8+ handler files.
+- It **can** be enabled via `--enable-notification` build flag (`-DHAVE_VALUE_CHANGE_EVENT`) in `configure.ac`, and the Makefile.am wires `$(HAVE_VALUE_CHANGE_EVENT_FLAG)` into CXXFLAGS when `WITH_NOTIFICATION_SUPPORT` is true.
+- However, the code implements a **legacy TR-069 Active Notification polling mechanism** (`checkForUpdates()` loop) that has been superseded by the modern RBUS event-driven `NotificationHandler` (always compiled, uses `hostIf_NotificationHandler.cpp`).
+- Standard RDKE builds do **not** enable `--enable-notification`; the newer `NotificationHandler` dispatches `VALUE_CHANGE_NOTIFICATION` events via RBUS/JSON without polling.
+- **Estimated ~2,877+ lines** of dormant conditional code across 8+ handler files.
 
 ---
 
@@ -138,21 +142,27 @@ This document identifies dead, unused, and deprecated code in the tr69hostif mod
 
 ---
 
-### 7. Legacy HTTP Server (`NEW_HTTP_SERVER_DISABLE` path)
+### 7. Dual Code Path: `NEW_HTTP_SERVER_DISABLE` + `legacyRFCEnabled()`
+
+**Clarification of naming:**
+- `src/hostif/httpserver/` is the **new** libsoup-based HTTP/JSON REST server (introduced 2018).
+- When `NEW_HTTP_SERVER_DISABLE` is defined → the new server is **NOT** compiled → this is the "legacy mode" deployment.
+- `tr69hostif_no_new_http_server.service` is the systemd unit for the **legacy mode** (no HTTP server).
+- When `legacyRFCEnabled()` returns true at runtime (file `/opt/RFC/.RFC_LegacyRFCEnabled.ini` exists) → the HTTP server thread is **not started** even if compiled in.
 
 **Files Affected:**
-- `src/hostif/httpserver/` (entire directory)
-- `src/hostif/src/hostIf_main.cpp` (12 `#ifndef NEW_HTTP_SERVER_DISABLE` blocks)
-- `tr69hostif_no_new_http_server.service` (systemd service variant)
-- `src/Makefile.am` (lines 33–35: conditional subdirectory)
+- `src/hostif/src/hostIf_main.cpp` (12 `#ifndef NEW_HTTP_SERVER_DISABLE` blocks creating dual code paths)
+- `src/Makefile.am` (lines 33–35: conditional `hostif/httpserver` subdirectory)
+- `tr69hostif_no_new_http_server.service` (legacy variant systemd unit)
+- `src/hostif/include/hostIf_utils.h` (lines 161–162: `setLegacyRFCEnabled()` / `legacyRFCEnabled()`)
 
 **Evidence:**
-- The existence of `tr69hostif_no_new_http_server.service` indicates a deployment mode where the HTTP server is disabled.
-- The `NEW_HTTP_SERVER_DISABLE` flag creates two code paths that must be maintained.
-- Modern RDKE deployments use the JSON/RBUS interface exclusively; the soup-based HTTP server serves legacy TR-069 ACS communication.
-- The entire HTTP server code path is guarded behind `legacyRFCEnabled()` even when compiled in.
+- The `NEW_HTTP_SERVER_DISABLE` flag creates **two parallel code paths** in `hostIf_main.cpp` that must both be maintained (option parsing, thread management, shutdown logic).
+- The `legacyRFCEnabled()` runtime check adds a **third behavioral variant** (compiled but not started).
+- Modern RDKE deployments always run with the new HTTP server enabled; the dual path exists only for backward compatibility with older field devices.
+- Once legacy mode is fully retired, both the `#ifndef NEW_HTTP_SERVER_DISABLE` guards and the `legacyRFCEnabled()` runtime path can be removed, leaving only the new HTTP server as the single path.
 
-**Impact:** Significant maintenance burden. The httpserver/ directory contains its own Makefile.am, src/, include/, and gtest/. Consolidation recommended.
+**Impact:** ~200 lines of duplicated/guarded code in `hostIf_main.cpp` + orphan service file. Consolidation will simplify the initialization flow.
 
 ---
 
@@ -184,9 +194,13 @@ This document identifies dead, unused, and deprecated code in the tr69hostif mod
 ### 10. Dead Build Flags: `WEBCONFIG_LITE_FLAG` / `WEB_CONFIG_ENABLE`
 
 **Evidence:**
-- `WEBCONFIG_LITE_FLAG` is declared and substituted in `configure.ac` but there is **no `AC_ARG_ENABLE`** to set it.
-- `WEB_CONFIG_ENABLE` is declared (line 60) and substituted (line 504) but **never assigned a value** in any `AC_ARG_ENABLE` block.
-- These flags appear in documentation but the actual configuration entry is missing, making them permanently empty.
+- `WEBCONFIG_LITE_FLAG` is declared and substituted in `configure.ac` but there is **no `AC_ARG_ENABLE`** to set it within this repository.
+- `WEB_CONFIG_ENABLE` is declared (line 60) and substituted (line 504) but **never assigned a value** in any `AC_ARG_ENABLE` block within this repository.
+- These flags cannot be enabled from this repo's `configure.ac` alone, making them permanently empty strings (`" "`) in standalone builds.
+
+**Caveat:** Yocto recipes (`.bbappend` files in `meta-rdk-*` layers outside this repo) may pass `-DWEBCONFIG_LITE_ENABLE` or `-DWEB_CONFIG_ENABLED` directly via `CXXFLAGS`, bypassing `configure.ac`. The corresponding `#ifdef` blocks in `hostIf_main.cpp` (lines 66–77, 492–501) may be active on certain platform builds even though this repo's build system cannot enable them.
+
+**Recommendation:** Verify with platform team whether any Yocto recipe sets these defines before removing the guarded code. The `configure.ac` variables themselves are safe to remove.
 
 ---
 
@@ -231,6 +245,19 @@ bool GetFeatureEnabled(char *cmd)
 
 ---
 
+### 14. Additional Dead Code Blocks
+
+**`#if 0` blocks in XRE handler:**
+- `src/hostif/handlers/src/hostIf_XREClient_ReqHandler.cpp` contains two `#if 0`...`#endif` blocks (~130 lines total) with fully unreachable code for XRE connection table polling. These are dead regardless of any build flag.
+
+**Missing header `DeviceInfo_hwHealthTest.h`:**
+- `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp` (line 100) includes `DeviceInfo_hwHealthTest.h` under `#if USE_HWSELFTEST_PROFILE` — this header does not exist in-tree, same as `Components_XrdkRf4ce.h`. Confirms HW Self-Test is an out-of-tree dependency.
+
+**Commented-out `XREClientReqHandler::registerUpdateCallback`:**
+- `src/hostif/handlers/src/hostIf_updateHandler.cpp` (line 79) has a commented-out call: `/* XREClientReqHandler::registerUpdateCallback(notifyCallback); */` — while the `#ifdef USE_XRESRC` version at line 98 is the active path. The commented line is a dead remnant.
+
+---
+
 ## Recommended Deprecation Phases
 
 ### Phase 1: Immediate Removal (No functional impact)
@@ -251,11 +278,12 @@ bool GetFeatureEnabled(char *cmd)
 
 | Item | Action |
 |------|--------|
-| XRE/Xcalibur (`USE_XRESRC`) | Remove all `#ifdef USE_XRESRC` blocks, XRE handler, config entries, data-model objects, build flags |
+| XRE/Xcalibur (`USE_XRESRC`) | Remove all `#ifdef USE_XRESRC` blocks, XRE handler, config entries, data-model objects, build flags, `#if 0` blocks within |
 | RF4CE (`USE_XRDK_RF4CE_PROFILE`) | Remove all `#ifdef USE_XRDK_RF4CE_PROFILE` blocks, build flags |
 | HW Self-Test (`USE_HWSELFTEST_PROFILE`) | Remove all `#ifdef USE_HWSELFTEST_PROFILE` blocks, build flags |
 | XRE config entries | Remove from `mgrlist.conf`, `tr69hostIf.conf` |
 | Xcalibur data-model objects | Remove from `data-model-generic.xml`, `data-model-tv.xml` |
+| Commented-out remnants | Remove dead `/* XREClientReqHandler::... */` in `hostIf_updateHandler.cpp` |
 
 **Estimated removal:** ~1,100+ lines + build system entries
 
@@ -266,9 +294,9 @@ bool GetFeatureEnabled(char *cmd)
 | Item | Action | Timeline |
 |------|--------|----------|
 | SNMP Adapter | Mark deprecated, remove in next major release | Q3 2026 |
-| HAVE_VALUE_CHANGE_EVENT polling code | Remove (superseded by RBUS notifications) | Q3 2026 |
-| Legacy HTTP Server (httpserver/) | Consolidate to JSON/RBUS-only path | Q4 2026 |
-| `tr69hostif_no_new_http_server.service` | Remove after httpserver consolidation | Q4 2026 |
+| HAVE_VALUE_CHANGE_EVENT polling code | Remove once confirmed no Yocto recipe enables `--enable-notification` | Q3 2026 |
+| `NEW_HTTP_SERVER_DISABLE` dual code path | Consolidate to new-HTTP-server-only (remove `#ifndef` guards and `legacyRFCEnabled()` logic) | Q4 2026 |
+| `tr69hostif_no_new_http_server.service` | Remove after legacy mode retirement | Q4 2026 |
 
 **Estimated removal:** ~3,500+ lines
 
@@ -279,9 +307,9 @@ bool GetFeatureEnabled(char *cmd)
 | Phase | Lines | Files |
 |-------|-------|-------|
 | Phase 1 | ~100 | 3 files deleted, 2 edited |
-| Phase 2 | ~1,100 | 10+ files edited, configs cleaned |
+| Phase 2 | ~1,230 | 10+ files edited, configs cleaned (includes `#if 0` blocks) |
 | Phase 3 | ~3,500 | Entire subsystems removed |
-| **Total** | **~4,700+** | |
+| **Total** | **~4,830+** | |
 
 ---
 
@@ -290,8 +318,8 @@ bool GetFeatureEnabled(char *cmd)
 | Phase | Risk | Mitigation |
 |-------|------|------------|
 | Phase 1 | None | Code is provably unreachable |
-| Phase 2 | Low — headers don't exist, code never compiles | Verify no downstream recipes enable these flags |
-| Phase 3 | Medium — SNMP/HTTP may be used by legacy field devices | Feature-flag deprecation notices, 1 release cycle grace period |
+| Phase 2 | Low — headers don't exist, code never compiles | Verify no downstream Yocto recipes enable these flags |
+| Phase 3 | Medium — SNMP may be used by legacy field devices; `--enable-notification` may be enabled in some recipes; legacy HTTP mode may still serve older deployments | Feature-flag deprecation notices, 1 release cycle grace period, verify with platform team |
 
 ---
 
