@@ -312,7 +312,7 @@ void hostIf_DeviceInfo::getLock() {
 }
 
 void hostIf_DeviceInfo::releaseLock() {
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
 
     // Try to unlock and handle errors
     int unlock_result = pthread_mutex_unlock(&hostIf_DeviceInfo::m_mutex);
