@@ -180,7 +180,6 @@ static void *shutdown_thread_entry(void *arg)
         break;
     }
 
-	RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Graceful exit\n", shutdown_sig_received);
     exit_gracefully(shutdown_sig_received);
     return NULL;
 }
