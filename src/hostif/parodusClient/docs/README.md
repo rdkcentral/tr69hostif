@@ -30,7 +30,7 @@ It also includes:
 | `src/hostif/parodusClient/conf/webpa_cfg.json` | Parodus URL and WebPA runtime configuration |
 | `src/hostif/parodusClient/conf/notify_webpa_cfg.json` | initial notification list configuration |
 | `src/hostif/parodusClient/parodus.service` | systemd service unit for Parodus |
-| `src/hostif/parodusClient/parodus.path` | systemd path unit that triggers Parodus startup on route availability |
+| `src/hostif/parodusClient/parodus_bsp.path` | systemd path unit that triggers Parodus startup when `/tmp/bspcomplete` changes |
 | `src/hostif/parodusClient/gtest/dm_test.cpp` | unit coverage for data-model, WebPA PAL, notification, and helper functions |
 
 ## Architecture
@@ -291,9 +291,9 @@ This file provides runtime defaults for:
 
 This file provides the list of parameters that should have initial notification state enabled through the WebPA attribute path.
 
-### `parodus.service` and `parodus.path`
+### `parodus.service` and `parodus_bsp.path`
 
-These files show that Parodus itself is managed as a separate systemd unit. The path unit watches `/tmp/route_available` and starts the Parodus service when routing becomes available. That service then runs `startParodusMain`, which is implemented under `startParodus/`.
+These files show that Parodus is managed as a separate systemd unit. `parodus.service` now uses `After=network-up.target` and `Wants=network-up.target` for network readiness and keeps `ConditionPathExists=/opt/bspcomplete.ini` as the BSP gate. `parodus_bsp.path` watches `/tmp/bspcomplete` and triggers `parodus.service` for BSP-complete flows such as factory reset and first-boot bring-up. The service runs `startParodusMain`, which is implemented under `startParodus/`.
 
 ## Threading Model
 

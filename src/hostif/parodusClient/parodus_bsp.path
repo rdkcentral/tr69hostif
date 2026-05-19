@@ -18,7 +18,6 @@
 ##########################################################################
 [Unit]
 Description=Webpa parodus BSPComplete
-DefaultDependencies=false
 OnFailure=path-fail-notifier@%n.service
 
 [Path]
