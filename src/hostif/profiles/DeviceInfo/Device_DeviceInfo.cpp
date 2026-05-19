@@ -296,7 +296,7 @@ void hostIf_DeviceInfo::initMutexOnce() {
 }
 
 void hostIf_DeviceInfo::getLock() {
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Attempting to lock mutex\n", __FUNCTION__, __LINE__);
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] Attempting to lock mutex\n", __FUNCTION__, __LINE__);
 
     // Ensure mutex is initialized
     hostIf_DeviceInfo::initMutexOnce();
