@@ -135,7 +135,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     int ret = NOK;
     getCount++;
     if (getCount % 10 == 0) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] GET called %d times\n",__FUNCTION__, __LINE__, getCount);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%d] GET called %d times\n",__FUNCTION__, __LINE__, getCount);
     }
     std::lock_guard<std::mutex> lock(get_handler_mutex);
      // On first call, record boot time
@@ -222,7 +222,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     int ret = NOK;
     setCount++;
      if (setCount % 10 == 0) {
-         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s:%d] SET called %d times\n",__FUNCTION__, __LINE__, setCount);
+         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%d] SET called %d times\n",__FUNCTION__, __LINE__, setCount);
      }
 
     std::lock_guard<std::mutex> lock(set_handler_mutex);
