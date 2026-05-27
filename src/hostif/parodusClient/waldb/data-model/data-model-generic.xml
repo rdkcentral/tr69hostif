@@ -3869,6 +3869,81 @@
            <unsignedLong/>
         </syntax>
       </parameter>
+      <parameter base="seamlessAudioSwitch" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="localTSBEnabled" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="gstVideoBufBytes" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="gstAudioBufBytes" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>  
+      <parameter base="lowLatencyMinValue" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="lowLatencyTargetValue" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="lowLatencyMaxValue" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="tsbLength" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="tsbMinDiskFreePercentage" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="tsbMaxDiskStorage" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="ptsErrorThreshold" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+       </parameter>
+      <parameter base="monitorAV" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <boolean/>
+        </syntax>
+      </parameter>
+      <parameter base="monitorAVSyncThresholdPositive" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="monitorAVSyncThresholdNegative" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
+      <parameter base="monitorAVJumpThreshold" access="readWrite" notification="0" maxNotification="2"  >
+        <syntax>
+          <int/>
+        </syntax>
+      </parameter>
      </object>
      <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.JSPPCache." access="readOnly" minEntries="0" maxEntries="1" >
        <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
