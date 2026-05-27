@@ -1,0 +1,596 @@
+﻿# Non-RFC TR-181 Parameters Implemented in tr69hostif
+# Generated: 2026-05-05
+#
+# NOTE: Data types are derived from the tr69hostif implementation (waldb XML data model
+#       and C++ source handlers). They may differ from the normative BBF TR-181 schema.
+#       Type vocabulary: string | boolean | unsignedInt | int | unsignedLong | dateTime | base64
+#
+# This file covers all TR-181 parameters EXCEPT the RFC namespace
+# (Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.*).
+# See rfc_namespace_parameters.txt for the RFC namespace inventory.
+#
+# Implementation sources:
+#   src/hostif/profiles/Device/            (Device root)
+#   src/hostif/profiles/DeviceInfo/        (DeviceInfo)
+#   src/hostif/profiles/DHCPv4/            (DHCPv4)
+#   src/hostif/profiles/Ethernet/          (Ethernet)
+#   src/hostif/profiles/InterfaceStack/    (InterfaceStack)
+#   src/hostif/profiles/IP/               (IP)
+#   src/hostif/profiles/moca/             (MoCA)
+#   src/hostif/profiles/STBService/        (STBService)
+#   src/hostif/profiles/StorageService/    (StorageService)
+#   src/hostif/profiles/Time/             (Time)
+#   src/hostif/profiles/wifi/             (WiFi)
+#   src/hostif/handlers/src/              (Request handlers)
+#
+# Legend:
+#   RO = Read-only
+#   RW = Read-write
+#   {i} = Multi-instance (table row index)
+# ============================================================
+
+
+# ============================================================
+# 1. DEVICE ROOT (Device.X_RDK_*)
+#    Source: src/hostif/profiles/Device/x_rdk_profile.cpp
+# ============================================================
+Device.X_RDK_WebPA_Server.URL                                                              RO   string         WebPA server URL (BS Store backed)
+Device.X_RDK_WebPA_TokenServer.URL                                                         RO   string         WebPA token server URL (BS Store backed)
+Device.X_RDK_WebPA_DNSText.URL                                                             RW   string         WebPA DNS text URL (BS Store backed)
+Device.X_RDKCENTRAL-COM_DocsIf.*                                                           RO   string         SNMP-delegated DocsIf bridge parameters
+
+
+# ============================================================
+# 2. DEVICE INFO (Device.DeviceInfo.*)
+#    Source: src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp
+#            src/hostif/handlers/src/hostIf_DeviceClient_ReqHandler.cpp
+# ============================================================
+
+# --- Standard TR-181 Parameters ---
+Device.DeviceInfo.Manufacturer                                                             RO   string         Device manufacturer name
+Device.DeviceInfo.ManufacturerOUI                                                          RO   string         Manufacturer OUI
+Device.DeviceInfo.ModelName                                                                RO   string         Device model name
+Device.DeviceInfo.Description                                                              RO   string         Device description
+Device.DeviceInfo.ProductClass                                                             RO   string         Product class
+Device.DeviceInfo.SerialNumber                                                             RO   string         Device serial number
+Device.DeviceInfo.HardwareVersion                                                          RO   string         Hardware version string
+Device.DeviceInfo.AdditionalHardwareVersion                                                RO   string         Additional hardware version
+Device.DeviceInfo.SoftwareVersion                                                          RO   string         Firmware/software version
+Device.DeviceInfo.AdditionalSoftwareVersion                                                RO   string         Additional software version
+Device.DeviceInfo.ProvisioningCode                                                         RW   string         ACS provisioning code
+Device.DeviceInfo.UpTime                                                                   RO   unsignedInt    Device uptime in seconds
+Device.DeviceInfo.FirstUseDate                                                             RO   dateTime       First use date/time
+Device.DeviceInfo.VendorConfigFileNumberOfEntries                                          RO   unsignedInt    Number of vendor config file entries
+Device.DeviceInfo.SupportedDataModelNumberOfEntries                                        RO   unsignedInt    Number of supported data model entries
+Device.DeviceInfo.ProcessorNumberOfEntries                                                 RO   unsignedInt    Number of processor entries
+Device.DeviceInfo.VendorLogFileNumberOfEntries                                             RO   unsignedInt    Number of vendor log file entries
+Device.DeviceInfo.MemoryStatus.Total                                                       RO   unsignedInt    Total physical memory (KB)
+Device.DeviceInfo.MemoryStatus.Free                                                        RO   unsignedInt    Free physical memory (KB)
+Device.DeviceInfo.ProcessStatus.CPUUsage                                                   RO   unsignedInt    CPU usage percentage
+Device.DeviceInfo.ProcessStatus.ProcessNumberOfEntries                                     RO   unsignedInt    Number of running processes
+Device.DeviceInfo.ProcessStatus.Process.{i}.PID                                            RO   unsignedInt    Process ID
+Device.DeviceInfo.ProcessStatus.Process.{i}.Command                                        RO   string         Process command name
+Device.DeviceInfo.ProcessStatus.Process.{i}.Size                                           RO   unsignedInt    Process memory size (KB)
+Device.DeviceInfo.ProcessStatus.Process.{i}.Priority                                       RO   unsignedInt    Process priority
+Device.DeviceInfo.ProcessStatus.Process.{i}.CPUTime                                        RO   unsignedInt    CPU time consumed (ms)
+Device.DeviceInfo.ProcessStatus.Process.{i}.State                                          RO   string         Process state
+Device.DeviceInfo.Processor.{i}.Architecture                                               RO   string         Processor architecture string
+Device.DeviceInfo.SupportedDataModel.{i}.URL                                               RO   string         Data model URL
+Device.DeviceInfo.SupportedDataModel.{i}.URN                                               RO   string         Data model URN
+Device.DeviceInfo.SupportedDataModel.{i}.Features                                          RO   string         Data model features
+Device.DeviceInfo.MigrationPreparer.MigrationReady                                         RO   string         Migration ready flag
+Device.DeviceInfo.Migration.MigrationStatus                                                RO   string         Migration status
+
+# --- X_COMCAST-COM Vendor Extensions ---
+Device.DeviceInfo.X_COMCAST-COM_STB_MAC                                                    RO   string         STB MAC address
+Device.DeviceInfo.X_COMCAST-COM_STB_IP                                                     RO   string         STB IP address
+Device.DeviceInfo.X_COMCAST-COM_FirmwareFilename                                           RO   string         Current firmware filename
+Device.DeviceInfo.X_COMCAST-COM_FirmwareToDownload                                         RW   string         Firmware image to download
+Device.DeviceInfo.X_COMCAST-COM_FirmwareDownloadStatus                                     RO   string         Firmware download status
+Device.DeviceInfo.X_COMCAST-COM_Reset                                                      RW   string         Trigger device reset
+Device.DeviceInfo.X_COMCAST-COM_PowerStatus                                                RO   string         Device power status
+
+# --- X_RDKCENTRAL-COM Vendor Extensions (non-RFC) ---
+Device.DeviceInfo.X_RDKCENTRAL-COM.BootStatus                                              RO   string         Boot status string
+Device.DeviceInfo.X_RDKCENTRAL-COM.CPUTemp                                                 RW   int            CPU temperature
+Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion                                         RW   string         IUI apps version
+Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version                                             RW   string         IUI version
+Device.DeviceInfo.X_RDKCENTRAL-COM_BootTime                                                RO   unsignedInt    Boot time (epoch)
+Device.DeviceInfo.X_RDKCENTRAL-COM_Experience                                              RO   string         Device experience type
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareFilename                                        RO   string         Current firmware filename (RDK variant)
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload                                      RW   string         Firmware image to download (RDK variant)
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus                                  RO   string         Firmware download status (RDK variant)
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL                                     RW   string         Firmware download URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol                                RW   string         Firmware download protocol (HTTP/HTTPS)
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadPercent                                 RO   int            Firmware download percent complete
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig                              RW   boolean        Use codebig for download
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadNow                                     RW   boolean        Trigger firmware download immediately
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadDeferReboot                             RW   boolean        Defer reboot after download
+Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareUpdateState                                     RO   string         Firmware update state machine
+Device.DeviceInfo.X_RDKCENTRAL-COM_RDKVersion                                              RO   string         RDK platform version
+Device.DeviceInfo.X_RDKCENTRAL-COM_Reset                                                   RW   string         Trigger device reset (RDK variant)
+Device.DeviceInfo.X_RDKCENTRAL-COM_PreferredGatewayType                                    RW   string         Preferred gateway type
+Device.DeviceInfo.X_RDKCENTRAL-COM_LastRebootReason                                        RW   string         Last reboot reason string
+Device.DeviceInfo.X_RDKCENTRAL-COM_Manufacturing.UIbranding                                RW   string         UI branding string
+Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus                       RW   boolean        RDK download manager status
+Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.Enable                                  RW   boolean        IP remote support enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.IPAddr                                  RO   string         IP remote support IP address
+Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.MACAddr                                 RO   string         IP remote support MAC address
+Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId                                   RW   string         Syndication partner ID
+Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest                 RW   int            Execute hardware health test
+Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.SetTuneType                 RW   string         Set health test tune type
+Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTuneTest             RW   string         Execute health test tune test
+Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results                     RO   string         Hardware health test results
+Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTestTune.TuneResults             RO   string         Hardware health tune test results
+Device.DeviceInfo.X_RDK_SNMP.*                                                             RO/RW  string         SNMP-delegated parameters
+
+
+# ============================================================
+# 3. WIFI (Device.WiFi.*)
+#    Source: src/hostif/profiles/wifi/
+#            src/hostif/handlers/src/hostIf_WiFi_ReqHandler.cpp
+# ============================================================
+
+# --- WiFi Object-Level ---
+Device.WiFi.RadioNumberOfEntries                                                           RO   unsignedInt    Number of radio interfaces
+Device.WiFi.SSIDNumberOfEntries                                                            RO   unsignedInt    Number of SSIDs
+Device.WiFi.AccessPointNumberOfEntries                                                     RO   unsignedInt    Number of access points
+Device.WiFi.EndPointNumberOfEntries                                                        RO   unsignedInt    Number of end points
+Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable                                                    RW   boolean        Master WiFi enable
+
+# --- ClientRoaming Extension ---
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.Enable                                          RW   boolean        Client roaming enable
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestThresholdLevel                      RW   int            Pre-association best threshold level
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestDeltaLevel                          RW   unsignedInt    Pre-association best delta level
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelConnected                RW   unsignedInt    Post-assoc delta level (connected)
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelDisconnected             RW   unsignedInt    Post-assoc delta level (disconnected)
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerThresholdLevel                RW   int            Self-steer threshold level
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerTimeframe                     RW   unsignedInt    Self-steer timeframe
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolThresholdLevel                RW   int            AP control threshold level
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolTimeframe                     RW   unsignedInt    AP control timeframe
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.SelfSteer_Override                              RW   boolean        Self-steer override value
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.SelfSteer_OverrideEnable                        RW   boolean        Self-steer override enable
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BackOffTime                            RW   unsignedInt    Post-association back-off time
+Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.80211kvrEnable                                  RW   boolean        802.11kvr enable
+
+# --- Radio Instance ---
+Device.WiFi.Radio.{i}.Enable                                                               RW   boolean        Radio enable
+Device.WiFi.Radio.{i}.Status                                                               RO   string         Radio status (Up/Down/Error)
+Device.WiFi.Radio.{i}.Alias                                                                RW   string         Radio alias
+Device.WiFi.Radio.{i}.Name                                                                 RO   string         Radio interface name
+Device.WiFi.Radio.{i}.MaxBitRate                                                           RO   unsignedInt    Maximum bit rate (Mbps)
+Device.WiFi.Radio.{i}.SupportedFrequencyBands                                              RO   string         Supported frequency bands
+Device.WiFi.Radio.{i}.OperatingFrequencyBand                                               RW   string         Operating frequency band
+Device.WiFi.Radio.{i}.SupportedStandards                                                   RO   string         Supported 802.11 standards
+Device.WiFi.Radio.{i}.OperatingStandards                                                   RW   string         Operating 802.11 standards
+Device.WiFi.Radio.{i}.PossibleChannels                                                     RO   string         List of possible channels
+Device.WiFi.Radio.{i}.ChannelsInUse                                                        RO   string         Channels currently in use
+Device.WiFi.Radio.{i}.Channel                                                              RW   unsignedInt    Current channel
+Device.WiFi.Radio.{i}.AutoChannelSupported                                                 RO   boolean        Auto channel selection supported
+Device.WiFi.Radio.{i}.AutoChannelEnable                                                    RW   boolean        Auto channel enable
+Device.WiFi.Radio.{i}.AutoChannelRefreshPeriod                                             RW   unsignedInt    Auto channel refresh period (seconds)
+Device.WiFi.Radio.{i}.OperatingChannelBandwidth                                            RW   string         Channel bandwidth (20/40/80 MHz)
+Device.WiFi.Radio.{i}.ExtensionChannel                                                     RW   string         Extension channel position
+Device.WiFi.Radio.{i}.GuardInterval                                                        RW   string         Guard interval
+Device.WiFi.Radio.{i}.MCS                                                                  RW   int            Modulation and coding scheme index
+Device.WiFi.Radio.{i}.TransmitPowerSupported                                               RO   string         Supported transmit power levels
+Device.WiFi.Radio.{i}.TransmitPower                                                        RW   unsignedInt    Transmit power (% of max)
+Device.WiFi.Radio.{i}.IEEE80211hSupported                                                  RO   boolean        IEEE 802.11h supported
+Device.WiFi.Radio.{i}.IEEE80211hEnabled                                                    RW   boolean        IEEE 802.11h enabled
+Device.WiFi.Radio.{i}.RegulatoryDomain                                                     RW   string         Regulatory domain (country code)
+Device.WiFi.Radio.{i}.Stats.BytesSent                                                      RO   unsignedLong   Bytes sent
+Device.WiFi.Radio.{i}.Stats.BytesReceived                                                  RO   unsignedLong   Bytes received
+Device.WiFi.Radio.{i}.Stats.PacketsSent                                                    RO   unsignedLong   Packets sent
+Device.WiFi.Radio.{i}.Stats.PacketsReceived                                                RO   unsignedLong   Packets received
+Device.WiFi.Radio.{i}.Stats.ErrorsSent                                                     RO   unsignedLong   Send errors
+Device.WiFi.Radio.{i}.Stats.ErrorsReceived                                                 RO   unsignedLong   Receive errors
+Device.WiFi.Radio.{i}.Stats.DiscardPacketsSent                                             RO   unsignedLong   Discarded packets sent
+Device.WiFi.Radio.{i}.Stats.DiscardPacketsReceived                                         RO   unsignedLong   Discarded packets received
+Device.WiFi.Radio.{i}.Stats.PLCPErrorCount                                                 RO   unsignedInt    PLCP error count
+Device.WiFi.Radio.{i}.Stats.FCSErrorCount                                                  RO   unsignedInt    FCS error count
+Device.WiFi.Radio.{i}.Stats.InvalidMACCount                                                RO   unsignedInt    Invalid MAC count
+Device.WiFi.Radio.{i}.Stats.PacketsOtherReceived                                           RO   unsignedInt    Packets received for other BSSIDs
+Device.WiFi.Radio.{i}.Stats.Noise                                                          RO   int            Noise floor (dBm)
+
+# --- SSID Instance ---
+Device.WiFi.SSID.{i}.Enable                                                                RW   boolean        SSID enable
+Device.WiFi.SSID.{i}.Status                                                                RO   string         SSID status
+Device.WiFi.SSID.{i}.Alias                                                                 RW   string         SSID alias
+Device.WiFi.SSID.{i}.Name                                                                  RO   string         Interface name
+Device.WiFi.SSID.{i}.LastChange                                                            RO   unsignedInt    Time since last change (seconds)
+Device.WiFi.SSID.{i}.LowerLayers                                                           RW   string         Lower layer reference (Radio)
+Device.WiFi.SSID.{i}.BSSID                                                                 RO   string         BSSID (MAC of the BSS)
+Device.WiFi.SSID.{i}.MACAddress                                                            RO   string         MAC address
+Device.WiFi.SSID.{i}.SSID                                                                  RW   string         SSID name string
+Device.WiFi.SSID.{i}.Stats.BytesSent                                                       RO   unsignedLong   Bytes sent
+Device.WiFi.SSID.{i}.Stats.BytesReceived                                                   RO   unsignedLong   Bytes received
+Device.WiFi.SSID.{i}.Stats.PacketsSent                                                     RO   unsignedLong   Packets sent
+Device.WiFi.SSID.{i}.Stats.PacketsReceived                                                 RO   unsignedLong   Packets received
+Device.WiFi.SSID.{i}.Stats.RetransCount                                                    RO   unsignedLong   Retransmission count
+Device.WiFi.SSID.{i}.Stats.FailedRetransCount                                              RO   unsignedLong   Failed retransmission count
+Device.WiFi.SSID.{i}.Stats.RetryCount                                                      RO   unsignedLong   Retry count
+Device.WiFi.SSID.{i}.Stats.MultipleRetryCount                                              RO   unsignedLong   Multiple retry count
+Device.WiFi.SSID.{i}.Stats.ACKFailureCount                                                 RO   unsignedLong   ACK failure count
+Device.WiFi.SSID.{i}.Stats.AggregatedPacketCount                                           RO   unsignedLong   Aggregated packet count
+Device.WiFi.SSID.{i}.Stats.ErrorsSent                                                      RO   unsignedInt    Errors sent
+Device.WiFi.SSID.{i}.Stats.ErrorsReceived                                                  RO   unsignedInt    Errors received
+Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent                                              RO   unsignedLong   Unicast packets sent
+Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived                                          RO   unsignedLong   Unicast packets received
+Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent                                              RO   unsignedInt    Discarded packets sent
+Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived                                          RO   unsignedInt    Discarded packets received
+Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent                                            RO   unsignedLong   Multicast packets sent
+Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived                                        RO   unsignedLong   Multicast packets received
+Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent                                            RO   unsignedLong   Broadcast packets sent
+Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived                                        RO   unsignedLong   Broadcast packets received
+
+# --- AccessPoint Instance ---
+Device.WiFi.AccessPoint.{i}.Enable                                                         RW   boolean        Access point enable
+Device.WiFi.AccessPoint.{i}.Status                                                         RO   string         Access point status
+Device.WiFi.AccessPoint.{i}.SSIDReference                                                  RW   string         SSID object reference
+Device.WiFi.AccessPoint.{i}.SSIDAdvertisementEnabled                                       RW   boolean        SSID broadcast enable
+Device.WiFi.AccessPoint.{i}.AssociatedDeviceNumberOfEntries                                RO   unsignedInt    Number of associated devices
+Device.WiFi.AccessPoint.{i}.Security.ModeEnabled                                           RW   string         Security mode (Open/WPA2-Personal/etc.)
+Device.WiFi.AccessPoint.{i}.Security.WEPKey                                                RW   hexBinary      WEP key
+Device.WiFi.AccessPoint.{i}.Security.PreSharedKey                                          RW   hexBinary      WPA pre-shared key (hex)
+Device.WiFi.AccessPoint.{i}.Security.KeyPassphrase                                         RW   string         WPA passphrase
+Device.WiFi.AccessPoint.{i}.WPS.Enable                                                     RW   boolean        WPS enable
+Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsSupported                                     RO   string         WPS config methods supported
+Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsEnabled                                       RW   string         WPS config methods enabled
+Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.MACAddress                                RO   string         Associated device MAC
+Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.AuthenticationState                       RO   boolean        Authentication state
+Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataDownlinkRate                      RO   unsignedInt    Last downlink data rate (kbps)
+Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataUplinkRate                        RO   unsignedInt    Last uplink data rate (kbps)
+Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.SignalStrength                            RO   int            Signal strength (dBm)
+Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Retransmissions                           RO   unsignedInt    Retransmission count
+Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Active                                    RO   boolean        Device currently active
+
+# --- EndPoint Instance ---
+Device.WiFi.EndPoint.{i}.Enable                                                            RW   boolean        End point enable
+Device.WiFi.EndPoint.{i}.Status                                                            RO   string         End point status
+Device.WiFi.EndPoint.{i}.SSIDReference                                                     RW   string         SSID object reference
+Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries                                            RO   unsignedInt    Number of configured profiles
+Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate                                        RO   unsignedInt    Last downlink data rate (kbps)
+Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate                                          RO   unsignedInt    Last uplink data rate (kbps)
+Device.WiFi.EndPoint.{i}.Stats.SignalStrength                                              RO   int            Signal strength (dBm)
+Device.WiFi.EndPoint.{i}.Stats.Retransmissions                                             RO   unsignedInt    Retransmission count
+Device.WiFi.EndPoint.{i}.Security.ModesSupported                                           RO   string         Security modes supported
+Device.WiFi.EndPoint.{i}.WPS.Enable                                                        RW   boolean        WPS enable
+Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported                                        RO   string         WPS methods supported
+Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled                                          RW   string         WPS methods enabled
+Device.WiFi.EndPoint.{i}.Profile.{i}.Enable                                                RW   boolean        Profile enable
+Device.WiFi.EndPoint.{i}.Profile.{i}.Status                                                RO   string         Profile status
+Device.WiFi.EndPoint.{i}.Profile.{i}.SSID                                                  RW   string         Profile SSID name
+Device.WiFi.EndPoint.{i}.Profile.{i}.Location                                              RW   string         Profile location
+Device.WiFi.EndPoint.{i}.Profile.{i}.Priority                                              RW   unsignedInt    Profile priority
+Device.WiFi.EndPoint.{i}.Profile.{i}.Security.ModeEnabled                                  RW   string         Profile security mode
+Device.WiFi.EndPoint.{i}.Profile.{i}.Security.WEPKey                                       RW   hexBinary      Profile WEP key
+Device.WiFi.EndPoint.{i}.Profile.{i}.Security.PreSharedKey                                 RW   hexBinary      Profile PSK (hex)
+Device.WiFi.EndPoint.{i}.Profile.{i}.Security.KeyPassphrase                                RW   string         Profile WPA passphrase
+
+
+# ============================================================
+# 4. ETHERNET (Device.Ethernet.*)
+#    Source: src/hostif/profiles/Ethernet/Device_Ethernet_Interface.cpp
+#            src/hostif/profiles/Ethernet/Device_Ethernet_Interface_Stats.cpp
+# ============================================================
+Device.Ethernet.InterfaceNumberOfEntries                                                   RO   unsignedInt    Number of Ethernet interfaces
+Device.Ethernet.Interface.{i}.Enable                                                       RW   boolean        Interface enable
+Device.Ethernet.Interface.{i}.Status                                                       RO   string         Interface status (Up/Down/Dormant/Error)
+Device.Ethernet.Interface.{i}.Alias                                                        RW   string         Interface alias
+Device.Ethernet.Interface.{i}.Name                                                         RO   string         Interface name (e.g., eth0)
+Device.Ethernet.Interface.{i}.LastChange                                                   RO   unsignedInt    Time since last change (seconds)
+Device.Ethernet.Interface.{i}.LowerLayers                                                  RW   string         Lower layer reference
+Device.Ethernet.Interface.{i}.Upstream                                                     RO   boolean        Upstream indicator
+Device.Ethernet.Interface.{i}.MACAddress                                                   RO   string         Interface MAC address
+Device.Ethernet.Interface.{i}.MaxBitRate                                                   RW   int            Maximum bit rate (-1=auto, else Mbps)
+Device.Ethernet.Interface.{i}.DuplexMode                                                   RW   string         Duplex mode (Auto/Half/Full)
+Device.Ethernet.Interface.{i}.Stats.BytesSent                                              RO   unsignedLong   Total bytes sent
+Device.Ethernet.Interface.{i}.Stats.BytesReceived                                          RO   unsignedLong   Total bytes received
+Device.Ethernet.Interface.{i}.Stats.PacketsSent                                            RO   unsignedLong   Total packets sent
+Device.Ethernet.Interface.{i}.Stats.PacketsReceived                                        RO   unsignedLong   Total packets received
+Device.Ethernet.Interface.{i}.Stats.ErrorsSent                                             RO   unsignedInt    Send error count
+Device.Ethernet.Interface.{i}.Stats.ErrorsReceived                                         RO   unsignedInt    Receive error count
+Device.Ethernet.Interface.{i}.Stats.UnicastPacketsSent                                     RO   unsignedLong   Unicast packets sent
+Device.Ethernet.Interface.{i}.Stats.UnicastPacketsReceived                                 RO   unsignedLong   Unicast packets received
+Device.Ethernet.Interface.{i}.Stats.MulticastPacketsSent                                   RO   unsignedLong   Multicast packets sent
+Device.Ethernet.Interface.{i}.Stats.MulticastPacketsReceived                               RO   unsignedLong   Multicast packets received
+Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsSent                                   RO   unsignedLong   Broadcast packets sent
+Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsReceived                               RO   unsignedLong   Broadcast packets received
+Device.Ethernet.Interface.{i}.Stats.DiscardPacketsSent                                     RO   unsignedInt    Discarded packets sent
+Device.Ethernet.Interface.{i}.Stats.DiscardPacketsReceived                                 RO   unsignedInt    Discarded packets received
+Device.Ethernet.Interface.{i}.Stats.UnknownProtoPacketsReceived                            RO   unsignedInt    Unknown protocol packets received
+
+
+# ============================================================
+# 5. IP (Device.IP.*)
+#    Source: src/hostif/profiles/IP/Device_IP.cpp
+#            src/hostif/profiles/IP/Device_IP_Interface.cpp
+#            src/hostif/profiles/IP/Device_IP_Interface_IPv4Address.cpp
+#            src/hostif/profiles/IP/Device_IP_Interface_IPv6Address.cpp
+#            src/hostif/profiles/IP/Device_IP_Interface_Stats.cpp
+#            src/hostif/profiles/IP/Device_IP_ActivePort.cpp
+#            src/hostif/profiles/IP/Device_IP_Diagnostics_IPPing.cpp
+#            src/hostif/profiles/IP/Device_IP_Diagnostics_SpeedTest.cpp
+# ============================================================
+
+# --- IP Object-Level ---
+Device.IP.IPv4Capable                                                                      RO   boolean        IPv4 capable
+Device.IP.IPv4Enable                                                                       RW   boolean        IPv4 enable
+Device.IP.IPv4Status                                                                       RO   string         IPv4 status
+Device.IP.ULAPrefix                                                                        RW   string         ULA prefix
+Device.IP.InterfaceNumberOfEntries                                                         RO   unsignedInt    Number of IP interfaces
+Device.IP.ActivePortNumberOfEntries                                                        RO   unsignedInt    Number of active ports
+
+# --- IP Interface Instance ---
+Device.IP.Interface.{i}.Enable                                                             RW   boolean        IP interface enable
+Device.IP.Interface.{i}.IPv4Enable                                                         RW   boolean        IPv4 enable on interface
+Device.IP.Interface.{i}.IPv6Enable                                                         RW   boolean        IPv6 enable on interface
+Device.IP.Interface.{i}.ULAEnable                                                          RW   boolean        ULA enable on interface
+Device.IP.Interface.{i}.Status                                                             RO   string         Interface status
+Device.IP.Interface.{i}.Alias                                                              RW   string         Interface alias
+Device.IP.Interface.{i}.Name                                                               RO   string         Interface name
+Device.IP.Interface.{i}.LastChange                                                         RO   unsignedInt    Time since last change (seconds)
+Device.IP.Interface.{i}.LowerLayers                                                        RW   string         Lower layer reference
+Device.IP.Interface.{i}.Router                                                             RW   string         Associated router object
+Device.IP.Interface.{i}.Reset                                                              RW   boolean        Trigger interface reset
+Device.IP.Interface.{i}.MaxMTUSize                                                         RW   unsignedInt    Maximum MTU size (bytes)
+Device.IP.Interface.{i}.Type                                                               RO   string         Interface type (Normal/Loopback/Tunnel/Tunneled)
+Device.IP.Interface.{i}.Loopback                                                           RW   boolean        Loopback flag
+Device.IP.Interface.{i}.AutoIPEnable                                                       RW   boolean        Auto-IP (link-local) enable
+Device.IP.Interface.{i}.IPv4AddressNumberOfEntries                                         RO   unsignedInt    Number of IPv4 addresses
+Device.IP.Interface.{i}.IPv6AddressNumberOfEntries                                         RO   unsignedInt    Number of IPv6 addresses (IPv6_SUPPORT)
+Device.IP.Interface.{i}.IPv6PrefixNumberOfEntries                                          RO   unsignedInt    Number of IPv6 prefixes (IPv6_SUPPORT)
+
+# --- IPv4 Address Instance ---
+Device.IP.Interface.{i}.IPv4Address.{i}.Enable                                             RW   boolean        IPv4 address entry enable
+Device.IP.Interface.{i}.IPv4Address.{i}.IPAddress                                          RW   string         IPv4 address
+Device.IP.Interface.{i}.IPv4Address.{i}.SubnetMask                                         RW   string         Subnet mask
+Device.IP.Interface.{i}.IPv4Address.{i}.AddressingType                                     RO   string         Addressing type (Static/DHCP/AutoIP/IPCP)
+
+# --- IPv6 Address Instance ---
+Device.IP.Interface.{i}.IPv6Address.{i}.Enable                                             RW   boolean        IPv6 address entry enable
+Device.IP.Interface.{i}.IPv6Address.{i}.IPAddress                                          RO   string         IPv6 address
+Device.IP.Interface.{i}.IPv6Address.{i}.Origin                                             RO   string         Address origin (AutoConfigured/DHCPv6/WellKnown/Static/IPCP)
+
+# --- IP Interface Stats ---
+Device.IP.Interface.{i}.Stats.BytesSent                                                    RO   unsignedLong   Bytes sent
+Device.IP.Interface.{i}.Stats.BytesReceived                                                RO   unsignedLong   Bytes received
+Device.IP.Interface.{i}.Stats.PacketsSent                                                  RO   unsignedLong   Packets sent
+Device.IP.Interface.{i}.Stats.PacketsReceived                                              RO   unsignedLong   Packets received
+Device.IP.Interface.{i}.Stats.ErrorsSent                                                   RO   unsignedInt    Send errors
+Device.IP.Interface.{i}.Stats.ErrorsReceived                                               RO   unsignedInt    Receive errors
+Device.IP.Interface.{i}.Stats.UnicastPacketsSent                                           RO   unsignedLong   Unicast packets sent
+Device.IP.Interface.{i}.Stats.UnicastPacketsReceived                                       RO   unsignedLong   Unicast packets received
+Device.IP.Interface.{i}.Stats.DiscardPacketsSent                                           RO   unsignedInt    Discarded packets sent
+Device.IP.Interface.{i}.Stats.DiscardPacketsReceived                                       RO   unsignedInt    Discarded packets received
+
+# --- Active Ports ---
+Device.IP.ActivePort.{i}.LocalIPAddress                                                    RO   string         Local IP address
+Device.IP.ActivePort.{i}.LocalPort                                                         RO   unsignedInt    Local port number
+Device.IP.ActivePort.{i}.RemoteIPAddress                                                   RO   string         Remote IP address
+Device.IP.ActivePort.{i}.RemotePort                                                        RO   unsignedInt    Remote port number
+Device.IP.ActivePort.{i}.Status                                                            RO   string         Connection status (LISTEN/ESTABLISHED/etc.)
+
+# --- IP Ping Diagnostics ---
+Device.IP.Diagnostics.IPPing.Interface                                                     RW   string         Source interface for ping
+Device.IP.Diagnostics.IPPing.Host                                                          RW   string         Target host for ping
+Device.IP.Diagnostics.IPPing.NumberOfRepetitions                                           RW   unsignedInt    Number of ping repetitions
+Device.IP.Diagnostics.IPPing.Timeout                                                       RW   unsignedInt    Ping timeout (ms)
+Device.IP.Diagnostics.IPPing.DataBlockSize                                                 RW   unsignedInt    Ping payload size (bytes)
+Device.IP.Diagnostics.IPPing.DSCP                                                          RW   unsignedInt    DSCP value for ping packets
+Device.IP.Diagnostics.IPPing.DiagnosticsState                                              RW   string         Ping diagnostics state (trigger/result)
+Device.IP.Diagnostics.IPPing.SuccessCount                                                  RO   unsignedInt    Successful ping responses
+Device.IP.Diagnostics.IPPing.FailureCount                                                  RO   unsignedInt    Failed ping attempts
+Device.IP.Diagnostics.IPPing.AverageResponseTime                                           RO   unsignedInt    Average round-trip time (ms)
+Device.IP.Diagnostics.IPPing.MinimumResponseTime                                           RO   unsignedInt    Minimum round-trip time (ms)
+Device.IP.Diagnostics.IPPing.MaximumResponseTime                                           RO   unsignedInt    Maximum round-trip time (ms)
+
+# --- Speed Test Diagnostics ---
+Device.IP.Diagnostics.SpeedTest.DiagnosticsState                                           RW   string         Speed test state
+Device.IP.Diagnostics.SpeedTest.NumberOfConnections                                        RW   unsignedInt    Number of parallel connections
+Device.IP.Diagnostics.SpeedTest.DownloadURL                                                RW   string         Download test URL
+Device.IP.Diagnostics.SpeedTest.DownloadTransports                                         RO   string         Supported transport protocols
+Device.IP.Diagnostics.SpeedTest.EthernetPriority                                           RW   unsignedInt    Ethernet priority for test packets
+
+
+# ============================================================
+# 6. TIME (Device.Time.*)
+#    Source: src/hostif/profiles/Time/Device_Time.cpp
+#            src/hostif/handlers/src/hostIf_TimeClient_ReqHandler.cpp
+# ============================================================
+Device.Time.Enable                                                                         RW   boolean        NTP client enable
+Device.Time.Status                                                                         RO   string         NTP synchronization status
+Device.Time.NTPServer1                                                                     RW   string         Primary NTP server hostname/IP
+Device.Time.NTPServer2                                                                     RW   string         Secondary NTP server
+Device.Time.NTPServer3                                                                     RW   string         Tertiary NTP server
+Device.Time.NTPServer4                                                                     RW   string         Quaternary NTP server
+Device.Time.NTPServer5                                                                     RW   string         Quinary NTP server
+Device.Time.LocalTimeZone                                                                  RW   string         Local time zone (POSIX TZ string)
+Device.Time.CurrentLocalTime                                                               RO   string         Current local date/time (ISO 8601)
+Device.Time.X_RDK_CurrentUTCTime                                                           RO   string         Current UTC time (vendor extension)
+Device.Time.ChronyEnable                                                                   RW   boolean        Enable chronyd (vendor extension)
+Device.Time.NTPMinpoll                                                                     RW   unsignedInt    Chrony minpoll value (vendor extension)
+Device.Time.NTPMaxpoll                                                                     RW   unsignedInt    Chrony maxpoll value (vendor extension)
+Device.Time.NTPServer1Directive                                                            RW   string         Chrony directive syntax for NTP server 1
+Device.Time.NTPServer2Directive                                                            RW   string         Chrony directive syntax for NTP server 2
+Device.Time.NTPServer3Directive                                                            RW   string         Chrony directive syntax for NTP server 3
+Device.Time.NTPServer4Directive                                                            RW   string         Chrony directive syntax for NTP server 4
+Device.Time.NTPServer5Directive                                                            RW   string         Chrony directive syntax for NTP server 5
+Device.Time.NTPMaxstep                                                                     RW   string         Chrony makestep threshold (vendor extension)
+
+
+# ============================================================
+# 7. DHCPv4 (Device.DHCPv4.*)
+#    Source: src/hostif/profiles/DHCPv4/Device_DHCPv4_Client.cpp
+#            src/hostif/handlers/src/hostIf_DHCPv4Client_ReqHandler.cpp
+# ============================================================
+Device.DHCPv4.ClientNumberOfEntries                                                        RO   unsignedInt    Number of DHCPv4 client entries
+Device.DHCPv4.Client.{i}.Interface                                                         RO   string         Associated IP interface reference
+Device.DHCPv4.Client.{i}.DNSServers                                                        RO   string         DHCP-assigned DNS servers (comma-separated)
+Device.DHCPv4.Client.{i}.IPRouters                                                         RO   string         DHCP-assigned routers (comma-separated)
+
+
+# ============================================================
+# 8. MoCA (Device.MoCA.*)
+#    Source: src/hostif/profiles/moca/Device_MoCA_Interface.cpp
+#            src/hostif/profiles/moca/Device_MoCA_Interface_Stats.cpp
+#            src/hostif/profiles/moca/Device_MoCA_Interface_QoS.cpp
+#            src/hostif/profiles/moca/Device_MoCA_Interface_QoS_FlowStats.cpp
+#            src/hostif/profiles/moca/Device_MoCA_Interface_AssociatedDevice.cpp
+#            src/hostif/handlers/src/hostIf_MoCAClient_ReqHandler.cpp
+# ============================================================
+Device.MoCA.InterfaceNumberOfEntries                                                       RO   unsignedInt    Number of MoCA interfaces
+Device.MoCA.Interface.{i}.Enable                                                           RW   boolean        MoCA interface enable
+Device.MoCA.Interface.{i}.Status                                                           RO   string         Interface status
+Device.MoCA.Interface.{i}.Alias                                                            RW   string         Interface alias
+Device.MoCA.Interface.{i}.Name                                                             RO   string         Interface name
+Device.MoCA.Interface.{i}.LastChange                                                       RO   unsignedInt    Time since last change (seconds)
+Device.MoCA.Interface.{i}.LowerLayers                                                      RW   string         Lower layer reference
+Device.MoCA.Interface.{i}.Upstream                                                         RO   boolean        Upstream indicator
+Device.MoCA.Interface.{i}.MACAddress                                                       RO   string         MoCA MAC address
+Device.MoCA.Interface.{i}.FirmwareVersion                                                  RO   string         MoCA chipset firmware version
+Device.MoCA.Interface.{i}.MaxBitRate                                                       RO   unsignedInt    Maximum PHY bit rate (Mbps)
+Device.MoCA.Interface.{i}.MaxIngressBW                                                     RO   unsignedInt    Maximum ingress bandwidth (Kbps)
+Device.MoCA.Interface.{i}.MaxEgressBW                                                      RO   unsignedInt    Maximum egress bandwidth (Kbps)
+Device.MoCA.Interface.{i}.HighestVersion                                                   RO   string         Highest MoCA version supported
+Device.MoCA.Interface.{i}.CurrentVersion                                                   RO   string         Current MoCA version in use
+Device.MoCA.Interface.{i}.NetworkCoordinator                                               RO   unsignedInt    Network coordinator node ID
+Device.MoCA.Interface.{i}.NodeID                                                           RO   unsignedInt    This node's ID
+Device.MoCA.Interface.{i}.MaxNodes                                                         RO   unsignedInt    Maximum nodes supported
+Device.MoCA.Interface.{i}.PreferredNC                                                      RW   boolean        Preferred NC flag
+Device.MoCA.Interface.{i}.BackupNC                                                         RO   unsignedInt    Backup NC node ID
+Device.MoCA.Interface.{i}.PrivacyEnabledSetting                                            RW   boolean        Privacy enable setting
+Device.MoCA.Interface.{i}.PrivacyEnabled                                                   RO   boolean        Privacy enabled (current)
+Device.MoCA.Interface.{i}.FreqCapabilityMask                                               RO   string         Frequency capability bitmask
+Device.MoCA.Interface.{i}.FreqCurrentMaskSetting                                           RW   string         Frequency current mask (configured)
+Device.MoCA.Interface.{i}.FreqCurrentMask                                                  RO   string         Frequency current mask (active)
+Device.MoCA.Interface.{i}.CurrentOperFreq                                                  RO   unsignedInt    Current operating frequency (MHz)
+Device.MoCA.Interface.{i}.LastOperFreq                                                     RO   unsignedInt    Last operating frequency (MHz)
+Device.MoCA.Interface.{i}.KeyPassphrase                                                    RW   string         MoCA network key passphrase
+Device.MoCA.Interface.{i}.TxPowerLimit                                                     RW   unsignedInt    Transmit power limit (dBm)
+Device.MoCA.Interface.{i}.PowerCntlPhyTarget                                               RW   unsignedInt    Power control PHY target rate
+Device.MoCA.Interface.{i}.BeaconPowerLimit                                                 RW   unsignedInt    Beacon power limit (dBm)
+Device.MoCA.Interface.{i}.NetworkTabooMask                                                 RO   string         Network taboo channel mask
+Device.MoCA.Interface.{i}.NodeTabooMask                                                    RO   string         Node taboo channel mask
+Device.MoCA.Interface.{i}.TxBcastRate                                                      RO   unsignedInt    Transmit broadcast rate (Mbps)
+Device.MoCA.Interface.{i}.TxBcastPowerReduction                                            RO   unsignedInt    Broadcast power reduction (dB)
+Device.MoCA.Interface.{i}.QAM256Capable                                                    RO   boolean        QAM-256 capable
+Device.MoCA.Interface.{i}.PacketAggregationCapability                                      RO   unsignedInt    Packet aggregation capability
+Device.MoCA.Interface.{i}.AssociatedDeviceNumberOfEntries                                  RO   unsignedInt    Number of associated MoCA nodes
+Device.MoCA.Interface.{i}.X_RDKCENTRAL-COM_MeshTableNumberOfEntries                        RO   unsignedInt    Number of mesh table entries (vendor)
+Device.MoCA.Interface.{i}.Stats.BytesSent                                                  RO   unsignedLong   Bytes sent
+Device.MoCA.Interface.{i}.Stats.BytesReceived                                              RO   unsignedLong   Bytes received
+Device.MoCA.Interface.{i}.Stats.PacketsSent                                                RO   unsignedLong   Packets sent
+Device.MoCA.Interface.{i}.Stats.PacketsReceived                                            RO   unsignedLong   Packets received
+Device.MoCA.Interface.{i}.Stats.ErrorsSent                                                 RO   unsignedLong   Send errors
+Device.MoCA.Interface.{i}.Stats.ErrorsReceived                                             RO   unsignedLong   Receive errors
+Device.MoCA.Interface.{i}.QoS.EgressNumFlows                                               RO   unsignedInt    Number of egress QoS flows
+Device.MoCA.Interface.{i}.QoS.IngressNumFlows                                              RO   unsignedInt    Number of ingress QoS flows
+Device.MoCA.Interface.{i}.QoS.FlowStats.{i}.FlowID                                         RO   unsignedInt    QoS flow ID
+Device.MoCA.Interface.{i}.QoS.FlowStats.{i}.PacketDA                                       RO   string         Flow destination MAC address
+Device.MoCA.Interface.{i}.QoS.FlowStats.{i}.MaxRate                                        RO   unsignedInt    Flow max rate (Kbps)
+Device.MoCA.Interface.{i}.QoS.FlowStats.{i}.MaxBurstSize                                   RO   unsignedInt    Flow max burst size
+Device.MoCA.Interface.{i}.QoS.FlowStats.{i}.LeaseTime                                      RO   unsignedInt    Flow lease time (seconds)
+Device.MoCA.Interface.{i}.QoS.FlowStats.{i}.LeaseTimeLeft                                  RO   unsignedInt    Flow lease time remaining (seconds)
+Device.MoCA.Interface.{i}.QoS.FlowStats.{i}.FlowPackets                                    RO   unsignedInt    Flow packet count
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.MACAddress                                  RO   string         Associated node MAC address
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.NodeID                                      RO   unsignedInt    Associated node ID
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.PreferredNC                                 RO   boolean        Node preferred NC flag
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.HighestVersion                              RO   string         Node highest MoCA version
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.PHYTxRate                                   RO   unsignedInt    PHY transmit rate (Mbps)
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.PHYRxRate                                   RO   unsignedInt    PHY receive rate (Mbps)
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.TxPowerControlReduction                     RO   int            TX power control reduction (dB)
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.RxPowerLevel                                RO   int            Receive power level (dBm)
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.TxBcastRate                                 RO   unsignedInt    Transmit broadcast rate (Mbps)
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.RxBcastPowerLevel                           RO   int            Receive broadcast power level (dBm)
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.TxPackets                                   RO   unsignedLong   Transmit packet count
+Device.MoCA.Interface.{i}.AssociatedDevice.{i}.RxPackets                                   RO   unsignedLong   Receive packet count
+Device.MoCA.Interface.{i}.X_RDKCENTRAL-COM_MeshTable.{i}.*                                 RO   string         MoCA mesh table (vendor extension)
+
+
+# ============================================================
+# 9. STBSERVICE (Device.Services.STBService.*)
+#    Source: src/hostif/profiles/STBService/
+#            src/hostif/handlers/src/hostIf_dsClient_ReqHandler.cpp
+# ============================================================
+Device.Services.STBServiceNumberOfEntries                                                  RO   unsignedInt    Number of STB service instances
+Device.Services.STBService.1.Enable                                                        RW   boolean        STB service enable
+Device.Services.STBService.1.Capabilities.*                                                RO   string         Device capability objects (multiple sub-params)
+Device.Services.STBService.1.Components.VideoDecoderNumberOfEntries                        RO   unsignedInt    Number of video decoder instances
+Device.Services.STBService.1.Components.AudioOutputNumberOfEntries                         RO   unsignedInt    Number of audio output instances
+Device.Services.STBService.1.Components.VideoOutputNumberOfEntries                         RO   unsignedInt    Number of video output instances
+Device.Services.STBService.1.Components.HDMINumberOfEntries                                RO   unsignedInt    Number of HDMI output instances
+Device.Services.STBService.1.Components.SPDIFNumberOfEntries                               RO   unsignedInt    Number of SPDIF output instances
+Device.Services.STBService.1.Components.HDMI.{i}.Enable                                    RW   boolean        HDMI output enable
+Device.Services.STBService.1.Components.HDMI.{i}.Status                                    RO   string         HDMI output status
+Device.Services.STBService.1.Components.HDMI.{i}.Name                                      RO   string         HDMI output name
+Device.Services.STBService.1.Components.HDMI.{i}.ResolutionMode                            RW   string         Resolution mode (Auto/Manual)
+Device.Services.STBService.1.Components.HDMI.{i}.ResolutionValue                           RW   string         Resolution value (manual mode)
+Device.Services.STBService.1.Components.HDMI.{i}.DisplayDevice.*                           RO   string         Connected display device info
+Device.Services.STBService.1.Components.VideoDecoder.{i}.Enable                            RW   boolean        Video decoder enable
+Device.Services.STBService.1.Components.VideoDecoder.{i}.Status                            RO   string         Video decoder status
+Device.Services.STBService.1.Components.VideoDecoder.{i}.X_COMCAST-COM_Standby             RW   boolean        Decoder standby mode
+Device.Services.STBService.1.Components.AudioOutput.{i}.Enable                             RW   boolean        Audio output enable
+Device.Services.STBService.1.Components.AudioOutput.{i}.Status                             RO   string         Audio output status
+Device.Services.STBService.1.Components.AudioOutput.{i}.Name                               RO   string         Audio output name
+Device.Services.STBService.1.Components.AudioOutput.{i}.AudioFormat                        RO   string         Current audio format
+Device.Services.STBService.1.Components.AudioOutput.{i}.AudioLevel                         RW   int            Audio volume level (0-100)
+Device.Services.STBService.1.Components.AudioOutput.{i}.CancelMute                         RW   boolean        Cancel mute (write to unmute)
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioOptimalLevel    RO   int            Optimal audio level
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_MinAudioDB           RO   int            Minimum audio level (dB)
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_MaxAudioDB           RO   int            Maximum audio level (dB)
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioDB              RW   int            Audio level in dB
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioStereoMode      RW   string         Stereo mode
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioLoopThru        RW   boolean        Audio loop-through enable
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioEncoding        RW   string         Audio encoding format
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioCompression     RW   string         Audio compression
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioGain            RO   int            Audio gain (dB)
+Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_DialogEnhancement    RW   int            Dialog enhancement level
+Device.Services.STBService.1.Components.SPDIF.{i}.Enable                                   RW   boolean        SPDIF output enable
+Device.Services.STBService.1.Components.SPDIF.{i}.Status                                   RO   string         SPDIF output status
+Device.Services.STBService.1.Components.VideoOutput.{i}.*                                  RO/RW  string         Video output parameters
+Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_SDCard.*                          RO   string         SD card component info (vendor)
+Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMC.*                            RO   string         eMMC component info (vendor)
+Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CERemote.*                     RO   string         RF4CE remote info (vendor)
+
+
+# ============================================================
+# 10. STORAGESERVICE (Device.StorageService.*)
+#     Source: src/hostif/profiles/StorageService/Service_Storage.cpp
+#             src/hostif/profiles/StorageService/Service_Storage_PhyMedium.cpp
+# ============================================================
+Device.StorageService.{i}.PhysicalMediumNumberOfEntries                                    RO   unsignedInt    Number of physical storage media
+Device.StorageService.{i}.PhysicalMedium.{i}.Name                                          RO   string         Physical medium name
+Device.StorageService.{i}.PhysicalMedium.{i}.SmartCapable                                  RO   boolean        SMART capable flag
+Device.StorageService.{i}.PhysicalMedium.{i}.Health                                        RO   string         SMART health status
+
+
+# ============================================================
+# 11. INTERFACESTACK (Device.InterfaceStack.*)
+#     Source: src/hostif/profiles/InterfaceStack/Device_InterfaceStack.cpp
+#             src/hostif/handlers/src/hostIf_InterfaceStackClient_ReqHandler.cpp
+# ============================================================
+Device.InterfaceStackNumberOfEntries                                                       RO   unsignedInt    Number of interface stack entries
+Device.InterfaceStack.{i}.HigherLayer                                                      RO   string         Higher-layer interface object reference
+Device.InterfaceStack.{i}.LowerLayer                                                       RO   string         Lower-layer interface object reference
+
+
+# ============================================================
+# SUMMARY
+# ============================================================
+# Profile                          Approximate Count
+# --------------------------------------------------
+# Device Root (X_RDK_*)                           4
+# DeviceInfo                                     ~65
+# WiFi                                           ~90
+# Ethernet                                        26
+# IP                                             ~50
+# Time                                            20
+# DHCPv4                                           4
+# MoCA                                           ~65
+# STBService                                     ~40
+# StorageService                                   4
+# InterfaceStack                                   3
+# --------------------------------------------------
+# TOTAL (approximate)                           ~371
+# ============================================================

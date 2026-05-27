@@ -1,0 +1,404 @@
+﻿# RFC Namespace Parameters Implemented in tr69hostif
+# Base prefix: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC
+# Generated: 2026-05-05
+#
+# NOTE: Data types are derived from the tr69hostif implementation (waldb XML data model
+#       and C++ source handlers). They may differ from the normative BBF TR-181 schema.
+#       Type vocabulary: string | boolean | unsignedInt | int | unsignedLong | dateTime | base64
+#
+# Implementation sources:
+#   src/hostif/profiles/DeviceInfo/XrdkCentralComRFCStore.cpp  (generic RFC store)
+#   src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp   (bootstrap store)
+#   src/hostif/profiles/DeviceInfo/XrdkCentralComRFC.cpp       (legacy RFC)
+#   src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp       (side-effect handlers)
+#   src/hostif/handlers/src/hostIf_rbus_Dml_Provider.cpp       (RBUS event mappings)
+#
+# Legend:
+#   [SE] = has side-effect beyond plain store persistence
+#   [BS] = backed by bootstrap store (XrdkCentralComBSStore)
+#   [RB] = publishes RBUS event on set
+# ============================================================
+
+# --- Control & Store Management ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDB                                                                                 boolean        [SE] Clears RFC store
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDBEnd                                                                              boolean        [SE] Reloads RFC cache after clear
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ConfigChangeTime                                                                        unsignedInt    Config change timestamp
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ConfigSetHash                                                                           string         Config set hash
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ConfigSetTime                                                                           unsignedInt    Config set time
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.RetrieveNow                                                                             unsignedInt    [SE] Launches rfcMgr
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.XconfSelector                                                                           string         Xconf selector
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.XconfUrl                                                                                string         Xconf URL override
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.ClearParam                                                                                      string         Clear individual stored RFC key
+
+# --- Bootstrap Parameters ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.Control.ClearDB                                                                       boolean        [BS] Bootstrap clear-db control
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.Control.ClearDBEnd                                                                    boolean        [BS] Bootstrap clear-db end control
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.NetflixESNprefix                                                                      string         [BS] Netflix ESN prefix
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass                                                                               string         [BS] OS class
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName                                                                           string         [BS] Partner name
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName                                                                    string         [BS] Partner product name
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.SsrUrl                                                                                string         [BS] SSR URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfRecoveryUrl                                                                      string         [BS] Xconf recovery URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl                                                                              string         [BS] Xconf URL
+
+# --- AAMP / Media Playback ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AAMP_CFG.DashPlaybackExclusions                                                         string         AAMP DASH exclusions
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AAMP_CFG.DashPlaybackInclusions                                                         string         AAMP DASH inclusions
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AAMP_CFG.b64Config                                                                      string         AAMP base64 config blob
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.LRHAcceptValue                                                                             string         AAMP LRH accept value
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.LRHContentType                                                                             string         AAMP LRH content type
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.SchemeIdUriDaiStream                                                                       string         AAMP DAI stream scheme URI
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.SchemeIdUriVssStream                                                                       string         AAMP VSS stream scheme URI
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.SlowMotion                                                                                 boolean        AAMP slow motion
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.asyncTune                                                                                  boolean        AAMP async tune
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.cdvrLiveOffset                                                                             unsignedLong   AAMP cDVR live offset
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.client-dai                                                                                 boolean        AAMP client-side DAI
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.curlStore                                                                                  boolean        AAMP curl store
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.defaultBitrate                                                                             unsignedLong   AAMP default bitrate
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.defaultBitrate4K                                                                           unsignedLong   AAMP 4K default bitrate
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.disableAC3                                                                                 boolean        AAMP disable AC3
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.disableAC4                                                                                 boolean        AAMP disable AC4
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.disableATMOS                                                                               boolean        AAMP disable Atmos
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.disableEC3                                                                                 boolean        AAMP disable EC3
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.enableCMCD                                                                                 boolean        AAMP CMCD enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.enableLiveLatencyCorrection                                                                boolean        AAMP live latency correction
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.enableLowLatencyCorrection                                                                 boolean        AAMP low latency correction
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.enableLowLatencyDash                                                                       boolean        AAMP low latency DASH
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.enablePTSReStamp                                                                           boolean        AAMP PTS restamp
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.enableVideoEndEvent                                                                        boolean        AAMP video-end event
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.info                                                                                       boolean        AAMP info flag
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.liveOffset                                                                                 unsignedLong   AAMP live offset
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.liveOffset4K                                                                               string         AAMP 4K live offset
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.manifestTimeout                                                                            unsignedLong   AAMP manifest timeout
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.maxBitrate                                                                                 unsignedLong   AAMP max bitrate
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.maxInitFragCachePerTrack                                                                   int            AAMP init frag cache per track
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.minBitrate                                                                                 unsignedLong   AAMP min bitrate
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.networkTimeout                                                                             unsignedLong   AAMP network timeout
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.persistBitrateOverSeek                                                                     boolean        AAMP persist bitrate over seek
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.playlistTimeout                                                                            unsignedLong   AAMP playlist timeout
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.preferredDrm                                                                               int            AAMP preferred DRM
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.rateCorrectionDelay                                                                        unsignedLong   AAMP rate correction delay
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.sharedSSL                                                                                  boolean        AAMP shared SSL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.stereoOnly                                                                                 boolean        AAMP stereo only
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.supportTLS                                                                                 unsignedLong   AAMP TLS support
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.tsbInterruptHandling                                                                       boolean        AAMP TSB interrupt handling
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.useSecManager                                                                              boolean        AAMP use secmanager
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.aamp.useWesterosSink                                                                            boolean        AAMP use Westeros sink
+
+# --- Audio / Video / Display ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.1080pGraphics.Enable                                                                    boolean        1080p graphics enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DAPv2_Enable                                                                       boolean        [SE] MS12 DAPv2 (audio HAL)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DE_Enable                                                                          boolean        [SE] MS12 DE (audio HAL)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LoudnessEquivalence.Enable                                                              boolean        [SE] Loudness equivalence (audio HAL)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.HdmiCecSink.CECVersion                                                                  string         HDMI CEC version
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SoundPlayer.Enable                                                                      boolean        Sound player enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.TvSettings.DynamicAutoLatency                                                           boolean        Dynamic auto latency
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FOG_CFG.b64Config                                                                       string         FOG base64 config blob
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.fog.ZeroDrmHost                                                                                 string         FOG ZeroDRM host
+
+# --- Remote Control / RF4CE ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.AudioProfileTarget                                                                int            RF4CE audio profile target
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.FF.RspIdle                                                                        int            RF4CE FF idle response
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.HostPacketDecryption.Enable                                                       boolean        RF4CE host packet decryption
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.OpusEncoderParams                                                                 string         RF4CE Opus encoder params
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.RspTime.XDIU                                                                      int            RF4CE XDIU response time
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.RspTime.XRC                                                                       int            RF4CE XRC response time
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.RspTime.XVP                                                                       int            RF4CE XVP response time
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.VoiceEncryption.Enable                                                            boolean        RF4CE voice encryption
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRDsp.XR19.Configuration                                                                string         XR19 DSP configuration
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPairing.ASBDerivationMethod                                                           int            XR pairing ASB derivation method
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPairing.ASBEnable                                                                     boolean        XR pairing ASB enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPairing.ASBFailThreshold                                                              int            XR pairing ASB fail threshold
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.Default                                                          string         XR polling default config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.Enable                                                           boolean        XR polling config enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.XR11v2                                                           string         XR11v2 polling config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.XR15v1                                                           string         XR15v1 polling config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.XR15v2                                                           string         XR15v2 polling config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.XR16v1                                                           string         XR16v1 polling config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.XR19v1                                                           string         XR19v1 polling config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration.XRAv1                                                            string         XRAv1 polling config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRmacPolling.Enable                                                                     boolean        XR MAC polling enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRmacPolling.macPollingInterval                                                         int            XR MAC polling interval
+
+# --- ctrlm ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.device_update                                                                     string         ctrlm device update config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.global                                                                            string         ctrlm global config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.network_ble                                                                       string         ctrlm BLE network config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.network_ip                                                                        string         ctrlm IP network config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.network_rf4ce                                                                     string         ctrlm RF4CE network config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.telemetry_report.ble                                                              string         ctrlm BLE telemetry report config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.telemetry_report.global                                                           string         ctrlm global telemetry report config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.telemetry_report.ip                                                               string         ctrlm IP telemetry report config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.telemetry_report.rf4ce                                                            string         ctrlm RF4CE telemetry report config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.telemetry_report.voice                                                            string         ctrlm voice telemetry report config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.voice                                                                             string         ctrlm voice config
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.vsdk                                                                              string         ctrlm VSDK config
+
+# --- Voice ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice.AudioConfidenceThreshold                                                          string         Voice confidence threshold
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice.AudioDuckingLevel                                                                 string         Voice audio ducking level
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice.AudioDuckingType                                                                  int            Voice audio ducking type
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice.AudioMode                                                                         int            Voice audio mode
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice.AudioTiming                                                                       int            Voice audio timing
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice.KeywordSensitivity                                                                string         Voice keyword sensitivity
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice.VSDKConfiguration                                                                 string         Voice VSDK configuration
+
+# --- WiFi / Networking ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFi.WiFiStatsLogInterval                                                               unsignedInt    Wi-Fi stats log interval
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.Enable                                                                        boolean        Wi-Fi reset enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.EthernetLoggingInterval                                                       unsignedInt    Wi-Fi reset ethernet logging interval
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.PacketLossLoggingInterval                                                     string         Wi-Fi reset packet loss logging interval
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.ReassociateTolerance                                                          unsignedInt    Wi-Fi reassociate tolerance
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.WifiLoggingInterval                                                           unsignedInt    Wi-Fi logging interval
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.WifiReassociateInterval                                                       unsignedInt    Wi-Fi reassociate interval
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.WifiResetIntervalForDriverIssue                                               unsignedInt    Wi-Fi reset interval (driver issue)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFiReset.WifiResetIntervalForPacketLoss                                                unsignedInt    Wi-Fi reset interval (packet loss)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WifiOptimizer.Enable                                                                    boolean        Wi-Fi optimizer enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RoamTrigger                                                                             string         [SE] Wi-Fi roam trigger (wl roam_trigger)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DHCPv6Client.Enable                                                                     boolean        DHCPv6 client enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DNSStrictOrder.Enable                                                                   boolean        DNS strict-order enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UNII3.Enable                                                                            boolean        UNII3 enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Service.Discovery.Enable                                                      boolean        IPControl service discovery enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Subsystem.RICS.Enable                                                         boolean        IPControl RICS enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPRemotePort.Enable                                                                     boolean        IP remote port enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NTP.failoverServer                                                                      string         NTP failover server
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.newNTP.Enable                                                                           string         [SE] New NTP enable (state file)
+
+# --- Firmware / CDL / Update ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.EnableHttpCDL.Enable                                                                    boolean        HTTP CDL enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IncrementalCDL.Enable                                                                   boolean        Incremental CDL enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CDLDM.CDLModuleUrl                                                                      string         CDL module URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.AutoExcluded.Enable                                                            boolean        FW auto-excluded enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.AutoExcluded.XconfUrl                                                          string         FW auto-excluded Xconf URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PeriodicFWCheck.Enable                                                                  boolean        Periodic FW check enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PeriodicFwCheck.timeperiod                                                              unsignedInt    Periodic FW check time period
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLDirect.Enable                                                                       boolean        SWDLDirect enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable                                                                      boolean        SWDL speed-limit enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.LowSpeed                                                                    int            SWDL low speed
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed                                                                    int            SWDL top speed
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.eMMCFirmware.Version                                                                    string         eMMC firmware version
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.eMMCMitigation.Disable                                                                  boolean        Disable eMMC mitigation
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonPersistent.WebPACDL.Enable                                                           boolean        Non-persistent WebPA CDL enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDMDecoupledVersionManagement.Enable                                                    boolean        RDM decoupled version management enable
+
+# --- Power / Reboot / Standby ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable                                                                       boolean        [SE] Auto reboot enable (schedules script)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot                                                                int            Auto reboot firmware delay
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable                                                      boolean        Deep sleep notification enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable                                                                    boolean        Power manager 2 enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable                                                 boolean        User inactivity notification enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes                                            unsignedInt    User inactivity notification minutes
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StandbyReboot.Enable                                                                    boolean        Standby reboot enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StandbyReboot.ForceAutoReboot                                                           int            Force auto reboot
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StandbyReboot.StandbyAutoReboot                                                         int            Standby auto reboot
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Detection                                                                    boolean        Reboot-stop detection
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Duration                                                                     int            Reboot-stop duration
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable                                                                       boolean        Reboot-stop enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable                                                         boolean        Log upload before deep sleep enable
+
+# --- Logging / Telemetry / Crash Upload ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.ConfigURL                                                                     string         Telemetry config URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.Version                                                                       string         Telemetry version
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DtmAnalytics.Enable                                                                     string         DTM analytics enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DtmAnalytics.RecordsToBuffer                                                            string         DTM analytics records to buffer
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DtmAnalytics.ServiceUrl                                                                 string         DTM analytics service URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.BurstCnt                                                                  unsignedInt    Ping telemetry burst count
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.Enable                                                                    boolean        Ping telemetry enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.EndTime                                                                   unsignedInt    Ping telemetry end time
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.StartTime                                                                 unsignedInt    Ping telemetry start time
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.Type                                                                      string         Ping telemetry type
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.VideoTelemetry.FrequncyMinutes                                                          unsignedInt    [SE] Video telemetry frequency minutes
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CrashportalEndpoint.Enable                                                              string         Crashportal endpoint enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CrashportalEndpoint.URL                                                                 string         Crashportal endpoint URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadEndpoint.Enable                                                                string         Log upload endpoint enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadEndpoint.URL                                                                   string         Log upload endpoint URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ScreenCapture.Enable                                                                    boolean        Screen capture enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ScreenCapture.URL                                                                       string         Screen capture URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.collectd.Enable                                                                         boolean        collectd enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.collectd.GraphiteURL                                                                    string         collectd graphite URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.collectd.Hostname                                                                       string         collectd hostname
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.collectd.PortNumber                                                                     unsignedInt    collectd port number
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UploadLogsOnUnscheduledReboot.Disable                                                   boolean        Disable log upload on unscheduled reboot
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.memcapture.Duration                                                                     int            memcapture duration
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.memcapture.Enable                                                                       boolean        memcapture enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.systemd-analyze.Enable                                                                  boolean        systemd-analyze enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Args                                                                        string         xMemInsight args
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable                                                                      string         xMemInsight enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Enable                                                                       boolean        meminsight enable (source variant)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Args                                                                         string         meminsight args (source variant)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.meminsight.Trigger                                                                      string         [SE] meminsight trigger (file/service)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecDump.Enable                                                                          boolean        Security dump enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CrashUpload.S3BucketUrl                                                                         string         Crash upload S3 bucket URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CrashUpload.S3SigningUrl                                                                        string         Crash upload S3 signing URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CrashUpload.crashPortalDEVUrl                                                                   string         Crash portal DEV URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CrashUpload.crashPortalPRODUrl                                                                  string         Crash portal PROD URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CrashUpload.crashPortalSTBUrl                                                                   string         Crash portal STB URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CrashUpload.crashPortalVBNUrl                                                                   string         Crash portal VBN URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.DcaUploadPRODUrl                                                                      string         DCA PROD upload URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.DcaUploadUrl                                                                          string         DCA upload URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.DcmLogServerCQAUrl                                                                    string         DCM CQA log server URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.DcmLogServerDEVUrl                                                                    string         DCM DEV log server URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.DcmLogServerPRODUrl                                                                   string         DCM PROD log server URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.DcmLogUrl                                                                             string         DCM log URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.DcmScpServerUrl                                                                       string         DCM SCP server URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.LogServerUrl                                                                          string         Log server URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.S3SignedBucketUrl                                                                     string         S3 signed bucket URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.SsrUrl                                                                                string         Log upload SSR URL
+
+# --- Security / Credentials ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CRL.DirectOCSP                                                                          boolean        Direct OCSP setting
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CRL.Enable                                                                              boolean        CRL enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CredDwnld.Enable                                                                        string         Credential download enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CredDwnld.Use                                                                           string         Credential download mode
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IDS.Enable                                                                              boolean        IDS enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IDS.ScanTask                                                                            string         IDS scan task
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LnFUseXPKI.Enable                                                                       boolean        LnF XPKI enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsXcSsr.Enable                                                                   boolean        MTLS XcSsr enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonRootSupport.ApparmorBlocklist                                                        string         [SE] AppArmor blocklist
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonRootSupport.Blocklist                                                                string         Non-root blocklist
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonRootSupport.Enable                                                                   boolean        Non-root support enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThunderSecurity.Enable                                                                  boolean        Thunder security enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnP.Refactor.Enable                                                                    boolean        UPnP refactor enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UPnPxPKI.Enable                                                                         boolean        UPnP xPKI enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.fkpskdf.Enable                                                                          boolean        fkpskdf enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Tr069DoSLimit.Threshold                                                                 string         TR-069 DoS limit threshold (range: 0-30)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.TR069support.Enable                                                                     boolean        TR-069 support enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SecManager.dieselUrl                                                                            string         SecManager diesel URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.Activation                                                                      string         SOC provisioning activation
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.AuthMessage                                                                     string         SOC provisioning auth message
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.NameSpacePrefix                                                                 string         SOC provisioning namespace prefix
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.NameSpaceUri                                                                    string         SOC provisioning namespace URI
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.Renewal                                                                         string         SOC provisioning renewal
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.URL1                                                                            string         SOC provisioning URL1
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.URL2                                                                            string         SOC provisioning URL2
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.backoffIntervalMax                                                              unsignedLong   SOC provisioning max backoff interval
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SocProvisioning.disableCredentialsPrefetchCaching                                               boolean        SOC provisioning disable prefetch caching
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.CCRProxyUrl                                                                              string         CCR proxy URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.CDNCCPUrl                                                                                string         CDN CCP URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.CcpUrl                                                                                   string         CCP URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.DAC15CDLUrl                                                                              string         DAC15 CDL URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.EDGEDNSProxyUrl                                                                          string         EdgeDNS proxy URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.FkpsBrokerUrl                                                                            string         FKPS broker URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.FkpsUrl                                                                                  string         FKPS URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.PRODCDLUrl                                                                               string         PROD CDL URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.XcalUrl                                                                                  string         Xcal URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.XconfDEVUrl                                                                              string         Xconf DEV URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Sysint.XconfUrl                                                                                 string         Xconf URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AuthService.Host                                                                                string         AuthService host
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable                                                                          boolean        MOCASSH enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MEMSWAP.Enable                                                                          string         MEMSWAP enable
+
+# --- Apps / DAC / Containers ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppConfig.App.{i}.AppName                                                               string         App config name (multi-instance)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppConfig.App.{i}.AppSize                                                               string         App config size (multi-instance)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppConfig.App.{i}.AppUrl                                                                string         App config URL (multi-instance)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppConfig.AppCnt                                                                        unsignedInt    App config count
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppConfig.Enable                                                                        boolean        App config enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.DelayInSecLaunchedToSuspended                                              unsignedInt    App hibernate launched-to-suspended delay
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.DelayInSecResumedToSuspended                                               unsignedInt    App hibernate resumed-to-suspended delay
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable                                                                     boolean        App hibernate enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.InactiveApplications.Maximum                                                            unsignedInt    Maximum inactive applications
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable                                                                              boolean        [SE] DAB enable (state file)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.AppList                                                                           string         XDial app list
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DAC.ConfigURL                                                                                   string         DAC config URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DAC.dacBundleFirmwareCompatibilityKey                                                           string         DAC firmware compatibility key
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DAC.dacBundlePlatformName                                                                       string         DAC platform name
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.EntOsAppPlatform.EnableDistPlatform                                                     boolean        EntOS distribution platform enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.apps.watchdogmode                                                                               boolean        Apps watchdog mode
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.JSPPCache.Enable                                                                        boolean        JSPP cache enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKBROWSER2_CFG.BACKGROUND_MEM_USAGE_HIGH_WATERMARK                                     unsignedInt    Browser background memory high watermark
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKBROWSER2_CFG.BACKGROUND_MEM_USAGE_LOW_WATERMARK                                      unsignedInt    Browser background memory low watermark
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKBROWSER2_CFG.HTML_APP_RESURRECTION_PERIOD.days                                       unsignedInt    Browser HTML app resurrection period days
+
+# --- Remote Debugging ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.Enable                                                                boolean        RDK remote debugger enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType                                                             string         [SE][RB] Remote debugger issue type (RBUS event)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData                                                            string         [SE][RB] Remote debugger webcfg payload (RBUS event)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.getProfileData                                                        string         Remote debugger get profile data
+
+# --- Bluetooth ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BTR.AudioIn.Enable                                                                      boolean        BT audio-in enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BTR.DebugMode.Enable                                                                    boolean        BT debug mode enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BTR.GamePad.Enable                                                                      boolean        BT gamepad enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BTSplitAudio.Enable                                                                     boolean        BT split audio enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BTSplitAudio.Language                                                                   string         BT split audio language
+
+# --- Hardware Health Test ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.Enable                                                                     boolean        hwHealthTest enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.EnablePeriodicRun                                                          boolean        hwHealthTest periodic run enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.PeriodicRunFrequency                                                       unsignedInt    hwHealthTest periodic run frequency
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.cpuThreshold                                                               unsignedInt    hwHealthTest CPU threshold
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.dramThreshold                                                              unsignedInt    hwHealthTest DRAM threshold
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTestWAN.WANTestEndPointURL                                                      string         hwHealthTest WAN test endpoint URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.Enable                                                        boolean        hwHealthTest result filter enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.QueueDepth                                                    unsignedInt    hwHealthTest result filter queue depth
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.FilterParams                                                  string         hwHealthTest result filter params
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.ResultsFiltered                                               boolean        hwHealthTest filtered results counter
+
+# --- LSA (Linear Storage Architecture) ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.AdCacheEnable                                                                       string         LSA ad cache enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Advt_Opt_Out_Key                                                                    string         LSA ad opt-out key
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.AltconReceiver                                                                      string         LSA altcon receiver
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.ByteRangeDownload                                                                   string         LSA byte-range download
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Enable                                                                              string         LSA enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.PSNUrl                                                                              string         LSA PSN URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.PlacementReqUrl                                                                     string         LSA placement request URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.ProgrammerEnable                                                                    string         LSA programmer enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Schema_Location                                                                     string         LSA schema location
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Schemas_NGOD                                                                        string         LSA NGOD schemas
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Schemas_admin                                                                       string         LSA admin schemas
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Schemas_core                                                                        string         LSA core schemas
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.XMLNS_Schema                                                                        string         LSA XMLNS schema
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.XMLSchema_Instance                                                                  string         LSA XMLSchema instance
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Xifaid_Xml_Key                                                                      string         LSA Xifaid XML key
+
+# --- Storage ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StorageManager.maxAdaptiveBitRate                                                       int            Storage manager max adaptive bitrate
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StorageManager.maxTSBDurationMinutes                                                    int            Storage manager max TSB duration (minutes)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SDCARD_SCRATCHPAD.Enable                                                                string         SD card scratchpad enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.USB_AutoMount.Enable                                                                    string         USB auto-mount enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.USB_HID.Enable                                                                          boolean        USB HID enable
+
+# --- Miscellaneous Feature Flags ---
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID                                                                   string         [SE] Account ID (Thunder AuthService fallback)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable                                                                          boolean        Airplay enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AmazonPrimeVideo.SyePlayer.Enable                                                       boolean        Amazon Prime Video SyePlayer enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.BootstrapConfig.Enable                                                                  boolean        Bootstrap config enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd                                                                        int            [SE] Canary wake-up end
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart                                                                      int            [SE] Canary wake-up start
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CPC1960.Enable                                                                          boolean        CPC1960 enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable                                                                              boolean        [SE] DAB enable (state file)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DefaultSupportedLocales                                                                 string         Default supported locales
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LaunchDarkly.EnvKeyLabel                                                                string         LaunchDarkly environment key label
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ManageableNotification.Enable                                                           boolean        Manageable notification enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Miracast.Enable                                                                         boolean        Miracast enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Preference.URL                                                                          string         Preference URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PressAndRelease.EOSMethod                                                               int            EOS method
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PressAndRelease.EOSTimeout                                                              int            EOS timeout
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ProtectX1Services.Enable                                                                boolean        Protect X1 services enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RedRecovery.Status                                                                      string         Red recovery status
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.Blacklist.Enable                                                        boolean        Resource manager blacklist enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.ReserveTTS.Enable                                                       boolean        Resource manager reserve TTS enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SHORTS.Enable                                                                           boolean        SHORTS enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.STAGE.Enable                                                                            boolean        STAGE enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SupportedLanguages                                                                      string         Supported languages
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThreadMonitorMinidump.Enable                                                            boolean        Thread monitor minidump enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThreadPrioConfig.Enable                                                                 boolean        Thread priority config enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ViperPPUrl                                                                              string         Viper PP URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable                                                                          string         [SE] LXC XRE enable (container state file)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CloudStore.Uri                                                                                  string         Cloud store URI
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DynamicIUIUpdate.IUISelector                                                                    string         Dynamic IUI selector
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.DynamicIUIUpdate.Pathway.Uri                                                                    string         Dynamic IUI pathway URI
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.HostIf.ParodusTokenServerUrl                                                                    string         Parodus token server URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable                                                                     boolean        Debug services enable
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType                                                                             string         Identity device type
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.FriendlyName                                                                     string         System services friendly name
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.TextToSpeech.URL                                                                                string         Text-to-speech URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.recorder.LongpollUrl                                                                            string         Recorder longpoll URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.recorder.Status                                                                                 string         Recorder status
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.recorder.UpdateSchedule                                                                         string         Recorder update schedule
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.vodclient.StunnelConnect                                                                        string         VOD client stunnel connect
+
+# ============================================================
+# TOTAL: ~220 parameters
+# ============================================================

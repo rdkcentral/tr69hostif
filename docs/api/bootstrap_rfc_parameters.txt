@@ -1,0 +1,189 @@
+﻿# Bootstrap RFC Parameters Implemented in tr69hostif
+# Generated: 2026-05-05
+#
+# NOTE: Data types are derived from the tr69hostif implementation (waldb XML data model
+#       and C++ source handlers). They may differ from the normative BBF TR-181 schema.
+#
+# WHAT IS THE BOOTSTRAP STORE?
+# =============================
+# The Bootstrap store (XBSStore) is a separate key-value store from the main
+# RFC store. It is backed by:
+#   Runtime file:  /opt/secure/RFC/bootstrap.ini
+#   Defaults file: /etc/partners_defaults.json  (partner-keyed JSON)
+#   Partner ID:    /opt/www/authService/partnerId3.dat
+#
+# At daemon start, XBSStore::loadFromJson() reads partners_defaults.json for
+# the active partner and populates the in-memory store.  Individual parameters
+# can be overridden at runtime by RFC push or WebPA set.
+#
+# ROUTING MECHANISM
+# =================
+# Parameters are routed to the Bootstrap store when the data-model XML marks
+# them with bsUpdate="allUpdate".  The request handler
+# (hostIf_DeviceClient_ReqHandler.cpp) checks bsUpdate != HOSTIF_NONE and
+# diverts GET/SET to XBSStore::getValue() / XBSStore::overrideValue() instead
+# of the RFC store.
+#
+# WRITE ACCESS CONTROL
+# ====================
+# SET is only accepted from:
+#   - HOSTIF_SRC_RFC   (server-side RFC push)
+#   - HOSTIF_SRC_WEBPA (WebPA/parodus set)
+# All other requestors are silently rejected.
+#
+# SOURCE PRIORITY
+# ===============
+# BSStore journal tracks which source last wrote each key.
+# A HOSTIF_SRC_DEFAULT (JSON) write will NOT overwrite an active RFC/WebPA value.
+#
+# Implementation sources:
+#   src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp  (store impl)
+#   src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.h    (class declaration)
+#   src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp       (get/set handlers)
+#   src/hostif/handlers/src/hostIf_DeviceClient_ReqHandler.cpp (bsUpdate routing gate)
+#   src/hostif/parodusClient/waldb/data-model/data-model-generic.xml (bsUpdate="allUpdate")
+#   src/hostif/parodusClient/waldb/data-model/data-model-stb.xml     (STB-platform bsUpdate)
+#   partners_defaults.json                                           (partner defaults)
+#   src/integrationtest/conf/bootstrap.ini                           (integration test seed)
+#
+# Legend:
+#   RO  = Read-only (cannot be SET via WebPA/RFC)
+#   RW  = Read-write (RFC/WebPA only)
+#   [SE] = Side-effect beyond plain store persistence
+# ============================================================
+
+
+# ============================================================
+# GROUP 1: Bootstrap Identity Parameters
+#   Path prefix: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.*
+#   Data model:  data-model-generic.xml (bsUpdate="allUpdate")
+#   Handlers:    get_xRDKCentralComBootstrap()  @ Device_DeviceInfo.cpp:3970
+#                set_xRDKCentralComBootstrap()  @ Device_DeviceInfo.cpp:3491
+#   Validation:  none (beyond source-type check)
+#   Side effects: none — plain BSStore persist + journal
+# ============================================================
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName              RW  string   Partner brand name (e.g. "comcast", "community")
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName        RW  string   Product name within the partner's portfolio
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.NetflixESNprefix          RW  string   Prefix for the Netflix Electronic Serial Number
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.SsrUrl                    RW  string   Secure Software Repository (SSR) URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl                  RW  string   Primary Xconf configuration server URL
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfRecoveryUrl          RW  string   Fallback Xconf URL used during recovery
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass                   RW  string   OS class identifier sent to Xconf for feature targeting
+
+
+# ============================================================
+# GROUP 2: Bootstrap Control Parameters
+#   Path prefix: Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.Control.*
+#   Data model:  data-model-generic.xml lines 3589-3592
+#   Source:      XrdkCentralComBSStore.cpp lines ~662-680
+#   Side effects: see per-parameter notes below
+# ============================================================
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.Control.ClearDB     RW  boolean  [SE] Start of RFC batch update; sets m_rfcUpdateInProgress=true, freezes active-value protection (value is NOT persisted)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.Control.ClearDBEnd  RW  boolean  [SE] End of RFC batch; calls clearRfcValues() (rewrites bootstrap.ini with defaults for any key not re-set this cycle), clears m_rfcUpdateInProgress
+
+
+# ============================================================
+# GROUP 3: Cross-Subsystem Parameters with bsUpdate (All Platforms)
+#   These are outside the Bootstrap.* sub-tree but declared with
+#   bsUpdate="allUpdate" in data-model-generic.xml.
+#   Populated from partners_defaults.json at startup.
+#   Handlers: same bsUpdate routing in hostIf_DeviceClient_ReqHandler.cpp
+# ============================================================
+Device.X_RDK_WebPA_Server.URL                                                        RO  string   WebPA server endpoint URL (read-only from WebPA/CWMP; overridable by RFC)
+Device.X_RDK_WebPA_TokenServer.URL                                                   RO  string   WebPA token server URL (same access rules as above)
+Device.X_RDK_WebPA_DNSText.URL                                                       RW  string   WebPA DNS-text record URL
+Device.X_RDKCENTRAL-COM_T2.ReportProfiles                                            RW  string   Telemetry 2.0 report profiles (JSON blob)
+Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack                                     RW  string   MsgPack-encoded Telemetry 2.0 report profiles
+Device.DeviceInfo.X_RDKCENTRAL-COM_Manufacturing.UIbranding                          RW  string   UI branding token applied at manufacturing / per-partner
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Miracast.Enable                       RW  boolean  Enables Miracast feature (default: true)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.AppList                         RW  string   Colon-separated list of XDial-enabled apps (e.g. "youtube:spotify:netflix:system")
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CrashportalEndpoint.Enable            RW  string   Enables crash portal upload
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CrashportalEndpoint.URL               RW  string   URL for crash report upload destination
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadEndpoint.Enable              RW  string   Enables log upload endpoint
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadEndpoint.URL                 RW  string   URL for log upload destination
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.FriendlyName                   RW  string   Human-readable device name broadcast by system services
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThreadPrioConfig.Enable               RW  boolean  Enables thread priority configuration (default: false)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DefaultSupportedLocales               RW  string   Default locale list for the partner
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Service.Discovery.Enable    RW  boolean  Enables IP control service discovery
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IPControl.Subsystem.RICS.Enable       RW  boolean  Enables RICS subsystem within IP control
+
+
+# ============================================================
+# GROUP 4: STB/TV Platform-Only Parameters with bsUpdate
+#   Data model:  data-model-stb.xml lines 263-388
+#                data-model-tv.xml (NTP servers also appear here)
+#   Side effects: none — plain BSStore persist
+# ============================================================
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UNII3.Enable                          RW  boolean  Enables UNII-3 (5 GHz Wi-Fi band 3)
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.Enable                            RW  string   Enables Local Streaming Ads (LSA) feature
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.AdCacheEnable                     RW  string   Enables LSA ad-cache
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.ProgrammerEnable                  RW  string   Enables LSA programmer integration
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.ByteRangeDownload                 RW  string   Enables byte-range HTTP downloads for LSA
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.PlacementReqUrl                   RW  string   URL for LSA ad-placement requests
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LSA.PSNUrl                            RW  string   LSA PSN (Placement Sync Network) URL
+Device.Time.NTPServer1                                                                RW  string   Primary NTP server hostname/IP (STB/TV platform bootstrap default)
+Device.Time.NTPServer2                                                                RW  string   Secondary NTP server (STB/TV platform bootstrap default)
+Device.Time.NTPServer3                                                                RW  string   Tertiary NTP server (STB/TV platform bootstrap default)
+Device.Time.NTPServer4                                                                RW  string   Quaternary NTP server (STB/TV platform bootstrap default)
+Device.Time.NTPServer5                                                                RW  string   Quinary NTP server (STB/TV platform bootstrap default)
+
+
+# ============================================================
+# GROUP 5: Syndication PartnerId — Special Bootstrap Parameter
+#   Path:    Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId
+#   Source:  Device_DeviceInfo.cpp lines 2624-2755
+#            XrdkCentralComBSStore.cpp line ~38 (TR181_PARTNER_ID_KEY define)
+#
+#   NOTE: This parameter does NOT use the bsUpdate data-model attribute.
+#   It has its own dedicated handler and DOES use XBSStore internally.
+#
+#   GET behavior:
+#     1. Reads /opt/www/authService/partnerId3.dat
+#     2. Falls back to scanning bootstrap.ini for the key prefix
+#
+#   SET validation rules:
+#     - Rejects empty string
+#     - Rejects value "unknown" (case-insensitive)
+#     - Must differ from the current partner ID
+#
+#   SET side effects (heaviest of all bootstrap params):
+#     1. Calls org.rdk.AuthService.setPartnerId Thunder plugin
+#        (fails hard if plugin returns success=false)
+#     2. Calls XBSStore::overrideValue() to persist new partner ID
+#     3. Calls XBSStore::loadFromJson() to reload all partner-specific
+#        bootstrap defaults for the new partner ID
+#     4. If /opt/bspcomplete.ini exists, creates /tmp/authservice_parodus_restart
+#        to trigger a parodus restart
+# ============================================================
+Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId                             RW  string   [SE] Active partner ID; changing this reloads ALL bootstrap defaults and may restart parodus
+
+
+# ============================================================
+# GROUP 6: BSStore-Loaded But Not WebPA/CWMP-Routable
+#   These keys appear in partners_defaults.json and are loaded into
+#   the BSStore dictionary at startup via loadFromJson() -> setRawValue(),
+#   but do NOT have bsUpdate="allUpdate" in the data model.
+#   They are NOT accessible via WebPA/CWMP get/set; they serve as
+#   partner-configurable boot-time defaults only.
+# ============================================================
+Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsCrashdumpUpload.Enable       N/A string   In partners_defaults.json; no data-model bsUpdate — boot-time default only
+
+
+# ============================================================
+# SUMMARY
+# ============================================================
+# Group                                              Count  Access
+# -------------------------------------------------------  ------
+# Bootstrap identity params (Bootstrap.*)                7  RW (RFC/WebPA only)
+# Bootstrap control params (Bootstrap.Control.*)         2  RW (RFC/WebPA only)  [SE]
+# Cross-subsystem generic (all platforms)               17  RO or RW (RFC/WebPA)
+# STB/TV platform-only                                  12  RW (RFC/WebPA only)
+# Syndication.PartnerId (special case)                   1  RW (RFC/WebPA only)  [SE]
+# BSStore-loaded only (no WebPA routing)                1+  N/A
+# -------------------------------------------------------  ------
+# TOTAL routable parameters                             39
+#
+# Store backing file:   /opt/secure/RFC/bootstrap.ini
+# Partner defaults:     /etc/partners_defaults.json
+# Partner ID source:    /opt/www/authService/partnerId3.dat
+# ============================================================
