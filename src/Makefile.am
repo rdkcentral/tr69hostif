@@ -56,8 +56,6 @@ else
 NEXUS_LIB =
 endif
 
-
-
 if WITH_WIFI_PROFILE
 AM_CXXFLAGS += -DUSE_WIFI_PROFILE
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/wifi
