@@ -283,103 +283,64 @@ bool GetFeatureEnabled(char *cmd)
 
 ---
 
-## Recommended Deprecation Phases (Revised 2026-05-27)
-
-> **Revision note:** Original phasing assumed RF4CE and HAVE_VALUE_CHANGE_EVENT
 > were dead and placed NEW_HTTP_SERVER_DISABLE in Phase 3. After Yocto recipe
 > cross-referencing and architect review, the phasing has been corrected.
 > Items #2 (RF4CE) and #5 (HAVE_VALUE_CHANGE_EVENT) are **removed from all phases**
 > as they are confirmed live on RDKE.
-
-### Phase 1: XRE/Xcalibur Removal (Items 1, 12, 13, 14-partial)
-
-| Item | Action |
-|------|--------|
-| XRE handler files | Delete `hostIf_XREClient_ReqHandler.cpp/.h` |
-| `#ifdef USE_XRESRC` blocks | Remove from ~10 source files |
-| `USE_XRESRC` / `XRELIB_FLAG` | Remove from `configure.ac`, `Makefile.am` files |
-| Xcalibur data-model objects | Remove from `data-model-generic.xml` (~300 lines), `data-model-tv.xml` |
-| XRE config entries | Remove from `mgrlist.conf`, `tr69hostIf.conf` |
-| XRE typemap entries | Remove ~59 entries from `typemap.json` |
-| `#if 0` blocks in XRE handler | Deleted with parent file |
-| Commented-out remnants | Remove dead `/* XREClientReqHandler::... */` in `hostIf_updateHandler.cpp` |
-
-**Estimated removal:** ~1,600 lines, 4 files deleted, ~15 files edited
-
----
-
-### Phase 2: NEW_HTTP_SERVER Consolidation (Item 7)
-
-| Item | Action |
-|------|--------|
-| `#ifndef NEW_HTTP_SERVER_DISABLE` blocks | Flatten ~12 blocks in `hostIf_main.cpp` (keep active path) |
-| `legacyRFCEnabled()` | Remove declaration, implementation, and all call sites |
-| `tr69hostif_no_new_http_server.service` | Delete file |
-| `NEW_HTTP_SERVER_DISABLE` build flag | Remove from `configure.ac`, `Makefile.am` |
-
-**Estimated removal:** ~200 lines, 1 file deleted, ~5 files edited
-
----
-
-### Phase 3: HW Self-Test + Miscellaneous (Items 3, 8, 10, 14-partial)
-
-| Item | Action |
-|------|--------|
-| HW Self-Test (`USE_HWSELFTEST_PROFILE`) | Remove all `#ifdef` blocks, build flags (~200 lines, ~7 files) |
-| `WEBCONFIG_LITE_FLAG` / `WEB_CONFIG_ENABLE` | Remove from `configure.ac` and `hostIf_main.cpp` |
-| `ip-iface-monitor.service` | Delete file |
-| `#if 0` blocks in `hostIf_updateHandler.cpp` | Remove dead remnants |
-
-**Estimated removal:** ~300 lines, 1 file deleted, ~8 files edited
-
----
-
-### Pending Review (Not yet scheduled)
-
-None — all items have been reviewed.
-
----
-
-### Confirmed NOT Dead (Removed from plan)
-
-| Item | Reason |
-|------|--------|
-| #2 RF4CE (`USE_XRDK_RF4CE_PROFILE`) | Enabled via `PACKAGECONFIG:append = " xre rf4ce"` in Yocto bbappend |
-| #5 HAVE_VALUE_CHANGE_EVENT | Base recipe enables `--enable-notification`; ~2,877 lines are live |
-
----
-
-## Total Confirmed Dead Code Estimate (Revised)
-
-| Phase | Lines | Files |
-|-------|-------|-------|
-| Phase 1 (XRE) | ~1,600 | 4 deleted, ~15 edited |
-| Phase 2 (NEW_HTTP_SERVER) | ~200 | 1 deleted, ~5 edited |
-| Phase 3 (HwSelfTest + misc) | ~300 | 1 deleted, ~8 edited |
-| **Total confirmed** | **~2,520** | **~27 files affected** |
-
-> **Note:** The original estimate of ~4,830 lines was inflated by including
 > RF4CE (~30 lines) and HAVE_VALUE_CHANGE_EVENT (~2,877 lines) which are live,
 > plus SNMP/WEBPA items (~400 lines) still pending review.
 
+## Deprecation Phasing (2026-05-29)
+
+> **Revision note:** 2026-05-29: Updated phasing and assignments per architect review and codebase analysis.
+
+### Deprecation Phasing Table
+
+| Phase   | Items                                                                 |
+|---------|-----------------------------------------------------------------------|
+| Phase 1 | SNMP Adapter, snmp-data-model.xml, HW Self-Test, hwHealthTest typemap entries |
+| Phase 2 | XRE/Xcalibur code, xre-receiver RFC params, Xcalibur data-model, XRE config entries |
+| Phase 3 | WEBConfig flags, WEBPA_RFC_ENABLED, WebPA/Parodus legacy code         |
+| Phase 4 | NEW_HTTP_SERVER_DISABLE, hostIf_sysScriptHandler.cpp, ip-iface-monitor.service, #if 0 blocks, legacy bbappend |
+
 ---
 
-## Risk Assessment (Revised)
+### Phase Details
+
+#### Phase 1: SNMP and HW Self-Test
+- Remove SNMP Adapter and snmp-data-model.xml
+- Remove HW Self-Test code and hwHealthTest typemap entries
+- Validate: Ensure no build or runtime dependencies remain; run L2/functional tests
+
+#### Phase 2: XRE/Xcalibur and Dependencies
+- Remove all XRE/Xcalibur code, xre-receiver RFC params, Xcalibur data-model, and XRE config entries
+- Validate: Confirm no references in code, config, or recipes; run regression tests
+
+#### Phase 3: WEBConfig and WebPA
+- Remove WEBConfig flags, WEBPA_RFC_ENABLED, and WebPA/Parodus legacy code
+- Validate: Ensure notification/event-driven code is unaffected; run notification tests
+
+#### Phase 4: Miscellaneous and Final Sweep
+- Remove NEW_HTTP_SERVER_DISABLE, hostIf_sysScriptHandler.cpp, ip-iface-monitor.service, #if 0 blocks, and legacy bbappend
+- Validate: Final build and runtime validation; sweep for any remaining dead code
+
+---
+
+## Risk Assessment
 
 | Phase | Risk | Mitigation |
 |-------|------|------------|
-| Phase 1 (XRE) | Low — headers don't exist in-tree, code never compiles on RDKE | Non-RDKE bbappend that enables `xre` will break; notify legacy platform owner |
-| Phase 2 (NEW_HTTP_SERVER) | Low — flag is never defined on RDKE | Audit all `legacyRFCEnabled()` call sites before removal; coordinate Yocto recipe update |
-| Phase 3 (HwSelfTest + misc) | Low — `USE_HWSELFTEST_PROFILE` never enabled; service files orphaned | Verify hwHealthTest typemap entries don't serve RFC store layer independently |
-
-**Cross-cutting risk:** `Device_DeviceInfo.cpp` is touched by Phases 1, 2, and 3. Sequential phasing with per-phase merge avoids conflicts.
+| Phase 1 | Low — SNMP and HW Self-Test are unused and not referenced in current builds | Confirm with L2/functional tests; check for out-of-tree references |
+| Phase 2 | Low — XRE/Xcalibur and dependencies are not present in current builds | Confirm with code/config/recipe search; coordinate with platform teams |
+| Phase 3 | Low — WEBConfig and WebPA code is not active in current builds | Validate with notification/event-driven tests |
+| Phase 4 | Low — Miscellaneous items are not referenced | Final validation and code sweep |
 
 ---
 
 ## Verification Steps
 
 Before removing any item:
-1. ~~Confirm the build flag is not enabled in any Yocto recipe/bbappend (`meta-rdk-*`)~~ ✅ Done (2026-05-27) — Recipe cross-referencing complete for all 14 items
+1. Confirm the build flag is not enabled in any Yocto recipe/bbappend (`meta-rdk-*`)
 2. Run full L2 test suite to ensure no regressions
 3. Verify no active field devices depend on the removed parameter paths
 4. Update `data-model-*.xml` files to remove corresponding objects
@@ -398,14 +359,6 @@ Before removing any item:
 | 2026-05-27 | Confirmed #4, #6, #9 dead for RDKE | #4 — dead source file; #6 — SNMP adapter unused; #9 — orphaned XML |
 | 2026-05-27 | Confirmed #11 dead for RDKE | #11 — WEBPA_RFC_ENABLED has compile bug; never enabled in any recipe |
 
----
-
-## Open Questions
-
-1. Are `xre-receiver` RFC parameters in `data-model-generic.xml` (L182-248) also dead for RDKE? (Blocks complete XRE cleanup scope.)
-2. Should `hwHealthTest` typemap entries (~11 entries) be removed? They may serve the generic RFC store layer (`XrdkCentralComRFCStore.cpp`) independently of the dead HW Self-Test handler code.
-3. Should the legacy platform bbappend (that enables `xre`/`rf4ce`) be updated or removed as part of this change?
-4. ~~Item #11 (`WEBPA_RFC_ENABLED`) — awaiting architect confirmation.~~ ✅ Confirmed dead (compile error proves it was never enabled).
 
 ---
 
