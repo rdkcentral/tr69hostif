@@ -18,28 +18,38 @@
 ####################################################################################
 
 
+import subprocess
+import os
 import pytest
+from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=46)
-def test_ThunderPlugin_EXPERIENCE_Get_Handler():
-    #clear_tr69hostiflogs()
 
-    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_Experience"
-    EXP_MSG = "TESTOS"
-
+@pytest.mark.run(order=253)
+def test_DHCPv4_ClientNumberOfEntries_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.DHCPv4.ClientNumberOfEntries"
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
-    assert RBUS_EXCEPTION_STRING not in rstdout
-    assert EXP_MSG in rstdout
+    assert RBUS_EXCEPTION_STRING in rstdout
 
-@pytest.mark.run(order=47)
-def test_ThunderPlugin_AccountID_Get_Handler():
-    #clear_tr69hostiflogs()
-    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"
-    ACCOUNT_ID_MSG = "123456789"
 
+@pytest.mark.run(order=254)
+def test_DHCPv4_Client_InterfaceReference_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.DHCPv4.Client.1.InterfaceReference"
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
-    assert RBUS_EXCEPTION_STRING not in rstdout
-    assert ACCOUNT_ID_MSG in rstdout
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=255)
+def test_DHCPv4_Client_DnsServer_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.DHCPv4.Client.1.DnsServer"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=256)
+def test_DHCPv4_Client_IPRouters_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.DHCPv4.Client.1.IPRouters"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
 

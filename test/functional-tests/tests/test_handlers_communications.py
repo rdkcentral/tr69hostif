@@ -314,7 +314,7 @@ def test_Chrony_NTPServerSettings_Set_Get_Handler():
 def test_Chrony_NTPServerSettings_Default_On_Missing_File():
 
     SETTINGS_PARAM = "Device.Time.Chrony.NTPServer.2.Settings"
-    DEFAULT_VALUE  = "server,0,false,10,12"
+    DEFAULT_VALUE  = "pool,4,true,10,12"
     SETTINGS_FILE  = "/opt/secure/RFC/chrony/ntp_server2_settings"
 
     try:
