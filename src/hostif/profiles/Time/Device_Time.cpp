@@ -69,7 +69,7 @@
 #define NTP_MAXSTEP_DEFAULT "1.0,3"
 #define NTP_SERVER_SETTINGS_FILE_PREFIX "/opt/secure/RFC/chrony/ntp_server"
 #define NTP_SERVER_SETTINGS_FILE_SUFFIX "_settings"
-#define NTP_SERVER_SETTINGS_DEFAULT "server,0,true,10,12"
+#define NTP_SERVER_SETTINGS_DEFAULT "pool,4,true,10,12"
 #define NTP_SERVER_MAX_INSTANCES 5
 
 GHashTable* hostIf_Time::ifHash = NULL;
