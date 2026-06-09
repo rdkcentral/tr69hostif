@@ -58,13 +58,6 @@
 
 #define TIME_ZONE_LENGTH 8
 #define CHRONY_ENABLE_FILE "/opt/secure/RFC/chrony/chronyd_enabled" 
-#define NTP_MINPOLL_FILE "/opt/secure/RFC/chrony/ntp_minpoll"
-#define NTP_MAXPOLL_FILE "/opt/secure/RFC/chrony/ntp_maxpoll"
-#define NTP_SERVER1_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server1_directive"
-#define NTP_SERVER2_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server2_directive"
-#define NTP_SERVER3_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server3_directive"
-#define NTP_SERVER4_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server4_directive"
-#define NTP_SERVER5_DIRECTIVE_FILE "/opt/secure/RFC/chrony/ntp_server5_directive"
 #define NTP_MAXSTEP_FILE "/opt/secure/RFC/chrony/ntp_maxstep"
 #define NTP_MAXSTEP_DEFAULT "1.0,3"
 #define NTP_SERVER_SETTINGS_FILE_PREFIX "/opt/secure/RFC/chrony/ntp_server"
