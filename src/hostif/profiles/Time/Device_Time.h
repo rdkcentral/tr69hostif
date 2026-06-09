@@ -277,10 +277,14 @@ public:
      */
 
     int get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *, bool *pChanged = NULL);
-    
+
+    /* To Enable chrony as NTP client and configure the chrony settings */
+
     int get_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *,bool *pChanged = NULL);
     
     int get_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+
+    int get_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     
 
     /**
@@ -428,8 +432,6 @@ public:
     int set_Device_Time_Chrony_Enable(HOSTIF_MsgData_t *, bool *pChanged = NULL);
 
     int set_Device_Time_NTPMaxstep(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
-
-    int get_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
 
     int set_Device_Time_NTPServerSettings(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
 
