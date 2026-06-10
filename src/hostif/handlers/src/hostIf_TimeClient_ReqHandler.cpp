@@ -131,30 +131,6 @@ int TimeClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->set_Device_Time_Chrony_Enable(stMsgData);
         }
-
-		else if (strcasecmp(stMsgData->paramName,"Device.Time.NTPMinpoll") == 0)
-        {
-            ret = pIface->set_Device_Time_NTPMinpoll(stMsgData);
-        }
-		else if (strcasecmp(stMsgData->paramName,"Device.Time.NTPMaxpoll") == 0)
-        {
-            ret = pIface->set_Device_Time_NTPMaxpoll(stMsgData);
-        }
-		else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer1Directive") == 0) {
-            ret = pIface->set_Device_Time_NTPServer1Directive(stMsgData);
-        }
-		else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer2Directive") == 0) {
-            ret = pIface->set_Device_Time_NTPServer2Directive(stMsgData);
-        }
-        else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer3Directive") == 0) {
-            ret = pIface->set_Device_Time_NTPServer3Directive(stMsgData);
-        }
-        else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer4Directive") == 0) {
-            ret = pIface->set_Device_Time_NTPServer4Directive(stMsgData);
-        }
-        else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer5Directive") == 0) {
-            ret = pIface->set_Device_Time_NTPServer5Directive(stMsgData);
-        }
 		else if (strcasecmp(stMsgData->paramName,"Device.Time.Chrony.Makestep") == 0) {
 			ret = pIface->set_Device_Time_NTPMaxstep(stMsgData);
 		}
@@ -270,30 +246,6 @@ int TimeClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
 		   else if (strcasecmp(stMsgData->paramName,"Device.Time.Chrony.Enable") == 0)
         {
             ret = pIface->get_Device_Time_Chrony_Enable(stMsgData);
-        }
-
-		else if (strcasecmp(stMsgData->paramName,"Device.Time.NTPMinpoll") == 0)
-        {
-            ret = pIface->get_Device_Time_NTPMinpoll(stMsgData);
-        }
-		else if (strcasecmp(stMsgData->paramName,"Device.Time.NTPMaxpoll") == 0)
-        {
-            ret = pIface->get_Device_Time_NTPMaxpoll(stMsgData);
-        }
-		else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer1Directive") == 0) {
-            ret = pIface->get_Device_Time_NTPServer1Directive(stMsgData);
-        } 
-		else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer2Directive") == 0) {
-            ret = pIface->get_Device_Time_NTPServer2Directive(stMsgData);
-        }
-        else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer3Directive") == 0) {
-            ret = pIface->get_Device_Time_NTPServer3Directive(stMsgData);
-        }
-        else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer4Directive") == 0) {
-            ret = pIface->get_Device_Time_NTPServer4Directive(stMsgData);
-        }
-        else if (strcasecmp(stMsgData->paramName, "Device.Time.NTPServer5Directive") == 0) {
-            ret = pIface->get_Device_Time_NTPServer5Directive(stMsgData);
         }
 		else if (strcasecmp(stMsgData->paramName,"Device.Time.Chrony.Makestep") == 0) {
 			ret = pIface->get_Device_Time_NTPMaxstep(stMsgData);
