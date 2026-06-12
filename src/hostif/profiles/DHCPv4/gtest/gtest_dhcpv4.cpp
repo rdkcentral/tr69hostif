@@ -82,42 +82,79 @@ TEST(dhcpv4Test, InvalidIPAddr_alpha) {
     }
 }
 
+TEST(dhcpv4Test, InvalidIPAddr_EmptyString) {
+    int instanceNumber = 1;
+    char addr[] = "";
+
+    hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
+    ASSERT_NE(dhcpClient, nullptr);
+    
+    bool result = dhcpClient->isValidIPAddr(addr);  
+    EXPECT_EQ(result, false);
+}
+
+TEST(dhcpv4Test, InvalidIPAddr_TooLong) {
+    int instanceNumber = 1;
+    char addr[] = "192.168.100.1000";
+    hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
+    ASSERT_NE(dhcpClient, nullptr);
+
+    bool result = dhcpClient->isValidIPAddr(addr);
+    EXPECT_EQ(result, false);
+}
+
+TEST(dhcpv4Test, InvalidIPAddr_MissingOctet) {
+    int instanceNumber = 1;
+    char addr[] = "192..1.1";
+    hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
+    ASSERT_NE(dhcpClient, nullptr);
+
+    bool result = dhcpClient->isValidIPAddr(addr);
+    EXPECT_EQ(result, false);
+}
+
 TEST(dhcpv4Test, getInterfaceName) {
     int instanceNumber = 1;
     char ifname[IFNAMSIZ]={'\0'};
     hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
-    if(dhcpClient)
-    {
-      int result = dhcpClient->getInterfaceName(ifname);
-      EXPECT_EQ(result, OK);
-    }
+    ASSERT_NE(dhcpClient, nullptr);
+
+    int result = dhcpClient->getInterfaceName(ifname);
+    EXPECT_EQ(result, OK);
 }
 
-
-/* TEST(dhcpv4Test, isIfnameInroutetoDNSServer) {
-    int instanceNumber = 1;
-    char* dnsServer = (char*)"8.8.8.8";
-    char* ifname = (char*)"eth0";
+TEST(dhcpv4Test, getInterfaceName_InvalidInstance) {
+    int instanceNumber = 999;
+    char ifname[IFNAMSIZ]={'\0'};
     hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
-    if(dhcpClient)
-    {
-      bool result = dhcpClient->isIfnameInroutetoDNSServer(dnsServer, ifname);
-      EXPECT_EQ(result, true);
-    }
-} */
+    ASSERT_NE(dhcpClient, nullptr);
+
+    int result = dhcpClient->getInterfaceName(ifname);
+    EXPECT_EQ(result, NOK);
+}
+
+TEST(dhcpv4Test, isIfnameInroutetoDNSServer_InvalidRoute) {
+    int instanceNumber = 1;
+    char* dnsServer = (char*)"203.0.113.254";
+    char* ifname = (char*)"lo";
+    hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
+    ASSERT_NE(dhcpClient, nullptr);
+
+    bool result = dhcpClient->isIfnameInroutetoDNSServer(dnsServer, ifname);
+    EXPECT_EQ(result, false);
+}
 
 TEST(dhcpv4Test, get_Device_DHCPv4_ClientNumberOfEntries) {
     int instanceNumber = 1;
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
     hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
-    if(dhcpClient)
-    {
-      int result = dhcpClient->get_Device_DHCPv4_ClientNumberOfEntries(&param);
-      cout << "param.paramValue = " << param.paramValue << endl;
-      EXPECT_EQ(result, OK);
-      EXPECT_EQ(param.paramtype, hostIf_UnsignedIntType);
-    }
+    ASSERT_NE(dhcpClient, nullptr);
+
+    int result = dhcpClient->get_Device_DHCPv4_ClientNumberOfEntries(&param);
+    cout << "param.paramValue = " << param.paramValue << endl;
+    EXPECT_EQ(result, OK);
+    EXPECT_EQ(param.paramtype, hostIf_UnsignedIntType);
 }
 
 TEST(dhcpv4Test, get_Device_DHCPv4_Client_IPRouters) {
@@ -126,14 +163,13 @@ TEST(dhcpv4Test, get_Device_DHCPv4_Client_IPRouters) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
     hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
-    if(dhcpClient)
-    {
-      bChanged = false;
-      int result = dhcpClient->get_Device_DHCPv4_Client_IPRouters(&param, &bChanged);
-      cout << "param.paramValue = " << param.paramValue << endl;
-      EXPECT_EQ(result, OK);
-      EXPECT_EQ(param.paramtype, hostIf_StringType);
-    }
+    ASSERT_NE(dhcpClient, nullptr);
+
+    bChanged = false;
+    int result = dhcpClient->get_Device_DHCPv4_Client_IPRouters(&param, &bChanged);
+    cout << "param.paramValue = " << param.paramValue << endl;
+    EXPECT_EQ(result, OK);
+    EXPECT_EQ(param.paramtype, hostIf_StringType);
 }
 
 TEST(dhcpv4Test, get_Device_DHCPv4_Client_DnsServer) {
@@ -142,14 +178,13 @@ TEST(dhcpv4Test, get_Device_DHCPv4_Client_DnsServer) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
     hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
-    if(dhcpClient)
-    {
-      bChanged = false;
-      int result = dhcpClient->get_Device_DHCPv4_Client_DnsServer(&param, &bChanged);
-      cout << "param.paramValue = " << param.paramValue << endl;
-      EXPECT_EQ(result, OK);
-      EXPECT_EQ(param.paramtype, hostIf_StringType);
-    }
+    ASSERT_NE(dhcpClient, nullptr);
+
+    bChanged = false;
+    int result = dhcpClient->get_Device_DHCPv4_Client_DnsServer(&param, &bChanged);
+    cout << "param.paramValue = " << param.paramValue << endl;
+    EXPECT_EQ(result, OK);
+    EXPECT_EQ(param.paramtype, hostIf_StringType);
 }
 
 TEST(dhcpv4Test, get_Device_DHCPv4_Client_InterfaceReference) {
@@ -158,25 +193,24 @@ TEST(dhcpv4Test, get_Device_DHCPv4_Client_InterfaceReference) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
     hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
-    if(dhcpClient)
-    {
-      bChanged = false;
-      int result = dhcpClient->get_Device_DHCPv4_Client_InterfaceReference(&param, &bChanged);
-      cout << "param.paramValue = " << param.paramValue << endl;
-      EXPECT_EQ(result, OK);
-      EXPECT_EQ(param.paramtype, hostIf_StringType);
-    }
+    ASSERT_NE(dhcpClient, nullptr);
+
+    bChanged = false;
+    int result = dhcpClient->get_Device_DHCPv4_Client_InterfaceReference(&param, &bChanged);
+    cout << "param.paramValue = " << param.paramValue << endl;
+    EXPECT_EQ(result, OK);
+    EXPECT_EQ(param.paramtype, hostIf_StringType);
 }
 
 TEST(dhcpv4Test, Lock_ReleaseLock) {
     int instanceNumber = 1;
     hostIf_DHCPv4Client *dhcpClient= hostIf_DHCPv4Client::getInstance(instanceNumber);
-    if(dhcpClient)
-    {
-      dhcpClient->getLock();
-      dhcpClient->releaseLock();
-      EXPECT_EQ(0, 0);
-    }
+    ASSERT_NE(dhcpClient, nullptr);
+
+    dhcpClient->getLock();
+    dhcpClient->releaseLock();
+    EXPECT_EQ(0, 0);
+
     dhcpClient->closeInstance(dhcpClient);
     dhcpClient->closeAllInstances();
 }

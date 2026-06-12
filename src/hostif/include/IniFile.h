@@ -43,6 +43,7 @@ private:
 
 #if defined(GTEST_ENABLE)
     FRIEND_TEST(srcTest, flush);
+    FRIEND_TEST(srcTest, iniFileClearFlushesEmptyContent);
 #endif
 };
 

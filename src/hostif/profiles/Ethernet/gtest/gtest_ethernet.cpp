@@ -421,6 +421,86 @@ TEST(EthernetTest, Lock_ReleaseLock) {
     ethernetIfStats->closeAllInstances();
 }
 
+TEST(EthernetTest, get_Device_Ethernet_Interface_LastChange_NotImplemented) {
+    int instanceNumber = 1;
+    bool pChanged = false;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+
+    hostIf_EthernetInterface *ethernetIf = hostIf_EthernetInterface::getInstance(instanceNumber);
+    ASSERT_NE(ethernetIf, nullptr);
+    EXPECT_EQ(ethernetIf->get_Device_Ethernet_Interface_LastChange(&param, &pChanged), NOK);
+}
+
+TEST(EthernetTest, get_Device_Ethernet_Interface_LowerLayers_NotImplemented) {
+    int instanceNumber = 1;
+    bool pChanged = false;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+
+    hostIf_EthernetInterface *ethernetIf = hostIf_EthernetInterface::getInstance(instanceNumber);
+    ASSERT_NE(ethernetIf, nullptr);
+    EXPECT_EQ(ethernetIf->get_Device_Ethernet_Interface_LowerLayers(&param, &pChanged), NOK);
+}
+
+TEST(EthernetTest, set_Device_Ethernet_Interface_NotImplementedSetters) {
+    int instanceNumber = 1;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+
+    hostIf_EthernetInterface *ethernetIf = hostIf_EthernetInterface::getInstance(instanceNumber);
+    ASSERT_NE(ethernetIf, nullptr);
+    EXPECT_EQ(ethernetIf->set_Device_Ethernet_Interface_Alias(&param), NOK);
+    EXPECT_EQ(ethernetIf->set_Device_Ethernet_Interface_LowerLayers(&param), NOK);
+    EXPECT_EQ(ethernetIf->set_Device_Ethernet_Interface_MaxBitRate(&param), NOK);
+    EXPECT_EQ(ethernetIf->set_Device_Ethernet_Interface_DuplexMode(&param), NOK);
+}
+
+TEST(EthernetTest, InterfaceNotifyHash_CreateAndReuse) {
+    GHashTable *hash1 = hostIf_EthernetInterface::getNotifyHash();
+    GHashTable *hash2 = hostIf_EthernetInterface::getNotifyHash();
+
+    EXPECT_NE(hash1, nullptr);
+    EXPECT_EQ(hash1, hash2);
+}
+
+TEST(EthernetTest, InterfaceAndStatsCloseInstance_NullSafe) {
+    hostIf_EthernetInterface::closeInstance(nullptr);
+    hostIf_EthernetInterfaceStats::closeInstance(nullptr);
+    SUCCEED();
+}
+
+TEST(EthernetTest, InterfaceAndStatsGetAllInstances_NotNullAfterCreate) {
+    hostIf_EthernetInterface *ethernetIf = hostIf_EthernetInterface::getInstance(100);
+    hostIf_EthernetInterfaceStats *ethernetIfStats = hostIf_EthernetInterfaceStats::getInstance(100);
+
+    ASSERT_NE(ethernetIf, nullptr);
+    ASSERT_NE(ethernetIfStats, nullptr);
+    EXPECT_NE(hostIf_EthernetInterface::getAllInstances(), nullptr);
+    EXPECT_NE(hostIf_EthernetInterfaceStats::getAllInstances(), nullptr);
+}
+
+TEST(EthernetTest, StatsBytesSent_SecondCallWithChangedPointer) {
+    int instanceNumber = 1;
+    bool pChanged = false;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+
+    hostIf_EthernetInterfaceStats *ethernetIfStats = hostIf_EthernetInterfaceStats::getInstance(instanceNumber);
+    ASSERT_NE(ethernetIfStats, nullptr);
+
+    EXPECT_EQ(ethernetIfStats->get_Device_Ethernet_Interface_Stats_BytesSent(&param, &pChanged), OK);
+    EXPECT_EQ(ethernetIfStats->get_Device_Ethernet_Interface_Stats_BytesSent(&param, &pChanged), OK);
+    EXPECT_EQ(param.paramtype, hostIf_UnsignedLongType);
+    EXPECT_EQ(param.paramLen, 4);
+}
+
+TEST(EthernetTest, StatsCloseAllInstances_Idempotent) {
+    hostIf_EthernetInterfaceStats::closeAllInstances();
+    hostIf_EthernetInterfaceStats::closeAllInstances();
+    SUCCEED();
+}
+
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
     char buffer[GTEST_REPORT_FILEPATH_SIZE];

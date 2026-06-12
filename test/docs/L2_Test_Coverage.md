@@ -7,14 +7,30 @@ the full tr69hostif module surface. It identifies what is covered, what is not, 
 precisely quantifies the tests needed to reach 100% functional coverage.
 
 > Last analysed: March 2026  
-> Test suite: `test/functional-tests/` — 4 feature files, **45 ordered pytest functions**  
-> Module surface: **708 parameter handlers** + **38 behavioral scenarios** = **746 testable items**  
-> **Tests needed for 100% coverage: ~761**  
-> **Current effective coverage: ~52 tests (~6.8%)**  
-> **Tests still required: ~709**
 
 ---
+**Test Coverage Summary**
+```
+Total source functions (approx): ~761
+Functions with direct L2 coverage: ~34
+Functions with indirect L2 coverage: ~18
+Functions with no L2 coverage: ~709
 
+Active L2 test functions: 51
+Disabled L2 test functions: 0
+Active feature scenarios: 170
+Proposed new test scenarios: 68
+
+High priority: 46
+Medium priority: 12
+Low priority: 10
+Test files active: 5
+Test files disabled (commented out): 0
+
+Estimated current L2 functional coverage: ~6.8%
+Target L2 functional coverage: ~80%
+```
+---
 ## Test Suite Layout
 
 ```
