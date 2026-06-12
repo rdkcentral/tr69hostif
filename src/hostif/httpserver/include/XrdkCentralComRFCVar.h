@@ -57,6 +57,10 @@ private:
     FRIEND_TEST(httpserverTest, initRFCVarFileName);
     FRIEND_TEST(httpserverTest, loadRFCVarIntoCache);
     FRIEND_TEST(httpserverTest, Invalid_RFC_filename);
+    FRIEND_TEST(httpserverTest, loadRFCVarIntoCache_EmptyFilename_ReturnsFalse);
+    FRIEND_TEST(httpserverTest, getValue_InitNotDone_ReturnsEmptyEvenWhenKeyExists);
+    FRIEND_TEST(httpserverTest, reloadCache_WithQuotedFilename_LoadsValues);
+    FRIEND_TEST(httpserverTest, handleRFCRequest_GET);
 #endif
 };
 
