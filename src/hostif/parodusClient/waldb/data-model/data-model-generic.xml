@@ -246,18 +246,6 @@
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="AudioProfileTarget" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <int/>
-       </syntax>
-      </parameter>
-      <parameter base="OpusEncoderParams" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AAMP_CFG." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="b64Config" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -2342,106 +2330,6 @@
         <syntax> <string/> </syntax>
       </parameter>
     </object>
-    <object base="Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE." access="readOnly" minEntries="1" maxEntries="unbounded">
-      <parameter base="rf4ceVersionInfo" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>
-      <parameter base="rf4cePANID" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>          
-        </syntax>
-      </parameter>
-	  <parameter base="rf4ceMACAddress" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>
-	  <parameter base="rf4ceActiveChannel" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>          
-        </syntax>
-      </parameter>
-  	  <parameter base="rf4ceNetworkAddress" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>          
-        </syntax>
-      </parameter>
-  	  <parameter base="rf4cePairedRemotesNumberOfEntries" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>          
-        </syntax>
-      </parameter>
-    </object>
-    <object base="Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote." access="readOnly" minEntries="1" maxEntries="unbounded"/>                                   
-    <object base="Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1." access="readOnly" minEntries="1" maxEntries="1" >
-       <parameter base="MACAddress" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>
-	  <parameter base="VersionInfoSW" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>	
-	  <parameter base="VersionInfoHW" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>	
-	  <parameter base="RemoteId" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>	
-	  <parameter base="RemoteType" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>	
-	  <parameter base="BatteryReplacement" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>          
-        </syntax>
-      </parameter>	
-	  <parameter base="ImpendingDoom" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>          
-        </syntax>
-      </parameter>	
-	  <parameter base="BatteryLevelLoaded" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>	
-	  <parameter base="BatteryLevelUnloaded" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>	
-	  <parameter base="BatteryPercentage" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>	
-	  <parameter base="SignalStrength" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <int/>
-        </syntax>
-      </parameter>	
-	  <parameter base="LinkQuality" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>	
-	  <parameter base="NetworkAddress" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>	
-    </object>	
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -2852,41 +2740,11 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE." access="readOnly" minEntries="1" maxEntries="1" />
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.FF." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="RspIdle" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <int/> </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.VoiceEncryption." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <boolean/> </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.HostPacketDecryption." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <boolean/> </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE.RspTime." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="XRC" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <int/> </syntax>
-      </parameter>
-      <parameter base="XVP" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <int/> </syntax>
-      </parameter>
-      <parameter base="XDIU" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <int/> </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="vsdk" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
       <parameter base="voice" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <string/> </syntax>
-      </parameter>
-      <parameter base="network_rf4ce" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
       <parameter base="network_ble" access="readWrite" notification="0" maxNotification="2" >
@@ -2904,9 +2762,6 @@
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.telemetry_report." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="global" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <string/> </syntax>
-      </parameter>
-      <parameter base="rf4ce" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
       <parameter base="ble" access="readWrite" notification="0" maxNotification="2" >

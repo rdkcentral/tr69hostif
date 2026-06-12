@@ -43,7 +43,6 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
         -I=/usr/include/rdk/iarmmgrs/sysmgr/ \
         -I=/usr/include/rdk/ds/ \
         -I=/usr/include/rdk/ds-hal/ \
-	$(XRDK_RF4CE_PROFILE_FLAG) \
         -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/ \
 		-I=/usr/include/libsoup-3.0/
 
@@ -67,10 +66,6 @@ endif
 
 if WITH_STORAGESERVICE_PROFILE
 AM_CXXFLAGS += -DUSE_STORAGESERVICE_PROFILE -I$(top_srcdir)/src/hostif/profiles/StorageService
-endif
-
-if WITH_XRDK_RF4CE_PROFILE
-AM_CXXFLAGS += $(XRDK_RF4CE_PROFILE_FLAG)
 endif
 
 if WITH_XRDK_BT_PROFILE
