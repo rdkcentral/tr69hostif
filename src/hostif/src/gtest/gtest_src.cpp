@@ -618,6 +618,120 @@ TEST(srcTest, readThunderArrayItemByKeyBoolWrongType)
     EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "type", "WIFI", "enabled", value));
 }
 
+TEST(srcTest, iniFileLoadQuotedFilenameAndDefaultValue)
+{
+    const char* filePath = "/tmp/hostif_ini_quoted.ini";
+    FILE* fp = fopen(filePath, "w");
+    ASSERT_NE(fp, nullptr);
+    fputs("A=B\n", fp);
+    fclose(fp);
+
+    IniFile ini;
+    std::string quotedPath = "\"" + std::string(filePath) + "\"";
+    EXPECT_TRUE(ini.load(quotedPath));
+    EXPECT_EQ(ini.value("A", "X"), "B");
+    EXPECT_EQ(ini.value("MissingKey", "DefaultV"), "DefaultV");
+
+    remove(filePath);
+}
+
+TEST(srcTest, iniFileClearFlushesEmptyContent)
+{
+    const char* filePath = "/tmp/hostif_ini_clear.ini";
+    FILE* fp = fopen(filePath, "w");
+    ASSERT_NE(fp, nullptr);
+    fputs("A=B\n", fp);
+    fclose(fp);
+
+    IniFile ini;
+    ASSERT_TRUE(ini.load(filePath));
+    EXPECT_TRUE(ini.clear());
+
+    fp = fopen(filePath, "r");
+    ASSERT_NE(fp, nullptr);
+    int ch = fgetc(fp);
+    fclose(fp);
+    EXPECT_EQ(ch, EOF);
+
+    remove(filePath);
+}
+
+TEST(srcTest, getenvOrDefaultReturnsDefaultWhenUnset)
+{
+    const char* envName = "TEST_ENV_VAR_FOR_DEFAULT";
+    unsetenv(envName);
+    char* result = getenvOrDefault(envName, "fallback");
+    ASSERT_NE(result, nullptr);
+    EXPECT_STREQ(result, "fallback");
+}
+
+TEST(srcTest, matchComponentInvalidPaths)
+{
+    const char* setting = nullptr;
+    int instance = 0;
+
+    EXPECT_FALSE(matchComponent("Device.WiFi.SSID", "Device.WiFi.SSID", &setting, instance));
+    EXPECT_FALSE(matchComponent("Device.WiFi.SSID.12345678901.SSID", "Device.WiFi.SSID", &setting, instance));
+}
+
+TEST(srcTest, thunderFieldExtractorsRejectNullFieldName)
+{
+    std::string strVal;
+    int numVal = 0;
+    bool boolVal = false;
+    unsigned long ulongVal = 0;
+
+    EXPECT_FALSE(thunderExtractResultStringField("{\"result\":{\"a\":\"b\"}}", nullptr, strVal));
+    EXPECT_FALSE(thunderExtractResultNumberField("{\"result\":{\"a\":1}}", nullptr, numVal));
+    EXPECT_FALSE(thunderExtractResultBoolField("{\"result\":{\"a\":true}}", nullptr, boolVal));
+    EXPECT_FALSE(thunderExtractResultULongField("{\"result\":{\"a\":10}}", nullptr, ulongVal));
+}
+
+TEST(srcTest, extractThunderStringArrayAsDelimitedStringEmptyArray)
+{
+    cJSON* arrayObj = cJSON_Parse("[]");
+    ASSERT_NE(arrayObj, nullptr);
+
+    std::string value = "seed";
+    EXPECT_TRUE(extractThunderStringArrayAsDelimitedString(arrayObj, ",", value));
+    EXPECT_TRUE(value.empty());
+
+    cJSON_Delete(arrayObj);
+}
+
+TEST(srcTest, thunderArrayReadersRejectNullInputs)
+{
+    std::string s;
+    bool b = false;
+    const std::string response = "{\"result\":{\"interfaces\":[]}}";
+
+    EXPECT_FALSE(readThunderArrayItemByKey(response, nullptr, "k", "v", "f", s));
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", nullptr, "v", "f", s));
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "k", nullptr, "f", s));
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "k", "v", nullptr, s));
+
+    EXPECT_FALSE(readThunderArrayItemByKey(response, nullptr, "k", "v", "f", b));
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", nullptr, "v", "f", b));
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "k", nullptr, "f", b));
+    EXPECT_FALSE(readThunderArrayItemByKey(response, "interfaces", "k", "v", nullptr, b));
+}
+
+TEST(srcTest, thunderInvokeHelpersFailForEmptyMethod)
+{
+    std::string sValue;
+    int nValue = 0;
+    bool bValue = false;
+    unsigned long ulValue = 0;
+
+    EXPECT_FALSE(invokeThunderPluginMethodAndExtractStringField("", "", "field", sValue));
+    EXPECT_FALSE(invokeThunderPluginMethodAndExtractNumberField("", "", "field", nValue));
+    EXPECT_FALSE(invokeThunderPluginMethodAndExtractBoolField("", "", "field", bValue));
+    EXPECT_FALSE(invokeThunderPluginMethodAndExtractULongField("", "", "field", ulValue));
+    EXPECT_FALSE(invokeThunderPluginMethodAndExtractDelimitedStringArrayField("", "", "field", ",", sValue));
+    EXPECT_FALSE(invokeThunderPluginMethodAndExtractScalarStringResult("", "", sValue));
+}
+
+
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
     char buffer[GTEST_REPORT_FILEPATH_SIZE];
