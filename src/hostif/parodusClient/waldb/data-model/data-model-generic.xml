@@ -2774,31 +2774,6 @@
         <syntax> <string/> </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Voice." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="AudioMode" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <int/> </syntax>
-      </parameter>
-      <parameter base="AudioTiming" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <int/> </syntax>
-      </parameter>
-      <parameter base="AudioConfidenceThreshold" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <string/> </syntax>
-      </parameter>
-      <parameter base="AudioDuckingType" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <int/> </syntax>
-      </parameter>
-      <parameter base="AudioDuckingLevel" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <string/> </syntax>
-      </parameter>
-      <parameter base="VSDKConfiguration" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-      <parameter base="KeywordSensitivity" access="readWrite" notification="0" maxNotification="2" >
-        <syntax> <string/> </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate." access="readOnly" minEntries="1" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.AutoExcluded." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
@@ -2817,80 +2792,6 @@
         <syntax>
            <boolean/>
         </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRPollingConfiguration." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <boolean/>
-       </syntax>
-      </parameter>
-      <parameter base="Default" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-      <parameter base="XR11v2" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-      <parameter base="XR15v1" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-      <parameter base="XR15v2" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-      <parameter base="XR16v1" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-      <parameter base="XR19v1" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-      <parameter base="XRAv1" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <string/>
-       </syntax>
-      </parameter>
-     </object>
-     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PressAndRelease." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="EOSTimeout" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <int/>
-       </syntax>
-      </parameter>
-      <parameter base="EOSMethod" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <int/>
-       </syntax>
-      </parameter>
-    </object>
-     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XRmacPolling." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <boolean/>
-       </syntax>
-      </parameter>
-      <parameter base="macPollingInterval" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <int/>
-       </syntax>
-      </parameter>
-    </object>
-     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ThreadMonitorMinidump." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-       <syntax>
-        <boolean/>
-        <default type="factory" value="false"/>
-       </syntax>
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.Control." access="readOnly" minEntries="1" maxEntries="1" >
