@@ -780,4 +780,14 @@ char* (*getStringValueFunc()) (HostIf_ParamType_t paramType, char *value)
 {
     return &getStringValue;	
 }
+
+bool (*isAuthorizedFunc())(const char* pcCallerID, const char* pcParamName)
+{
+    return &isAuthorized;
+}
+
+void (*getHostIfParamStFromRequestFunc())(REQ_TYPE reqType, param_t *param, HOSTIF_MsgData_t *hostIfParam)
+{
+    return &getHostIfParamStFromRequest;
+}
 #endif

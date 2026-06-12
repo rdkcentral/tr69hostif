@@ -180,6 +180,60 @@ TEST(DeviceTest, handleGetMsg_WebPA_Server_URL) {
     }
 }
 
+TEST(DeviceTest, handleGetMsg_WebPA_TokenServer_URL) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.X_RDK_WebPA_TokenServer.URL", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_WEBPA;
+    param.paramtype = hostIf_StringType;
+    param.paramLen = sizeof(hostIf_StringType);
+
+    X_rdk_profile* profile = X_rdk_profile::getInstance();
+    if(profile)
+    {
+       int ret = profile->handleGetMsg(&param);
+       std::string value = getStringValue(&param);
+       EXPECT_EQ(ret, OK);
+       EXPECT_EQ(value, "");
+    }
+}
+
+TEST(DeviceTest, handleSetMsg_EmptyParamName) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    param.paramName[0] = '\0';
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_WEBPA;
+
+    X_rdk_profile* profile = X_rdk_profile::getInstance();
+    ASSERT_NE(profile, nullptr);
+
+    int ret = profile->handleSetMsg(&param);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+    EXPECT_EQ(ret, NOK);
+}
+
+TEST(DeviceTest, handleGetMsg_EmptyParamName) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    param.paramName[0] = '\0';
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_WEBPA;
+    param.paramtype = hostIf_StringType;
+    param.paramLen = sizeof(hostIf_StringType);
+
+    X_rdk_profile* profile = X_rdk_profile::getInstance();
+    ASSERT_NE(profile, nullptr);
+
+    int ret = profile->handleGetMsg(&param);    
+    EXPECT_EQ(ret, NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+}
+
 TEST(DeviceTest, handleSetMsg_InvalidParam) {
     int instanceNumber = 0;
     HOSTIF_MsgData_t param = { 0 };

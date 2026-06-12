@@ -357,7 +357,7 @@ TEST(TimeTest, get_Device_Time_NTPServerSettings_DefaultValue)
         int ret = pIface->get_Device_Time_NTPServerSettings(&param);
         EXPECT_EQ(ret, OK);
         EXPECT_EQ(param.paramtype, hostIf_StringType);
-        EXPECT_STREQ(param.paramValue, "server,0,false,10,12");
+        EXPECT_STREQ(param.paramValue, "pool,4,true,10,12");
     }
 }
 
@@ -655,6 +655,47 @@ TEST(TimeTest, set_Device_Time_NTPServerSettings_MissingFields)
         EXPECT_EQ(ret, NOK);
     }
 }
+
+TEST(TimeTest, get_Device_Time_NotImplemented_Getters_ReturnNOK)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    bool pChanged = false;
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->get_Device_Time_Enable(&param, &pChanged), NOK);
+    EXPECT_EQ(pIface->get_Device_Time_Status(&param, &pChanged), NOK);
+    EXPECT_EQ(pIface->get_Device_Time_NTPServer1(&param, &pChanged), NOK);
+    EXPECT_EQ(pIface->get_Device_Time_NTPServer2(&param, &pChanged), NOK);
+    EXPECT_EQ(pIface->get_Device_Time_NTPServer3(&param, &pChanged), NOK);
+    EXPECT_EQ(pIface->get_Device_Time_NTPServer4(&param, &pChanged), NOK);
+    EXPECT_EQ(pIface->get_Device_Time_NTPServer5(&param, &pChanged), NOK);
+}
+
+TEST(TimeTest, set_Device_Time_NotImplemented_Setters_ReturnNOK)
+{
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    bool pChanged = false;
+
+    hostIf_Time *pIface = hostIf_Time::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_Device_Time_Enable(&param), NOK);
+    EXPECT_EQ(pIface->set_Device_Time_NTPServer1(&param), NOK);
+    EXPECT_EQ(pIface->set_Device_Time_NTPServer2(&param), NOK);
+    EXPECT_EQ(pIface->set_Device_Time_NTPServer3(&param), NOK);
+    EXPECT_EQ(pIface->set_Device_Time_NTPServer4(&param), NOK);
+    EXPECT_EQ(pIface->set_Device_Time_NTPServer5(&param), NOK);
+    EXPECT_EQ(pIface->set_Device_Time_LocalTimeZone(&param), NOK);
+
+    EXPECT_EQ(pChanged, false);
+}
+
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];

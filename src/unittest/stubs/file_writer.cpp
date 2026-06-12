@@ -51,7 +51,7 @@ void writeToTr181storeFile(const std::string& key, const std::string& value, con
 
 void write_on_file(const std::string& filePath, const std::string& data)
 {
-   std::ofstream outfile(filePath, std::ios::app);
+   std::ofstream outfile(filePath,  std::ios::out | std::ios::trunc);
    if (outfile.is_open()) {
         std::cout << "File Open" << std::endl;
         outfile << data ;
