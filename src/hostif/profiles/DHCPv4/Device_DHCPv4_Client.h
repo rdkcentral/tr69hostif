@@ -181,11 +181,16 @@ class hostIf_DHCPv4Client {
     
     #if defined(GTEST_ENABLE)
         FRIEND_TEST(dhcpv4Test, isValidIPAddr);
-	FRIEND_TEST(dhcpv4Test, InvalidIPAddr);
-	FRIEND_TEST(dhcpv4Test, InvalidIP);
-	FRIEND_TEST(dhcpv4Test, InvalidIPAddr_alpha);
+        FRIEND_TEST(dhcpv4Test, InvalidIPAddr);
+        FRIEND_TEST(dhcpv4Test, InvalidIP);
+        FRIEND_TEST(dhcpv4Test, InvalidIPAddr_alpha);
+        FRIEND_TEST(dhcpv4Test, InvalidIPAddr_EmptyString);
+        FRIEND_TEST(dhcpv4Test, InvalidIPAddr_TooLong);
+        FRIEND_TEST(dhcpv4Test, InvalidIPAddr_MissingOctet);
         FRIEND_TEST(dhcpv4Test, getInterfaceName);
+        FRIEND_TEST(dhcpv4Test, getInterfaceName_InvalidInstance);
         FRIEND_TEST(dhcpv4Test, isIfnameInroutetoDNSServer);
+        FRIEND_TEST(dhcpv4Test, isIfnameInroutetoDNSServer_InvalidRoute);
     #endif        
 };
 #endif

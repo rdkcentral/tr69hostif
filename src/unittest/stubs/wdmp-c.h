@@ -19,6 +19,10 @@
 #ifndef __WDMP_C_H__
 #define __WDMP_C_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+	
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -285,5 +289,9 @@ void mapWdmpStatusToStatusMessage(WDMP_STATUS status, char *result);
 /*                             Internal functions                             */
 /*----------------------------------------------------------------------------*/
 /* none */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
