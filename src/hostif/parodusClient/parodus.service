@@ -19,8 +19,6 @@
 [Unit]
 Description=Webpa parodus Daemon
 After=update-device-details.service update-reboot-info.service
-ConditionPathExistsGlob=/tmp/addressaquired_ipv*
-ConditionPathExists=/tmp/route_available
 ConditionPathExists=/opt/bspcomplete.ini
 
 [Service]
@@ -32,3 +30,6 @@ ExecStart=/bin/sh -c '/usr/bin/startParodusMain'
 ExecStop=/bin/kill -2 $MAINPID
 RestartSec=40s
 Restart=always
+
+[Install]
+WantedBy=network-up.target
