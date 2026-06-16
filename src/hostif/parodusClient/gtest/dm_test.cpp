@@ -266,6 +266,11 @@ TEST(datamodelTest, getNumberofInstances) {
 
 }
 
+TEST(datamodelTest, getNumberofInstances_NullParam) {
+    int cnt = getNumberofInstances(NULL);
+    EXPECT_EQ(cnt, 0);
+}
+
 TEST(datamodelTest, isWildCardParam) {
     int wildParam = isWildCardParam("Device.DeviceInfo.");
     EXPECT_EQ(wildParam, 1);
@@ -276,9 +281,19 @@ TEST(datamodelTest, isParamEndsWithInstance) {
     EXPECT_EQ(instance, 0);
 }
 
+TEST(datamodelTest, isParamEndsWithInstance_NullInput) {
+    int instance = isParamEndsWithInstance(NULL);
+    EXPECT_EQ(instance, 1);
+}
+
 TEST(datamodelTest, getNumberOfDigitsInInstanceNumber) {
     int instance = getNumberOfDigitsInInstanceNumber("Device.WiFi.SSID.123.Name", 17);
     EXPECT_EQ(instance, 3);
+}
+
+TEST(datamodelTest, getNumberOfDigitsInInstanceNumber_NullInput) {
+    int instance = getNumberOfDigitsInInstanceNumber(NULL, 0);
+    EXPECT_EQ(instance, 0);
 }
 
 TEST(datamodelTest, getChildParamNamesFromDataModel) {
@@ -326,6 +341,29 @@ TEST(datamodelTest, getChildParamNamesFromDataModel_InvalidParam) {
     EXPECT_EQ(status, 2);
 }
 
+TEST(datamodelTest, getChildParamNamesFromDataModel_NonWildcard) {
+    DB_STATUS dbStatus = loadDataModel();
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+
+    char *ParamList = NULL;
+    char *ParamDataTypeList = NULL;
+
+    char *paramName = (char *)"Device.DeviceInfo.ModelName";
+    int paramCount = 0;
+    DB_STATUS status = getChildParamNamesFromDataModel(getDataModelHandle(), paramName, &ParamList, &ParamDataTypeList, &paramCount);
+    EXPECT_EQ(status, DB_ERR_WILDCARD_NOT_SUPPORTED);
+}
+
+TEST(datamodelTest, getChildParamNamesFromDataModel_NullDbHandle) {
+    char *ParamList = NULL;
+    char *ParamDataTypeList = NULL;
+
+    char *paramName = (char *)"Device.DeviceInfo.";
+    int paramCount = 0;
+    DB_STATUS status = getChildParamNamesFromDataModel(NULL, paramName, &ParamList, &ParamDataTypeList, &paramCount);
+    EXPECT_EQ(status, DB_FAILURE);
+}
+
 TEST(datamodelTest, checkDataModelStatus) {
     DB_STATUS status = checkDataModelStatus();
     EXPECT_EQ(status, DB_SUCCESS);
@@ -339,10 +377,44 @@ TEST(datamodelTest, checkMatchingParameter) {
     EXPECT_EQ(retValue, 1);
 }
 
+TEST(datamodelTest, checkMatchingParameter_NoMatch) {
+    const char* attrValue = "a.b.c.{i}.";
+    char* paramName = (char*)"x.y.z.";
+    int ret = 0;
+    int retValue = checkMatchingParameter(attrValue, paramName, &ret);
+    EXPECT_EQ(retValue, 0);
+    EXPECT_EQ(ret, 0);
+}
+
+TEST(datamodelTest, getParamInfoFromDataModel_NullDbHandle) {
+    DataModelParam dmParam = {0};
+    int match = getParamInfoFromDataModel(NULL, "Device.DeviceInfo.ModelName", &dmParam);
+    EXPECT_EQ(match, 0);
+}
+
+TEST(datamodelTest, freeDataModelParam_AllFields) {
+    DataModelParam dmParam = {0};
+    dmParam.objectName = strdup("Device.DeviceInfo.ModelName");
+    dmParam.paramName = strdup("ModelName");
+    dmParam.access = strdup("readOnly");
+    dmParam.dataType = strdup("string");
+    dmParam.defaultValue = strdup("NA");
+    dmParam.bsUpdate = strdup("none");
+
+    freeDataModelParam(dmParam);
+    EXPECT_EQ(0, 0);
+}
+
 TEST(startParodusTest, get_HWMAcAddress) {
     write_on_file("/tmp/.macAddress", "D4:52:EE:DE:C6:FA");
     std::string macAddr = get_HWMAcAddress();
     EXPECT_EQ(macAddr, "D452EEDEC6FA");
+}
+
+TEST(startParodusTest, get_HWMAcAddress_MissingFile) {
+    std::remove("/tmp/.macAddress");
+    std::string macAddr = get_HWMAcAddress();
+    EXPECT_EQ(macAddr, "");
 }
 
 TEST(startParodusTest, get_PartnerId_Empty) {
@@ -365,6 +437,12 @@ TEST(startParodusTest, get_PartnerId_Unknown) {
     std::remove("/opt/www/authService/partnerId3.dat");
 }
 
+TEST(startParodusTest, get_PartnerId_MissingFile_FallbackPrefixOnly) {
+    std::remove("/opt/www/authService/partnerId3.dat");
+    std::string partnerId = get_PartnerId();
+    EXPECT_EQ(partnerId, "*,");
+}
+
 TEST(startParodusTest, get_RebootReason_Empty) {
     write_on_file("/opt/secure/reboot/previousreboot.info", "");
     std::string reboot_reason = get_RebootReason();
@@ -378,10 +456,22 @@ TEST(startParodusTest, get_RebootReason) {
     EXPECT_EQ(reboot_reason, "PowerOnReset");
 }
 
+TEST(startParodusTest, get_RebootReason_InvalidJson) {
+    write_on_file("/opt/secure/reboot/previousreboot.info", "{invalid json}");
+    std::string reboot_reason = get_RebootReason();
+    EXPECT_EQ(reboot_reason, "");
+}
+
 TEST(startParodusTest, get_FwName) {
     write_on_file("/version.txt", "imagename:ELTE11MWR_VBN_25Q3_sprint_20250814010729sdy_NG");
     std::string fw_name = get_FwName();
     EXPECT_EQ(fw_name, "ELTE11MWR_VBN_25Q3_sprint_20250814010729sdy_NG");
+}
+
+TEST(startParodusTest, get_FwName_MalformedLine) {
+    write_on_file("/version.txt", "imagename-only-without-delimiter");
+    std::string fw_name = get_FwName();
+    EXPECT_EQ(fw_name, "");
 }
 
 TEST(palTest, macToLower) {
@@ -757,6 +847,25 @@ TEST(palPdTest, get_parodus_url_MissingConfigFileSetsDefaults) {
     EXPECT_NE(client_url, "");
 }
 
+TEST(palPdTest, get_parodus_url_InvalidJsonSetsDefaults) {
+    write_on_file("/etc/webpa_cfg.json", "{invalid json}");
+    char parodus_url[64] = {'\0'};
+    char client_url[64] = {'\0'};
+    get_parodus_urlFunc()(parodus_url, client_url);
+    EXPECT_NE(parodus_url, "");
+    EXPECT_NE(client_url, "");
+}
+
+TEST(palPdTest, get_parodus_url_MissingClientUrlSetsDefaults) {
+    const char *webpaCfgFile = "{ \"ParodusURL\": \"tcp://parodus.xcal.tv:6666\" }";
+    write_on_file("/etc/webpa_cfg.json", webpaCfgFile);
+    char parodus_url[64] = {'\0'};
+    char client_url[64] = {'\0'};
+    get_parodus_urlFunc()(parodus_url, client_url);
+    EXPECT_NE(parodus_url, "");
+    EXPECT_NE(client_url, "");
+}
+
 TEST(palTest, get_parodus_url) {
     char parodus_url[256] = {0};
     char client_url[256] = {0};
@@ -812,6 +921,38 @@ TEST(palTest, validate_parameter_NOT_Support) {
     params[0].name = strdup("Device.DeviceInfo.Webpa.X_COMCAST-COM_CMC");
     params[0].value = strdup("test");
     params[0].type = WDMP_BOOLEAN;
+
+    WDMP_STATUS status = validate_parameterFunc()(params, paramCount);
+    EXPECT_EQ(status, WDMP_ERR_SET_OF_CMC_OR_CID_NOT_SUPPORTED);
+
+    free(params[0].name);
+    free(params[0].value);
+    free(params);
+}
+
+TEST(palTest, validate_parameter_Success) {
+    param_t *params = (param_t *) malloc(sizeof(param_t) * 1);
+
+    int paramCount = 1;
+    params[0].name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IncrementalCDL.Enable");
+    params[0].value = strdup("true");
+    params[0].type = WDMP_BOOLEAN;
+
+    WDMP_STATUS status = validate_parameterFunc()(params, paramCount);
+    EXPECT_EQ(status, WDMP_SUCCESS);
+
+    free(params[0].name);
+    free(params[0].value);
+    free(params);
+}
+
+TEST(palTest, validate_parameter_CID_NotSupported) {
+    param_t *params = (param_t *) malloc(sizeof(param_t) * 1);
+
+    int paramCount = 1;
+    params[0].name = strdup(PARAM_CID);
+    params[0].value = strdup("test");
+    params[0].type = WDMP_STRING;
 
     WDMP_STATUS status = validate_parameterFunc()(params, paramCount);
     EXPECT_EQ(status, WDMP_ERR_SET_OF_CMC_OR_CID_NOT_SUPPORTED);
@@ -992,6 +1133,15 @@ TEST(palTest, getParamAttributes) {
 
     WAL_STATUS status = getParamAttributesFunc()(paramName, &attributes, &totalParams);
     EXPECT_EQ(status, WAL_ERR_INVALID_PARAM);
+}
+
+TEST(palTest, getParamAttributes_NullInputs) {
+    AttrVal **attributes = NULL;
+    int totalParams = 0;
+
+    EXPECT_EQ(getParamAttributesFunc()(NULL, &attributes, &totalParams), WAL_ERR_INVALID_PARAM);
+    EXPECT_EQ(getParamAttributesFunc()("Device.DeviceInfo.ModelName", NULL, &totalParams), WAL_ERR_INVALID_PARAM);
+    EXPECT_EQ(getParamAttributesFunc()("Device.DeviceInfo.ModelName", &attributes, NULL), WAL_ERR_INVALID_PARAM);
 }
 
 TEST(palTest, setParamAttributes) {
@@ -1210,6 +1360,83 @@ TEST(palTest, getnotifyparamList_NULL) {
     EXPECT_EQ(ret, -1);
 }
 
+TEST(palTest, getnotifyparamList_MissingFile) {
+    setNotifyConfigurationFile("/tmp/non_existent_notify_list.json");
+    char **notifyParamList = NULL;
+    int notifyListSize = 0;
+    int result = getnotifyparamList(&notifyParamList, &notifyListSize);
+    EXPECT_EQ(result, -1);
+}
+
+TEST(palTest, getnotifyparamList_NoNotifyArray) {
+    const char* json_data = R"({"NoNotify":["Device.DeviceInfo.ModelName"]})";
+    write_on_file("/tmp/notify_no_array.conf", json_data);
+    setNotifyConfigurationFile("/tmp/notify_no_array.conf");
+
+    char **notifyParamList = NULL;
+    int notifyListSize = 7;
+    int result = getnotifyparamList(&notifyParamList, &notifyListSize);
+
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(notifyParamList, nullptr);
+    EXPECT_EQ(notifyListSize, 7);
+}
+
+TEST(palTest, isWildCardParam_NullInput) {
+    int ret = isWildCardParam(NULL);
+    EXPECT_EQ(ret, 0);
+}
+
+TEST(palTest, converttoWalType_DefaultBranch) {
+    WAL_DATA_TYPE walType = WAL_INT;
+    converttoWalTypeFunc()((HostIf_ParamType_t)999, &walType);
+    EXPECT_EQ(walType, WAL_STRING);
+}
+
+/*TEST(palTest, SetParamInfoFunc_InvalidBooleanValue) {
+    DB_STATUS dbStatus = loadDataModel();
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+
+    ParamVal param;
+    param.name = (char*)"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IncrementalCDL.Enable";
+    param.value = (char*)"not_bool";
+    param.type = WAL_BOOLEAN;
+
+    char transactionID[] = "txn12344";
+    WAL_STATUS status = SetParamInfoFunc()(param, transactionID);
+    EXPECT_EQ(status, WAL_ERR_INVALID_PARAMETER_VALUE);
+} 
+
+
+TEST(palTest, SetParamInfoFunc_InvalidUnsignedValue) {
+    DB_STATUS dbStatus = loadDataModel();
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+
+    ParamVal param;
+    param.name = (char*)"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.collectd.PortNumber";
+    param.value = (char*)"-1";
+    param.type = WAL_UINT;
+
+    char transactionID[] = "txn12344";
+    WAL_STATUS status = SetParamInfoFunc()(param, transactionID);
+    EXPECT_EQ(status, WAL_ERR_INVALID_PARAMETER_VALUE);
+}
+
+TEST(palTest, SetParamInfoFunc_InvalidTypeMismatch) {
+    DB_STATUS dbStatus = loadDataModel();
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+
+    ParamVal param;
+    param.name = (char*)"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.IncrementalCDL.Enable";
+    param.value = (char*)"1";
+    param.type = WAL_INT;
+
+    char transactionID[] = "txn12344";
+    WAL_STATUS status = SetParamInfoFunc()(param, transactionID);
+    EXPECT_EQ(status, WAL_ERR_INVALID_PARAMETER_TYPE);
+}
+
+*/
 TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_PID) {
     HOSTIF_MsgData_t param;
     bool bChanged; 
