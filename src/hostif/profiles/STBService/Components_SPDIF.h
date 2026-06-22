@@ -79,11 +79,12 @@
 class hostIf_STBServiceSPDIF
 {
     static GHashTable *ifHash;
-    hostIf_STBServiceSPDIF(int dev_id, device::AudioOutputPort& port);
+    hostIf_STBServiceSPDIF(int dev_id, const std::string& portName);
     ~hostIf_STBServiceSPDIF() {};
     static GMutex m_mutex;
     int dev_id;
-    device::AudioOutputPort& aPort;
+    std::string m_portName;
+    static void buildPortNameHash();
 
     bool backupEnable;
     char backupStatus[_BUF_LEN_16];

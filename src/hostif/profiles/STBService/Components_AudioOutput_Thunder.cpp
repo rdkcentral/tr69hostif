@@ -1,0 +1,715 @@
+/*
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2016 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @file Components_AudioOutput_Thunder.cpp
+ * @brief Thunder-backed implementation of TR069 Components AudioOutput.
+ */
+
+#include <sstream>
+#include "Components_AudioOutput.h"
+#include "safec_lib.h"
+
+#define DEV_NAME "AudioOutput"
+#define BASE_NAME "Device.Services.STBService.1.Components.AudioOutput"
+#define UPDATE_FORMAT_STRING "%s.%d.%s"
+
+#define STATUS_STRING                 "Status"
+#define ENABLED_STRING                "Enabled"
+#define ENABLE_STRING                 "Enable"
+#define CANCELMUTE_STRING             "CancelMute"
+#define AUDIOFORMAT_STRING            "AudioFormat"
+#define NAME_STRING                   "Name"
+#define AUDIOLEVEL_STRING             "AudioLevel"
+#define COMCAST_AUDIOOPTIMALLEVEL_STRING "X_COMCAST-COM_AudioOptimalLevel"
+#define COMCAST_MINAUDIODB_STRING     "X_COMCAST-COM_MinAudioDB"
+#define COMCAST_MAXAUDIODB_STRING     "X_COMCAST-COM_MaxAudioDB"
+#define COMCAST_AUDIODB_STRING        "X_COMCAST-COM_AudioDB"
+#define COMCAST_AUDIOSTEREOMODE_STRING "X_COMCAST-COM_AudioStereoMode"
+#define COMCAST_AUDIOLOOPTHRU_STRING  "X_COMCAST-COM_AudioLoopThru"
+#define COMCAST_AUDIOENCODING_STRING  "X_COMCAST-COM_AudioEncoding"
+#define COMCAST_AUDIOCOMPRESSION_STRING "X_COMCAST-COM_AudioCompression"
+#define COMCAST_AUDIOGAIN_STRING      "X_COMCAST-COM_AudioGain"
+#define COMCAST_DIALOGENHANCEMENT_STRING "X_COMCAST-COM_DialogEnhancement"
+
+#define THUNDER_DS_GET_SUPPORTED_AUDIO_PORTS   "org.rdk.DisplaySettings.getSupportedAudioPorts"
+#define THUNDER_DS_GET_ENABLE_AUDIO_PORT       "org.rdk.DisplaySettings.getEnableAudioPort"
+#define THUNDER_DS_SET_ENABLE_AUDIO_PORT       "org.rdk.DisplaySettings.setEnableAudioPort"
+#define THUNDER_DS_GET_MUTED                   "org.rdk.DisplaySettings.getMuted"
+#define THUNDER_DS_SET_MUTED                   "org.rdk.DisplaySettings.setMuted"
+#define THUNDER_DS_GET_VOLUME_LEVEL            "org.rdk.DisplaySettings.getVolumeLevel"
+#define THUNDER_DS_SET_VOLUME_LEVEL            "org.rdk.DisplaySettings.setVolumeLevel"
+#define THUNDER_DS_GET_AUDIO_ENCODING          "org.rdk.DisplaySettings.getAudioEncoding"
+#define THUNDER_DS_SET_AUDIO_ENCODING          "org.rdk.DisplaySettings.setAudioEncoding"
+#define THUNDER_DS_GET_AUDIO_FORMAT            "org.rdk.DisplaySettings.getAudioFormat"
+#define THUNDER_DS_GET_SOUND_MODE              "org.rdk.DisplaySettings.getSoundMode"
+#define THUNDER_DS_SET_SOUND_MODE              "org.rdk.DisplaySettings.setSoundMode"
+#define THUNDER_DS_GET_MS12_AUDIO_COMPRESSION  "org.rdk.DisplaySettings.getMS12AudioCompression"
+#define THUNDER_DS_SET_MS12_AUDIO_COMPRESSION  "org.rdk.DisplaySettings.setMS12AudioCompression"
+#define THUNDER_DS_GET_AUDIO_COMPRESSION       "org.rdk.DisplaySettings.getAudioCompression"
+#define THUNDER_DS_SET_AUDIO_COMPRESSION       "org.rdk.DisplaySettings.setAudioCompression"
+#define THUNDER_DS_GET_AUDIO_DELAY             "org.rdk.DisplaySettings.getAudioDelay"
+#define THUNDER_DS_GET_DIALOG_ENHANCEMENT      "org.rdk.DisplaySettings.getDialogEnhancement"
+#define THUNDER_DS_SET_DIALOG_ENHANCEMENT      "org.rdk.DisplaySettings.setDialogEnhancement"
+
+GHashTable * hostIf_STBServiceAudioInterface::ifHash = NULL;
+GMutex hostIf_STBServiceAudioInterface::m_mutex;
+
+void hostIf_STBServiceAudioInterface::buildPortNameHash()
+{
+    if (ifHash)
+        g_hash_table_destroy(ifHash);
+
+    ifHash = g_hash_table_new(NULL, NULL);
+
+    std::string delimitedPorts;
+    if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
+            THUNDER_DS_GET_SUPPORTED_AUDIO_PORTS, "{}", "supportedAudioPorts", ",", delimitedPorts))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                "[%s:%d] Failed to get supported audio ports\n", __FUNCTION__, __LINE__);
+        return;
+    }
+
+    int devId = 1;
+    std::istringstream ss(delimitedPorts);
+    std::string portName;
+    while (std::getline(ss, portName, ','))
+    {
+        if (!portName.empty())
+        {
+            hostIf_STBServiceAudioInterface *pInst = new hostIf_STBServiceAudioInterface(devId, portName);
+            g_hash_table_insert(ifHash, (gpointer)(intptr_t)devId, pInst);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                    "[%s:%d] dev_id=%d portName=%s\n", __FUNCTION__, __LINE__, devId, portName.c_str());
+            devId++;
+        }
+    }
+}
+
+hostIf_STBServiceAudioInterface* hostIf_STBServiceAudioInterface::getInstance(int dev_id)
+{
+    if (!ifHash)
+        buildPortNameHash();
+
+    hostIf_STBServiceAudioInterface* pRet =
+        (hostIf_STBServiceAudioInterface*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+
+    if (!pRet)
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                "[%s:%s:%d]: No instance for dev_id=%d\n", __FILE__, __FUNCTION__, __LINE__, dev_id);
+    }
+    return pRet;
+}
+
+GList* hostIf_STBServiceAudioInterface::getAllInstances()
+{
+    if(ifHash)
+        return g_hash_table_get_keys(ifHash);
+    return NULL;
+}
+
+void hostIf_STBServiceAudioInterface::closeInstance(hostIf_STBServiceAudioInterface *pDev)
+{
+    if(pDev)
+    {
+        if (ifHash)
+            g_hash_table_remove(ifHash, (gconstpointer)(intptr_t)pDev->dev_id);
+        delete pDev;
+    }
+}
+
+void hostIf_STBServiceAudioInterface::closeAllInstances()
+{
+    if(ifHash)
+    {
+        GList* tmp_list = g_hash_table_get_values(ifHash);
+        GList* current = tmp_list;
+
+        while(current)
+        {
+            hostIf_STBServiceAudioInterface* pDev = (hostIf_STBServiceAudioInterface*)current->data;
+            current = current->next;
+            delete pDev;
+        }
+
+        g_list_free(tmp_list);
+        g_hash_table_destroy(ifHash);
+        ifHash = NULL;
+    }
+}
+
+void hostIf_STBServiceAudioInterface::getLock()
+{
+    g_mutex_init(&hostIf_STBServiceAudioInterface::m_mutex);
+    g_mutex_lock(&hostIf_STBServiceAudioInterface::m_mutex);
+}
+
+void hostIf_STBServiceAudioInterface::releaseLock()
+{
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] Unlocking mutex...\n", __FUNCTION__, __LINE__);
+    g_mutex_unlock(&hostIf_STBServiceAudioInterface::m_mutex);
+}
+
+hostIf_STBServiceAudioInterface::hostIf_STBServiceAudioInterface(int devid, const std::string& portName)
+    : dev_id(devid), m_portName(portName)
+{
+    errno_t rc = -1;
+    rc = strcpy_s(backupStatus, sizeof(backupStatus), " ");
+    ERR_CHK(rc);
+    backupCancelMute = false;
+    rc = strcpy_s(backupAudioStereoMode, sizeof(backupAudioStereoMode), " ");
+    ERR_CHK(rc);
+    backupAudioLevel = 0;
+    rc = strcpy_s(backupAudioDB, sizeof(backupAudioDB), " ");
+    ERR_CHK(rc);
+    rc = strcpy_s(backupAudioLoopThru, sizeof(backupAudioLoopThru), " ");
+    ERR_CHK(rc);
+    backupAudioCompression = 0;
+    rc = strcpy_s(backupAudioEncoding, sizeof(backupAudioEncoding), " ");
+    ERR_CHK(rc);
+    rc = strcpy_s(backupAudioGain, sizeof(backupAudioGain), " ");
+    ERR_CHK(rc);
+    rc = strcpy_s(backupMinAudioDB, sizeof(backupMinAudioDB), " ");
+    ERR_CHK(rc);
+    rc = strcpy_s(backupMaxAudioDB, sizeof(backupMaxAudioDB), " ");
+    ERR_CHK(rc);
+    rc = strcpy_s(backupAudioOptimalLevel, sizeof(backupAudioOptimalLevel), " ");
+    ERR_CHK(rc);
+    backupDialogEnhancement = 0;
+
+    bCalledStatus = false;
+    bCalledCancelMute = false;
+    bCalledAudioStereoMode = false;
+    bCalledAudioLevel = false;
+    bCalledAudioDB = false;
+    bCalledAudioLoopThru = false;
+    bCalledAudioCompression = false;
+    bCalledAudioEncoding = false;
+    bCalledAudioGain = false;
+    bCalledMinAudioDB = false;
+    bCalledMaxAudioDB = false;
+    bCalledAudioOptimalLevel = false;
+    bCalledDialogEnhancement = false;
+}
+
+int hostIf_STBServiceAudioInterface::getNumberOfInstances(HOSTIF_MsgData_t *stMsgData)
+{
+    if (!ifHash)
+        buildPortNameHash();
+
+    put_int(stMsgData->paramValue, g_hash_table_size(ifHash));
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::handleSetMsg(const char *pSetting, HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOT_HANDLED;
+    if (strcasecmp(pSetting, CANCELMUTE_STRING) == 0)
+        ret = setCancelMute(stMsgData);
+    else if (strcasecmp(pSetting, AUDIOLEVEL_STRING) == 0)
+        ret = setAudioLevel(stMsgData);
+    else if (strcasecmp(pSetting, COMCAST_AUDIODB_STRING) == 0)
+        ret = setX_COMCAST_COM_AudioDB(stMsgData);
+    else if (strcasecmp(pSetting, COMCAST_AUDIOSTEREOMODE_STRING) == 0)
+        ret = setX_COMCAST_COM_AudioStereoMode(stMsgData);
+    else if (strcasecmp(pSetting, COMCAST_AUDIOLOOPTHRU_STRING) == 0)
+        ret = setX_COMCAST_COM_AudioLoopThru(stMsgData);
+    else if (strcasecmp(pSetting, COMCAST_AUDIOENCODING_STRING) == 0)
+        ret = setAudioEncoding(stMsgData);
+    else if (strcasecmp(pSetting, COMCAST_AUDIOCOMPRESSION_STRING) == 0)
+        ret = setX_COMCAST_COM_AudioCompression(stMsgData);
+    else if (strcasecmp(pSetting, COMCAST_DIALOGENHANCEMENT_STRING) == 0)
+        ret = setX_COMCAST_COM_DialogEnhancement(stMsgData);
+    return ret;
+}
+
+int hostIf_STBServiceAudioInterface::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOT_HANDLED;
+    if (strcasecmp(paramName, STATUS_STRING) == 0)
+        ret = getStatus(stMsgData);
+    else if (strcasecmp(paramName, ENABLE_STRING) == 0)
+        ret = getEnable(stMsgData);
+    else if (strcasecmp(paramName, CANCELMUTE_STRING) == 0)
+        ret = getCancelMute(stMsgData);
+    else if (strcasecmp(paramName, AUDIOFORMAT_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioFormat(stMsgData);
+    else if (strcasecmp(paramName, NAME_STRING) == 0)
+        ret = getName(stMsgData);
+    else if (strcasecmp(paramName, AUDIOLEVEL_STRING) == 0)
+        ret = getAudioLevel(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_AUDIOOPTIMALLEVEL_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioOptimalLevel(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_MINAUDIODB_STRING) == 0)
+        ret = getX_COMCAST_COM_MinAudioDB(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_MAXAUDIODB_STRING) == 0)
+        ret = getX_COMCAST_COM_MaxAudioDB(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_AUDIODB_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioDB(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_AUDIOSTEREOMODE_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioStereoMode(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_AUDIOLOOPTHRU_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioLoopThru(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_AUDIOENCODING_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioEncoding(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_AUDIOCOMPRESSION_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioCompression(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_AUDIOGAIN_STRING) == 0)
+        ret = getX_COMCAST_COM_AudioGain(stMsgData);
+    else if (strcasecmp(paramName, COMCAST_DIALOGENHANCEMENT_STRING) == 0)
+        ret = getX_COMCAST_COM_DialogEnhancement(stMsgData);
+    return ret;
+}
+
+void hostIf_STBServiceAudioInterface::doUpdates(updateCallback mUpdateCallback)
+{
+    HOSTIF_MsgData_t msgData;
+    bool bChanged;
+    char tmp_buff[PARAM_LEN];
+
+#define DO_UPDATE(fn, paramStr) \
+    memset(&msgData, 0, sizeof(msgData)); memset(tmp_buff, 0, PARAM_LEN); \
+    bChanged = false; msgData.instanceNum = dev_id; \
+    fn(&msgData, &bChanged); \
+    if (bChanged) { \
+        snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, paramStr); \
+        if (mUpdateCallback) mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED, tmp_buff, msgData.paramValue, msgData.paramtype); \
+    }
+
+    DO_UPDATE(getCancelMute, CANCELMUTE_STRING)
+    DO_UPDATE(getX_COMCAST_COM_AudioEncoding, COMCAST_AUDIOENCODING_STRING)
+    DO_UPDATE(getAudioLevel, AUDIOLEVEL_STRING)
+    DO_UPDATE(getX_COMCAST_COM_AudioOptimalLevel, COMCAST_AUDIOOPTIMALLEVEL_STRING)
+    DO_UPDATE(getX_COMCAST_COM_MinAudioDB, COMCAST_MINAUDIODB_STRING)
+    DO_UPDATE(getX_COMCAST_COM_MaxAudioDB, COMCAST_MAXAUDIODB_STRING)
+    DO_UPDATE(getX_COMCAST_COM_AudioDB, COMCAST_AUDIODB_STRING)
+    DO_UPDATE(getX_COMCAST_COM_AudioStereoMode, COMCAST_AUDIOSTEREOMODE_STRING)
+    DO_UPDATE(getX_COMCAST_COM_AudioLoopThru, COMCAST_AUDIOLOOPTHRU_STRING)
+    DO_UPDATE(getX_COMCAST_COM_AudioCompression, COMCAST_AUDIOCOMPRESSION_STRING)
+    DO_UPDATE(getX_COMCAST_COM_AudioGain, COMCAST_AUDIOGAIN_STRING)
+    DO_UPDATE(getX_COMCAST_COM_DialogEnhancement, COMCAST_DIALOGENHANCEMENT_STRING)
+
+#undef DO_UPDATE
+}
+
+/* ---- helpers ---- */
+
+static std::string portParam(const std::string& portName)
+{
+    return std::string("{\"audioPort\":\"") + portName + "\"}";
+}
+
+/* ---- getters ---- */
+
+int hostIf_STBServiceAudioInterface::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    bool enabled = false;
+    if (!invokeThunderPluginMethodAndExtractBoolField(
+            THUNDER_DS_GET_ENABLE_AUDIO_PORT, portParam(m_portName), "enable", enabled))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableAudioPort failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+
+    const char *status = "Disabled";
+    if (enabled)
+    {
+        bool muted = false;
+        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted);
+        status = muted ? "Muted" : "Enabled";
+    }
+
+    strncpy(stMsgData->paramValue, status, PARAM_LEN);
+    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(status);
+
+    if (bCalledStatus && pChanged && strcmp(backupStatus, stMsgData->paramValue))
+        *pChanged = true;
+    bCalledStatus = true;
+    strncpy(backupStatus, stMsgData->paramValue, sizeof(backupStatus) - 1);
+    backupStatus[sizeof(backupStatus) - 1] = '\0';
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    bool enabled = false;
+    if (!invokeThunderPluginMethodAndExtractBoolField(
+            THUNDER_DS_GET_ENABLE_AUDIO_PORT, portParam(m_portName), "enable", enabled))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableAudioPort failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    put_boolean(stMsgData->paramValue, enabled);
+    stMsgData->paramtype = hostIf_BooleanType;
+    stMsgData->paramLen = sizeof(bool);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getName(HOSTIF_MsgData_t *stMsgData)
+{
+    snprintf(stMsgData->paramValue, PARAM_LEN, "%s", m_portName.c_str());
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getCancelMute(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    bool muted = false;
+    if (!invokeThunderPluginMethodAndExtractBoolField(
+            THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getMuted failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    put_boolean(stMsgData->paramValue, muted);
+    stMsgData->paramtype = hostIf_BooleanType;
+    stMsgData->paramLen = sizeof(bool);
+    if (bCalledCancelMute && pChanged && (backupCancelMute != muted))
+        *pChanged = true;
+    bCalledCancelMute = true;
+    backupCancelMute = muted;
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getAudioLevel(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    int level = 0;
+    if (!invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DS_GET_VOLUME_LEVEL, portParam(m_portName), "volumeLevel", level))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getVolumeLevel failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    put_int(stMsgData->paramValue, level);
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+    if (bCalledAudioLevel && pChanged && (backupAudioLevel != (unsigned)level))
+        *pChanged = true;
+    bCalledAudioLevel = true;
+    backupAudioLevel = (unsigned)level;
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioEncoding(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string encoding;
+    if (!invokeThunderPluginMethodAndExtractStringField(
+            THUNDER_DS_GET_AUDIO_ENCODING, portParam(m_portName), "audioEncoding", encoding))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioEncoding failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    strncpy(stMsgData->paramValue, encoding.c_str(), PARAM_LEN);
+    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (bCalledAudioEncoding && pChanged && strcmp(backupAudioEncoding, stMsgData->paramValue))
+        *pChanged = true;
+    bCalledAudioEncoding = true;
+    strncpy(backupAudioEncoding, stMsgData->paramValue, _BUF_LEN_16);
+    backupAudioEncoding[_BUF_LEN_16 - 1] = '\0';
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioFormat(HOSTIF_MsgData_t *stMsgData)
+{
+    std::string fmt;
+    if (!invokeThunderPluginMethodAndExtractStringField(
+            THUNDER_DS_GET_AUDIO_FORMAT, portParam(m_portName), "audioFormat", fmt))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioFormat failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    strncpy(stMsgData->paramValue, fmt.c_str(), PARAM_LEN);
+    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioStereoMode(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string mode;
+    if (!invokeThunderPluginMethodAndExtractStringField(
+            THUNDER_DS_GET_SOUND_MODE, portParam(m_portName), "soundMode", mode))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getSoundMode failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    strncpy(stMsgData->paramValue, mode.c_str(), PARAM_LEN);
+    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (bCalledAudioStereoMode && pChanged && strcmp(backupAudioStereoMode, stMsgData->paramValue))
+        *pChanged = true;
+    bCalledAudioStereoMode = true;
+    strncpy(backupAudioStereoMode, stMsgData->paramValue, sizeof(backupAudioStereoMode) - 1);
+    backupAudioStereoMode[sizeof(backupAudioStereoMode) - 1] = '\0';
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioCompression(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    int compression = 0;
+    if (!invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DS_GET_MS12_AUDIO_COMPRESSION, portParam(m_portName), "compressionLevel", compression) &&
+        !invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DS_GET_AUDIO_COMPRESSION, portParam(m_portName), "compressionLevel", compression))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioCompression failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    put_int(stMsgData->paramValue, compression);
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+    if (bCalledAudioCompression && pChanged && (backupAudioCompression != (unsigned)compression))
+        *pChanged = true;
+    bCalledAudioCompression = true;
+    backupAudioCompression = (unsigned)compression;
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_DialogEnhancement(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    int level = 0;
+    if (!invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DS_GET_DIALOG_ENHANCEMENT, portParam(m_portName), "dialogEnhancementLevel", level) &&
+        !invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DS_GET_DIALOG_ENHANCEMENT, portParam(m_portName), "dialogEnhancementlevel", level))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getDialogEnhancement failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    put_int(stMsgData->paramValue, level);
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+    if (bCalledDialogEnhancement && pChanged && (backupDialogEnhancement != (unsigned)level))
+        *pChanged = true;
+    bCalledDialogEnhancement = true;
+    backupDialogEnhancement = (unsigned)level;
+    return OK;
+}
+
+/* Fields with no direct Thunder equivalent — return NOT_HANDLED so caller uses its own logic */
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    (void)pChanged;
+    snprintf(stMsgData->paramValue, PARAM_LEN, "0.000000");
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_MinAudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    (void)pChanged;
+    snprintf(stMsgData->paramValue, PARAM_LEN, "-120.000000");
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_MaxAudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    (void)pChanged;
+    snprintf(stMsgData->paramValue, PARAM_LEN, "0.000000");
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioGain(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    (void)pChanged;
+    snprintf(stMsgData->paramValue, PARAM_LEN, "0.000000");
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioLoopThru(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    (void)pChanged;
+    snprintf(stMsgData->paramValue, PARAM_LEN, "0");
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioOptimalLevel(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    (void)pChanged;
+    snprintf(stMsgData->paramValue, PARAM_LEN, "0.000000");
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    return OK;
+}
+
+/* ---- setters ---- */
+
+int hostIf_STBServiceAudioInterface::setCancelMute(const HOSTIF_MsgData_t *stMsgData)
+{
+    const bool mute = get_boolean(stMsgData->paramValue);
+    const std::string params = std::string("{\"audioPort\":\"") + m_portName
+        + "\",\"muted\":" + (mute ? "true" : "false") + "}";
+    std::string response;
+    if (!invokeThunderPluginMethod(THUNDER_DS_SET_MUTED, params, response))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setMuted failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::setAudioLevel(const HOSTIF_MsgData_t *stMsgData)
+{
+    const int level = get_int(stMsgData->paramValue);
+    if (level < 0 || level > 100)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid level %d\n", __FUNCTION__, level);
+        return NOK;
+    }
+    const std::string params = std::string("{\"audioPort\":\"") + m_portName
+        + "\",\"volumeLevel\":" + std::to_string(level) + "}";
+    std::string response;
+    if (!invokeThunderPluginMethod(THUNDER_DS_SET_VOLUME_LEVEL, params, response))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setVolumeLevel failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::setAudioEncoding(const HOSTIF_MsgData_t *stMsgData)
+{
+    std::string encoding(stMsgData->paramValue);
+    if (encoding == "0")
+        encoding = "NONE";
+    else if (encoding == "1")
+        encoding = "DISPLAY";
+    else if (encoding == "2")
+        encoding = "PCM";
+    else if (encoding == "3")
+        encoding = "DOLBY_DIGITAL";
+
+    const std::string params = std::string("{\"audioPort\":\"") + m_portName
+        + "\",\"audioEncoding\":\"" + encoding + "\"}";
+    std::string response;
+    if (!invokeThunderPluginMethod(THUNDER_DS_SET_AUDIO_ENCODING, params, response))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setAudioEncoding failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioStereoMode(const HOSTIF_MsgData_t *stMsgData)
+{
+    const std::string params = std::string("{\"audioPort\":\"") + m_portName
+        + "\",\"soundMode\":\"" + std::string(stMsgData->paramValue) + "\"}";
+    std::string response;
+    if (!invokeThunderPluginMethod(THUNDER_DS_SET_SOUND_MODE, params, response))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setSoundMode failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioCompression(const HOSTIF_MsgData_t *stMsgData)
+{
+    const int comp = get_int(stMsgData->paramValue);
+    if (comp < 0 || comp > 10)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid compression %d\n", __FUNCTION__, comp);
+        return NOK;
+    }
+    const std::string params = std::string("{\"audioPort\":\"") + m_portName
+        + "\",\"compressionLevel\":" + std::to_string(comp) + "}";
+    std::string response;
+    if (!invokeThunderPluginMethod(THUNDER_DS_SET_MS12_AUDIO_COMPRESSION, params, response) &&
+        !invokeThunderPluginMethod(THUNDER_DS_SET_AUDIO_COMPRESSION, params, response))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setAudioCompression failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    return OK;
+}
+
+int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_DialogEnhancement(const HOSTIF_MsgData_t *stMsgData)
+{
+    const int level = get_int(stMsgData->paramValue);
+    if (level < 0 || level > 16)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid DialogEnhancement level %d\n", __FUNCTION__, level);
+        return NOK;
+    }
+    const std::string params = std::string("{\"audioPort\":\"") + m_portName
+        + "\",\"dialogEnhancementLevel\":" + std::to_string(level) + "}";
+    const std::string legacyParams = std::string("{\"audioPort\":\"") + m_portName
+        + "\",\"dialogEnhancementlevel\":" + std::to_string(level) + "}";
+    std::string response;
+    if (!invokeThunderPluginMethod(THUNDER_DS_SET_DIALOG_ENHANCEMENT, params, response) &&
+        !invokeThunderPluginMethod(THUNDER_DS_SET_DIALOG_ENHANCEMENT, legacyParams, response))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setDialogEnhancement failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    return OK;
+}
+
+/* No direct Thunder equivalent — guard these */
+#if 0
+int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t *stMsgData) { return NOT_HANDLED; }
+int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t *stMsgData) { return NOT_HANDLED; }
+#endif
+
+int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t *stMsgData)
+{
+    (void)stMsgData;
+    return NOT_HANDLED;
+}
+
+int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t *stMsgData)
+{
+    (void)stMsgData;
+    return NOT_HANDLED;
+}

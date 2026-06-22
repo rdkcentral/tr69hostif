@@ -90,7 +90,7 @@ class  hostIf_STBServiceDisplayDevice
 {
 
     int dev_id;
-    device::VideoOutputPort& vPort;
+    std::string m_portName;
 
     char backupDisplayDeviceStatus[_BUF_LEN_16];
     char backupEDID[_BUF_LEN_256];
@@ -111,7 +111,7 @@ class  hostIf_STBServiceDisplayDevice
     int getPreferredResolution(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
 
 public:
-    hostIf_STBServiceDisplayDevice(int devId, device::VideoOutputPort& port);
+    hostIf_STBServiceDisplayDevice(int devId, const std::string& portName);
     void doUpdates(const char *baseName, updateCallback mUpdateCallback);
     int handleSetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);
     int handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);

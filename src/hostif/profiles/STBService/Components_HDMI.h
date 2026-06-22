@@ -87,12 +87,13 @@
  */
 class  hostIf_STBServiceHDMI
 {
-    static GHashTable *ifHash;
-    hostIf_STBServiceHDMI(int devid, device::VideoOutputPort& port);
+    static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceHDMI* */
+    hostIf_STBServiceHDMI(int devid, const std::string& portName);
     ~hostIf_STBServiceHDMI();
     static GMutex m_mutex;
     int dev_id;
-    device::VideoOutputPort& vPort;
+    std::string m_portName;
+    static void buildPortNameHash();
     hostIf_STBServiceDisplayDevice *displayDevice;
 
     static char dsHDMIResolutionMode[10];
