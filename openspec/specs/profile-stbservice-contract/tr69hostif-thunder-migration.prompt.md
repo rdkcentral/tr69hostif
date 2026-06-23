@@ -134,6 +134,25 @@ Use this table when you encounter a libds `device::` call and need to find the T
 
 > **Under define**: No Thunder API exists yet for these. Return `NOT_HANDLED` and wrap the TR-69 parameter handler in `#if 0 / #endif` in the header.
 
+### Mapping Notes / Reasons For CSV Gaps
+
+Use these notes to explain rows in the CSV that appear blank, merged, or only partially specified.
+
+- `disable` for `VideoOutputPort` is not a separate Thunder API because disable is represented by calling `setEnableVideoPort` with `enable=false`.
+- `enableLEConfig` is marked `Not required` because the current STBService TR-69 migration scope does not expose a distinct parameter that needs a Thunder mapping for this DS-HAL feature.
+- `getSerialNumber`, `getManufacturerWeek`, and `getManufacturerYear` are blank in the CSV because they are expected to be derived from the same `DisplaySettings::readEDID` response used for `getProductCode` / `getEDIDBytes`, not from separate Thunder methods.
+- `getName()` for audio/video ports maps to Thunder discovery outputs (`supportedAudioPorts`, `supportedVideoDisplays`) rather than a dedicated `getName` method; the discovered port/display identifier becomes the TR-69-visible name source.
+- `getSupportedVideoCodingFormats`, `getVideoCodecInfo`, and `getSupportedSettopResolutions` are marked `Defined` at the method level, but the CSV does not document concrete request/response field names. For these capability APIs, implementers must confirm the actual plugin response schema in `entservices-displaysettings` and preserve existing TR-69 output semantics.
+- When a CSV row gives only a method name without field names (for example `FrameRate`, `Connected`, or codec-capability methods), treat plugin ownership as confirmed but response-shape details as still requiring verification against plugin code or live responses.
+
+### Capability-Specific Caution
+
+`Capabilities.cpp` is more sensitive than component-control modules because it converts backend capability data into fixed TR-69 strings, counts, and enumerated profile rows.
+
+- `getSupportedVideoCodingFormats` must preserve the existing `VideoStandards` string semantics even if Thunder returns a list instead of a DS-style bitmask.
+- `getVideoCodecInfo` must preserve `ProfileLevelNumberOfEntries` and `ProfileLevel.{i}.Profile/Level/MaximumDecodingCapability` semantics even if Thunder returns profile names instead of enum values.
+- `getSupportedSettopResolutions` must continue returning TR-69-compatible resolution strings; if Thunder returns raw platform names, normalize them before exposing them.
+
 ---
 
 ## Step-by-step Migration Plan
