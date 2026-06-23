@@ -246,6 +246,18 @@
         <syntax> <boolean/> </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RF4CE." access="readOnly" minEntries="0" maxEntries="1" >
+      <parameter base="AudioProfileTarget" access="readWrite" notification="0" maxNotification="2" >
+       <syntax>
+        <int/>
+       </syntax>
+      </parameter>
+      <parameter base="OpusEncoderParams" access="readWrite" notification="0" maxNotification="2" >
+       <syntax>
+        <string/>
+       </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AAMP_CFG." access="readOnly" minEntries="0" maxEntries="1" >
       <parameter base="b64Config" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
@@ -2747,6 +2759,9 @@
       <parameter base="voice" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
+      <parameter base="network_rf4ce" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
       <parameter base="network_ble" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
@@ -2762,6 +2777,9 @@
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ctrlm.telemetry_report." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="global" access="readWrite" notification="0" maxNotification="2" >
+        <syntax> <string/> </syntax>
+      </parameter>
+      <parameter base="rf4ce" access="readWrite" notification="0" maxNotification="2" >
         <syntax> <string/> </syntax>
       </parameter>
       <parameter base="ble" access="readWrite" notification="0" maxNotification="2" >
