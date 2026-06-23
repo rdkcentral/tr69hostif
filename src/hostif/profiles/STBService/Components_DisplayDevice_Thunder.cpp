@@ -16,6 +16,70 @@
 #define THUNDER_DI_CONNECTED   "org.rdk.DisplayInfo.connected"
 #define THUNDER_DS_READ_EDID   "org.rdk.DisplaySettings.readEDID"
 #define THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS "org.rdk.DisplaySettings.getSupportedSettopResolutions"
+#define THUNDER_DS_GET_DEFAULT_RESOLUTION "org.rdk.DisplaySettings.getDefaultResolution"
+#define THUNDER_DS_GET_CURRENT_RESOLUTION "org.rdk.DisplaySettings.getCurrentResolution"
+
+static const char* normalizeSettopResolution(const std::string& value)
+{
+    if (value == "480i") return "720x480i/29.97Hz";
+    if (value == "480p") return "720x480p/59.94Hz";
+    if (value == "576p50") return "720x576p/50Hz";
+    if (value == "720p") return "1280x720p/59.94Hz";
+    if (value == "720p50") return "1280x720p/50Hz";
+    if (value == "768p60") return "1366x768p/59.94Hz";
+    if (value == "1080p24") return "1920x1080p/24Hz";
+    if (value == "1080p") return "1920x1080p/59.94Hz";
+    if (value == "1080i50") return "1920x1080i/50Hz";
+    if (value == "1080i") return "1920x1080i/59.94Hz";
+    if (value == "2160p30") return "3840x2160p/30Hz";
+    if (value == "2160p60") return "3840x2160p/59.94Hz";
+    return NULL;
+}
+
+static std::string normalizeSettopResolutionList(const std::string& resolutions)
+{
+    std::string response;
+    cJSON* root = cJSON_Parse(resolutions.c_str());
+    if (!cJSON_IsArray(root))
+    {
+        if (root)
+            cJSON_Delete(root);
+        return resolutions;
+    }
+
+    const int count = cJSON_GetArraySize(root);
+    for (int i = 0; i < count; ++i)
+    {
+        cJSON* item = cJSON_GetArrayItem(root, i);
+        if (!cJSON_IsString(item) || (item->valuestring == NULL))
+            continue;
+
+        const char* mapped = normalizeSettopResolution(item->valuestring);
+        if (mapped == NULL)
+            mapped = item->valuestring;
+
+        if (!response.empty())
+            response += ",";
+        response += mapped;
+    }
+
+    cJSON_Delete(root);
+    return response;
+}
+
+static bool getNormalizedResolutionValue(const std::string& method,
+                                         const std::string& params,
+                                         const char* field,
+                                         std::string& normalized)
+{
+    std::string value;
+    if (!invokeThunderPluginMethodAndExtractStringField(method, params, field, value))
+        return false;
+
+    const char* mapped = normalizeSettopResolution(value);
+    normalized = (mapped != NULL) ? mapped : value;
+    return true;
+}
 
 hostIf_STBServiceDisplayDevice::hostIf_STBServiceDisplayDevice(int devId, const std::string& portName)
     : dev_id(devId), m_portName(portName)
@@ -111,7 +175,8 @@ int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *st
     }
     else
     {
-        strncpy(stMsgData->paramValue, resolutions.c_str(), PARAM_LEN);
+        const std::string normalized = normalizeSettopResolutionList(resolutions);
+        strncpy(stMsgData->paramValue, normalized.c_str(), PARAM_LEN);
     }
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
@@ -126,7 +191,25 @@ int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *st
 
 int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    return getSupportedResolutions(stMsgData, pChanged);
+    std::string preferred;
+    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
+
+    if (!getNormalizedResolutionValue(THUNDER_DS_GET_DEFAULT_RESOLUTION, params, "defaultResolution", preferred) &&
+        !getNormalizedResolutionValue(THUNDER_DS_GET_CURRENT_RESOLUTION, params, "resolution", preferred))
+    {
+        return getSupportedResolutions(stMsgData, pChanged);
+    }
+
+    strncpy(stMsgData->paramValue, preferred.c_str(), PARAM_LEN);
+    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (bCalledPreferredResolution && pChanged && strcmp(backupPreferredResolution, stMsgData->paramValue))
+        *pChanged = true;
+    bCalledPreferredResolution = true;
+    strncpy(backupPreferredResolution, stMsgData->paramValue, sizeof(backupPreferredResolution) - 1);
+    backupPreferredResolution[sizeof(backupPreferredResolution) - 1] = '\0';
+    return OK;
 }
 
 int hostIf_STBServiceDisplayDevice::getEDID_BYTES(HOSTIF_MsgData_t *stMsgData, bool *pChanged)

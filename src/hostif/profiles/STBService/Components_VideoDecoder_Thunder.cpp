@@ -84,17 +84,27 @@ int hostIf_STBServiceVideoDecoder::handleSetMsg(const char *pSetting, HOSTIF_Msg
 int hostIf_STBServiceVideoDecoder::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
     if (strcasecmp(paramName, COMCAST_STANDBY_STRING) == 0)  return getX_COMCAST_COM_Standby(stMsgData);
-    if (strcasecmp(paramName, ENABLE_STRING) == 0)           return getStatus(stMsgData);
+    if (strcasecmp(paramName, ENABLE_STRING) == 0)           return getEnable(stMsgData);
     if (strcasecmp(paramName, STATUS_STRING) == 0)           return getStatus(stMsgData);
     if (strcasecmp(paramName, NAME_STRING) == 0) {
-        snprintf(stMsgData->paramValue, PARAM_LEN, "VideoDecoder%d", dev_id);
+        snprintf(stMsgData->paramValue, PARAM_LEN, "VideoDecoderHDMI0");
         stMsgData->paramtype = hostIf_StringType;
         stMsgData->paramLen = strlen(stMsgData->paramValue);
         return OK;
     }
-    /* ContentAspectRatio and HEVC: no Thunder equivalent */
-    if (strcasecmp(paramName, CONTENT_AR_STRING) == 0 || strcasecmp(paramName, HEVC_STRING) == 0)
-        return getContentAspectRatio(stMsgData);
+    /* ContentAspectRatio has no reliable Thunder mapping and remains unsupported. */
+    if (strcasecmp(paramName, CONTENT_AR_STRING) == 0)
+        return NOT_HANDLED;
+
+    /* Keep legacy-compatible pointer path for HEVC capability reference. */
+    if (strcasecmp(paramName, HEVC_STRING) == 0)
+    {
+        snprintf(stMsgData->paramValue, PARAM_LEN,
+                 ".Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1");
+        stMsgData->paramtype = hostIf_StringType;
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
+        return OK;
+    }
     return NOT_HANDLED;
 }
 
@@ -133,6 +143,30 @@ int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData, bool *
     bCalledVideoDecoderStatus = true;
     strncpy(backupVideoDecoderStatus, stMsgData->paramValue, sizeof(backupVideoDecoderStatus) - 1);
     backupVideoDecoderStatus[sizeof(backupVideoDecoderStatus) - 1] = '\0';
+    return OK;
+}
+
+int hostIf_STBServiceVideoDecoder::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    std::string currentState;
+    if (!invokeThunderPluginMethodAndExtractStringField(
+            THUNDER_PM_GET_POWER_STATE, "{}", "currentState", currentState))
+    {
+        currentState = "POWER_STATE_ON";
+    }
+
+    const bool enabled = (currentState == "POWER_STATE_ON");
+    put_boolean(stMsgData->paramValue, enabled);
+    stMsgData->paramtype = hostIf_BooleanType;
+    stMsgData->paramLen = sizeof(bool);
+
+    if (pChanged && bCalledVideoDecoderStatus)
+    {
+        const char *status = enabled ? ENABLED_STRING : DISABLED_STRING;
+        if (strcmp(backupVideoDecoderStatus, status))
+            *pChanged = true;
+    }
+
     return OK;
 }
 

@@ -93,6 +93,7 @@ class  hostIf_STBServiceVideoDecoder
 
 private:
     int getContentAspectRatio(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+    int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData);
