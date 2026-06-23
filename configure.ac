@@ -447,6 +447,14 @@ AM_CONDITIONAL([WITH_SNMP_ADAPTER], [test x$SNMP_ADAPTER_ENABLE = xtrue])
 AM_CONDITIONAL([ENABLE_BLE_TILE_PROFILE], [test x$ENABLE_BLE_TILE_PROFILE = xtrue])
 AM_CONDITIONAL([WITH_PARODUS_SUPPORT], [test x$PARODUS_SUPPORT_ENABLED = xtrue])
 
+# Thunder plugin client support (replaces libds HAL for STBService Components)
+AC_ARG_ENABLE([rdk-thunder-plugin],
+    [AS_HELP_STRING([--enable-rdk-thunder-plugin],
+        [Enable Thunder plugin client support; replaces libds HAL in STBService Components])],
+    [RDK_THUNDER_PLUGIN_ENABLE=$enableval],
+    [RDK_THUNDER_PLUGIN_ENABLE=no])
+AM_CONDITIONAL([WITH_RDK_THUNDER_PLUGIN], [test "x$RDK_THUNDER_PLUGIN_ENABLE" = "xyes"])
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC

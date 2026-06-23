@@ -82,6 +82,7 @@ class  hostIf_STBServiceVideoDecoder
     ~hostIf_STBServiceVideoDecoder() {};
     static GMutex m_mutex;
     int dev_id;
+    static void buildSingleInstance();
 
     char backupContentAspectRatio[_BUF_LEN_16];
     bool backupStandby;

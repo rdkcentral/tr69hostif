@@ -111,12 +111,13 @@
  */
 class hostIf_STBServiceAudioInterface
 {
-    static GHashTable *ifHash;
-    hostIf_STBServiceAudioInterface(int dev_id, device::AudioOutputPort& port);
+    static GHashTable *ifHash;        /* dev_id → hostIf_STBServiceAudioInterface* */
+    hostIf_STBServiceAudioInterface(int dev_id, const std::string& portName);
     ~hostIf_STBServiceAudioInterface() {};
     static GMutex m_mutex;
     int dev_id;
-    device::AudioOutputPort& aPort;
+    std::string m_portName;
+    static void buildPortNameHash();
 
     char backupStatus[_BUF_LEN_16];
     bool backupCancelMute;
@@ -161,11 +162,13 @@ private:
     int setAudioLevel(const HOSTIF_MsgData_t *);
     int getAudioLevel(HOSTIF_MsgData_t *,bool *pChanged = NULL);
 
+#if 0
     int setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t *);
     int getX_COMCAST_COM_AudioDB(HOSTIF_MsgData_t *,bool *pChanged = NULL);
 
     int setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t *);
     int getX_COMCAST_COM_AudioLoopThru(HOSTIF_MsgData_t *,bool *pChanged = NULL);
+#endif
 
     /* X_COMCAST_COM_AudioCompression */
     int setX_COMCAST_COM_AudioCompression(const HOSTIF_MsgData_t *);
@@ -182,9 +185,11 @@ private:
     /*     int setAudioGain(HOSTIF_MsgData_t *,bool *pChanged = NULL); */ // Not supported???
     int getX_COMCAST_COM_AudioGain(HOSTIF_MsgData_t *,bool *pChanged = NULL);
 
+#if 0
     int getX_COMCAST_COM_MinAudioDB(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getX_COMCAST_COM_MaxAudioDB(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getX_COMCAST_COM_AudioOptimalLevel(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#endif
 
     /* X_COMCAST_COM_DialogEnhancement */
     int setX_COMCAST_COM_DialogEnhancement(const HOSTIF_MsgData_t *);

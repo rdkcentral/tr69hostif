@@ -1,0 +1,189 @@
+=============================================================
+  JIRA List — tr69hostif/src/hostif/profiles/STBService
+  Source : git log --all (rdkcentral/tr69hostif)
+  Path   : src/hostif/profiles/STBService
+  Total  : 65 unique JIRA tickets | 67 commits
+  Date   : 2026-06-15
+=============================================================
+
+----------------------------------------------------------------------
+UNIQUE JIRA TICKETS (sorted by project, then number)
+----------------------------------------------------------------------
+
+  AMLOGIC-1457
+  BCOM-4813
+  DELIA-8328
+  DELIA-12276
+  DELIA-12666
+  DELIA-15177
+  DELIA-17277
+  DELIA-20601
+  DELIA-22049
+  DELIA-23744
+  DELIA-24186
+  DELIA-24760
+  DELIA-25463
+  DELIA-30440
+  DELIA-34249
+  DELIA-35232
+  DELIA-35765
+  DELIA-35876
+  DELIA-40229
+  DELIA-40981
+  DELIA-44024
+  DELIA-48763
+  DELIA-50513
+  DELIA-61140
+  DELIA-61142
+  DELIA-61670
+  DELIA-62845
+  DELIA-63486
+  RDK-9906
+  RDK-10887
+  RDK-15484
+  RDK-16135
+  RDK-17766
+  RDK-19129
+  RDK-19849
+  RDK-19851
+  RDK-19852
+  RDK-20077
+  RDK-20441
+  RDK-20896
+  RDK-21838
+  RDK-24751
+  RDK-27096
+  RDK-27413
+  RDK-29742
+  RDK-32989
+  RDK-53977
+  RDK-56124
+  RDK-60308
+  RDKCOM-712
+  RDKDEV-5109
+  RDKDEVSCAL-74
+  RDKE-622
+  RDKEMW-1803
+  RDKMDOC-38
+  RDKTT-534
+  RDKTV-818
+  RDKTV-7072
+  RDKTV-7117
+  STBT-3381
+  XITHREE-3688
+  XITHREE-4531
+  XITHREE-4917
+  XITHREE-5852
+  XITHREE-6040
+  XITHREE-6113
+
+----------------------------------------------------------------------
+COMMITS WITH DATES AND MESSAGES (chronological)
+----------------------------------------------------------------------
+
+  2014-04-16  XITHREE-3688   JIRA: XITHREE-3688 : PR JIRA: NONE Update of folder structure.
+  2014-07-10  RDKDEV-5109    RDKDEV-5109 - Add RDK-M attribution
+  2014-07-11  RDKDEV-5109    RDKDEV-5109 add comcast attribution
+  2014-08-08  RDKDEV-5109    RDKDEV-5109 - Add/Update RDK-M attribution
+  2014-09-03  XITHREE-4531   JIRA: XITHREE-4531: Added exception handling to prevent segfault in Json query.
+  2014-10-06  XITHREE-4917   JIRA: XITHREE-4917: Corrected the mapping of ds HDCP status api.
+  2014-11-13  RDKDEVSCAL-74  RDKDEVSCAL-74 : Component SDK creation : TR69
+  2015-03-17  XITHREE-5852   XITHREE-5852: Fix the videoout status issue.
+  2015-05-18  XITHREE-6113   XITHREE-6113 : Community submission - STBService implementation changes updated
+  2015-05-20  RDK-9906       RDK-9906, RDK-10887 : SDCard profile attributes
+  2015-05-20  RDK-10887      RDK-9906, RDK-10887 : SDCard profile attributes
+  2015-07-16  DELIA-8328     DELIA-8328 : Fixed by correcting the g_printf argument.
+  2015-07-16  XITHREE-6040   XITHREE-6040: Adding implementation to get Audio Format
+  2015-09-03  RDKTT-534      RDKTT-534: Devicesettings typo in API names
+  2015-09-04  STBT-3381      STBT-3381 : Adding @defgroup doxygen tags
+  2015-12-09  RDKTT-534      Merge RDKTT-534: Devicesettings typo in API names into stable2
+  2016-02-25  DELIA-12666    DELIA-12666: Integration on rdk_logger for tr69hostif
+  2016-03-03  RDK-15484      RDK-15484: Add RF4CE profile & client support
+  2016-05-05  DELIA-12276    DELIA-12276: Fix Tr69 interface to get the Audio status
+  2016-05-17  RDK-16135      RDK-16135 : Implementation of SDCard Status method.
+  2016-06-06  RDK-16135      Merge RDK-16135 : Implementation of SDCard Status method. into stable2
+  2016-06-16  DELIA-15177    DELIA-15177 : Change the datatype to signed in hostif.
+  2016-08-11  RDKMDOC-38     RDKMDOC-38: Integrate TR69HostIf Documentation to stable2
+  2016-11-17  RDK-17766      RDK-17766: Update files in tr69hostif component with Apache header
+  2017-04-06  RDK-19129      RDK-19129 : Updated the configure file to accept --disable-sdcard
+  2017-04-27  DELIA-20601    DELIA-20601 : Fix the datatype
+  2017-05-15  RDK-19129      Revert RDK-19129 : Updated the configure file to accept --disable-sdcard
+  2017-05-18  RDK-19129      Revert Revert RDK-19129
+  2017-08-09  RDK-20896      RDK-20896, RDK-19849, RDK-19851, RDK-19852, RDK-20077: Integrating parodus to RDKV
+  2017-08-09  RDK-19849      RDK-20896, RDK-19849, RDK-19851, RDK-19852, RDK-20077: Integrating parodus to RDKV
+  2017-08-09  RDK-19851      RDK-20896, RDK-19849, RDK-19851, RDK-19852, RDK-20077: Integrating parodus to RDKV
+  2017-08-09  RDK-19852      RDK-20896, RDK-19849, RDK-19851, RDK-19852, RDK-20077: Integrating parodus to RDKV
+  2017-08-09  RDK-20077      RDK-20896, RDK-19849, RDK-19851, RDK-19852, RDK-20077: Integrating parodus to RDKV
+  2017-09-15  DELIA-17277    DELIA-17277: HDMI audio mode is not populating while in Expert mode
+  2017-09-15  RDK-20441      RDK-20441 : Add support for 4k diagnostics
+  2017-10-19  DELIA-23744    DELIA-23744: Fix the TSBQualified wrong value.
+  2017-10-19  DELIA-24186    DELIA-24186 : Add support for 480i/480p format translation
+  2017-11-22  DELIA-24760    DELIA-24760: RDKCENTRAL-COM_SDCard.Capacity returning wrong value
+  2018-02-21  DELIA-25463    DELIA-25463, DELIA-22049: AudioFormat Expert mode is returning Null.
+  2018-02-21  DELIA-22049    DELIA-25463, DELIA-22049: AudioFormat Expert mode is returning Null.
+  2018-05-15  RDKCOM-712     RDKCOM-712: LGI tr69hostif changes
+  2018-11-02  DELIA-30440    DELIA-30440: tr69agent does not support Device.Services.STBService.
+  2018-11-19  RDK-17766      RDK-17766: Update files in tr69hostif component with Apache header
+  2019-05-03  DELIA-35232    DELIA-35232, DELIA-35765: Squash commit
+  2019-05-03  DELIA-35765    DELIA-35232, DELIA-35765: Squash commit
+  2019-05-10  RDK-24751      RDK-24751: HostIf memory Optimization
+  2019-07-01  RDK-21838      RDK-21838: Add eMMC diagnostics support
+  2019-10-10  DELIA-34249    DELIA-34249: Correct TSBQualified for SDCard and eMMCFlash
+  2020-01-11  DELIA-40229    DELIA-40229: Cannot set resolution to 4k through WEBPA SET
+  2020-02-11  RDK-27413      RDK-27413: Dolby MS12 Audio Control Configuration
+  2020-03-30  DELIA-40981    DELIA-40981 : tr69hostif memory crash
+  2020-07-27  DELIA-44024    DELIA-44024 : tr69hostif VideoDecoder buffer correction
+  2020-08-05  BCOM-4813      Revert RDK-27413: Dolby MS12 Audio Control Configuration. To check BCOM-4813
+  2020-08-20  DELIA-35876    DELIA-35876 : Settop provides state of Loudness Leveling and Dialog Enhancer
+  2020-10-05  RDK-27413      Revert Revert RDK-27413: Dolby MS12 Audio Control Configuration
+  2020-10-08  RDK-29742      RDK-29742 - tr69hostif - P0 changes
+  2020-11-23  RDK-27096      RDK-27096 - tr69hostif - P1 changes
+  2021-02-10  DELIA-48763    DELIA-48763: AudioFormat returns with Empty value.
+  2021-02-12  RDKTV-818      RDKTV-818 : Resolutions are unhandled in getTR181ResolutionString
+  2021-05-26  DELIA-50513    DELIA-50513 : Getting VideoOutput Name parameter from devicesettings
+  2021-05-28  RDKTV-7072     RDKTV-7072, RDKTV-7117, AMLOGIC-1457 : Components VideoOutput params return empty
+  2021-05-28  RDKTV-7117     RDKTV-7072, RDKTV-7117, AMLOGIC-1457 : Components VideoOutput params return empty
+  2021-05-28  AMLOGIC-1457   RDKTV-7072, RDKTV-7117, AMLOGIC-1457 : Components VideoOutput params return empty
+  2021-07-01  RDK-32989      RDK-32989: Replace SDL banned C API with secure string API (P1 risks)
+  2023-04-12  DELIA-61140    DELIA-61140 - [Coverity] Various Low impact Coverity issues - tr69hostif Part 1
+  2023-04-12  DELIA-61142    DELIA-61142 - [Coverity] Various Low impact Coverity issues - tr69hostif Part 3
+  2023-05-10  DELIA-61670    DELIA-61670 - Various medium impact issues tr69hostif part 4
+  2023-07-27  DELIA-62845    DELIA-62845 - [Coverity] High impact issues - tr69hostif
+  2023-12-05  DELIA-63486    DELIA-63486 - [Coverity] Various Coverity issues - tr69hostif
+  2024-11-06  RDK-53977      RDK-53977: Prepare tr69hostif ready for opensourcing
+  2024-11-19  RDK-53977      RDK-53977: Prepare tr69hostif ready for opensourcing
+  2025-01-30  RDKE-622       RDKE-622 Fix warnings in tr69hostif (#1)
+  2025-03-05  RDKEMW-1803    RDKEMW-1803: Add debugs for Mutex issue (#32)
+  2025-03-05  RDKEMW-1803    RDKEMW-1803: Add debugs for Mutex issue (#32)
+  2025-04-30  RDK-56124      RDK-56124-RDKE-Fix coverity issues in tr69hostif and profiles (#105)
+  2026-02-16  RDK-60308      RDK-60308-[tr69hostif, RFC] RDK Coverity Defect Resolution for Device Management (#342)
+
+----------------------------------------------------------------------
+SUMMARY BY PROJECT
+----------------------------------------------------------------------
+
+  Project      | Count | Tickets
+  -------------|-------|----------------------------------------------------
+  DELIA        |  28   | 8328, 12276, 12666, 15177, 17277, 20601, 22049,
+               |       | 23744, 24186, 24760, 25463, 30440, 34249, 35232,
+               |       | 35765, 35876, 40229, 40981, 44024, 48763, 50513,
+               |       | 61140, 61142, 61670, 62845, 63486
+  RDK          |  21   | 9906, 10887, 15484, 16135, 17766, 19129, 19849,
+               |       | 19851, 19852, 20077, 20441, 20896, 21838, 24751,
+               |       | 27096, 27413, 29742, 32989, 53977, 56124, 60308
+  XITHREE      |   6   | 3688, 4531, 4917, 5852, 6040, 6113
+  RDKTV        |   3   | 818, 7072, 7117
+  RDKDEV       |   1   | 5109
+  RDKDEVSCAL   |   1   | 74
+  RDKE         |   1   | 622
+  RDKEMW       |   1   | 1803
+  RDKCOM       |   1   | 712
+  RDKMDOC      |   1   | 38
+  RDKTT        |   1   | 534
+  STBT         |   1   | 3381
+  AMLOGIC      |   1   | 1457
+  BCOM         |   1   | 4813
+  -------------|-------|----------------------------------------------------
+  TOTAL        |  65   |
+
+=============================================================

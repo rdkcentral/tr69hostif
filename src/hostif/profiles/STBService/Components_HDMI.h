@@ -75,7 +75,7 @@
 
 #define HDMI_RESOLUTION_MODE_AUTO       "Auto"
 #define HDMI_RESOLUTION_MODE_MANUAL     "Manual"
-#define HDMI_RESOLUTION_VALUE_DEFAULT   "1280x720/59.94Hz" //1280x720p/60Hz"
+#define HDMI_RESOLUTION_VALUE_DEFAULT   "1280x720p/59.94Hz"
 
 #ifndef PARAM_LEN
 #define PARAM_LEN TR69HOSTIFMGR_MAX_PARAM_LEN
@@ -88,12 +88,13 @@
 class  hostIf_STBServiceHDMI
 {
     static GHashTable *ifHash;
-    hostIf_STBServiceHDMI(int devid, device::VideoOutputPort& port);
+    hostIf_STBServiceHDMI(int devid, const std::string& portName);
     ~hostIf_STBServiceHDMI();
     static GMutex m_mutex;
     int dev_id;
-    device::VideoOutputPort& vPort;
+    std::string m_portName;
     hostIf_STBServiceDisplayDevice *displayDevice;
+    static void buildPortNameHash();
 
     static char dsHDMIResolutionMode[10];
     bool backupEnable;

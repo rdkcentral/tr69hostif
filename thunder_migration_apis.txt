@@ -1,0 +1,90 @@
+================================================================================
+ TR-69 HostIf → Thunder Migration: Migrated API Table
+ Generated: 2026-06-17
+================================================================================
+
+--------------------------------------------------------------------------------
+ MODULE: AudioOutput  (Components_AudioOutput_Thunder.cpp)
+ Thunder plugin: org.rdk.DisplaySettings
+--------------------------------------------------------------------------------
+
+ TR-69 API                               | Thunder Method                                  | Notes
+-----------------------------------------+-------------------------------------------------+-----------------------------------
+ getNumberOfInstances()                  | getSupportedAudioPorts                          | counts all ports
+ getEnable()                             | (none)                                          | hardcoded true
+ getName()                               | (none)                                          | m_portName (in-memory)
+ getStatus()                             | getEnableAudioPort + getMuted                   | "Enabled"/"Disabled/Muted"
+ getCancelMute()                         | getMuted                                        | "muted" bool field
+ setCancelMute()                         | setMuted                                        |
+ getX_COMCAST_COM_AudioStereoMode()      | getSoundMode                                    | "soundMode" string field
+ setX_COMCAST_COM_AudioStereoMode()      | setSoundMode                                    |
+ getX_COMCAST_COM_AudioEncoding()        | getAudioEncoding                                | "encoding" string field
+ setAudioEncoding()                      | setAudioEncoding                                |
+ getX_COMCAST_COM_AudioCompression()     | getMS12AudioCompression                         | "compresionLevel" int field
+ setX_COMCAST_COM_AudioCompression()     | setMS12AudioCompression                         |
+ getAudioLevel()                         | getVolumeLevel                                  | "volumeLevel" float field
+ setAudioLevel()                         | setVolumeLevel                                  |
+ getX_COMCAST_COM_AudioGain()            | getGain                                         | "gain" float field
+ getX_COMCAST_COM_AudioFormat()          | getAudioEncoding                                | reuses encoding field
+ getX_COMCAST_COM_DialogEnhancement()    | getDialogEnhancement                            | "enhancementlevel" int field
+ setX_COMCAST_COM_DialogEnhancement()    | setDialogEnhancement                            |
+-----------------------------------------+-------------------------------------------------+-----------------------------------
+ [#if 0 — PENDING, no Thunder equivalent]
+-----------------------------------------+-------------------------------------------------+-----------------------------------
+ setX_COMCAST_COM_AudioDB()              | (libds aPort.setDB())                           | pending migration
+ getX_COMCAST_COM_AudioDB()              | (libds aPort.getDB())                           | pending migration
+ getX_COMCAST_COM_MinAudioDB()           | (libds aPort.getMinDB())                        | pending migration
+ getX_COMCAST_COM_MaxAudioDB()           | (libds aPort.getMaxDB())                        | pending migration
+ setX_COMCAST_COM_AudioLoopThru()        | (libds aPort.setLoopThru())                     | pending migration
+ getX_COMCAST_COM_AudioLoopThru()        | (libds aPort.isLoopThru())                      | pending migration
+ getX_COMCAST_COM_AudioOptimalLevel()    | (libds aPort.getOptimalLevel())                 | pending migration
+
+
+--------------------------------------------------------------------------------
+ MODULE: SPDIF  (Components_SPDIF_Thunder.cpp)
+ Thunder plugin: org.rdk.DisplaySettings
+--------------------------------------------------------------------------------
+
+ TR-69 API                               | Thunder Method                                  | Notes
+-----------------------------------------+-------------------------------------------------+-----------------------------------
+ getNumberOfInstances()                  | getSupportedAudioPorts                          | filters for "spdif" ports
+ getEnable()                             | getEnableAudioPort                              | "enable" bool field
+ setEnable()                             | setEnableAudioPort                              |
+ getStatus()                             | getEnableAudioPort                              | maps bool -> "Enabled"/"Disabled"
+ getName()                               | (none)                                          | m_portName (in-memory)
+ getForcePCM()                           | getAudioEncoding                                | encoding == "PCM"
+ setForcePCM()                           | setAudioEncoding                                | true->"PCM", false->"DISPLAY"
+ getPassthrough()                        | getAudioEncoding                                | encoding == "DISPLAY" or "AC3"
+ setAudioDelay()                         | setAudioDelay                                   |
+-----------------------------------------+-------------------------------------------------+-----------------------------------
+ [NOT SUPPORTED — always returns NOT_HANDLED]
+-----------------------------------------+-------------------------------------------------+-----------------------------------
+ getAudioDelay()                         | (none)                                          | not supported for SPDIF
+ getAlias()                              | (none)                                          | not supported
+ setAlias()                              | (none)                                          | not supported
+
+
+================================================================================
+ Full Thunder plugin method names (prefix: org.rdk.DisplaySettings.)
+================================================================================
+
+  getSupportedAudioPorts
+  getEnableAudioPort
+  setEnableAudioPort
+  getMuted
+  setMuted
+  getSoundMode
+  setSoundMode
+  getAudioEncoding
+  setAudioEncoding
+  getMS12AudioCompression
+  setMS12AudioCompression
+  getVolumeLevel
+  setVolumeLevel
+  getGain
+  getDialogEnhancement
+  setDialogEnhancement
+  getAudioDelay
+  setAudioDelay
+
+================================================================================

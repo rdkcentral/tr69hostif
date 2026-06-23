@@ -1,0 +1,266 @@
+TR69 HostIf API → libds / Thunder Call Mapping
+tr69hostif/src/hostif/profiles/STBService/
+=============================================================
+Generated : 2026-06-15
+Legend:
+  libds  = device::* / devicesettings API (aPort / vPort / Host)
+  Thunder = org.rdk.DisplaySettings Thunder plugin method
+  stub   = function body returns NOT_HANDLED (not implemented)
+  n/a    = no external call; hardcoded / derived value
+=============================================================
+
+
+=== Capabilities.cpp  [Class: hostIf_STBServiceCapabilities] ===
+
+  TR69 API                       | libds Call
+  -------------------------------|--------------------------------------------------
+  getVideoStandards()            | device::Host::getInstance().getVideoDevices().at(0)
+                                 |   → VideoDevice.getSupportedVideoCodingFormats()
+  getNumHEVCProfileEntries()     | device::Host::getInstance().getVideoDevices().at(0)
+                                 |   → VideoDevice HEVC profile count
+  getHEVCProfileDetails()        | device::Host::getInstance().getVideoDevices().at(0)
+                                 |   → VideoDevice HEVC profile entry attributes
+  getSupportedResolutions()      | device::Host::getInstance().getVideoDevices().at(0)
+                                 |   → VideoDevice.getSupportedResolutions()
+
+----------------------------------------------------------------------
+
+=== Components_AudioOutput.cpp  [Class: hostIf_STBServiceAudioInterface]
+    NOTE: These functions remain in the libds implementation (no Thunder equivalent)
+
+  TR69 API                            | libds Call
+  ------------------------------------|--------------------------------------------------
+  getNumberOfInstances()              | device::Host::getInstance().getAudioOutputPorts().size()
+  getEnable()                         | n/a — hardcoded return true
+  getName()                           | aPort.getName()
+                                      |   (formatted as "AudioOutputPort<name><dev_id>")
+  getX_COMCAST_COM_AudioFormat()      | aPort.getEncoding().getId()
+  setX_COMCAST_COM_AudioDB()          | aPort.setDB(newDb)
+  getX_COMCAST_COM_AudioDB()          | aPort.getDB()
+  getX_COMCAST_COM_MinAudioDB()       | aPort.getMinDB()
+  getX_COMCAST_COM_MaxAudioDB()       | aPort.getMaxDB()
+  setX_COMCAST_COM_AudioLoopThru()    | aPort.setLoopThru(loopThru)
+  getX_COMCAST_COM_AudioLoopThru()    | aPort.isLoopThru()
+  getX_COMCAST_COM_AudioOptimalLevel()| aPort.getOptimalLevel()
+
+----------------------------------------------------------------------
+
+=== Components_AudioOutput_Thunder.cpp  [Class: hostIf_STBServiceAudioInterface]
+    NOTE: These functions are MIGRATED — call Thunder instead of libds
+
+  TR69 API                               | Thunder Method (org.rdk.DisplaySettings.*)
+  ---------------------------------------|--------------------------------------------------
+  setCancelMute()                        | setMuted
+                                         |   params: { "audioPort":"<n>", "muted":<bool> }
+  getStatus()                            | getEnableAudioPort  → "enable":<bool>
+                                         | + getMuted          → "muted":<bool>
+                                         |   params: { "audioPort":"<n>" }
+  getCancelMute()                        | getMuted
+                                         |   params: { "audioPort":"<n>" }
+                                         |   response: { "muted":<bool> }
+  setX_COMCAST_COM_AudioStereoMode()     | setSoundMode
+                                         |   params: { "soundMode":"MONO|STEREO|SURROUND",
+                                         |             "audioPort":"<n>" }
+  getX_COMCAST_COM_AudioStereoMode()     | getSoundMode
+                                         |   response: { "soundMode":"<str>" }
+  setAudioEncoding()                     | setAudioEncoding
+                                         |   params: { "encoding":"NONE|DISPLAY|PCM|AC3",
+                                         |             "audioPort":"<n>" }
+  getX_COMCAST_COM_AudioEncoding()       | getAudioEncoding
+                                         |   response: { "encoding":"<str>", "encodingId":<int> }
+  setX_COMCAST_COM_AudioCompression()    | setMS12AudioCompression
+                                         |   params: { "compresionLevel":<int>,
+                                         |             "audioPort":"<n>" }
+  getX_COMCAST_COM_AudioCompression()    | getMS12AudioCompression
+                                         |   response: { "compressionlevel":<int> }
+  setAudioLevel()                        | setVolumeLevel
+                                         |   params: { "volumeLevel":<float>,
+                                         |             "audioPort":"<n>" }
+  getAudioLevel()                        | getVolumeLevel
+                                         |   response: { "volumeLevel":"<float-str>" }
+  getX_COMCAST_COM_AudioGain()           | getGain
+                                         |   response: { "gain":"<float-str>" }
+  setX_COMCAST_COM_DialogEnhancement()   | setDialogEnhancement
+                                         |   params: { "enhancerlevel":<int>,
+                                         |             "audioPort":"<n>" }
+  getX_COMCAST_COM_DialogEnhancement()   | getDialogEnhancement
+                                         |   response: { "enhancerlevel":<int> }
+
+----------------------------------------------------------------------
+
+=== Components_DisplayDevice.cpp  [Class: hostIf_STBServiceDisplayDevice]
+
+  TR69 API                    | libds Call
+  ----------------------------|--------------------------------------------------
+  getStatus()                 | vPort.isDisplayConnected()
+  getX_COMCAST_COM_EDID()     | vPort.isDisplayConnected()
+                              | + vPort.getDisplay().getProductCode()
+                              | + vPort.getDisplay().getSerialNumber()
+                              | + vPort.getDisplay().getManufacturerWeek()
+                              | + vPort.getDisplay().getManufacturerYear()
+  getEDID_BYTES()             | vPort.isDisplayConnected()
+                              | + vPort.getDisplay().getEDIDBytes()
+  getSupportedResolutions()   | vPort.getType().getSupportedResolutions()
+  getPreferredResolution()    | vPort.getDefaultResolution().getPixelResolution().getName()
+                              | + vPort.getDefaultResolution().isInterlaced()
+                              | + vPort.getDefaultResolution().getFrameRate().getName()
+
+----------------------------------------------------------------------
+
+=== Components_HDMI.cpp  [Class: hostIf_STBServiceHDMI]
+
+  TR69 API                  | libds Call
+  --------------------------|--------------------------------------------------
+  setResolution()           | vPort.setResolution(resolutionName)
+  getResolutionValue()      | vPort.getResolution().getPixelResolution().getName()
+                            | + vPort.getResolution().isInterlaced()
+                            | + vPort.getResolution().getFrameRate().getName()
+  setEnableVideoPort()      | vPort.isDisplayConnected()
+                            | + vPort.enable()  / vPort.disable()
+  getEnable()               | vPort.isDisplayConnected()
+                            | + vPort.isEnabled()
+  getStatus()               | vPort.isDisplayConnected()
+                            | + vPort.isEnabled()
+  getName()                 | vPort.getName()
+  setHDMIResolutionMode()   | n/a — internal state only
+  getHDMIResolutionMode()   | n/a — internal state only
+
+----------------------------------------------------------------------
+
+=== Components_SPDIF.cpp  [Class: hostIf_STBServiceSPDIF]
+
+  TR69 API              | libds Call
+  ----------------------|--------------------------------------------------
+  getNumberOfInstances()| device::Host::getInstance().getAudioOutputPorts()
+                        |   (counts ports with "spdif" in name)
+  setEnable()           | aPort.setEncoding()
+  getEnable()           | aPort.getEncoding().getId()
+  setAlias()            | stub — NOT_HANDLED
+  getAlias()            | stub — NOT_HANDLED
+  setForcePCM()         | aPort.setEncoding(PCM) / aPort.setEncoding(default)
+  getForcePCM()         | aPort.getEncoding().getId() == dsAUDIO_ENC_PCM
+  getStatus()           | aPort.getEncoding().getId()
+                        |   (Enabled if PCM or display, else Disabled)
+  getName()             | stub — NOT_HANDLED
+  getPassthrough()      | aPort.getEncoding().getId()
+                        |   (true if dsAUDIO_ENC_DISPLAY or dsAUDIO_ENC_AC3)
+  getAudioDelay()       | stub — NOT_HANDLED
+
+----------------------------------------------------------------------
+
+=== Components_VideoDecoder.cpp  [Class: hostIf_STBServiceVideoDecoder]
+
+  TR69 API                       | libds Call
+  -------------------------------|--------------------------------------------------
+  getContentAspectRatio()        | device::Host::getInstance().getVideoOutputPort()
+                                 | + vPort.isDisplayConnected()
+                                 | + vPort.getDisplay().getAspectRatio()
+  getX_COMCAST_COM_Standby()     | device::Host::getInstance().getPowerMode()
+  getStatus()                    | device::Host::getInstance().getPowerMode()
+  setX_COMCAST_COM_Standby()     | device::Host::getInstance().setPowerMode(mode)
+
+----------------------------------------------------------------------
+
+=== Components_VideoOutput.cpp  [Class: hostIf_STBServiceVideoOutput]
+
+  TR69 API                    | libds Call
+  ----------------------------|--------------------------------------------------
+  getStatus()                 | vPort.isDisplayConnected()
+                              | + vPort.isEnabled()
+  getAspectRatioBehaviour()   | device::Host::getInstance().getVideoDevices().at(0)
+                              |   → VideoDevice aspect ratio / display attribs
+  getVideoFormat()            | device::Host::getInstance().getVideoDevices().at(0)
+                              |   → VideoDevice.getSupportedVideoCodingFormats()
+  getDisplayFormat()          | vPort.getResolution().getName()
+  getName()                   | vPort.getName()
+  getHDCP()                   | vPort.isDisplayConnected()
+                              | + vPort.getHDCPStatus()
+
+----------------------------------------------------------------------
+
+=== Components_XrdkEMMC.cpp  [Class: hostIf_STBServiceXeMMC]
+
+  TR69 API              | Source
+  ----------------------|--------------------------------------------------
+  getCapacity()         | sysfs / eMMC device node (no libds)
+  getLifeElapsedA()     | sysfs (pre-eol type A)
+  getLifeElapsedB()     | sysfs (pre-eol type B)
+  getLifeElapsed()      | sysfs (combined)
+  getLotID()            | sysfs
+  getManufacturer()     | sysfs (CID manufacturer byte)
+  getModel()            | sysfs (CID product name)
+  getReadOnly()         | sysfs (write protect bits)
+  getSerialNumber()     | sysfs (CID serial number)
+  getTSBQualified()     | sysfs
+  getPreEOLStateSystem()| sysfs
+  getPreEOLStateEUDA()  | sysfs
+  getPreEOLStateMLC()   | sysfs
+  getPreEOLState()      | sysfs (pre_eol_info)
+  getFirmwareVersion()  | sysfs (fwrev)
+  getDeviceReport()     | sysfs (combined report)
+
+----------------------------------------------------------------------
+
+=== Components_XrdkSDCard.cpp  [Class: hostIf_STBServiceXSDCard]
+
+  TR69 API              | Source
+  ----------------------|--------------------------------------------------
+  getCapacity()         | sysfs / SD card device node (no libds)
+  getCardFailed()       | sysfs
+  getLifeElapsed()      | sysfs
+  getLotID()            | sysfs
+  getManufacturer()     | sysfs (CID manfid)
+  getModel()            | sysfs (CID product name)
+  getReadOnly()         | sysfs (write protect)
+  getSerialNumber()     | sysfs (CID serial)
+  getTSBQualified()     | sysfs
+  getStatus()           | sysfs (card present / state)
+
+=============================================================
+SUMMARY — libds Classes Used
+=============================================================
+
+  libds Class              | Used In
+  -------------------------|--------------------------------------------
+  device::AudioOutputPort  | Components_AudioOutput.cpp
+  (aPort)                  | Components_SPDIF.cpp
+                           | Methods: getName, getEncoding, setEncoding,
+                           |   getDB/setDB, getMinDB, getMaxDB,
+                           |   getLevel/setLevel, getGain,
+                           |   isMuted/setMuted, isEnabled, isLoopThru,
+                           |   setLoopThru, getOptimalLevel,
+                           |   getCompression/setCompression,
+                           |   getStereoMode/setStereoMode,
+                           |   getDialogEnhancement/setDialogEnhancement
+                           |
+  device::VideoOutputPort  | Components_DisplayDevice.cpp
+  (vPort)                  | Components_HDMI.cpp
+                           | Components_VideoOutput.cpp
+                           | Components_VideoDecoder.cpp (local)
+                           | Methods: getName, isEnabled, enable, disable,
+                           |   isDisplayConnected, getResolution,
+                           |   setResolution, getDefaultResolution,
+                           |   getType().getSupportedResolutions,
+                           |   getDisplay(), getHDCPStatus
+                           |
+  device::Display          | Components_DisplayDevice.cpp
+  (via vPort.getDisplay()) | Components_VideoDecoder.cpp
+                           | Methods: getProductCode, getSerialNumber,
+                           |   getManufacturerWeek, getManufacturerYear,
+                           |   getEDIDBytes, getAspectRatio
+                           |
+  device::VideoDevice      | Capabilities.cpp
+  (Host::getVideoDevices)  | Components_VideoOutput.cpp
+                           | Components_VideoDecoder.cpp
+                           | Methods: getSupportedVideoCodingFormats,
+                           |   getSupportedResolutions, HEVC profiles
+                           |
+  device::Host             | All files (getInstance singleton)
+  (singleton)              | Methods: getAudioOutputPorts,
+                           |   getVideoOutputPort, getDefaultVideoPortName,
+                           |   getVideoDevices, getPowerMode, setPowerMode
+                           |
+  Thunder Plugin           | Components_AudioOutput_Thunder.cpp
+  org.rdk.DisplaySettings  | (replaces AudioOutputPort libds calls)
+
+=============================================================

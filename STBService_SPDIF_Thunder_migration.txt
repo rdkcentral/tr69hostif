@@ -1,0 +1,130 @@
+=============================================================
+  SPDIF Thunder Migration Summary
+  File: Components_SPDIF.cpp → Components_SPDIF_Thunder.cpp
+  Plugin: org.rdk.DisplaySettings (entservices-displaysettings)
+  Date: 2026-06-15
+=============================================================
+
+OVERVIEW
+--------
+A new file Components_SPDIF_Thunder.cpp has been created to replace libds
+(device::AudioOutputPort) calls in Components_SPDIF.cpp with Thunder plugin
+(org.rdk.DisplaySettings) IPC calls for SPDIF audio port management.
+
+Port name is derived at runtime from aPort.getName() (e.g. "SPDIF0", "SPDIF1").
+The libds aPort.getName() is an in-memory getter — no HAL/IPC call is made for it.
+
+----------------------------------------------------------------------
+
+FILES CHANGED
+-------------
+  NEW  : tr69hostif/src/hostif/profiles/STBService/Components_SPDIF_Thunder.cpp
+  MOD  : tr69hostif/src/hostif/profiles/STBService/Components_SPDIF.h
+           → Added declaration: int setAudioDelay(HOSTIF_MsgData_t *stMsgData);
+
+----------------------------------------------------------------------
+
+MIGRATED APIs
+-------------
+All functions below are defined in Components_SPDIF_Thunder.cpp and call
+org.rdk.DisplaySettings via Thunder IPC.
+
+  +---------------------+----------------------------------------------+----------------------------------+------------------+
+  | Function            | Thunder Method                               | Request JSON                     | Response field   |
+  +---------------------+----------------------------------------------+----------------------------------+------------------+
+  | handleSetMsg()      | dispatcher (moved from Components_SPDIF.cpp) | —                                | —                |
+  | getEnable()         | getEnableAudioPort                           | {"audioPort":"<port>"}           | "enable" (bool)  |
+  | setEnable()         | setEnableAudioPort                           | {"audioPort":"<port>",           | "success"        |
+  |                     |                                              |  "enable":<true|false>}          |                  |
+  | getStatus()         | getEnableAudioPort                           | {"audioPort":"<port>"}           | "enable" (bool)  |
+  |                     |                                              |                                  | → "Enabled" /    |
+  |                     |                                              |                                  |   "Disabled"     |
+  | getName()           | — (in-memory aPort.getName())                | —                                | "SPDIF0" etc.    |
+  | setForcePCM()       | setAudioEncoding                             | {"audioPort":"<port>",           | "success"        |
+  |                     |   true  → encoding "PCM"                     |  "encoding":"PCM"|"DISPLAY"}     |                  |
+  |                     |   false → encoding "DISPLAY"                 |                                  |                  |
+  | getForcePCM()       | getAudioEncoding                             | {"audioPort":"<port>"}           | "encoding"       |
+  |                     |   "PCM" → true, others → false               |                                  |                  |
+  | getPassthrough()    | getAudioEncoding                             | {"audioPort":"<port>"}           | "encoding"       |
+  |                     |   "DISPLAY" or "AC3" → true                  |                                  |                  |
+  |                     |   "PCM" → false                              |                                  |                  |
+  | getAudioDelay()     | getAudioDelay                                | {"audioPort":"<port>"}           | "audioDelay"     |
+  |                     |   (was NOT_HANDLED in original)              |                                  | (string → int ms)|
+  | setAudioDelay()     | setAudioDelay                                | {"audioPort":"<port>",           | "success"        |
+  |                     |   (new — not in original handleSetMsg)        |  "audioDelay":"<ms>"}            |                  |
+  +---------------------+----------------------------------------------+----------------------------------+------------------+
+
+----------------------------------------------------------------------
+
+handleSetMsg() ROUTING (Thunder file)
+--------------------------------------
+  Parameter   | Routes to       | Thunder API
+  ------------|-----------------|---------------------------------------
+  Enable      | setEnable()     | org.rdk.DisplaySettings.setEnableAudioPort
+  ForcePCM    | setForcePCM()   | org.rdk.DisplaySettings.setAudioEncoding
+  AudioDelay  | setAudioDelay() | org.rdk.DisplaySettings.setAudioDelay  (NEW)
+
+  Note: Original handleSetMsg() only handled ForcePCM.
+        Enable and AudioDelay routing added in Thunder file.
+
+----------------------------------------------------------------------
+
+NOT MIGRATED (no DisplaySettings equivalent)
+--------------------------------------------
+  Function    | Status         | Reason
+  ------------|----------------|------------------------------------------
+  getAlias()  | NOT_HANDLED    | No DisplaySettings equivalent
+  setAlias()  | NOT_HANDLED    | No DisplaySettings equivalent
+
+  These functions remain in Components_SPDIF.cpp returning NOT_HANDLED.
+
+----------------------------------------------------------------------
+
+ENCODING STRING MAPPING
+------------------------
+  dsAudioEncoding_t enum  | Thunder string | ForcePCM | Passthrough
+  ------------------------|----------------|----------|------------
+  dsAUDIO_ENC_PCM         | "PCM"          | true     | false
+  dsAUDIO_ENC_DISPLAY     | "DISPLAY"      | false    | true
+  dsAUDIO_ENC_AC3         | "AC3"          | false    | true
+  dsAUDIO_ENC_NONE        | "NONE"         | false    | false
+
+  Source: DisplaySettings::encodingToString() in entservices-displaysettings/plugin/DisplaySettings.cpp
+
+----------------------------------------------------------------------
+
+Thunder DEFINES (Components_SPDIF_Thunder.cpp)
+-----------------------------------------------
+  #define THUNDER_DISPLAYSETTINGS_GET_ENABLE_AUDIO_PORT  "org.rdk.DisplaySettings.getEnableAudioPort"
+  #define THUNDER_DISPLAYSETTINGS_SET_ENABLE_AUDIO_PORT  "org.rdk.DisplaySettings.setEnableAudioPort"
+  #define THUNDER_DISPLAYSETTINGS_GET_AUDIO_ENCODING     "org.rdk.DisplaySettings.getAudioEncoding"
+  #define THUNDER_DISPLAYSETTINGS_SET_AUDIO_ENCODING     "org.rdk.DisplaySettings.setAudioEncoding"
+  #define THUNDER_DISPLAYSETTINGS_GET_AUDIO_DELAY        "org.rdk.DisplaySettings.getAudioDelay"
+  #define THUNDER_DISPLAYSETTINGS_SET_AUDIO_DELAY        "org.rdk.DisplaySettings.setAudioDelay"
+
+----------------------------------------------------------------------
+
+INFRASTRUCTURE (stays in Components_SPDIF.cpp — not migrated)
+--------------------------------------------------------------
+  getInstance(), getAllInstances(), closeInstance(), closeAllInstances(),
+  getLock(), releaseLock(), constructor, getNumberOfInstances(),
+  handleGetMsg(), doUpdates()
+
+  These are not device-facing APIs and remain in the original file.
+
+----------------------------------------------------------------------
+
+COMPARISON: Original vs Thunder
+---------------------------------
+  Original (libds)                        | Thunder
+  ----------------------------------------|------------------------------------------
+  aPort.isEnabled()                       | getEnableAudioPort → "enable"
+  aPort.setEncoding(dsAUDIO_ENC_PCM)      | setAudioEncoding   → "encoding":"PCM"
+  aPort.getEncoding().getId()             | getAudioEncoding   → "encoding" string
+  aPort.getAudioDelay(audioDelayMs)       | getAudioDelay      → "audioDelay" string
+  aPort.setAudioDelay(audioDelayMs)       | setAudioDelay      → "audioDelay" string
+  hardcoded "Enabled"                     | getEnableAudioPort → dynamic from plugin
+  NOT_HANDLED (getEnable)                 | getEnableAudioPort → bool
+  NOT_HANDLED (getAudioDelay)             | getAudioDelay      → ms as unsigned int
+
+=============================================================

@@ -78,12 +78,13 @@
  */
 class hostIf_STBServiceSPDIF
 {
-    static GHashTable *ifHash;
-    hostIf_STBServiceSPDIF(int dev_id, device::AudioOutputPort& port);
+    static GHashTable *ifHash;        /* dev_id → hostIf_STBServiceSPDIF* */
+    hostIf_STBServiceSPDIF(int dev_id, const std::string& portName);
     ~hostIf_STBServiceSPDIF() {};
     static GMutex m_mutex;
     int dev_id;
-    device::AudioOutputPort& aPort;
+    std::string m_portName;
+    static void buildPortNameHash();
 
     bool backupEnable;
     char backupStatus[_BUF_LEN_16];
@@ -103,6 +104,7 @@ private:
     int setEnable(HOSTIF_MsgData_t *stMsgData);
     int setAlias(HOSTIF_MsgData_t *stMsgData);
     int setForcePCM(HOSTIF_MsgData_t *stMsgData);
+    int setAudioDelay(HOSTIF_MsgData_t *stMsgData);
 
     int getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);

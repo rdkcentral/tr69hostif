@@ -226,6 +226,7 @@ int DSClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
     hostIf_STBServiceHDMI::getLock();
 
 
+    
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s:%d] Found string as %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
     if(strncasecmp(stMsgData->paramName,
                   CAPABILTIES_OBJ, strlen(CAPABILTIES_OBJ)) == 0)

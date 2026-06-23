@@ -91,11 +91,12 @@
 class  hostIf_STBServiceVideoOutput
 {
     static GHashTable *ifHash;
-    hostIf_STBServiceVideoOutput(int devid, device::VideoOutputPort& port);
+    hostIf_STBServiceVideoOutput(int devid, const std::string& portName);
     ~hostIf_STBServiceVideoOutput() {};
     static GMutex m_mutex;
     int dev_id;
-    device::VideoOutputPort& vPort;
+    std::string m_portName;
+    static void buildPortNameHash();
 
     char backupAspectRatioBehaviour[_BUF_LEN_16];
     char backupDisplayFormat[_BUF_LEN_16];
@@ -135,6 +136,7 @@ public:
     static void closeAllInstances();
     static void getLock();
     static void releaseLock();
+    static int getNumberOfInstances(HOSTIF_MsgData_t *stMsgData);
     void doUpdates(updateCallback mUpdateCallback);
     int handleSetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);
     int handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);

@@ -36,6 +36,9 @@
 #include "Components_SPDIF.h"
 #include "safec_lib.h"
 
+/* All functions moved to Components_SPDIF_Thunder.cpp */
+#if 0
+
 #define DEV_NAME "SPDIF"
 #define BASE_NAME "Device.Services.STBService.1.Components.SPDIF"
 #define UPDATE_FORMAT_STRING "%s.%d.%s"
@@ -592,6 +595,8 @@ int hostIf_STBServiceSPDIF::getAudioDelay(HOSTIF_MsgData_t *stMsgData, bool *pCh
     int ret = NOT_HANDLED;
     return ret;
 }
+
+#endif /* 0 */
 
 
 

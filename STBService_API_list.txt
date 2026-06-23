@@ -1,0 +1,200 @@
+API Reference — tr69hostif/src/hostif/profiles/STBService/
+=============================================================
+Generated : 2026-06-15
+=============================================================
+
++-------------------------------+---------------------------------------------+----------------------------------+
+| File                          | Class                                       | API / Method                     |
++-------------------------------+---------------------------------------------+----------------------------------+
+
+=== Capabilities.cpp ===
+Class: hostIf_STBServiceCapabilities
+
+  getInstance()
+  closeInstance()
+  hostIf_STBServiceCapabilities()                [constructor]
+  handleSetMsg(HOSTIF_MsgData_t*)
+  handleGetMsg(HOSTIF_MsgData_t*)
+  getVideoStandards(HOSTIF_MsgData_t*)
+  getNumHEVCProfileEntries(HOSTIF_MsgData_t*)
+  getHEVCProfileDetails(HOSTIF_MsgData_t*, const char*, unsigned int)
+  getSupportedResolutions(HOSTIF_MsgData_t*)
+
+----------------------------------------------------------------------
+
+=== Components_AudioOutput.cpp ===
+Class: hostIf_STBServiceAudioInterface  [libds — remaining / no Thunder equivalent]
+
+  getInstance(int dev_id)
+  getAllInstances()
+  closeInstance()
+  closeAllInstances()
+  getLock()
+  releaseLock()
+  hostIf_STBServiceAudioInterface(int devid, device::AudioOutputPort&)   [constructor]
+  handleGetMsg(const char*, HOSTIF_MsgData_t*)
+  doUpdates(updateCallback)
+  getNumberOfInstances(HOSTIF_MsgData_t*)
+  getEnable(HOSTIF_MsgData_t*)
+  getName(HOSTIF_MsgData_t*)
+  getX_COMCAST_COM_AudioFormat(HOSTIF_MsgData_t*)
+  setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t*)
+  getX_COMCAST_COM_AudioDB(HOSTIF_MsgData_t*, bool*)
+  getX_COMCAST_COM_MinAudioDB(HOSTIF_MsgData_t*, bool*)
+  getX_COMCAST_COM_MaxAudioDB(HOSTIF_MsgData_t*, bool*)
+  setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t*)
+  getX_COMCAST_COM_AudioLoopThru(HOSTIF_MsgData_t*, bool*)
+  getX_COMCAST_COM_AudioOptimalLevel(HOSTIF_MsgData_t*, bool*)
+
+----------------------------------------------------------------------
+
+=== Components_DisplayDevice.cpp ===
+Class: hostIf_STBServiceDisplayDevice
+
+  hostIf_STBServiceDisplayDevice(int, device::VideoOutputPort&)  [constructor]
+  handleSetMsg(const char*, HOSTIF_MsgData_t*)
+  handleGetMsg(const char*, HOSTIF_MsgData_t*)
+  doUpdates(const char*, updateCallback)
+  getStatus(HOSTIF_MsgData_t*, bool*)
+  getX_COMCAST_COM_EDID(HOSTIF_MsgData_t*, bool*)
+  getEDID_BYTES(HOSTIF_MsgData_t*, bool*)
+  getSupportedResolutions(HOSTIF_MsgData_t*, bool*)
+  getPreferredResolution(HOSTIF_MsgData_t*, bool*)
+
+----------------------------------------------------------------------
+
+=== Components_HDMI.cpp ===
+Class: hostIf_STBServiceHDMI
+
+  getInstance(int dev_id)
+  getAllInstances()
+  closeInstance()
+  closeAllInstances()
+  getLock()
+  releaseLock()
+  hostIf_STBServiceHDMI(int, device::VideoOutputPort&)  [constructor]
+  handleSetMsg(const char*, HOSTIF_MsgData_t*)
+  handleGetMsg(const char*, HOSTIF_MsgData_t*)
+  doUpdates(updateCallback)
+  setResolution(const HOSTIF_MsgData_t*)
+  getResolutionValue(HOSTIF_MsgData_t*, bool*)
+  setEnableVideoPort(const HOSTIF_MsgData_t*)
+  getEnable(HOSTIF_MsgData_t*, bool*)
+  getStatus(HOSTIF_MsgData_t*, bool*)
+  getName(HOSTIF_MsgData_t*, bool*)
+  setHDMIResolutionMode(const char*)
+  getHDMIResolutionMode()
+
+----------------------------------------------------------------------
+
+=== Components_SPDIF.cpp ===
+Class: hostIf_STBServiceSPDIF
+
+  getInstance(int dev_id)
+  getAllInstances()
+  closeInstance()
+  closeAllInstances()
+  getLock()
+  releaseLock()
+  hostIf_STBServiceSPDIF(int, device::AudioOutputPort&)  [constructor]
+  handleSetMsg(const char*, HOSTIF_MsgData_t*)
+  handleGetMsg(const char*, HOSTIF_MsgData_t*)
+  doUpdates(updateCallback)
+  getNumberOfInstances(HOSTIF_MsgData_t*)
+  setEnable(HOSTIF_MsgData_t*)
+  getEnable(HOSTIF_MsgData_t*, bool*)
+  setAlias(HOSTIF_MsgData_t*)
+  getAlias(HOSTIF_MsgData_t*, bool*)
+  setForcePCM(HOSTIF_MsgData_t*)
+  getForcePCM(HOSTIF_MsgData_t*, bool*)
+  getStatus(HOSTIF_MsgData_t*, bool*)
+  getName(HOSTIF_MsgData_t*, bool*)
+  getPassthrough(HOSTIF_MsgData_t*, bool*)
+  getAudioDelay(HOSTIF_MsgData_t*, bool*)
+
+----------------------------------------------------------------------
+
+=== Components_VideoDecoder.cpp ===
+Class: hostIf_STBServiceVideoDecoder
+
+  getInstance(int dev_id)
+  getAllInstances()
+  closeInstance()
+  closeAllInstances()
+  getLock()
+  releaseLock()
+  hostIf_STBServiceVideoDecoder(int)  [constructor]
+  handleSetMsg(const char*, HOSTIF_MsgData_t*)
+  handleGetMsg(const char*, HOSTIF_MsgData_t*)
+  doUpdates(updateCallback)
+  getContentAspectRatio(HOSTIF_MsgData_t*, bool*)
+  getX_COMCAST_COM_Standby(HOSTIF_MsgData_t*, bool*)
+  getStatus(HOSTIF_MsgData_t*, bool*)
+  setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t*)
+
+----------------------------------------------------------------------
+
+=== Components_VideoOutput.cpp ===
+Class: hostIf_STBServiceVideoOutput
+
+  getInstance(int dev_id)
+  getAllInstances()
+  closeInstance()
+  closeAllInstances()
+  getLock()
+  releaseLock()
+  hostIf_STBServiceVideoOutput(int, device::VideoOutputPort&)  [constructor]
+  handleSetMsg(const char*, HOSTIF_MsgData_t*)
+  handleGetMsg(const char*, HOSTIF_MsgData_t*)
+  doUpdates(updateCallback)
+  getStatus(HOSTIF_MsgData_t*, bool*)
+  getAspectRatioBehaviour(HOSTIF_MsgData_t*, bool*)
+  getVideoFormat(HOSTIF_MsgData_t*, bool*)
+  getDisplayFormat(HOSTIF_MsgData_t*, bool*)
+  getName(HOSTIF_MsgData_t*, bool*)
+  getHDCP(HOSTIF_MsgData_t*, bool*)
+
+----------------------------------------------------------------------
+
+=== SUMMARY ===
+
+  File                               | APIs
+  -----------------------------------|------
+  Capabilities.cpp                   |   9
+  Components_AudioOutput.cpp         |  21
+  Components_DisplayDevice.cpp       |   9
+  Components_HDMI.cpp                |  18
+  Components_SPDIF.cpp               |  22
+  Components_VideoDecoder.cpp        |  14
+  Components_VideoOutput.cpp         |  17
+  -----------------------------------|------
+  TOTAL                              | 110
+
+=============================================================
+
+=== Components_AudioOutput.cpp — APIs with NO Thunder Equivalent (remain libds) ===
+
+  These functions stay in Components_AudioOutput.cpp because org.rdk.DisplaySettings
+  has no corresponding Thunder API. They continue to call device::AudioOutputPort (libds).
+
+  +--------------------------------------------+------------------------------+
+  | API                                        | libds Call                   |
+  +--------------------------------------------+------------------------------+
+  | getEnable()                                | hardcoded true (no HAL call) |
+  | getName()                                  | aPort.getName()              |
+  | getX_COMCAST_COM_AudioFormat()             | aPort.getEncoding().getId()  |
+  | setX_COMCAST_COM_AudioDB()                 | aPort.setDB()                |
+  | getX_COMCAST_COM_AudioDB()                 | aPort.getDB()                |
+  | getX_COMCAST_COM_MinAudioDB()              | aPort.getMinDB()             |
+  | getX_COMCAST_COM_MaxAudioDB()              | aPort.getMaxDB()             |
+  | setX_COMCAST_COM_AudioLoopThru()           | aPort.setLoopThru()          |
+  | getX_COMCAST_COM_AudioLoopThru()           | aPort.isLoopThru()           |
+  | getX_COMCAST_COM_AudioOptimalLevel()       | aPort.getOptimalLevel()      |
+  +--------------------------------------------+------------------------------+
+
+  Note: Infrastructure functions (getInstance, getAllInstances, closeInstance,
+        closeAllInstances, getLock, releaseLock, constructor, getNumberOfInstances,
+        handleGetMsg, doUpdates) also remain in Components_AudioOutput.cpp
+        as they are not device-facing APIs.
+
+=============================================================
