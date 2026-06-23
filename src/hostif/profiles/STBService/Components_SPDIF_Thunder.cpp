@@ -24,7 +24,6 @@
 
 #include <sstream>
 #include "Components_SPDIF.h"
-#include "safec_lib.h"
 
 #define DEV_NAME "SPDIF"
 #define BASE_NAME "Device.Services.STBService.1.Components.SPDIF"
@@ -151,9 +150,7 @@ hostIf_STBServiceSPDIF::hostIf_STBServiceSPDIF(int devid, const std::string& por
     : dev_id(devid), m_portName(portName)
 {
     backupEnable = false;
-    errno_t rc = -1;
-    rc = strcpy_s(backupStatus, sizeof(backupStatus), " ");
-    ERR_CHK(rc);
+    strncpy(backupStatus, " ", sizeof(backupStatus));
     backupForcePCM = false;
     backupPassthrough = false;
     backupAudioDelay = 0;
@@ -410,8 +407,8 @@ int hostIf_STBServiceSPDIF::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChange
 int hostIf_STBServiceSPDIF::getAlias(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    errno_t rc = strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), m_portName.c_str());
-    ERR_CHK(rc);
+    strncpy(stMsgData->paramValue, m_portName.c_str(), sizeof(stMsgData->paramValue) - 1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
     bCalledAlias = true;

@@ -4,7 +4,6 @@
  */
 #include <sstream>
 #include "Components_DisplayDevice.h"
-#include "safec_lib.h"
 
 #define STATUS_STRING        "Status"
 #define EEDID_STRING         "EEDID"
@@ -21,12 +20,11 @@
 hostIf_STBServiceDisplayDevice::hostIf_STBServiceDisplayDevice(int devId, const std::string& portName)
     : dev_id(devId), m_portName(portName)
 {
-    errno_t rc = -1;
-    rc = strcpy_s(backupDisplayDeviceStatus, sizeof(backupDisplayDeviceStatus), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupEDID, sizeof(backupEDID), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupEDIDBytes, sizeof(backupEDIDBytes), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupSupportedResolution, sizeof(backupSupportedResolution), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupPreferredResolution, sizeof(backupPreferredResolution), " "); ERR_CHK(rc);
+    strncpy(backupDisplayDeviceStatus, " ", sizeof(backupDisplayDeviceStatus));
+    strncpy(backupEDID, " ", sizeof(backupEDID));
+    strncpy(backupEDIDBytes, " ", sizeof(backupEDIDBytes));
+    strncpy(backupSupportedResolution, " ", sizeof(backupSupportedResolution));
+    strncpy(backupPreferredResolution, " ", sizeof(backupPreferredResolution));
     bCalledDisplayDeviceStatus = false;
     bCalledEDID = false;
     bCalledEDIDBytes = false;

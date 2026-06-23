@@ -5,7 +5,6 @@
 #include <sstream>
 #include <cctype>
 #include "Components_HDMI.h"
-#include "safec_lib.h"
 
 #define DEV_NAME "HDMI"
 #define BASE_NAME "Device.Services.STBService.1.Components.HDMI"
@@ -103,10 +102,9 @@ hostIf_STBServiceHDMI::hostIf_STBServiceHDMI(int devid, const std::string& portN
 {
     displayDevice = new hostIf_STBServiceDisplayDevice(devid, portName);
     backupEnable = false;
-    errno_t rc = -1;
-    rc = strcpy_s(backupStatus, sizeof(backupStatus), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupResolutionValue, sizeof(backupResolutionValue), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupName, sizeof(backupName), " "); ERR_CHK(rc);
+    strncpy(backupStatus, " ", sizeof(backupStatus));
+    strncpy(backupResolutionValue, " ", sizeof(backupResolutionValue));
+    strncpy(backupName, " ", sizeof(backupName));
     bCalledEnable = false;
     bCalledStatus = false;
     bCalledResolutionValue = false;

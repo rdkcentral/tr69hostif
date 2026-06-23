@@ -3,7 +3,6 @@
  * Components_VideoDecoder_Thunder.cpp: Thunder-backed VideoDecoder implementation.
  */
 #include "Components_VideoDecoder.h"
-#include "safec_lib.h"
 
 #define DEV_NAME "VideoDecoder"
 #define BASE_NAME "Device.Services.STBService.1.Components.VideoDecoder"
@@ -69,8 +68,8 @@ void hostIf_STBServiceVideoDecoder::checkForUpdates(updateCallback) {}
 
 hostIf_STBServiceVideoDecoder::hostIf_STBServiceVideoDecoder(int devid) : dev_id(devid)
 {
-    errno_t rc = strcpy_s(backupContentAspectRatio, sizeof(backupContentAspectRatio), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupVideoDecoderStatus, sizeof(backupVideoDecoderStatus), " "); ERR_CHK(rc);
+    strncpy(backupContentAspectRatio, " ", sizeof(backupContentAspectRatio));
+    strncpy(backupVideoDecoderStatus, " ", sizeof(backupVideoDecoderStatus));
     backupStandby = false;
     bCalledContentAspectRatio = bCalledStandby = bCalledVideoDecoderStatus = false;
 }

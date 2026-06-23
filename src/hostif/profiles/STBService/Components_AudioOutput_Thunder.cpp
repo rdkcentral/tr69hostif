@@ -24,7 +24,6 @@
 
 #include <sstream>
 #include "Components_AudioOutput.h"
-#include "safec_lib.h"
 
 #define DEV_NAME "AudioOutput"
 #define BASE_NAME "Device.Services.STBService.1.Components.AudioOutput"
@@ -171,28 +170,18 @@ void hostIf_STBServiceAudioInterface::releaseLock()
 hostIf_STBServiceAudioInterface::hostIf_STBServiceAudioInterface(int devid, const std::string& portName)
     : dev_id(devid), m_portName(portName)
 {
-    errno_t rc = -1;
-    rc = strcpy_s(backupStatus, sizeof(backupStatus), " ");
-    ERR_CHK(rc);
+    strncpy(backupStatus, " ", sizeof(backupStatus));
     backupCancelMute = false;
-    rc = strcpy_s(backupAudioStereoMode, sizeof(backupAudioStereoMode), " ");
-    ERR_CHK(rc);
+    strncpy(backupAudioStereoMode, " ", sizeof(backupAudioStereoMode));
     backupAudioLevel = 0;
-    rc = strcpy_s(backupAudioDB, sizeof(backupAudioDB), " ");
-    ERR_CHK(rc);
-    rc = strcpy_s(backupAudioLoopThru, sizeof(backupAudioLoopThru), " ");
-    ERR_CHK(rc);
+    strncpy(backupAudioDB, " ", sizeof(backupAudioDB));
+    strncpy(backupAudioLoopThru, " ", sizeof(backupAudioLoopThru));
     backupAudioCompression = 0;
-    rc = strcpy_s(backupAudioEncoding, sizeof(backupAudioEncoding), " ");
-    ERR_CHK(rc);
-    rc = strcpy_s(backupAudioGain, sizeof(backupAudioGain), " ");
-    ERR_CHK(rc);
-    rc = strcpy_s(backupMinAudioDB, sizeof(backupMinAudioDB), " ");
-    ERR_CHK(rc);
-    rc = strcpy_s(backupMaxAudioDB, sizeof(backupMaxAudioDB), " ");
-    ERR_CHK(rc);
-    rc = strcpy_s(backupAudioOptimalLevel, sizeof(backupAudioOptimalLevel), " ");
-    ERR_CHK(rc);
+    strncpy(backupAudioEncoding, " ", sizeof(backupAudioEncoding));
+    strncpy(backupAudioGain, " ", sizeof(backupAudioGain));
+    strncpy(backupMinAudioDB, " ", sizeof(backupMinAudioDB));
+    strncpy(backupMaxAudioDB, " ", sizeof(backupMaxAudioDB));
+    strncpy(backupAudioOptimalLevel, " ", sizeof(backupAudioOptimalLevel));
     backupDialogEnhancement = 0;
 
     bCalledStatus = false;

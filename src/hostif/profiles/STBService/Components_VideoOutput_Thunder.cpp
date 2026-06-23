@@ -4,7 +4,6 @@
  */
 #include <sstream>
 #include "Components_VideoOutput.h"
-#include "safec_lib.h"
 
 #define DEV_NAME "VideoOutput"
 #define BASE_NAME "Device.Services.STBService.1.Components.VideoOutput"
@@ -97,12 +96,11 @@ void hostIf_STBServiceVideoOutput::checkForUpdates(updateCallback) {}
 hostIf_STBServiceVideoOutput::hostIf_STBServiceVideoOutput(int devid, const std::string& portName)
     : dev_id(devid), m_portName(portName)
 {
-    errno_t rc = -1;
-    rc = strcpy_s(backupAspectRatioBehaviour, sizeof(backupAspectRatioBehaviour), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupDisplayFormat, sizeof(backupDisplayFormat), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupDisplayName, sizeof(backupDisplayName), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupVideoFormat, sizeof(backupVideoFormat), " "); ERR_CHK(rc);
-    rc = strcpy_s(backupVideoOutputStatus, sizeof(backupVideoOutputStatus), " "); ERR_CHK(rc);
+    strncpy(backupAspectRatioBehaviour, " ", sizeof(backupAspectRatioBehaviour));
+    strncpy(backupDisplayFormat, " ", sizeof(backupDisplayFormat));
+    strncpy(backupDisplayName, " ", sizeof(backupDisplayName));
+    strncpy(backupVideoFormat, " ", sizeof(backupVideoFormat));
+    strncpy(backupVideoOutputStatus, " ", sizeof(backupVideoOutputStatus));
     backupHDCP = false;
     bCalledAspectRatioBehaviour = bCalledDisplayFormat = bCalledDisplayName = false;
     bCalledVideoFormat = bCalledHDCP = bCalledVideoOutputStatus = false;
