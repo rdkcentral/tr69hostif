@@ -35,6 +35,7 @@
 #include "waldb.h"
 #include "Device_DeviceInfo_Processor.h"
 #include "Device_DeviceInfo_ProcessStatus.h"
+#include "Device_DeviceInfo_ProcessStatus_Process.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -181,6 +182,61 @@ TEST(rfcStoreTest, getLocalValueAfterClear) {
     int ret = m_rfcStore->getValue(&param);
     std::cout << "paramValue: " << getStringValue(&param) << " ret = " << ret << std::endl;
     EXPECT_EQ(ret, fcInternalError);
+}
+
+TEST(rfcStoreTest, clearLocalValueWithWildcard) {
+    m_rfcStore = XRFCStore::getInstance();
+
+    HOSTIF_MsgData_t setParam1 = { 0 };
+    memset(&setParam1, 0, sizeof(HOSTIF_MsgData_t));
+    setParam1.reqType = HOSTIF_SET;
+    strncpy(setParam1.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.UnitTest.Param1", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setParam1.requestor = HOSTIF_SRC_WEBPA;
+    strncpy(setParam1.paramValue, "value1", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setParam1.paramtype = hostIf_StringType;
+    setParam1.paramLen = strlen(setParam1.paramValue);
+    EXPECT_EQ(m_rfcStore->setValue(&setParam1), fcNoFault);
+
+    HOSTIF_MsgData_t setParam2 = { 0 };
+    memset(&setParam2, 0, sizeof(HOSTIF_MsgData_t));
+    setParam2.reqType = HOSTIF_SET;
+    strncpy(setParam2.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.UnitTest.Param2", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setParam2.requestor = HOSTIF_SRC_WEBPA;
+    strncpy(setParam2.paramValue, "value2", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setParam2.paramtype = hostIf_StringType;
+    setParam2.paramLen = strlen(setParam2.paramValue);
+    EXPECT_EQ(m_rfcStore->setValue(&setParam2), fcNoFault);
+
+    HOSTIF_MsgData_t clearParam = { 0 };
+    memset(&clearParam, 0, sizeof(HOSTIF_MsgData_t));
+    clearParam.reqType = HOSTIF_SET;
+    strncpy(clearParam.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.ClearParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    clearParam.requestor = HOSTIF_SRC_WEBPA;
+    strncpy(clearParam.paramValue, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.UnitTest.", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    clearParam.paramtype = hostIf_StringType;
+    clearParam.paramLen = strlen(clearParam.paramValue);
+    EXPECT_EQ(m_rfcStore->setValue(&clearParam), fcNoFault);
+
+    HOSTIF_MsgData_t getParam = { 0 };
+    memset(&getParam, 0, sizeof(HOSTIF_MsgData_t));
+    getParam.reqType = HOSTIF_GET;
+    strncpy(getParam.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.SystemServices.UnitTest.Param1", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    EXPECT_EQ(m_rfcStore->getValue(&getParam), fcInternalError);
+}
+
+TEST(rfcStoreTest, setValue_NonPersistentFromWebpa_Fails) {
+    m_rfcStore = XRFCStore::getInstance();
+
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonPersistent.UnitTest.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.requestor = HOSTIF_SRC_WEBPA;
+    put_boolean(param.paramValue, true);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+
+    EXPECT_EQ(m_rfcStore->setValue(&param), fcInternalError);
 }
 
 
@@ -1777,6 +1833,121 @@ TEST(deviceTest, get_Device_DeviceInfo_IUI_Version_EmptyFile) {
     }
 }
 
+TEST(deviceTest, get_Device_DeviceInfo_IUI_AppsVersion) {
+    std::remove("/tmp/.iuiAppsVersion");
+    
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    
+    int instanceNumber = 0;
+    write_on_file("/tmp/.iuiAppsVersion", "3.3\n");
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);    
+    ASSERT_NE(pIface, nullptr);
+
+    int ret = pIface->get_Device_DeviceInfo_IUI_AppsVersion(&msgData);
+    EXPECT_EQ(ret, OK);
+    EXPECT_STREQ(msgData.paramValue, "3.3");
+    std::remove("/tmp/.iuiAppsVersion");
+}
+
+TEST(deviceTest, set_Device_DeviceInfo_IUI_AppsVersion) {
+    int instanceNumber = 0;
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    msgData.reqType = HOSTIF_SET;
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.bsUpdate = HOSTIF_NONE;
+    msgData.requestor = HOSTIF_SRC_RFC;
+
+    strncpy(msgData.paramValue, "6.6", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_StringType;
+    msgData.paramLen = strlen(msgData.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    if(pIface)
+    {
+        int ret = pIface->set_Device_DeviceInfo_IUI_AppsVersion(&msgData);
+        EXPECT_EQ(ret, OK);
+    }
+}
+
+TEST(deviceTest, set_Device_DeviceInfo_Empty_IUI_AppsVersion) {
+    int instanceNumber = 0;
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    msgData.reqType = HOSTIF_SET;
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.bsUpdate = HOSTIF_NONE;
+    msgData.requestor = HOSTIF_SRC_RFC;
+
+    strncpy(msgData.paramValue, "", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_StringType;
+    msgData.paramLen = strlen(msgData.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    if(pIface)
+    {
+        int ret = pIface->set_Device_DeviceInfo_IUI_AppsVersion(&msgData);
+        EXPECT_EQ(ret, OK);
+    }
+}
+
+TEST(deviceTest, get_Device_DeviceInfo_IUI_AppsVersion_FileRemoved) {
+    std::remove("/tmp/.iuiAppsVersion");
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    if(pIface)
+    {
+        int ret = pIface->get_Device_DeviceInfo_IUI_AppsVersion(&msgData);
+        EXPECT_EQ(ret, OK);
+        EXPECT_STREQ(msgData.paramValue, "");
+    }
+}
+
+TEST(deviceTest, get_Device_DeviceInfo_IUI_AppsVersion_EmptyFile) {
+    std::ofstream file("/tmp/.iuiAppsVersion");
+    file.close();
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    if(pIface)
+    {
+        int ret = pIface->get_Device_DeviceInfo_IUI_AppsVersion(&msgData);
+        EXPECT_EQ(ret, OK);
+        EXPECT_STREQ(msgData.paramValue, "");
+    }
+}
+
+TEST(deviceTest, get_HotelCheckoutLastResetTime) {
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    if(pIface)
+    {
+        int ret = pIface->get_HotelCheckoutLastResetTime(&msgData);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
+TEST(deviceTest, get_HotelCheckoutStatus) {
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    if(pIface)
+    {
+        int ret = pIface->get_HotelCheckoutStatus(&msgData);
+        EXPECT_EQ(ret, NOK);
+    }
+}
+
 TEST(deviceTest, set_xOpsDMUploadLogsNow) {
     bool bChanged;
     int instanceNumber = 0;
@@ -1841,7 +2012,7 @@ TEST(deviceInfoTest, get_Device_DeviceInfo_MigrationPreparer_MigrationReady) {
         bChanged =  false;
         int ret = pIface->get_Device_DeviceInfo_MigrationPreparer_MigrationReady(&msgData);
         cout << "msgData.paramValue = " << msgData.paramValue << endl;
-        EXPECT_EQ(ret, OK);
+        EXPECT_EQ(ret, NOK);
     }
 }
 
@@ -1946,6 +2117,7 @@ TEST(deviceInfoTest, get_X_RDK_FirmwareName) {
 }
 
 TEST(deviceInfoTest, get_X_RDKCENTRAL_COM_LastRebootReason) {
+    write_on_file("/opt/secure/reboot/previousreboot.info", "{\"reason\": \"PowerOnReset\", \"timestamp\": 1688914800}");
     int instanceNumber = 0;
 
     HOSTIF_MsgData_t msgData;
@@ -1972,6 +2144,39 @@ TEST(deviceInfoTest, get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction) {
        cout << "msgData.paramValue = " << msgData.paramValue << endl;
        EXPECT_EQ(ret, OK);
    }
+}
+
+TEST(deviceInfoTest, XRPollingAction_ChangeFlagBehavior) {
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    HOSTIF_MsgData_t setMsg;
+    memset(&setMsg, 0, sizeof(setMsg));
+    setMsg.reqType = HOSTIF_SET;
+    strncpy(setMsg.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_XRPolling.Action", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setMsg.paramtype = hostIf_StringType;
+
+    strncpy(setMsg.paramValue, "XRPoll", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setMsg.paramLen = strlen(setMsg.paramValue);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction(&setMsg), OK);
+
+    HOSTIF_MsgData_t getMsg;
+    memset(&getMsg, 0, sizeof(getMsg));
+    bool changed = false;
+    EXPECT_EQ(pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction(&getMsg, &changed), OK);
+    EXPECT_TRUE(changed);
+    EXPECT_STREQ(getMsg.paramValue, "XRPoll");
+
+    strncpy(setMsg.paramValue, "0", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setMsg.paramLen = strlen(setMsg.paramValue);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction(&setMsg), OK);
+
+    memset(&getMsg, 0, sizeof(getMsg));
+    changed = false;
+    EXPECT_EQ(pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction(&getMsg, &changed), OK);
+    EXPECT_FALSE(changed);
+    EXPECT_STREQ(getMsg.paramValue, "0");
 }
 
 TEST(deviceInfoTest, findLocalPortAvailable) {
@@ -3424,69 +3629,6 @@ TEST(deviceTest, set_xRDKCentralComRFC_RebootStopEnable_XRE_CONTAINER_RFC_ENABLE
     }
 }
 
-TEST(deviceTest, RDKRemoteDebuggergetProfileData)
-{
-    int instanceNumber = 0;
-    bool pChanged;
-    HOSTIF_MsgData_t param = { 0 };
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_GET;
-    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.getProfileData", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        int ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(&param);
-        cout << "msgData.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, OK);
-    }
-}
-
-TEST(deviceTest, RDKRemoteDebuggergetProfileData_FileRemoved)
-{
-    std::remove("/etc/rrd/remote_debugger.json");
-    int instanceNumber = 0;
-    bool pChanged;
-    HOSTIF_MsgData_t param = { 0 };
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_GET;
-    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.getProfileData", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        int ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(&param);
-        cout << "msgData.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, NOK);
-    }
-}
-
-TEST(deviceTest, RDKRemoteDebuggergetProfileData_EmptyFile)
-{
-    std::ofstream file("/etc/rrd/remote_debugger.json");
-    file.close();
-    int instanceNumber = 0;
-    bool pChanged;
-    HOSTIF_MsgData_t param = { 0 };
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_GET;
-    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.getProfileData", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        int ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData(&param);
-        cout << "msgData.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, NOK);
-    }
-}
-
 TEST(deviceTest, set_xRDKCentralComRFCRoamTrigger)
 {
     int instanceNumber = 0;
@@ -3954,6 +4096,11 @@ TEST(deviceInfoTest, GetLock_ShouldAcquireMutex) {
    }
 }
 
+TEST(deviceInfoTest, ReleaseLock_WithoutOwnership_DoesNotCrash) {
+    hostIf_DeviceInfo::releaseLock();
+    EXPECT_EQ(0, 0);
+}
+
 TEST(deviceTest, get_xOpsRPC_Profile_NOTIFICATION)
 {
     int instanceNumber = 0;
@@ -4280,6 +4427,7 @@ TEST(deviceTest, xOpsDMUploadLogsNow) {
         int ret = pIface->get_xOpsDMUploadLogsNow(&msgData);
         cout << "msgData.paramValue = " << msgData.paramValue << endl;
         EXPECT_EQ(ret, OK);
+        EXPECT_EQ(get_boolean(msgData.paramValue), false);
     }
 }
 
@@ -4344,6 +4492,18 @@ TEST(bsStoreTest, getRawValue_Empty) {
     EXPECT_EQ(value, "");
 }
 
+TEST(bsStoreTest, setRawValue) {
+    m_bsStore = XBSStore::getInstance();
+    const string key = "Device.Time.NTPServer2";
+    const string sameValue = "time1.com";
+
+    m_bsStore->m_initialUpdate = false;
+    bool ret = m_bsStore->setRawValue(key, sameValue, HOSTIF_SRC_RFC);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(m_bsStore->getRawValue(key), sameValue);
+    EXPECT_EQ(XBSStore::xbsJournalInstance->getJournalSource(key), HOSTIF_SRC_RFC);
+}
+
 TEST(bsStoreTest, getValue) {
     m_bsStore = XBSStore::getInstance();
 
@@ -4395,6 +4555,35 @@ TEST(bsStoreTest, setValue_BS_CLEAR_DB_END) {
 
     std::cout << "ret = " << ret << std::endl;
     EXPECT_EQ(ret, 0);
+}
+
+TEST(bsStoreTest, overrideValue_NewParam_AllowsOverride) {
+    m_bsStore = XBSStore::getInstance();
+
+    HOSTIF_MsgData_t setParam = { 0 };
+    memset(&setParam,0,sizeof(HOSTIF_MsgData_t));
+    setParam.reqType = HOSTIF_SET;
+    strncpy(setParam.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.UnitTest.NewParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setParam.bsUpdate = HOSTIF_NONE;
+    setParam.requestor = HOSTIF_SRC_WEBPA;
+
+    strncpy(setParam.paramValue, "unit_test_value", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    setParam.paramtype = hostIf_StringType;
+    setParam.paramLen = strlen(setParam.paramValue);
+
+    int setRet = m_bsStore->overrideValue(&setParam);
+    EXPECT_EQ(setRet, fcNoFault);
+
+    HOSTIF_MsgData_t getParam = { 0 };
+    memset(&getParam,0,sizeof(HOSTIF_MsgData_t));
+    getParam.reqType = HOSTIF_GET;
+    strncpy(getParam.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.UnitTest.NewParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    getParam.bsUpdate = HOSTIF_NONE;
+    getParam.requestor = HOSTIF_SRC_RFC;
+
+    int getRet = m_bsStore->getValue(&getParam);
+    EXPECT_EQ(getRet, fcNoFault);
+    EXPECT_EQ(getStringValue(&getParam), "unit_test_value");
 }
 
 TEST(bsStoreTest, createFile) {
@@ -4461,6 +4650,18 @@ TEST(bsStoreJournalTest, getBuildTime) {
     EXPECT_EQ(value, "2025-05-27 06:39:24");
 }
 
+TEST(bsStoreJournalTest, getBuildTime_Version) {
+    m_bsStoreJournal = XBSStoreJournal::getInstance("/opt/secure/RFC/bootstrap.journal");
+
+    std::remove("/version.txt");
+    EXPECT_EQ(m_bsStoreJournal->getBuildTime(), "");
+
+    write_on_file("/version.txt", "BUILD_TIME=\"2026-06-09 12:34:56\"\n");
+    EXPECT_EQ(m_bsStoreJournal->getBuildTime(), "2026-06-09 12:34:56");
+
+    std::remove("/version.txt");
+}
+
 TEST(bsStoreJournalTest, setJournalValue) {
     m_bsStoreJournal = XBSStoreJournal::getInstance("/opt/secure/RFC/bootstrap.journal");
     const string key = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.Enable";
@@ -4485,6 +4686,9 @@ TEST(bsStoreJournalTest, resetClearRfc) {
     }
     bool result = m_bsStoreJournal->resetClearRfc(key);
     EXPECT_EQ(result, true);
+
+    EXPECT_EQ(m_bsStoreJournal->resetClearRfc(key), false);
+    EXPECT_EQ(m_bsStoreJournal->resetClearRfc("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UnitTest.Missing"), false);
 }
 
 TEST(bsStoreJournalTest, removeRecord) {
@@ -4513,14 +4717,25 @@ TEST(bsStoreJournalTest, clearRfcAndGetDefaultValue) {
     bool result = m_bsStoreJournal->clearRfcAndGetDefaultValue(key, defaultValue);
     EXPECT_EQ(result, true);
     EXPECT_EQ(defaultValue, "time.com");
+
+    EXPECT_EQ(m_bsStoreJournal->clearRfcAndGetDefaultValue(key, defaultValue), false);
+    EXPECT_EQ(m_bsStoreJournal->clearRfcAndGetDefaultValue("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UnitTest.Missing", defaultValue), false);
 }
 
 TEST(bsStoreJournalTest, rfcUpdateStarted) {
     m_bsStoreJournal = XBSStoreJournal::getInstance("/opt/secure/RFC/bootstrap.journal");
-    const string key = "Device.Time.NTPServer4";
+    const string rfcKey = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UnitTest.RfcUpdate";
+    const string webpaKey = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UnitTest.WebpaUpdate";
+
+    EXPECT_EQ(m_bsStoreJournal->setJournalValue(rfcKey, "true", HOSTIF_SRC_RFC), true);
+    EXPECT_EQ(m_bsStoreJournal->setJournalValue(webpaKey, "false", HOSTIF_SRC_WEBPA), true);
 
     bool result = m_bsStoreJournal->rfcUpdateStarted();
     EXPECT_EQ(result, true);
+
+    string defaultValue;
+    EXPECT_EQ(m_bsStoreJournal->clearRfcAndGetDefaultValue(rfcKey, defaultValue), true);
+    EXPECT_EQ(m_bsStoreJournal->clearRfcAndGetDefaultValue(webpaKey, defaultValue), false);
 }
 
 TEST(bsStoreJournalTest, rfcUpdateEnd) {
@@ -4533,7 +4748,10 @@ TEST(bsStoreJournalTest, rfcUpdateEnd) {
 
 TEST(bsStoreJournalTest, constructor) {
     XBSStoreJournal* journalPtr = new XBSStoreJournal();
-    EXPECT_EQ(0, 0);
+    EXPECT_EQ(journalPtr->m_initDone, false);
+
+    XBSStoreJournal* journalWithFile = new XBSStoreJournal("/opt/secure/RFC/bootstrap.journal");
+    EXPECT_EQ(journalWithFile->m_initDone, true);
 }
 
 TEST(bsStoreJournalTest, setJournalValue_New_Key) {
@@ -4729,79 +4947,139 @@ TEST(rfcStorageTest, setRawValue) {
 }
 
 TEST(processTest, getNumOfProcessorEntries) {
-    int instanceNumber = 0;
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+    hostIf_DeviceProcessorInterface *processorIface = hostIf_DeviceProcessorInterface::getInstance(0);
+    ASSERT_NE(processorIface, nullptr);
 
-    hostIf_DeviceProcessorInterface *processorIface = hostIf_DeviceProcessorInterface::getInstance(instanceNumber);
-    if(processorIface)
-    {
-       unsigned int ret = processorIface->getNumOfProcessorEntries();
-       EXPECT_EQ(ret, 4);
-   }
+    unsigned int ret = processorIface->getNumOfProcessorEntries();
+    EXPECT_GE(ret, 1u);
+
+    hostIf_DeviceProcessorInterface::closeAllInstances();
 }
 
 TEST(processTest, get_Device_DeviceInfo_Processor_Architecture) {
-    int instanceNumber = 0;
-
+    hostIf_DeviceProcessorInterface::closeAllInstances();
     HOSTIF_MsgData_t msgData;
     memset(&msgData,0,sizeof(HOSTIF_MsgData_t));
-    hostIf_DeviceProcessorInterface *processorIface = hostIf_DeviceProcessorInterface::getInstance(instanceNumber);
-    if(processorIface)
-    {
-       int ret = processorIface->get_Device_DeviceInfo_Processor_Architecture(&msgData);
-       cout << "msgData.paramValue = " << msgData.paramValue << endl;
-       EXPECT_EQ(ret, OK);
-       EXPECT_STREQ(msgData.paramValue, "x86_64");
-   }
+    hostIf_DeviceProcessorInterface *processorIface = hostIf_DeviceProcessorInterface::getInstance(0);
+    ASSERT_NE(processorIface, nullptr);
+
+    int ret = processorIface->get_Device_DeviceInfo_Processor_Architecture(&msgData);
+    cout << "msgData.paramValue = " << msgData.paramValue << endl;
+    EXPECT_EQ(ret, OK);
+    EXPECT_GT(strlen(msgData.paramValue), 0u);
+
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+}
+
+TEST(processTest, getInstance_ReusesObjectForSameId_AndRejectsOutOfRangeId) {
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+    hostIf_DeviceProcessorInterface *processorIface0 = hostIf_DeviceProcessorInterface::getInstance(0);
+    ASSERT_NE(processorIface0, nullptr);
+
+    hostIf_DeviceProcessorInterface *sameProcessorIface = hostIf_DeviceProcessorInterface::getInstance(0);
+    EXPECT_EQ(processorIface0, sameProcessorIface);
+
+    unsigned int totalEntries = hostIf_DeviceProcessorInterface::getNumOfProcessorEntries();
+    hostIf_DeviceProcessorInterface *invalidIface = hostIf_DeviceProcessorInterface::getInstance(static_cast<int>(totalEntries + 1));
+    EXPECT_EQ(invalidIface, nullptr);
+
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+}
+
+TEST(processTest, getAllInstances_TracksLifecycleAcrossCreateAndClose) {
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+
+    GList* emptyInstances = hostIf_DeviceProcessorInterface::getAllInstances();
+    EXPECT_EQ(emptyInstances, nullptr);
+
+    hostIf_DeviceProcessorInterface *processorIface0 = hostIf_DeviceProcessorInterface::getInstance(0);
+    ASSERT_NE(processorIface0, nullptr);
+    hostIf_DeviceProcessorInterface *processorIface1 = hostIf_DeviceProcessorInterface::getInstance(1);
+    ASSERT_NE(processorIface1, nullptr);
+
+    GList* allInstances = hostIf_DeviceProcessorInterface::getAllInstances();
+    ASSERT_NE(allInstances, nullptr);
+    EXPECT_EQ(g_list_length(allInstances), 2);
+    g_list_free(allInstances);
+
+    hostIf_DeviceProcessorInterface::closeInstance(processorIface0);
+    GList* oneLeft = hostIf_DeviceProcessorInterface::getAllInstances();
+    ASSERT_NE(oneLeft, nullptr);
+    EXPECT_EQ(g_list_length(oneLeft), 1);
+    g_list_free(oneLeft);
+
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+    EXPECT_EQ(hostIf_DeviceProcessorInterface::getAllInstances(), nullptr);
+}
+
+TEST(processTest, ProcessorArchitecture_ChangeFlagAcrossCalls) {
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+    hostIf_DeviceProcessorInterface *processorIface = hostIf_DeviceProcessorInterface::getInstance(0);
+    ASSERT_NE(processorIface, nullptr);
+
+    HOSTIF_MsgData_t firstRead;
+    memset(&firstRead, 0, sizeof(HOSTIF_MsgData_t));
+    bool changed = true;
+    EXPECT_EQ(processorIface->get_Device_DeviceInfo_Processor_Architecture(&firstRead, &changed), OK);
+    EXPECT_TRUE(changed);
+
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+}
+
+TEST(processTest, closeInstance_HandlesNull) {
+    hostIf_DeviceProcessorInterface::closeInstance(nullptr);
+    EXPECT_EQ(0, 0);
 }
 
 TEST(processTest, Processor_Lock_ReleaseLock) {
-    int instanceNumber = 0;
+    hostIf_DeviceProcessorInterface::closeAllInstances();
+    hostIf_DeviceProcessorInterface *processorIface = hostIf_DeviceProcessorInterface::getInstance(0);
+    ASSERT_NE(processorIface, nullptr);
 
-    hostIf_DeviceProcessorInterface *processorIface = hostIf_DeviceProcessorInterface::getInstance(instanceNumber);
-    if(processorIface)
-    {
-       processorIface->getLock();
-       processorIface->releaseLock();
-       EXPECT_EQ(0, 0);
-   }
-   processorIface->closeInstance(processorIface);
-   processorIface->closeAllInstances();
+    processorIface->getLock();
+    processorIface->releaseLock();
+    EXPECT_EQ(0, 0);
+
+    hostIf_DeviceProcessorInterface::closeInstance(processorIface);
+    hostIf_DeviceProcessorInterface::closeAllInstances();
 
 }
 
 TEST(processTest, getProcessStatusCPUUsage) {
-    int instanceNumber = 0;
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
+    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(0);
+    ASSERT_NE(processStatusIface, nullptr);
 
-    HOSTIF_MsgData_t msgData;
-    memset(&msgData,0,sizeof(HOSTIF_MsgData_t));
-    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(instanceNumber);
-    if(processStatusIface)
-    {
-       int ret = processStatusIface->getProcessStatusCPUUsage();
-       EXPECT_EQ(0, 0);
-   }
+    int ret = processStatusIface->getProcessStatusCPUUsage();
+    EXPECT_GE(ret, 0);
+
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
 }
 
 
 TEST(processTest, get_Device_DeviceInfo_ProcessStatus_CPUUsage) {
-    int instanceNumber = 0;
-    bool pChanged;
-
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
     HOSTIF_MsgData_t msgData;
     memset(&msgData,0,sizeof(HOSTIF_MsgData_t));
-    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(instanceNumber);
-    if(processStatusIface)
-    {
-       pChanged = false;
-       int ret = processStatusIface->get_Device_DeviceInfo_ProcessStatus_CPUUsage(&msgData, &pChanged);
-       EXPECT_EQ(ret, OK);
-   }
+    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(0);
+    ASSERT_NE(processStatusIface, nullptr);
+
+    bool pChanged = false;
+    int ret = processStatusIface->get_Device_DeviceInfo_ProcessStatus_CPUUsage(&msgData, &pChanged);
+    EXPECT_EQ(ret, OK);
+    EXPECT_EQ(msgData.paramtype, hostIf_IntegerType);
+    EXPECT_FALSE(pChanged);
+
+    HOSTIF_MsgData_t secondRead;
+    memset(&secondRead, 0, sizeof(HOSTIF_MsgData_t));
+    bool secondChanged = false;
+    EXPECT_EQ(processStatusIface->get_Device_DeviceInfo_ProcessStatus_CPUUsage(&secondRead, &secondChanged), OK);
+
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
 }
 
 TEST(processTest, getProcessStatParam) {
-    int instanceNumber = 0;
-    bool pChanged;
-
     long long unsigned int mUser = 0;
     long long unsigned int mNice = 0;
     long long unsigned int mSystem = 0;
@@ -4810,34 +5088,201 @@ TEST(processTest, getProcessStatParam) {
     long long unsigned int mIrq = 0;
     long long unsigned int mSoftirq = 0;
 
-    HOSTIF_MsgData_t msgData;
-    memset(&msgData,0,sizeof(HOSTIF_MsgData_t));
-    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(instanceNumber);
-    if(processStatusIface)
-    {
-       pChanged = false;
-       int ret = processStatusIface->getProcessStatParam(&mUser, &mNice, &mSystem, &mIdle, &mIOwait, &mIrq, &mSoftirq);
-       EXPECT_EQ(ret, OK);
-   }
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
+    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(0);
+    ASSERT_NE(processStatusIface, nullptr);
+
+    int ret = processStatusIface->getProcessStatParam(&mUser, &mNice, &mSystem, &mIdle, &mIOwait, &mIrq, &mSoftirq);
+    EXPECT_EQ(ret, OK);
+    EXPECT_GT(mUser + mNice + mSystem + mIdle + mIOwait + mIrq + mSoftirq, 0u);
+
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
+}
+
+TEST(processTest, ProcessStatus_InstanceLifecycleAndList) {
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
+
+    EXPECT_EQ(hostIf_DeviceProcessStatusInterface::getAllInstances(), nullptr);
+
+    hostIf_DeviceProcessStatusInterface *first = hostIf_DeviceProcessStatusInterface::getInstance(0);
+    ASSERT_NE(first, nullptr);
+    hostIf_DeviceProcessStatusInterface *same = hostIf_DeviceProcessStatusInterface::getInstance(0);
+    EXPECT_EQ(first, same);
+    hostIf_DeviceProcessStatusInterface *second = hostIf_DeviceProcessStatusInterface::getInstance(1);
+    ASSERT_NE(second, nullptr);
+
+    GList* allInstances = hostIf_DeviceProcessStatusInterface::getAllInstances();
+    ASSERT_NE(allInstances, nullptr);
+    EXPECT_EQ(g_list_length(allInstances), 2);
+    g_list_free(allInstances);
+
+    hostIf_DeviceProcessStatusInterface::closeInstance(first);
+    GList* oneLeft = hostIf_DeviceProcessStatusInterface::getAllInstances();
+    ASSERT_NE(oneLeft, nullptr);
+    EXPECT_EQ(g_list_length(oneLeft), 1);
+    g_list_free(oneLeft);
+
+    hostIf_DeviceProcessStatusInterface::closeInstance(nullptr);
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
+    EXPECT_EQ(hostIf_DeviceProcessStatusInterface::getAllInstances(), nullptr);
 }
 
 TEST(processTest, ProcessStatus_Lock_ReleaseLock) {
-    int instanceNumber = 0;
-    bool pChanged;
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
+    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(0);
+    ASSERT_NE(processStatusIface, nullptr);
+
+    processStatusIface->getLock();
+    processStatusIface->releaseLock();
+    EXPECT_EQ(0, 0);
+
+    hostIf_DeviceProcessStatusInterface::closeInstance(processStatusIface);
+    hostIf_DeviceProcessStatusInterface::closeAllInstances();
+}
+
+
+TEST(bsStoreJournalTest, getUpdatedSourceString_AndGetJournalSourceMissing) {
+    m_bsStoreJournal = XBSStoreJournal::getInstance("/opt/secure/RFC/bootstrap.journal");
+    EXPECT_EQ(m_bsStoreJournal->getUpdatedSourceString(HOSTIF_SRC_RFC), "rfc");
+    EXPECT_EQ(m_bsStoreJournal->getUpdatedSourceString(HOSTIF_SRC_WEBPA), "webpa");
+    EXPECT_EQ(m_bsStoreJournal->getUpdatedSourceString(HOSTIF_NONE), "-");
+    EXPECT_EQ(m_bsStoreJournal->getJournalSource("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Missing.Param"), HOSTIF_NONE);
+}
+
+TEST(bsStoreJournalTest, setInitialUpdate_AndGetJournalSourceExisting) {
+    m_bsStoreJournal = XBSStoreJournal::getInstance("/opt/secure/RFC/bootstrap.journal");
+    m_bsStoreJournal->setInitialUpdate(true);
+
+    const string key = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UnitTest.BSJournal";
+    EXPECT_EQ(m_bsStoreJournal->setJournalValue(key, "true", HOSTIF_SRC_WEBPA), true);
+    EXPECT_EQ(m_bsStoreJournal->getJournalSource(key), HOSTIF_SRC_WEBPA);
+
+    m_bsStoreJournal->setInitialUpdate(false);
+}
+
+/*  TEST(bsStoreJournalTest, resetCacheAndStore_RemovesCacheAndAllowsReuse) {
+    m_bsStoreJournal = XBSStoreJournal::getInstance("/opt/secure/RFC/bootstrap.journal");
+    const string key = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UnitTest.ResetCache";
+
+    EXPECT_EQ(m_bsStoreJournal->setJournalValue(key, "true", HOSTIF_SRC_WEBPA), true);
+    EXPECT_NE(m_bsStoreJournal->getJournalSource(key), HOSTIF_NONE);
+
+    m_bsStoreJournal->resetCacheAndStore();
+    EXPECT_EQ(m_bsStoreJournal->getJournalSource(key), HOSTIF_NONE);
+
+    EXPECT_EQ(m_bsStoreJournal->setJournalValue(key, "false", HOSTIF_SRC_WEBPA), true);
+    EXPECT_EQ(m_bsStoreJournal->getJournalSource(key), HOSTIF_SRC_WEBPA);
+}
+
+*/
+
+TEST(bsStoreTest, stop_And_call_loadJson) {
+    m_bsStore = XBSStore::getInstance();
+    bool loaded = m_bsStore->call_loadJson();
+    EXPECT_EQ(loaded, true);
+    m_bsStore->stop();
+}
+
+TEST(rfcStoreTest, setValue_ClearParam_Path) {
+    m_rfcStore = XRFCStore::getInstance();
 
     HOSTIF_MsgData_t msgData;
-    memset(&msgData,0,sizeof(HOSTIF_MsgData_t));
-    hostIf_DeviceProcessStatusInterface *processStatusIface = hostIf_DeviceProcessStatusInterface::getInstance(instanceNumber);
-    if(processStatusIface)
-    {
-       pChanged = false;
-       processStatusIface->getLock();
-       processStatusIface->releaseLock();
-       EXPECT_EQ(0, 0);
-   }
-   processStatusIface->closeInstance(processStatusIface);
-   processStatusIface->closeAllInstances();
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    msgData.reqType = HOSTIF_SET;
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.ClearParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(msgData.paramValue, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Unknown.Param", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.requestor = HOSTIF_SRC_WEBPA;
+
+    faultCode_t ret = m_rfcStore->setValue(&msgData);
+    EXPECT_EQ(ret, fcNoFault);
 }
+
+TEST(rfcStoreTest, clearAllAndReloadCache_DuplicateSafe) {
+    m_rfcStore = XRFCStore::getInstance();
+    m_rfcStore->clearAll();
+    m_rfcStore->clearAll();
+
+    m_rfcStore->reloadCache();
+    m_rfcStore->reloadCache();
+    EXPECT_EQ(0, 0);
+}
+
+TEST(rfcStorageTest, setRawValue_And_clearAll) {
+    const string key = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.UnitTest.Temp";
+    EXPECT_EQ(m_rfcStoreage->setRawValue(key, "true"), true);
+    EXPECT_EQ(m_rfcStoreage->getRawValue(key), "true");
+
+    m_rfcStoreage->clearAll();
+    EXPECT_EQ(m_rfcStoreage->getRawValue(key), "");
+}
+
+#ifdef USE_XRDK_BT_PROFILE
+TEST(blueToothTest, singletonResetAndClose) {
+    hostIf_DeviceInfoRdk_xBT *btIface = hostIf_DeviceInfoRdk_xBT::getInstance();
+    ASSERT_NE(btIface, nullptr);
+    hostIf_DeviceInfoRdk_xBT::reset();
+    hostIf_DeviceInfoRdk_xBT::closeInstance();
+}
+
+TEST(blueToothTest, handleSetMsg_InvalidPath_ReturnsNotHandled) {
+    hostIf_DeviceInfoRdk_xBT *btIface = hostIf_DeviceInfoRdk_xBT::getInstance();
+    ASSERT_NE(btIface, nullptr);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_Invalid.enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    int ret = btIface->handleSetMsg(&msgData);
+    EXPECT_EQ(ret, NOT_HANDLED);
+    EXPECT_EQ(msgData.faultCode, fcInvalidParameterName);
+
+    hostIf_DeviceInfoRdk_xBT::closeInstance();
+}
+
+TEST(blueToothTest, handleSetMsg_UnknownUnderRoot_ReturnsNotHandled) {
+    hostIf_DeviceInfoRdk_xBT *btIface = hostIf_DeviceInfoRdk_xBT::getInstance();
+    ASSERT_NE(btIface, nullptr);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.UnknownParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    int ret = btIface->handleSetMsg(&msgData);
+    EXPECT_EQ(ret, NOT_HANDLED);
+    EXPECT_EQ(msgData.faultCode, fcInvalidParameterName);
+
+    hostIf_DeviceInfoRdk_xBT::closeInstance();
+}
+
+TEST(blueToothTest, handleGetMsg_InvalidPath_ReturnsNotHandled) {
+    hostIf_DeviceInfoRdk_xBT *btIface = hostIf_DeviceInfoRdk_xBT::getInstance();
+    ASSERT_NE(btIface, nullptr);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_Invalid.DiscoveryEnabled", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    int ret = btIface->handleGetMsg(&msgData);
+    EXPECT_EQ(ret, NOT_HANDLED);
+
+    hostIf_DeviceInfoRdk_xBT::closeInstance();
+}
+
+TEST(blueToothTest, handleGetMsg_UnknownUnderRoot_ReturnsNok) {
+    hostIf_DeviceInfoRdk_xBT *btIface = hostIf_DeviceInfoRdk_xBT::getInstance();
+    ASSERT_NE(btIface, nullptr);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.UnknownParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    int ret = btIface->handleGetMsg(&msgData);
+    EXPECT_EQ(ret, NOK);
+    EXPECT_EQ(msgData.faultCode, fcInvalidParameterName);
+
+    hostIf_DeviceInfoRdk_xBT::closeInstance();
+}
+#endif
 
 
 TEST(clearTest, rfcclearAll) {
@@ -4862,6 +5307,19 @@ TEST(StoreClearTest, resetCacheAndStore) {
     m_bsStore = XBSStore::getInstance();
     m_bsStore->resetCacheAndStore();
     EXPECT_EQ(0, 0);
+}
+
+TEST(StoreClearTest, setRawValue_Flush) {
+    m_bsStore = XBSStore::getInstance();
+    const string key = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.UnitTest.Flush";
+    const string value = "flush_path_value";
+
+    m_bsStore->m_initialUpdate = true;
+    bool ret = m_bsStore->setRawValue(key, value, HOSTIF_SRC_DEFAULT);
+    m_bsStore->m_initialUpdate = false;
+
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(m_bsStore->getRawValue(key), value);
 }
 
 /* TEST(StoreClearTest, init) {

@@ -11,6 +11,7 @@
 #include "XrdkCentralComRFCVar.h"
 #include "request_handler.h"
 #include "IniFile.h"
+#include "http_server.h"
 #include "hostIf_utils.h"
 #include "hostIf_main.h"
 #include "webpa_notification.h"
@@ -41,6 +42,7 @@ extern "C"
 
 #include <mutex>
 #include <condition_variable>
+#include <fstream>
 
 #define GTEST_DEFAULT_RESULT_FILEPATH "/tmp/Gtest_Report/"
 #define GTEST_DEFAULT_RESULT_FILENAME "hostif_gtest_report.json"
@@ -81,6 +83,8 @@ extern void (*HTTPRequestHandlerFunc()) (
     void           *user_data);
 extern void (*convertAndAssignParamValueFunc()) (HOSTIF_MsgData_t *param, char *value);
 extern char* (*getStringValueFunc()) (HostIf_ParamType_t paramType, char *value);
+extern bool (*isAuthorizedFunc())(const char* pcCallerID, const char* pcParamName);
+extern void (*getHostIfParamStFromRequestFunc())(REQ_TYPE reqType, param_t *param, HOSTIF_MsgData_t *hostIfParam);
 #endif
 
 TEST(httpserverTest,initRFCVarFileName){
@@ -110,6 +114,64 @@ TEST(httpserverTest, getValue) {
        string value = m_varStore->getValue(key);
        EXPECT_EQ(value, "testCfg");
    }
+}
+
+TEST(httpserverTest, getValue_UnknownKey_ReturnsEmpty) {
+    m_varStore = XRFCVarStore::getInstance();
+    const string key = "RFC_UNKNOWN_TEST_KEY";
+    if(m_varStore)
+    {
+       string value = m_varStore->getValue(key);
+       EXPECT_EQ(value, "");
+   }
+}
+
+TEST(httpserverTest, loadRFCVarIntoCache_EmptyFilename_ReturnsFalse) {
+    m_varStore = XRFCVarStore::getInstance();
+
+    ASSERT_NE(m_varStore, nullptr);
+    
+    const std::string prevFilename = m_varStore->m_filename;
+    m_varStore->m_filename = "";
+    
+    bool ret = m_varStore->loadRFCVarIntoCache();
+    EXPECT_EQ(ret, false);
+    
+    m_varStore->m_filename = prevFilename;
+}
+
+TEST(httpserverTest, getValue_InitNotDone_ReturnsEmptyEvenWhenKeyExists) {
+    m_varStore = XRFCVarStore::getInstance();
+
+    ASSERT_NE(m_varStore, nullptr);
+    
+    const bool prevInitDone = m_varStore->initDone;
+    m_varStore->m_dict["RFC_TEST_KEY"] = "RFC_TEST_VALUE";
+    m_varStore->initDone = false;
+    string value = m_varStore->getValue("RFC_TEST_KEY");
+    EXPECT_EQ(value, "");
+    
+    m_varStore->m_dict.erase("RFC_TEST_KEY");
+    m_varStore->initDone = prevInitDone;
+}
+
+TEST(httpserverTest, reloadCache_WithQuotedFilename_LoadsValues) {
+    m_varStore = XRFCVarStore::getInstance();
+
+    ASSERT_NE(m_varStore, nullptr);
+
+    const string prevFilename = m_varStore->m_filename;
+    const char *tmpFile = "/tmp/rfc_var_reload_test.ini";
+    std::ofstream ofs(tmpFile, std::ios::trunc | std::ios::out);
+    ofs << "export RFC_TEST_RELOAD_KEY=reload_value" << std::endl;
+    ofs.close();
+
+    m_varStore->m_filename = "\"/tmp/rfc_var_reload_test.ini\"";
+    m_varStore->reloadCache();
+    EXPECT_EQ(m_varStore->getValue("RFC_TEST_RELOAD_KEY"), "reload_value");
+
+    m_varStore->m_filename = prevFilename;
+    std::remove(tmpFile);
 }
 
 
@@ -160,9 +222,18 @@ TEST(httpserverTest, validateParamValue) {
     const string invalidLongValue = "123dab";
     dataType = hostIf_UnsignedLongType;
     EXPECT_EQ(validateParamValueFunc()(invalidLongValue, dataType), false);
+
+    const string unknownTypeValue = "anything";
+    dataType = (HostIf_ParamType_t)999;
+    EXPECT_EQ(validateParamValueFunc()(unknownTypeValue, dataType), false);
 }
 
 TEST(httpserverTest, handleRFCRequest_GET) {
+    m_varStore = XRFCVarStore::getInstance();
+    ASSERT_NE(m_varStore, nullptr);
+    m_varStore->m_dict["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType"] = "testtype";
+    m_varStore->initDone = true;
+
     param_t param;
     memset(&param,0,sizeof(param_t));
     param.name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType");
@@ -677,11 +748,72 @@ TEST(httpserverTest,  convertAndAssignParamValue_UnsignedLongType) {
 }
 
 TEST(httpserverTest,  getStringValue) {
-    EXPECT_STREQ(getStringValueFunc()(hostIf_StringType, "global"), "global");
-    EXPECT_STREQ(getStringValueFunc()(hostIf_IntegerType, "100"), "3158065");
-    EXPECT_STREQ(getStringValueFunc()(hostIf_BooleanType, "true"), "false");
-    EXPECT_STREQ(getStringValueFunc()(hostIf_BooleanType, "false"), "false");
-    EXPECT_STREQ(getStringValueFunc()(hostIf_UnsignedLongType, "123456789"), "4050765991979987505");
+
+    // Test hostIf_StringType: passes string pointer directly
+    char* stringResult = getStringValueFunc()(hostIf_StringType, "global");
+    EXPECT_STREQ(stringResult, "global");
+    free(stringResult);
+
+    // Test hostIf_IntegerType: dereferences as int*
+    int intValue = 100;
+    char* intResult = getStringValueFunc()(hostIf_IntegerType, (char*)&intValue);
+    EXPECT_STREQ(intResult, "100");
+    free(intResult);
+
+    // Test hostIf_BooleanType with true: dereferences as bool*
+    bool boolValueTrue = true;
+    char* boolTrueResult = getStringValueFunc()(hostIf_BooleanType, (char*)&boolValueTrue);
+    EXPECT_STREQ(boolTrueResult, "true");
+    free(boolTrueResult);
+
+    // Test hostIf_BooleanType with false: dereferences as bool*
+    bool boolValueFalse = false;
+    char* boolFalseResult = getStringValueFunc()(hostIf_BooleanType, (char*)&boolValueFalse);
+    EXPECT_STREQ(boolFalseResult, "false");
+    free(boolFalseResult);
+
+    // Test hostIf_UnsignedLongType: dereferences as unsigned long*
+    unsigned long ulValue = 123456789;
+    char* ulResult = getStringValueFunc()(hostIf_UnsignedLongType, (char*)&ulValue);
+    EXPECT_STREQ(ulResult, "123456789");
+    free(ulResult);
+
+    // Test unknown type: should return empty string	
+    char value[] = "x";
+    char* unknownType = getStringValueFunc()((HostIf_ParamType_t)999, value);
+    EXPECT_STREQ(unknownType, "");
+    free(unknownType);
+}
+
+TEST(httpserverTest, getHostIfParamStFromRequest_InvalidReqType_NoMutation) {
+    param_t param;
+    memset(&param, 0, sizeof(param_t));
+    param.name = strdup("Device.DeviceInfo.ModelName");
+    param.type = WDMP_STRING;
+    param.value = strdup("model");
+
+    HOSTIF_MsgData_t hostIfParam;
+    memset(&hostIfParam, 0, sizeof(HOSTIF_MsgData_t));
+    hostIfParam.reqType = HOSTIF_GETATTRIB;
+
+    getHostIfParamStFromRequestFunc()(DELETE_ROW, &param, &hostIfParam);
+
+    EXPECT_STREQ(hostIfParam.paramName, "Device.DeviceInfo.ModelName");
+    EXPECT_EQ(hostIfParam.reqType, HOSTIF_GETATTRIB);
+
+    free(param.name);
+    free(param.value);
+}
+
+TEST(httpserverTest, isAuthorized_CoversRebootAndAllowedPaths) {
+    EXPECT_EQ(isAuthorizedFunc()("webpa", "Device.X_CISCO_COM_DeviceControl.RebootDevice"), false);
+    EXPECT_EQ(isAuthorizedFunc()("webpa", "Device.DeviceInfo.ModelName"), true);
+}
+
+TEST(httpserverTest, XRFCVarStore_getInstance_IsSingleton) {
+    XRFCVarStore* instance1 = XRFCVarStore::getInstance();
+    XRFCVarStore* instance2 = XRFCVarStore::getInstance();
+    EXPECT_EQ(instance1, instance2);
 }
 
 TEST(httpserverTest, Invalid_RFC_filename) {
@@ -696,19 +828,147 @@ TEST(httpserverTest, Invalid_RFC_filename) {
    }
 }
 
-TEST(httpserverTest, HTTPRequestHandler_GET) { 
+TEST(httpserverTest, HTTPServerStartThread_And_Stop_CoversLifecycle) {
+    // Ensure data model is initialized for checkDataModelStatus()
+    EXPECT_EQ(loadDataModel(), DB_SUCCESS);
 
-    // Create a SoupMessage for POST
-    SoupServer *server = soup_server_new(nullptr, nullptr);
-    SoupMessage *msg = soup_message_new("POST", "http://localhost/api/status");
-    const char *json_body = "{\"action\":\"ping\"}";
-    GBytes *body_bytes = g_bytes_new_static(json_body, strlen(json_body));
-    soup_message_set_request_body_from_bytes(msg, "application/json", body_bytes);
-    SoupMessageHeaders *headers = soup_message_get_request_headers(msg);
-    soup_message_headers_append(headers, "CallerID", "unittest");
+    // Use ephemeral port to avoid collisions
+    argList.httpServerPort = 0;
+        
+    std::remove("/tmp/.tr69hostif_http_server_ready");
+    
+    void *thread_result = HTTPServerStartThread(nullptr);
+    EXPECT_EQ(thread_result, nullptr);
 
-    HTTPRequestHandlerFunc()(server, reinterpret_cast<SoupServerMessage *>(msg), "/api/status", nullptr, nullptr); 
-    EXPECT_EQ(0, 0);
+    std::ifstream ready_file("/tmp/.tr69hostif_http_server_ready");
+    EXPECT_TRUE(ready_file.good());
+    ready_file.close();
+
+    HttpServerStop();
+    EXPECT_EQ(httpServerThreadDone, false);
+
+    std::remove("/tmp/.tr69hostif_http_server_ready");
+}
+
+TEST(httpserverTest, HttpServerStop_WhenServerAlreadyStopped_NoCrash) {
+    HttpServerStop();
+    EXPECT_EQ(httpServerThreadDone, false);
+}
+
+TEST(httpserverTest, handleRequest_InvalidReqType_ReturnsNull) {
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = DELETE_ROW;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    EXPECT_EQ(respSt, nullptr);
+}
+
+TEST(httpserverTest, handleRequest_GetWithZeroParamCount_ReturnsNull) {
+    get_req_t *getReq = (get_req_t *)malloc(sizeof(get_req_t));
+    memset(getReq, 0, sizeof(get_req_t));
+    getReq->paramCnt = 0;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = GET;
+    reqSt.u.getReq = getReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    EXPECT_EQ(respSt, nullptr);
+
+    free(getReq);
+}
+
+TEST(httpserverTest, handleRequest_SetWithZeroParamCount_ReturnsNull) {
+    set_req_t *setReq = (set_req_t *)malloc(sizeof(set_req_t));
+    memset(setReq, 0, sizeof(set_req_t));
+    setReq->paramCnt = 0;
+    setReq->param = nullptr;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = SET;
+    reqSt.u.setReq = setReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    EXPECT_EQ(respSt, nullptr);
+
+    free(setReq);
+}
+
+TEST(httpserverTest, handleRequest_GetLongParamName_ReturnsInvalidParameterName) {
+    std::string longParamName(MAX_PARAMETERNAME_LEN + 32, 'A');
+
+    get_req_t *getReq = (get_req_t *)malloc(sizeof(get_req_t));
+    memset(getReq, 0, sizeof(get_req_t));
+    getReq->paramCnt = 1;
+    getReq->paramNames[0] = strdup(longParamName.c_str());
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = GET;
+    reqSt.u.getReq = getReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    ASSERT_NE(respSt, nullptr);
+    EXPECT_EQ(respSt->retStatus[0], WDMP_ERR_INVALID_PARAMETER_NAME);
+
+    wdmp_free_res_struct(respSt);
+    free(getReq->paramNames[0]);
+    free(getReq);
+}
+
+TEST(httpserverTest, handleRequest_SetRFCVariable_MethodNotSupported) {
+    set_req_t *setReq = (set_req_t *)malloc(sizeof(set_req_t));
+    memset(setReq, 0, sizeof(set_req_t));
+    setReq->paramCnt = 1;
+    setReq->param = (param_t *)malloc(sizeof(param_t));
+    memset(setReq->param, 0, sizeof(param_t));
+    setReq->param[0].name = strdup("RFC_TEST_VARIABLE");
+    setReq->param[0].value = strdup("true");
+    setReq->param[0].type = WDMP_STRING;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = SET;
+    reqSt.u.setReq = setReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    ASSERT_NE(respSt, nullptr);
+    EXPECT_EQ(respSt->retStatus[0], WDMP_ERR_METHOD_NOT_SUPPORTED);
+
+    wdmp_free_res_struct(respSt);
+    free(setReq->param[0].name);
+    free(setReq->param[0].value);
+    free(setReq->param);
+    free(setReq);
+}
+
+TEST(httpserverTest, handleRequest_SetRFCReloadCache_Success) {
+    set_req_t *setReq = (set_req_t *)malloc(sizeof(set_req_t));
+    memset(setReq, 0, sizeof(set_req_t));
+    setReq->paramCnt = 1;
+    setReq->param = (param_t *)malloc(sizeof(param_t));
+    memset(setReq->param, 0, sizeof(param_t));
+    setReq->param[0].name = strdup(XRFC_VAR_STORE_RELOADCACHE);
+    setReq->param[0].value = strdup("1");
+    setReq->param[0].type = WDMP_STRING;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = SET;
+    reqSt.u.setReq = setReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    ASSERT_NE(respSt, nullptr);
+    EXPECT_EQ(respSt->retStatus[0], WDMP_SUCCESS);
+
+    wdmp_free_res_struct(respSt);
+    free(setReq->param[0].name);
+    free(setReq->param[0].value);
+    free(setReq->param);
+    free(setReq);
 }
 
 
