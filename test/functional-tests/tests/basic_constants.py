@@ -42,9 +42,33 @@ T2_REPORT_PROFILE_PARAM_MSG_PCK="Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPac
 T2_TEMP_REPORT_PROFILE_PARAM="Device.X_RDKCENTRAL-COM_T2.Temp_ReportProfiles"
 RBUS_EXCEPTION_STRING = "Failed to get the data"
 RBUS_SUCCESS_STRING = "setvalues succeeded.."
+RBUS_SET_EXCEPTION_STRING = "setvalues failed"
 
 LOG_FILE = "/opt/logs/tr69hostif.log.0"
 
 PARODUS_LOG_FILE = "/opt/logs/parodus.log"
 DATA_LAKE_URL = "https://mockxconf:50051"
 DL_ADMIN_URL = "https://mockxconf:50051/adminSupport"
+
+MODULE_NAME = "tr69hostif"
+HTTP_URL = "http://127.0.0.1:11999"
+DAEMON_CMD = "/usr/local/bin/tr69hostif -c /etc/mgrlist.conf -p 10999 -s 11999"
+
+RFC_VAR_FILE = "/opt/secure/RFC/rfcVariable.ini"
+RFC_DEFAULTS_FILE = "/tmp/rfcdefaults.ini"
+
+RFC_L2_READBACK_KEY = "RFC_L2_READBACK"
+RFC_L2_READBACK_VALUE = "readback_value"
+RFC_L2_NEWKEY = "RFC_L2_NEWKEY"
+RFC_L2_NEWVALUE = "newvalue"
+
+RFC_DEFAULTS_PARAM = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable"
+RFC_DEFAULTS_VALUE = "false"
+RFC_OVERRIDE_VALUE = "true"
+
+RFC_RELOAD_CACHE_KEY = "RFC_CONTROL_RELOADCACHE"
+
+CALLER_ID_HEADER = "CallerID"
+RFC_CALLER = "rfc"
+TEST_CALLER = "TestAgent"
+DAEMON_READY_TIMEOUT = 30
