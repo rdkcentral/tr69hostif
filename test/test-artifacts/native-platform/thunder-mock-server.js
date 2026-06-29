@@ -54,6 +54,11 @@ const VERBOSE      = process.argv.includes('--verbose') || process.env.VERBOSE =
 const THUNDER_PORT = Number(process.env.THUNDER_PORT) || 9998;
 const THUNDER_HOST = process.env.THUNDER_HOST || '127.0.0.1';
 
+const state = {
+  wifi_enabled: true,
+  partner_id: 'comcast',
+};
+
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
@@ -86,7 +91,7 @@ const mockResponses = {
     description: 'Current system power state',
   },
   'org.rdk.NetworkManager.GetPrimaryInterface': {
-    result: { interface: 'eth0' },
+    result: { interface: 'wlan0' },
     description: 'Primary network interface',
   },
   'org.rdk.NetworkManager.GetIPSettings': {
@@ -101,8 +106,49 @@ const mockResponses = {
     result: { experience: 'TESTOS' },
     description: 'Device experience profile',
   },
+  'org.rdk.AuthService.setPartnerId': {
+    result: { success: true, partnerId: state.partner_id },
+    description: 'Set partner ID',
+  },
+  'org.rdk.NetworkManager.GetConnectedSSID': {
+    result: {
+      bssid: 'AA:BB:CC:DD:EE:FF',
+      ssid: 'WiFi_2.4G',
+      strength: 67,
+      security: 1,
+    },
+    description: 'Connected SSID details',
+  },
+  'org.rdk.NetworkManager.GetAvailableInterfaces': {
+    result: {
+      interfaces: [
+        {
+          type: 'WIFI',
+          enabled: state.wifi_enabled,
+          mac: 'AA:BB:CC:DD:EE:01',
+        },
+      ],
+    },
+    description: 'Available network interfaces',
+  },
+  'org.rdk.NetworkManager.1.GetAvailableInterfaces': {
+    result: {
+      interfaces: [
+        {
+          type: 'WIFI',
+          enabled: state.wifi_enabled,
+          mac: 'AA:BB:CC:DD:EE:01',
+        },
+      ],
+    },
+    description: 'Available network interfaces',
+  },
+  'org.rdk.NetworkManager.SetInterfaceState': {
+    result: { success: true, enabled: state.wifi_enabled },
+    description: 'Set interface enabled state',
+  },
   'org.rdk.Account.getLastCheckoutResetTime': {
-    result: { resetTime: Math.floor(Date.now() / 1000) },
+    result: { resetTime: 1717000000 },
     description: 'Last checkout reset timestamp',
   },
 };
@@ -152,6 +198,62 @@ function dispatchJsonRpcRequest(request) {
   const { id, method, params } = request;
 
   log('RPC', `method="${method}" id=${id} params=${JSON.stringify(params || {})}`);
+
+  if (method === 'org.rdk.NetworkManager.SetInterfaceState') {
+    const enabled = (params && Object.prototype.hasOwnProperty.call(params, 'enabled'))
+      ? params.enabled
+      : true;
+    state.wifi_enabled = Boolean(enabled);
+    const response = createSuccessResponse(id, { success: true, enabled: state.wifi_enabled });
+    log('RPC', `result=${JSON.stringify(response.result)}`);
+    return response;
+  }
+
+  if (method === 'org.rdk.NetworkManager.GetWifiState') {
+     const response = createSuccessResponse(id, { state: state.wifi_enabled ? 5 : 1 });
+     log('RPC', `result=${JSON.stringify(response.result)}`);
+     return response;
+   }
+	  
+  if (method === 'org.rdk.NetworkManager.GetAvailableInterfaces') {
+    const response = createSuccessResponse(id, {
+      interfaces: [
+        {
+          type: 'WIFI',
+          enabled: state.wifi_enabled,
+          mac: 'AA:BB:CC:DD:EE:01',
+        },
+      ],
+    });
+    log('RPC', `result=${JSON.stringify(response.result)}`);
+    return response;
+  }
+
+  if (method === 'org.rdk.NetworkManager.1.GetAvailableInterfaces') {
+    const response = createSuccessResponse(id, {
+      interfaces: [
+        {
+          type: 'WIFI',
+          enabled: state.wifi_enabled,
+          mac: 'AA:BB:CC:DD:EE:01',
+        },
+      ],
+    });
+    log('RPC', `result=${JSON.stringify(response.result)}`);
+    return response;
+  }
+
+  if (method === 'org.rdk.AuthService.setPartnerId') {
+    const partnerId = (params && Object.prototype.hasOwnProperty.call(params, 'partnerId'))
+      ? params.partnerId
+      : state.partner_id;
+    if (partnerId !== null && partnerId !== undefined) {
+      state.partner_id = String(partnerId);
+    }
+    const response = createSuccessResponse(id, { success: true, partnerId: state.partner_id });
+    log('RPC', `result=${JSON.stringify(response.result)}`);
+    return response;
+  }
 
   const entry = mockResponses[method];
   if (!entry) {
