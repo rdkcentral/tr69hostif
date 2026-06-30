@@ -70,8 +70,6 @@ static BTRMgrDeviceHandle handle_devInfo = 0;
 std::mutex hostIf_DeviceInfoRdk_xBT::m;
 hostIf_DeviceInfoRdk_xBT* hostIf_DeviceInfoRdk_xBT::m_instance = NULL;
 
-#define BTRMGR_QUERY_INTERVAL 5
-
 int hostIf_DeviceInfoRdk_xBT::noOfDiscoveredDevice=0;
 int hostIf_DeviceInfoRdk_xBT::noOfPairedDevice=0;
 int hostIf_DeviceInfoRdk_xBT::noOfConnectedDevices=0;
@@ -1766,34 +1764,28 @@ void hostIf_DeviceInfoRdk_xBT::fetch_Bluetooth_DiscoveredDevicesList()
 {
     LOG_ENTRY_EXIT;
 
-    static time_t firstExTimeDisList = 0;
-    time_t currExTime = time (NULL);
-    if ((currExTime - firstExTimeDisList ) > BTRMGR_QUERY_INTERVAL)
+    memset (&disDevList, '\0', sizeof(disDevList));
+    if (BTRMGR_RESULT_SUCCESS != BTRMGR_GetDiscoveredDevices(0, &disDevList))
     {
-        memset (&disDevList, '\0', sizeof(disDevList));
-        if (BTRMGR_RESULT_SUCCESS != BTRMGR_GetDiscoveredDevices(0, &disDevList))
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Failed in BTRMGR_GetDiscoveredDevices. \n", __FUNCTION__);
+    }
+    else if (disDevList.m_numOfDevices > BTRMGR_DEVICE_COUNT_MAX)
+    {
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Invalid  device count (%d). \n",
+                __FUNCTION__, disDevList.m_numOfDevices);
+    }
+    else
+    {
+        int j = 0;
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s]xBlueTooth: Successfully gets the Discovered Devices details. Total count is (%d). \n",
+                __FUNCTION__, disDevList.m_numOfDevices);
+        for (; j< disDevList.m_numOfDevices; j++)
         {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Failed in BTRMGR_GetDiscoveredDevices. \n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%d \t %llu \t %s \t %s\n", j,
+                    disDevList.m_deviceProperty[j].m_deviceHandle,
+                    disDevList.m_deviceProperty[j].m_name,
+                    disDevList.m_deviceProperty[j].m_deviceAddress);
         }
-        else if (disDevList.m_numOfDevices > BTRMGR_DEVICE_COUNT_MAX)
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Invalid  device count (%d). \n",
-                    __FUNCTION__, disDevList.m_numOfDevices);
-        }
-        else
-        {
-            int j = 0;
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s]xBlueTooth: Successfully gets the Discovered Devices details. Total count is (%d). \n",
-                    __FUNCTION__, disDevList.m_numOfDevices);
-            for (; j< disDevList.m_numOfDevices; j++)
-            {
-                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%d \t %llu \t %s \t %s\n", j,
-                        disDevList.m_deviceProperty[j].m_deviceHandle,
-                        disDevList.m_deviceProperty[j].m_name,
-                        disDevList.m_deviceProperty[j].m_deviceAddress);
-            }
-        }
-        firstExTimeDisList = time (NULL);
     }
 
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] disDevList.m_numOfDevices = %hu, noOfDiscoveredDevice = %d\n",
@@ -1817,35 +1809,29 @@ void hostIf_DeviceInfoRdk_xBT::fetch_Bluetooth_PairedDevicesList()
 {
     LOG_ENTRY_EXIT;
 
-    static time_t firstExTimePairedList = 0;
-    time_t currExTime = time (NULL);
-    if ((currExTime - firstExTimePairedList ) > BTRMGR_QUERY_INTERVAL)
-    {
-        memset (&pairedDevList, 0, sizeof(pairedDevList));
+    memset (&pairedDevList, 0, sizeof(pairedDevList));
 
-        if (BTRMGR_RESULT_SUCCESS != BTRMGR_GetPairedDevices(0, &pairedDevList))
+    if (BTRMGR_RESULT_SUCCESS != BTRMGR_GetPairedDevices(0, &pairedDevList))
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Failed in BTRMGR_GetPairedDevices. \n", __FUNCTION__);
+    }
+    else if (pairedDevList.m_numOfDevices > BTRMGR_DEVICE_COUNT_MAX)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Invalid  device count (%d). \n",
+                __FUNCTION__, pairedDevList.m_numOfDevices);
+    }
+    else
+    {
+        int j = 0;
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s]xBlueTooth: Successfully get Paired Devices details. Total count is (%d). \n",
+                __FUNCTION__, pairedDevList.m_numOfDevices);
+        for (; j< pairedDevList.m_numOfDevices; j++)
         {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Failed in BTRMGR_GetPairedDevices. \n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%d \t %llu \t %s \t %s\n", j,
+                    pairedDevList.m_deviceProperty[j].m_deviceHandle,
+                    pairedDevList.m_deviceProperty[j].m_name,
+                    pairedDevList.m_deviceProperty[j].m_deviceAddress);
         }
-        else if (pairedDevList.m_numOfDevices > BTRMGR_DEVICE_COUNT_MAX)
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Invalid  device count (%d). \n",
-                    __FUNCTION__, pairedDevList.m_numOfDevices);
-        }
-        else
-        {
-            int j = 0;
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s]xBlueTooth: Successfully get Paired Devices details. Total count is (%d). \n",
-                    __FUNCTION__, pairedDevList.m_numOfDevices);
-            for (; j< pairedDevList.m_numOfDevices; j++)
-            {
-                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%d \t %llu \t %s \t %s\n", j,
-                        pairedDevList.m_deviceProperty[j].m_deviceHandle,
-                        pairedDevList.m_deviceProperty[j].m_name,
-                        pairedDevList.m_deviceProperty[j].m_deviceAddress);
-            }
-        }
-        firstExTimePairedList = time (NULL);
     }
 
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] pairedDevList.m_numOfDevices = %hu, noOfPairedDevice = %d\n",
@@ -1869,35 +1855,29 @@ void hostIf_DeviceInfoRdk_xBT::fetch_Bluetooth_ConnectedDevicesList()
 {
     LOG_ENTRY_EXIT;
 
-    static time_t firstExTimeConnList = 0;
-    time_t currExTime = time (NULL);
-    if ((currExTime - firstExTimeConnList ) > BTRMGR_QUERY_INTERVAL)
-    {
-        memset (&connectedDevList, 0, sizeof(connectedDevList));
+    memset (&connectedDevList, 0, sizeof(connectedDevList));
 
-        if (BTRMGR_RESULT_SUCCESS != BTRMGR_GetConnectedDevices(0, &connectedDevList))
+    if (BTRMGR_RESULT_SUCCESS != BTRMGR_GetConnectedDevices(0, &connectedDevList))
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Failed in BTRMGR_GetConnectedDevices. \n", __FUNCTION__);
+    }
+    else if (connectedDevList.m_numOfDevices > BTRMGR_DEVICE_COUNT_MAX)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Invalid  device count (%d). \n",
+                __FUNCTION__, connectedDevList.m_numOfDevices);
+    }
+    else
+    {
+        int j = 0;
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s]xBlueTooth: Successfully gets the Connected Devices details. Total count is (%d). \n",
+                __FUNCTION__, connectedDevList.m_numOfDevices);
+        for (; j< connectedDevList.m_numOfDevices; j++)
         {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Failed in BTRMGR_GetConnectedDevices. \n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%d \t %llu \t %s \t %s\n", j,
+                    connectedDevList.m_deviceProperty[j].m_deviceHandle,
+                    connectedDevList.m_deviceProperty[j].m_name,
+                    connectedDevList.m_deviceProperty[j].m_deviceAddress);
         }
-        else if (connectedDevList.m_numOfDevices > BTRMGR_DEVICE_COUNT_MAX)
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s]xBlueTooth: Invalid  device count (%d). \n",
-                    __FUNCTION__, connectedDevList.m_numOfDevices);
-        }
-        else
-        {
-            int j = 0;
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s]xBlueTooth: Successfully gets the Connected Devices details. Total count is (%d). \n",
-                    __FUNCTION__, connectedDevList.m_numOfDevices);
-            for (; j< connectedDevList.m_numOfDevices; j++)
-            {
-                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%d \t %llu \t %s \t %s\n", j,
-                        connectedDevList.m_deviceProperty[j].m_deviceHandle,
-                        connectedDevList.m_deviceProperty[j].m_name,
-                        connectedDevList.m_deviceProperty[j].m_deviceAddress);
-            }
-        }
-        firstExTimeConnList = time (NULL);
     }
 
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] connectedDevList.m_numOfDevices = %hu, noOfConnectedDevices = %d\n",
