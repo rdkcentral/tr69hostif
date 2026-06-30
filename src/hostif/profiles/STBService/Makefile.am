@@ -33,10 +33,6 @@ if WITH_XRDK_EMMC_PROFILE
 AM_CXXFLAGS += $(XRDK_EMMC_PROFILE_FLAG)
 endif
 
-if WITH_XRDK_RF4CE_PROFILE
-AM_CXXFLAGS += $(XRDK_RF4CE_PROFILE_FLAG)
-endif
-
 noinst_LTLIBRARIES = libstbservice.la
 libstbservice_la_SOURCES =	Components_AudioOutput.cpp \
 				Components_SPDIF.cpp \
