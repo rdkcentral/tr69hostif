@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
+
 SUBDIRS = hostif/handlers hostif/profiles
 DIST_SUBDIRS = hostif/handlers hostif/profiles
 if WITH_SNMP_ADAPTER
