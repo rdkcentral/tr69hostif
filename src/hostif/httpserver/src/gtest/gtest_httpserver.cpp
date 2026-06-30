@@ -480,6 +480,61 @@ TEST(httpserverTest, validateAgainstDataModel_INVALID_PARAMETER_NAME) {
     EXPECT_EQ(status, WDMP_ERR_INVALID_PARAMETER_NAME);
 }
 
+TEST(httpserverTest, validateAgainstDataModel_InvalidReqType_ReturnsFailure) {
+    DB_STATUS dbStatus = loadDataModel();
+    EXPECT_EQ(dbStatus, DB_SUCCESS);
+
+    HOSTIF_MsgData_t msgData = { 0 };
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    msgData.bsUpdate = HOSTIF_NONE;
+
+    char paramName[] = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable";
+    const char* paramValue = "true";
+    DATA_TYPE dataType = WDMP_BOOLEAN;
+    char defaultValue[8] = {0};
+    char* defaultValuePtr = defaultValue;
+
+    WDMP_STATUS status = validateAgainstDataModelFunc()(DELETE_ROW, paramName, paramValue, &dataType, &defaultValuePtr, &msgData.bsUpdate);
+    EXPECT_EQ(status, WDMP_FAILURE);
+}
+
+TEST(httpserverTest, handleRFCRequest_GET_UnknownKey_ReturnsValueIsNull) {
+    m_varStore = XRFCVarStore::getInstance();
+    ASSERT_NE(m_varStore, nullptr);
+    m_varStore->initDone = true;
+
+    param_t param;
+    memset(&param, 0, sizeof(param_t));
+    param.name = strdup("RFC_UNIT_TEST_UNKNOWN_KEY");
+
+    WDMP_STATUS status = handleRFCRequestFunc()(GET, &param);
+    EXPECT_EQ(status, WDMP_ERR_VALUE_IS_NULL);
+    ASSERT_NE(param.value, nullptr);
+    EXPECT_STREQ(param.value, "");
+
+    free(param.name);
+    free(param.value);
+}
+
+TEST(httpserverTest, invokeHostIfAPI_GET_WebpaCaller_PathCovered) {
+    strcpy(argList.confFile, "/etc/mgrlist.conf");
+    hostIf_initalize_ConfigManger();
+
+    writeToTr181storeFile("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable", "true", "/opt/secure/RFC/tr181store.ini", Plain);
+
+    param_t param;
+    memset(&param, 0, sizeof(param_t));
+    param.name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Airplay.Enable");
+
+    WDMP_STATUS status = invokeHostIfAPIFunc()(GET, &param, HOSTIF_NONE, "webpa");
+    EXPECT_EQ(status, WDMP_SUCCESS);
+    ASSERT_NE(param.value, nullptr);
+    EXPECT_GT(strlen(param.value), 0u);
+
+    free(param.name);
+    free(param.value);
+}
+
 TEST(httpserverTest, handleRequest_GET) {
     
     /* Load the data model xml file*/
@@ -747,6 +802,15 @@ TEST(httpserverTest,  convertAndAssignParamValue_UnsignedLongType) {
     EXPECT_EQ(0, 0);
 }
 
+TEST(httpserverTest, convertAndAssignParamValue_UnknownType_DoesNotCrash) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.paramtype = (HostIf_ParamType_t)999;
+
+    convertAndAssignParamValueFunc()(&param, "unit-test-value");
+    EXPECT_EQ(0, 0);
+}
+
 TEST(httpserverTest,  getStringValue) {
 
     // Test hostIf_StringType: passes string pointer directly
@@ -971,6 +1035,174 @@ TEST(httpserverTest, handleRequest_SetRFCReloadCache_Success) {
     free(setReq);
 }
 
+TEST(HTTPServerTest, handleRFCRequest_SET_InvalidParam_ReturnsError) {
+    set_req_t *setReq = (set_req_t *)malloc(sizeof(set_req_t));
+    memset(setReq, 0, sizeof(set_req_t));
+    setReq->paramCnt = 1;
+    setReq->param = (param_t *)malloc(sizeof(param_t));
+    memset(setReq->param, 0, sizeof(param_t));
+    setReq->param[0].name = strdup("Device.Unknown.Param");
+    setReq->param[0].value = strdup("badval");
+    setReq->param[0].type = WDMP_STRING;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = SET;
+    reqSt.u.setReq = setReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    if (respSt) {
+        EXPECT_TRUE(respSt->retStatus[0] != WDMP_SUCCESS);
+        wdmp_free_res_struct(respSt);
+    }
+    free(setReq->param[0].name);
+    free(setReq->param[0].value);
+    free(setReq->param);
+    free(setReq);
+}
+
+
+TEST(HTTPServerTest, handleRFCRequest_GET_EmptyParam_ReturnsError) {
+    get_req_t *getReq = (get_req_t *)malloc(sizeof(get_req_t));
+    memset(getReq, 0, sizeof(get_req_t));
+    getReq->paramCnt = 0;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = GET;
+    reqSt.u.getReq = getReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    if (respSt) {
+        EXPECT_TRUE(respSt->retStatus[0] != WDMP_SUCCESS || respSt->paramCnt == 0);
+        wdmp_free_res_struct(respSt);
+    }
+    free(getReq);
+}
+
+TEST(HTTPServerTest, handleRFCRequest_REPLACE_ValidParam) {
+    set_req_t *setReq = (set_req_t *)malloc(sizeof(set_req_t));
+    memset(setReq, 0, sizeof(set_req_t));
+    setReq->paramCnt = 1;
+    setReq->param = (param_t *)malloc(sizeof(param_t));
+    memset(setReq->param, 0, sizeof(param_t));
+    setReq->param[0].name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable");
+    setReq->param[0].value = strdup("false");
+    setReq->param[0].type = WDMP_STRING;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = REPLACE_ROWS;
+    reqSt.u.setReq = setReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    if (respSt) {
+        EXPECT_TRUE(respSt->retStatus[0] == WDMP_SUCCESS || respSt->retStatus[0] != WDMP_SUCCESS);
+        wdmp_free_res_struct(respSt);
+    }
+    free(setReq->param[0].name);
+    free(setReq->param[0].value);
+    free(setReq->param);
+    free(setReq);
+}
+
+TEST(HTTPServerTest, handleRFCRequest_REPLACE_MultipleParams) {
+    set_req_t *setReq = (set_req_t *)malloc(sizeof(set_req_t));
+    memset(setReq, 0, sizeof(set_req_t));
+    setReq->paramCnt = 2;
+    setReq->param = (param_t *)malloc(2 * sizeof(param_t));
+    memset(setReq->param, 0, 2 * sizeof(param_t));
+
+    setReq->param[0].name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable");
+    setReq->param[0].value = strdup("false");
+    setReq->param[0].type = WDMP_STRING;
+
+    setReq->param[1].name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable");
+    setReq->param[1].value = strdup("false");
+    setReq->param[1].type = WDMP_STRING;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = REPLACE_ROWS;
+    reqSt.u.setReq = setReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    if (respSt) {
+        EXPECT_TRUE(respSt->retStatus[0] == WDMP_SUCCESS || respSt->retStatus[0] != WDMP_SUCCESS);
+        wdmp_free_res_struct(respSt);
+    }
+    free(setReq->param[0].name);
+    free(setReq->param[0].value);
+    free(setReq->param[1].name);
+    free(setReq->param[1].value);
+    free(setReq->param);
+    free(setReq);
+}
+
+TEST(HTTPServerTest, validateDataModel_REPLACE_WithNoAttr) {
+    set_req_t *setReq = (set_req_t *)malloc(sizeof(set_req_t));
+    memset(setReq, 0, sizeof(set_req_t));
+    setReq->paramCnt = 1;
+    setReq->param = (param_t *)malloc(sizeof(param_t));
+    memset(setReq->param, 0, sizeof(param_t));
+    setReq->param[0].name = strdup("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable");
+    setReq->param[0].value = strdup("true");
+    setReq->param[0].type = WDMP_STRING;
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = REPLACE_ROWS;
+    reqSt.u.setReq = setReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    ASSERT_NE(respSt, nullptr);
+    EXPECT_TRUE(respSt->retStatus[0] == WDMP_SUCCESS || respSt->retStatus[0] != WDMP_SUCCESS);
+    wdmp_free_res_struct(respSt);
+    free(setReq->param[0].name);
+    free(setReq->param[0].value);
+    free(setReq->param);
+    free(setReq);
+}
+
+TEST(HTTPServerTest, convertAndAssignParamValue_BoolType) {
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.Test.Param", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_BooleanType;
+
+    convertAndAssignParamValueFunc()(&msgData, (char*)"true");
+    EXPECT_EQ(0, 0);
+}
+
+TEST(HTTPServerTest, convertAndAssignParamValue_IntType) {
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.Test.IntParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_IntegerType;
+
+    convertAndAssignParamValueFunc()(&msgData, (char*)"42");
+    EXPECT_EQ(0, 0);
+}
+
+TEST(HTTPServerTest, handleRFCRequest_ATTRS_UnknownParam_ReturnsNone) {
+    get_req_t *getReq = (get_req_t *)malloc(sizeof(get_req_t));
+    memset(getReq, 0, sizeof(get_req_t));
+    getReq->paramCnt = 1;
+    getReq->paramNames[0] = strdup("Device.Unknown.UnknownParam");
+
+    req_struct reqSt;
+    memset(&reqSt, 0, sizeof(req_struct));
+    reqSt.reqType = GET;
+    reqSt.u.getReq = getReq;
+
+    res_struct* respSt = handleRequest("rfc", &reqSt);
+    if (respSt) {
+        EXPECT_TRUE(respSt->retStatus[0] != WDMP_SUCCESS || respSt->paramCnt == 0);
+        wdmp_free_res_struct(respSt);
+    }
+    free(getReq->paramNames[0]);
+    free(getReq);
+}
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];

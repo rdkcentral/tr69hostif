@@ -163,6 +163,9 @@ TEST(srcTest, getEnumFromString) {
 
     int result = getEnumFromString(myEnumMap, 0, "THREE");
     EXPECT_EQ(result, -1);
+
+    int caseInsensitive = getEnumFromString(myEnumMap, size, "three");
+    EXPECT_EQ(caseInsensitive, 3);
 }
 
 TEST(srcTest, type_conversions) {
@@ -233,6 +236,9 @@ TEST(srcTest, getBSUpdateEnum) {
 
     type = getBSUpdateEnum(NULL);
     EXPECT_EQ(type, HOSTIF_NONE);
+
+    type = getBSUpdateEnum("unexpected-source");
+    EXPECT_EQ(type, HOSTIF_NONE);
 }
 
 
@@ -241,9 +247,21 @@ TEST(srcTest, isWebpaReady) {
     EXPECT_EQ(ret, true);
 }
 
+TEST(srcTest, isWebpaReadyFalseWhenFileMissing) {
+    std::remove("/tmp/webpa/start_time");
+    bool ret = isWebpaReady();
+    EXPECT_EQ(ret, false);
+}
+
 TEST(srcTest, isNtpTimeFilePresent) {
     bool ret = isNtpTimeFilePresent();
     EXPECT_EQ(ret, true);
+}
+
+TEST(srcTest, isNtpTimeFilePresentFalseWhenFileMissing) {
+    std::remove("/tmp/timeReceivedNTP");
+    bool ret = isNtpTimeFilePresent();
+    EXPECT_EQ(ret, false);
 }
 
 TEST(srcTest, get_system_manageble_ntp_time) {
@@ -252,12 +270,23 @@ TEST(srcTest, get_system_manageble_ntp_time) {
     EXPECT_EQ(ret, 1754922150);
 }
 
+TEST(srcTest, get_system_manageble_ntp_time_invalid_date) {
+    write_on_file("/tmp/timeReceivedNTP", "invalid-date-format");
+    unsigned long ret = get_system_manageble_ntp_time();
+    EXPECT_EQ(ret, 0UL);
+}
+
 TEST(srcTest, get_device_manageble_time) {
     write_on_file("/tmp/webpa/start_time", "1754835750");
     unsigned long ret = get_device_manageble_time();
     EXPECT_EQ(ret, 1754835750);
 }
 
+TEST(srcTest, get_system_manageble_ntp_time_MissingFileReturnsZero) {
+    std::remove("/tmp/timeReceivedNTP");
+    unsigned long ret = get_system_manageble_ntp_time();
+    EXPECT_EQ(ret, 0UL);
+}
 
 TEST(srcTest, set_get_GatewayConnStatus) {
     set_GatewayConnStatus(true);
@@ -269,6 +298,10 @@ TEST(srcTest, set_get_LegacyRFCEnabled) {
     setLegacyRFCEnabled(true);
     bool status = legacyRFCEnabled();
     EXPECT_EQ(status, true);
+
+    setLegacyRFCEnabled(false);
+    status = legacyRFCEnabled();
+    EXPECT_EQ(status, false);
 }
 
 TEST(srcTest, matchComponent) {
@@ -351,6 +384,13 @@ TEST(srcTest, triggerResetScript)
     setResetState(CustomerReset);
     triggerResetScript();
 
+    EXPECT_EQ(0, 0);
+}
+
+TEST(srcTest, triggerResetScriptInvalidState)
+{
+    setResetState((eSTBResetState)999);
+    triggerResetScript();
     EXPECT_EQ(0, 0);
 }
 
@@ -448,6 +488,27 @@ TEST(srcTest, getStringValue)
     std::string value = getStringValue(&param);
     cout << "param.paramValue = " << param.paramValue << endl;
     EXPECT_EQ(value, "true");
+}
+
+TEST(srcTest, getStringValueCoversIntegerUnsignedAndString)
+{
+    HOSTIF_MsgData_t msg = {0};
+
+    msg.paramtype = hostIf_IntegerType;
+    put_int(msg.paramValue, -42);
+    EXPECT_EQ(getStringValue(&msg), "-42");
+
+    msg.paramtype = hostIf_UnsignedIntType;
+    put_uint(msg.paramValue, 42);
+    EXPECT_EQ(getStringValue(&msg), "42");
+
+    msg.paramtype = hostIf_UnsignedLongType;
+    put_ulong(msg.paramValue, 123456UL);
+    EXPECT_EQ(getStringValue(&msg), "123456");
+
+    msg.paramtype = hostIf_StringType;
+    strncpy(msg.paramValue, "abc", sizeof(msg.paramValue) - 1);
+    EXPECT_EQ(getStringValue(&msg), "abc");
 }
 
 TEST(srcTest, invokeThunderPluginMethodEmptyMethod)
@@ -730,7 +791,6 @@ TEST(srcTest, thunderInvokeHelpersFailForEmptyMethod)
     EXPECT_FALSE(invokeThunderPluginMethodAndExtractDelimitedStringArrayField("", "", "field", ",", sValue));
     EXPECT_FALSE(invokeThunderPluginMethodAndExtractScalarStringResult("", "", sValue));
 }
-
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
