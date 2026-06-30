@@ -62,7 +62,8 @@ int getNumberofInstances(const char* paramName);
 
 #define WEBPA_DATA_MODEL_FILE "/tmp/data-model.xml"
 static void *g_dbhandle = NULL;
-std::mutex g_db_mutex;
+std::mutex g_db_mutex; //g
+
 
 /* @brief Loads the data-model xml data
  *
