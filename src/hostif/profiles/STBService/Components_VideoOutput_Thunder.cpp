@@ -114,14 +114,39 @@ int hostIf_STBServiceVideoOutput::handleSetMsg(const char *paramName, HOSTIF_Msg
 
 int hostIf_STBServiceVideoOutput::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
-    if (strcasecmp(paramName, STATUS_STRING) == 0)       return getStatus(stMsgData);
-    if (strcasecmp(paramName, ENABLE_STRING) == 0)       return getEnable(stMsgData);
-    if (strcasecmp(paramName, DISPLAY_FORMAT_STRING) == 0) return getDisplayFormat(stMsgData);
-    if (strcasecmp(paramName, VIDEO_FORMAT_STRING) == 0) return getVideoFormat(stMsgData);
-    if (strcasecmp(paramName, AR_BEHAVIOR_STRING) == 0)  return getAspectRatioBehaviour(stMsgData);
-    if (strcasecmp(paramName, HDCP_STRING) == 0)         return getHDCP(stMsgData);
-    if (strcasecmp(paramName, DISPLAY_NAME_STRING) == 0) return getName(stMsgData);
-    return NOT_HANDLED;
+    int ret = NOT_HANDLED;
+    if (strcasecmp(paramName, STATUS_STRING) == 0)
+    {
+        ret = getStatus(stMsgData);
+    }
+    else if (strcasecmp(paramName, ENABLE_STRING) == 0)
+    {
+        put_boolean(stMsgData->paramValue, true);
+        stMsgData->paramtype = hostIf_BooleanType;
+        stMsgData->paramLen = sizeof(bool);
+        ret = OK;
+    }
+    else if (strcasecmp(paramName, DISPLAY_FORMAT_STRING) == 0)
+    {
+        ret = getDisplayFormat(stMsgData);
+    }
+    else if (strcasecmp(paramName, VIDEO_FORMAT_STRING) == 0)
+    {
+        ret = getVideoFormat(stMsgData);
+    }
+    else if (strcasecmp(paramName, AR_BEHAVIOR_STRING) == 0)
+    {
+        ret = getAspectRatioBehaviour(stMsgData);
+    }
+    else if (strcasecmp(paramName, HDCP_STRING) == 0)
+    {
+        ret = getHDCP(stMsgData);
+    }
+    else if (strcasecmp(paramName, DISPLAY_NAME_STRING) == 0)
+    {
+        ret = getName(stMsgData);
+    }
+    return ret;
 }
 
 void hostIf_STBServiceVideoOutput::doUpdates(updateCallback mUpdateCallback)
@@ -144,9 +169,9 @@ void hostIf_STBServiceVideoOutput::doUpdates(updateCallback mUpdateCallback)
 
 int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    bool connected = false;
-    invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "connected", connected);
-    const char *status = connected ? ENABLED_STRING : DISABLED_STRING;
+    bool isConnected = false;
+    invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected);
+    const char *status = isConnected ? ENABLED_STRING : DISABLED_STRING;
     strncpy(stMsgData->paramValue, status, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
@@ -159,34 +184,17 @@ int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *p
     return OK;
 }
 
-int hostIf_STBServiceVideoOutput::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    bool enabled = false;
-    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractBoolField(
-            THUNDER_DS_GET_ENABLE_VIDEO_PORT, params, "enable", enabled))
-    {
-        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "connected", enabled);
-    }
-    put_boolean(stMsgData->paramValue, enabled);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen = sizeof(bool);
-    if (bCalledVideoOutputStatus && pChanged)
-    {
-        const char *status = enabled ? ENABLED_STRING : DISABLED_STRING;
-        if (strcmp(backupVideoOutputStatus, status))
-            *pChanged = true;
-    }
-    return OK;
-}
-
 int hostIf_STBServiceVideoOutput::getDisplayFormat(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string res;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_CURRENT_RESOLUTION, params, "resolution", res))
-        res = "1280x720p";
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder %s failed (port=%s)\n",
+                __FUNCTION__, THUNDER_DS_GET_CURRENT_RESOLUTION, m_portName.c_str());
+        return NOK;
+    }
     strncpy(stMsgData->paramValue, res.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
@@ -199,12 +207,28 @@ int hostIf_STBServiceVideoOutput::getDisplayFormat(HOSTIF_MsgData_t *stMsgData, 
     return OK;
 }
 
+
+/************************************************************
+ * Description  : Get the currently active video output format.
+ * Precondition : None
+ * Input        : stMsgData for result return.
+                  pChanged
+
+ * Return       : OK -> Success
+                  NOK -> Failure
+                  value -> HDMI
+               DVI.
+TODO:  Need correct implementation.  Here's what TR-135 says:
+   Comma-separated list of strings. Each entry is a supported display format and
+   MUST be in the form of “x:y”, such as for example “4:3, 16:9, 14:9".
+   Need to check with team.
+************************************************************/
 int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string fmt;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
     if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_GET_VIDEO_FORMAT, params, "videoFormat", fmt))
+            THUNDER_DS_GET_VIDEO_FORMAT, params, "currentVideoFormat", fmt))
         fmt = "Unknown";
     strncpy(stMsgData->paramValue, fmt.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
@@ -221,7 +245,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
-    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_AVO_GET_ZOOM_MODE, "{}", "zoomMode", mode))
+    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_AVO_GET_ZOOM_MODE, "{}", "zoomSetting", mode))
         mode = "None";
     strncpy(stMsgData->paramValue, mode.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
@@ -238,7 +262,7 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
 int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool hdcpEnabled = false;
-    invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPEnabled", hdcpEnabled);
+    invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled);
     put_boolean(stMsgData->paramValue, hdcpEnabled);
     stMsgData->paramtype = hostIf_BooleanType;
     stMsgData->paramLen = sizeof(bool);

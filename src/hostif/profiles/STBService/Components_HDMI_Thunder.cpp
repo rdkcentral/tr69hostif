@@ -3,7 +3,6 @@
  * Components_HDMI_Thunder.cpp: Thunder-backed HDMI implementation.
  */
 #include <sstream>
-#include <cctype>
 #include "Components_HDMI.h"
 
 #define DEV_NAME "HDMI"
@@ -21,9 +20,12 @@
 #define THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS "org.rdk.DisplaySettings.getSupportedVideoDisplays"
 #define THUNDER_DS_GET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.getCurrentResolution"
 #define THUNDER_DS_SET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.setCurrentResolution"
-#define THUNDER_DS_GET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.getEnableVideoPort"
 #define THUNDER_DS_SET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.setEnableVideoPort"
-#define THUNDER_DI_CONNECTED                    "org.rdk.DisplayInfo.connected"
+#define THUNDER_DS_GET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.getEnableVideoPort"
+#define THUNDER_DS_GET_MUTED                    "org.rdk.DisplaySettings.getMuted"
+#define THUNDER_DI_FRAMERATE                    "DisplayInfo.1.framerate"
+
+#define MUTED_STRING      "Muted"
 
 char hostIf_STBServiceHDMI::dsHDMIResolutionMode[10] = HDMI_RESOLUTION_MODE_MANUAL;
 GHashTable * hostIf_STBServiceHDMI::ifHash = NULL;
@@ -167,90 +169,9 @@ void hostIf_STBServiceHDMI::doUpdates(updateCallback mUpdateCallback)
     if(mUpdateCallback) mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff,msgData.paramValue,msgData.paramtype); }
 
     DO_UPD(getResolutionValue, RES_VAL_STRING)
-    DO_UPD(getEnable, ENABLE_STRING)
     DO_UPD(getStatus, STATUS_STRING)
     DO_UPD(getName, NAME_STRING)
 #undef DO_UPD
-}
-
-static bool normalizeResolutionFormat(const std::string& input, std::string& normalized)
-{
-    if (input.empty())
-        return false;
-
-    std::string s = input;
-    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.back())))
-        s.pop_back();
-    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.front())))
-        s.erase(s.begin());
-
-    if (s.empty())
-        return false;
-
-    const size_t xPos = s.find('x');
-    if (xPos == std::string::npos)
-        return false;
-
-    const size_t slashPos = s.find('/');
-    if (slashPos != std::string::npos)
-    {
-        const size_t pPos = s.find('p', xPos + 1);
-        const size_t iPos = s.find('i', xPos + 1);
-        const bool hasMode = ((pPos != std::string::npos && pPos < slashPos) ||
-                              (iPos != std::string::npos && iPos < slashPos));
-
-        if (!hasMode)
-            s.insert(slashPos, "p");
-
-        const size_t hzPos = s.find("Hz");
-        if (hzPos == std::string::npos)
-            s += "Hz";
-
-        normalized = s;
-        return true;
-    }
-
-    const size_t pPos = s.find('p', xPos + 1);
-    const size_t iPos = s.find('i', xPos + 1);
-    size_t modePos = std::string::npos;
-    char mode = 'p';
-    if (pPos != std::string::npos && iPos != std::string::npos)
-    {
-        modePos = (pPos < iPos) ? pPos : iPos;
-        mode = (pPos < iPos) ? 'p' : 'i';
-    }
-    else if (pPos != std::string::npos)
-    {
-        modePos = pPos;
-        mode = 'p';
-    }
-    else if (iPos != std::string::npos)
-    {
-        modePos = iPos;
-        mode = 'i';
-    }
-
-    if (modePos == std::string::npos)
-        return false;
-
-    const std::string prefix = s.substr(0, modePos);
-    std::string rate = s.substr(modePos + 1);
-    if (rate.empty())
-        return false;
-
-    while (!rate.empty() && (rate.front() == '-' || rate.front() == '_' || rate.front() == ' '))
-        rate.erase(rate.begin());
-    if (rate.empty())
-        return false;
-
-    if (rate.size() >= 2 && (rate.substr(rate.size() - 2) == "hz" || rate.substr(rate.size() - 2) == "Hz"))
-        rate = rate.substr(0, rate.size() - 2);
-
-    if (rate.empty())
-        return false;
-
-    normalized = prefix + mode + "/" + rate + "Hz";
-    return true;
 }
 
 /* ---- private ---- */
@@ -271,26 +192,67 @@ int hostIf_STBServiceHDMI::setResolution(const HOSTIF_MsgData_t *stMsgData)
 
 int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string res;
+    /* Step 1: get w, h, progressive from getCurrentResolution full response */
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_GET_CURRENT_RESOLUTION, params, "resolution", res))
+    std::string rawResponse;
+
+    if (!invokeThunderPluginMethod(THUNDER_DS_GET_CURRENT_RESOLUTION, params, rawResponse))
     {
-        res = HDMI_RESOLUTION_VALUE_DEFAULT;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Thunder %s failed (port=%s)\n",
+                __FUNCTION__, THUNDER_DS_GET_CURRENT_RESOLUTION, m_portName.c_str());
+        return NOK;
     }
 
-    std::string normalized;
-    if (normalizeResolutionFormat(res, normalized))
-        res = normalized;
-    strncpy(stMsgData->paramValue, res.c_str(), PARAM_LEN);
+    int w = 0, h = 0;
+    bool isProgressive = true;
+    const char *pos;
+
+    pos = strstr(rawResponse.c_str(), "\"w\":");
+    if (pos) w = (int)strtol(pos + 4, NULL, 10);
+
+    pos = strstr(rawResponse.c_str(), "\"h\":");
+    if (pos) h = (int)strtol(pos + 4, NULL, 10);
+
+    pos = strstr(rawResponse.c_str(), "\"progressive\":");
+    if (pos)
+    {
+        pos += strlen("\"progressive\":");
+        while (*pos == ' ') pos++;
+        isProgressive = (strncmp(pos, "true", 4) == 0);
+    }
+
+    /* Step 2: get frame rate from DisplayInfo.1.framerate */
+    double frameRate = 0.0;
+    invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DI_FRAMERATE, "{}", "framerate", frameRate);
+
+    /* Step 3: reconstruct full format string matching original libds format */
+    char resStr[PARAM_LEN];
+    if (frameRate > 0.0 && frameRate == (double)(int)frameRate)
+        snprintf(resStr, sizeof(resStr), "%dx%d%s/%dHz",
+                 w, h, isProgressive ? "p" : "i", (int)frameRate);
+    else if (frameRate > 0.0)
+        snprintf(resStr, sizeof(resStr), "%dx%d%s/%.2fHz",
+                 w, h, isProgressive ? "p" : "i", frameRate);
+    else
+        snprintf(resStr, sizeof(resStr), "%dx%d%s",
+                 w, h, isProgressive ? "p" : "i");
+
+    strncpy(stMsgData->paramValue, resStr, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    stMsgData->paramLen  = strlen(stMsgData->paramValue);
+
     if (bCalledResolutionValue && pChanged && strcmp(backupResolutionValue, stMsgData->paramValue))
         *pChanged = true;
     bCalledResolutionValue = true;
     strncpy(backupResolutionValue, stMsgData->paramValue, _BUF_LEN_16 - 1);
     backupResolutionValue[_BUF_LEN_16 - 1] = '\0';
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s] ResolutionValue: %s (port=%s)\n",
+            __FUNCTION__, stMsgData->paramValue, m_portName.c_str());
     return OK;
 }
 
@@ -309,30 +271,59 @@ int hostIf_STBServiceHDMI::setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData)
     return OK;
 }
 
-int hostIf_STBServiceHDMI::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+/************************************************************
+ * Description  : Get the enabled status for the HDMI port.
+ * Precondition : None
+ * Input        : stMsgData for result return.
+
+ * Return       : OK -> Success
+                  NOK -> Failure
+                  stMsgData->paramValue -> true
+************************************************************/
+int hostIf_STBServiceHDMI::getEnable(HOSTIF_MsgData_t *stMsgData)
 {
-    bool enabled = false;
-    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractBoolField(
-            THUNDER_DS_GET_ENABLE_VIDEO_PORT, params, "enable", enabled))
-    {
-        /* Fallback keeps prior behavior if plugin does not expose enable state. */
-        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "connected", enabled);
-    }
-    put_boolean(stMsgData->paramValue, enabled);
+    put_boolean(stMsgData->paramValue, true);
     stMsgData->paramtype = hostIf_BooleanType;
     stMsgData->paramLen = sizeof(bool);
-    if (bCalledEnable && pChanged && (backupEnable != enabled)) *pChanged = true;
-    bCalledEnable = true;
-    backupEnable = enabled;
     return OK;
 }
 
+/************************************************************
+ * Description  : Get Audio Status
+ * Precondition : None
+ * Input        : stMsgData for result return.
+                  pChanged
+
+ * Return       : OK -> Success
+                  NOK -> Failure
+                  stMsgData->paramValue -> Disabled: Audio port diabled
+                                        -> Enabled: Audio port enabled
+                                        -> Muted: Audio port enabled and muted
+                                        -> Error: Error
+************************************************************/
 int hostIf_STBServiceHDMI::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    bool connected = false;
-    invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "connected", connected);
-    const char *status = connected ? ENABLED_STRING : DISABLED_STRING;
+    bool enabled = false;
+    const std::string params = std::string("{\"audioPort\":\"") + m_portName + "\"}";
+    if (!invokeThunderPluginMethodAndExtractBoolField(
+            THUNDER_DS_GET_ENABLE_VIDEO_PORT, params, "enable", enabled))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableVideoPort failed for %s\n",
+                __FUNCTION__, m_portName.c_str());
+        return NOK;
+    }
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s()] dev_id = %d, isEnabled = %s\n",
+            __FUNCTION__, dev_id, enabled ? "true" : "false");
+
+    const char *status = DISABLED_STRING;
+    if (enabled)
+    {
+        bool muted = false;
+        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, params, "muted", muted);
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s()] dev_id = %d, isMute = %s\n",
+                __FUNCTION__, dev_id, muted ? "true" : "false");
+        status = muted ? MUTED_STRING : ENABLED_STRING;
+    }
     strncpy(stMsgData->paramValue, status, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
@@ -346,7 +337,7 @@ int hostIf_STBServiceHDMI::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged
 
 int hostIf_STBServiceHDMI::getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    snprintf(stMsgData->paramValue, PARAM_LEN, "HDMI%d", stMsgData->instanceNum - 1);
+    snprintf(stMsgData->paramValue, PARAM_LEN, "%s", m_portName.c_str());
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
     if (bCalledName && pChanged && strcmp(backupName, stMsgData->paramValue)) *pChanged = true;

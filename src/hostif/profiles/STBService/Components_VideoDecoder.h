@@ -78,10 +78,11 @@
 class  hostIf_STBServiceVideoDecoder
 {
     static GHashTable *ifHash;
-    hostIf_STBServiceVideoDecoder(int devid);
+    hostIf_STBServiceVideoDecoder(int devid, const std::string& portName = "HDMI0");
     ~hostIf_STBServiceVideoDecoder() {};
     static GMutex m_mutex;
     int dev_id;
+    std::string m_portName;
 
     char backupContentAspectRatio[_BUF_LEN_16];
     bool backupStandby;
@@ -98,6 +99,7 @@ private:
     int setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData);
 
 public:
+    static void buildPortNameHash();
     static hostIf_STBServiceVideoDecoder *getInstance(int dev_id);
     static void closeInstance(hostIf_STBServiceVideoDecoder *);
 /**

@@ -115,7 +115,6 @@ class  hostIf_STBServiceVideoOutput
 private:
     int getAspectRatioBehaviour(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getDisplayFormat(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
-    int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getName(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getVideoFormat(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getHDCP(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);

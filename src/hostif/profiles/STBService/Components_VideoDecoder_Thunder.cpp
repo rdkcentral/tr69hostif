@@ -19,20 +19,48 @@
 
 #define THUNDER_PM_GET_POWER_STATE "org.rdk.PowerManager.GetPowerState"
 #define THUNDER_PM_SET_POWER_STATE "org.rdk.PowerManager.SetPowerState"
-#define THUNDER_DI_GET_DISPLAY_ASPECT_RATIO "org.rdk.DisplayInfo.getDisplayAspectRatio"
+#define THUNDER_DS_GET_DISPLAY_ASPECT_RATIO "org.rdk.DisplaySettings.getDisplayAspectRatio"
+
+#define THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS "org.rdk.DisplaySettings.getSupportedVideoDisplays"
 
 GHashTable * hostIf_STBServiceVideoDecoder::ifHash = NULL;
 GMutex hostIf_STBServiceVideoDecoder::m_mutex;
 
+void hostIf_STBServiceVideoDecoder::buildPortNameHash()
+{
+    if (ifHash) g_hash_table_destroy(ifHash);
+    ifHash = g_hash_table_new(NULL, NULL);
+
+    std::string delimitedPorts;
+    if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
+            THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, "{}", "supportedVideoDisplays", ",", delimitedPorts))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Failed to get video displays, using default HDMI0\n",
+                __FUNCTION__, __LINE__);
+        hostIf_STBServiceVideoDecoder *pInst = new hostIf_STBServiceVideoDecoder(1, "HDMI0");
+        g_hash_table_insert(ifHash, (gpointer)(intptr_t)1, pInst);
+        return;
+    }
+
+    int devId = 1;
+    std::istringstream ss(delimitedPorts);
+    std::string portName;
+    while (std::getline(ss, portName, ','))
+    {
+        if (!portName.empty())
+        {
+            hostIf_STBServiceVideoDecoder *pInst = new hostIf_STBServiceVideoDecoder(devId, portName);
+            g_hash_table_insert(ifHash, (gpointer)(intptr_t)devId, pInst);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d] dev_id=%d portName=%s\n",
+                    __FUNCTION__, __LINE__, devId, portName.c_str());
+            devId++;
+        }
+    }
+}
+
 hostIf_STBServiceVideoDecoder* hostIf_STBServiceVideoDecoder::getInstance(int dev_id)
 {
-    if (!ifHash)
-    {
-        ifHash = g_hash_table_new(NULL, NULL);
-        /* Single instance for the decoder domain */
-        hostIf_STBServiceVideoDecoder *pInst = new hostIf_STBServiceVideoDecoder(1);
-        g_hash_table_insert(ifHash, (gpointer)(intptr_t)1, pInst);
-    }
+    if (!ifHash) buildPortNameHash();
     hostIf_STBServiceVideoDecoder *pRet =
         (hostIf_STBServiceVideoDecoder*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
     if (!pRet)
@@ -66,7 +94,8 @@ void hostIf_STBServiceVideoDecoder::getLock() { g_mutex_init(&m_mutex); g_mutex_
 void hostIf_STBServiceVideoDecoder::releaseLock() { g_mutex_unlock(&m_mutex); }
 void hostIf_STBServiceVideoDecoder::checkForUpdates(updateCallback) {}
 
-hostIf_STBServiceVideoDecoder::hostIf_STBServiceVideoDecoder(int devid) : dev_id(devid)
+hostIf_STBServiceVideoDecoder::hostIf_STBServiceVideoDecoder(int devid, const std::string& portName)
+    : dev_id(devid), m_portName(portName)
 {
     strncpy(backupContentAspectRatio, " ", sizeof(backupContentAspectRatio));
     strncpy(backupVideoDecoderStatus, " ", sizeof(backupVideoDecoderStatus));
@@ -83,18 +112,24 @@ int hostIf_STBServiceVideoDecoder::handleSetMsg(const char *pSetting, HOSTIF_Msg
 
 int hostIf_STBServiceVideoDecoder::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
-    if (strcasecmp(paramName, COMCAST_STANDBY_STRING) == 0)  return getX_COMCAST_COM_Standby(stMsgData);
-    if (strcasecmp(paramName, ENABLE_STRING) == 0)           return getStatus(stMsgData);
-    if (strcasecmp(paramName, STATUS_STRING) == 0)           return getStatus(stMsgData);
-    if (strcasecmp(paramName, NAME_STRING) == 0) {
+    if (strcasecmp(paramName, COMCAST_STANDBY_STRING) == 0) {
+        return getX_COMCAST_COM_Standby(stMsgData);
+    } else if (strcasecmp(paramName, ENABLE_STRING) == 0) {
+        put_boolean(stMsgData->paramValue, true);
+        stMsgData->paramtype = hostIf_BooleanType;
+        stMsgData->paramLen = sizeof(bool);
+        return OK;
+    } else if (strcasecmp(paramName, STATUS_STRING) == 0) {
+        return getStatus(stMsgData);
+    } else if (strcasecmp(paramName, NAME_STRING) == 0) {
         snprintf(stMsgData->paramValue, PARAM_LEN, "VideoDecoder%d", dev_id);
         stMsgData->paramtype = hostIf_StringType;
         stMsgData->paramLen = strlen(stMsgData->paramValue);
         return OK;
-    }
-    /* ContentAspectRatio and HEVC: no Thunder equivalent */
-    if (strcasecmp(paramName, CONTENT_AR_STRING) == 0 || strcasecmp(paramName, HEVC_STRING) == 0)
+    } else if (strcasecmp(paramName, CONTENT_AR_STRING) == 0 || strcasecmp(paramName, HEVC_STRING) == 0) {
+        /* ContentAspectRatio and HEVC: no Thunder equivalent */
         return getContentAspectRatio(stMsgData);
+    }
     return NOT_HANDLED;
 }
 
@@ -114,16 +149,37 @@ void hostIf_STBServiceVideoDecoder::doUpdates(updateCallback mUpdateCallback)
 
 /* ---- private ---- */
 
+/************************************************************
+ * Description  : Get if Video decoder is in Standby or not.
+ * Precondition : None
+ * Input        : stMsgData for result return.
+ *                pChanged
+ *
+ * Return       : OK -> Success
+ *                NOK -> Failure
+ *              stMsgData->paramValue -> "Enabled", "Disabled", "Error", "X_COMCAST-COM_Standby"
+************************************************************/
 int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string currentState;
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_PM_GET_POWER_STATE, "{}", "currentState", currentState))
     {
-        /* default to Enabled if power state unknown */
-        currentState = "POWER_STATE_ON";
+        strncpy(stMsgData->paramValue, "Error", PARAM_LEN);
+        stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+        stMsgData->paramtype = hostIf_StringType;
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
+        return NOK;
     }
-    const char *status = (currentState == "POWER_STATE_ON") ? ENABLED_STRING : DISABLED_STRING;
+
+    const char *status;
+    if (currentState == "ON")
+        status = ENABLED_STRING;
+    else if (currentState == "STANDBY" || currentState == "LIGHT_SLEEP" || currentState == "DEEP_SLEEP")
+        status = COMCAST_STANDBY_STRING;
+    else /* UNKNOWN, OFF */
+        status = DISABLED_STRING;
+
     strncpy(stMsgData->paramValue, status, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
@@ -140,8 +196,11 @@ int hostIf_STBServiceVideoDecoder::getContentAspectRatio(HOSTIF_MsgData_t *stMsg
 {
     std::string aspectRatio;
     if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DI_GET_DISPLAY_ASPECT_RATIO, "{}", "aspectRatio", aspectRatio))
+            THUNDER_DS_GET_DISPLAY_ASPECT_RATIO,
+            std::string("{\"videoDisplay\":\"") + m_portName + "\"}", "aspectRatio", aspectRatio))
     {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder %s failed\n",
+                __FUNCTION__, THUNDER_DS_GET_DISPLAY_ASPECT_RATIO);
         aspectRatio = "16:9";
     }
     strncpy(stMsgData->paramValue, aspectRatio.c_str(), PARAM_LEN);
@@ -173,7 +232,7 @@ int hostIf_STBServiceVideoDecoder::getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *st
 int hostIf_STBServiceVideoDecoder::setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData)
 {
     const bool wantStandby = get_boolean(stMsgData->paramValue);
-    const std::string state = wantStandby ? "POWER_STATE_STANDBY" : "POWER_STATE_ON";
+    const std::string state = wantStandby ? "STANDBY" : "ON";
     const std::string params = std::string("{\"keyCode\":0,\"powerState\":\"") + state + "\",\"reason\":\"STBService\"}";
     std::string response;
     if (!invokeThunderPluginMethod(THUNDER_PM_SET_POWER_STATE, params, response))

@@ -111,7 +111,7 @@ private:
     int setResolution(const HOSTIF_MsgData_t *stMsgData);
     int getResolutionValue(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData);
-    int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+    int getEnable(HOSTIF_MsgData_t *stMsgData);
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getName(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setHDMIResolutionMode(const char* value);

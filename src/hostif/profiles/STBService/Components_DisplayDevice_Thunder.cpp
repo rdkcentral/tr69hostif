@@ -12,10 +12,10 @@
 #define SUPPORTED_RES_STRING "SupportedResolutions"
 #define PREF_RES_STRING      "PreferredResolution"
 
-#define THUNDER_DI_DISPLAYINFO "org.rdk.DisplayInfo.displayinfo"
 #define THUNDER_DI_CONNECTED   "org.rdk.DisplayInfo.connected"
 #define THUNDER_DS_READ_EDID   "org.rdk.DisplaySettings.readEDID"
-#define THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS "org.rdk.DisplaySettings.getSupportedSettopResolutions"
+#define THUNDER_DS_GET_SUPPORTED_RESOLUTIONS        "org.rdk.DisplaySettings.getSupportedResolutions"
+#define THUNDER_DS_GET_DEFAULT_RESOLUTION           "org.rdk.DisplaySettings.getDefaultResolution"
 
 hostIf_STBServiceDisplayDevice::hostIf_STBServiceDisplayDevice(int devId, const std::string& portName)
     : dev_id(devId), m_portName(portName)
@@ -72,7 +72,7 @@ void hostIf_STBServiceDisplayDevice::doUpdates(const char *baseName, updateCallb
 int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool connected = false;
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "connected", connected))
+    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", connected))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.connected failed\n", __FUNCTION__);
         return NOK;
@@ -92,27 +92,20 @@ int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool 
 
 int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string resolutions;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS,
-            params,
-            "supportedSettopResolutions",
-            resolutions))
+    std::string resolutionsCsv;
+
+    if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
+            THUNDER_DS_GET_SUPPORTED_RESOLUTIONS,
+            params, "supportedResolutions", ",", resolutionsCsv))
     {
-        /* Fallback to displayinfo width/height if settop list is unavailable. */
-        int w = 0, h = 0;
-        invokeThunderPluginMethodAndExtractNumberField(THUNDER_DI_DISPLAYINFO, "{}", "width", w);
-        invokeThunderPluginMethodAndExtractNumberField(THUNDER_DI_DISPLAYINFO, "{}", "height", h);
-        if (w > 0 && h > 0)
-            snprintf(stMsgData->paramValue, PARAM_LEN, "%dx%d", w, h);
-        else
-            strncpy(stMsgData->paramValue, "1920x1080", PARAM_LEN);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Thunder %s failed (port=%s)\n",
+                __FUNCTION__, THUNDER_DS_GET_SUPPORTED_RESOLUTIONS, m_portName.c_str());
+        return NOK;
     }
-    else
-    {
-        strncpy(stMsgData->paramValue, resolutions.c_str(), PARAM_LEN);
-    }
+
+    strncpy(stMsgData->paramValue, resolutionsCsv.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
@@ -121,30 +114,53 @@ int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *st
     bCalledSupportedResolution = true;
     strncpy(backupSupportedResolution, stMsgData->paramValue, sizeof(backupSupportedResolution) - 1);
     backupSupportedResolution[sizeof(backupSupportedResolution) - 1] = '\0';
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s] SupportedResolutions: %s (port=%s)\n",
+            __FUNCTION__, stMsgData->paramValue, m_portName.c_str());
     return OK;
 }
 
 int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    return getSupportedResolutions(stMsgData, pChanged);
+    std::string resolution;
+
+    if (!invokeThunderPluginMethodAndExtractStringField(
+            THUNDER_DS_GET_DEFAULT_RESOLUTION,
+            "{}", "defaultResolution", resolution))
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Thunder %s failed\n",
+                __FUNCTION__, THUNDER_DS_GET_DEFAULT_RESOLUTION);
+        return NOK;
+    }
+
+    strncpy(stMsgData->paramValue, resolution.c_str(), PARAM_LEN);
+    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    if (bCalledPreferredResolution && pChanged && strcmp(backupPreferredResolution, stMsgData->paramValue))
+        *pChanged = true;
+    bCalledPreferredResolution = true;
+    strncpy(backupPreferredResolution, stMsgData->paramValue, sizeof(backupPreferredResolution) - 1);
+    backupPreferredResolution[sizeof(backupPreferredResolution) - 1] = '\0';
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s] PreferredResolution: %s\n",
+            __FUNCTION__, stMsgData->paramValue);
+    return OK;
 }
 
 int hostIf_STBServiceDisplayDevice::getEDID_BYTES(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string edidBytes;
-    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
+    std::string edidBase64;
     if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_READ_EDID, params, "EDIDBytes", edidBytes))
+            THUNDER_DS_READ_EDID, "{}", "EDID", edidBase64))
     {
-        if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_READ_EDID, params, "edid", edidBytes))
-        {
-            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder readEDID failed for %s\n",
-                    __FUNCTION__, m_portName.c_str());
-            return NOK;
-        }
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder %s failed\n",
+                __FUNCTION__, THUNDER_DS_READ_EDID);
+        return NOK;
     }
 
-    strncpy(stMsgData->paramValue, edidBytes.c_str(), PARAM_LEN);
+    strncpy(stMsgData->paramValue, edidBase64.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
@@ -158,23 +174,63 @@ int hostIf_STBServiceDisplayDevice::getEDID_BYTES(HOSTIF_MsgData_t *stMsgData, b
 
 int hostIf_STBServiceDisplayDevice::getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string productCode;
-    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_READ_EDID, params, "productCode", productCode))
-    {
-        /* Preserve operability by returning EDID blob when productCode is unavailable. */
-        return getEDID_BYTES(stMsgData, pChanged);
+    static const char kB64Table[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    /* readEDID returns "EDID":""  when display is not connected — treat empty
+     * EDID as not-connected, matching the original libds isDisplayConnected() check. */
+    std::string edidBase64;
+    invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_READ_EDID, "{}", "EDID", edidBase64);
+
+    if (edidBase64.empty()) {
+        memset(stMsgData->paramValue, '\0', sizeof(stMsgData->paramValue));
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Display not connected or EDID unavailable\n", __FUNCTION__);
+    } else {
+        /* Base64 decode */
+        std::string edid;
+        int val = 0, bits = -8;
+        for (unsigned char c : edidBase64) {
+            if (c == '=') break;
+            const char *p = strchr(kB64Table, (char)c);
+            if (!p) continue;
+            val = (val << 6) + (int)(p - kB64Table);
+            bits += 6;
+            if (bits >= 0) {
+                edid += (char)((val >> bits) & 0xFF);
+                bits -= 8;
+            }
+        }
+
+        if (edid.size() < 18) {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] EDID too short (%zu bytes)\n",
+                    __FUNCTION__, edid.size());
+            return NOK;
+        }
+
+        /* EDID byte layout (standard):
+         *   [10-11] productCode     (little-endian uint16)
+         *   [12-15] serialNumber    (little-endian uint32)
+         *   [16]    manufactureWeek
+         *   [17]    manufactureYear offset (+1990) */
+        int productCode     = (unsigned char)edid[10] | ((unsigned char)edid[11] << 8);
+        int serialNumber    = (unsigned char)edid[12] | ((unsigned char)edid[13] << 8)
+                            | ((unsigned char)edid[14] << 16) | ((unsigned char)edid[15] << 24);
+        int manufactureWeek = (unsigned char)edid[16];
+        int manufactureYear = (unsigned char)edid[17] + 1990;
+
+        snprintf(stMsgData->paramValue, PARAM_LEN,
+                 "pcode=0x%x,pserial=0x%x,year=%d,week=%d",
+                 productCode, serialNumber, manufactureYear, manufactureWeek);
     }
 
-    strncpy(stMsgData->paramValue, productCode.c_str(), PARAM_LEN);
-    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    stMsgData->paramLen  = strlen(stMsgData->paramValue);
     if (bCalledEDID && pChanged && strcmp(backupEDID, stMsgData->paramValue))
         *pChanged = true;
     bCalledEDID = true;
     strncpy(backupEDID, stMsgData->paramValue, sizeof(backupEDID) - 1);
     backupEDID[sizeof(backupEDID) - 1] = '\0';
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s] X_COMCAST_COM_EDID: %s\n", __FUNCTION__, stMsgData->paramValue);
     return OK;
 }
