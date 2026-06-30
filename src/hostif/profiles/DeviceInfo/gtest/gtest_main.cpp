@@ -4230,6 +4230,35 @@ TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_InvalidType) {
     }
 }
 
+TEST(deviceTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger_NullParam) {
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    int ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(nullptr);
+    EXPECT_EQ(ret, NOK);
+}
+
+TEST(deviceTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger_InvalidType) {
+    int instanceNumber = 0;
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MemInsight.Trigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    put_boolean(param.paramValue, true);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    int ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(&param);
+    EXPECT_EQ(ret, NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterType);
+}
+
 TEST(deviceTest, get_xOpsReverseSshStatus_Active) {
     std::ofstream pidFile("/var/tmp/rssh.pid");
     pidFile << getpid();  // use current process PID which is definitely valid
