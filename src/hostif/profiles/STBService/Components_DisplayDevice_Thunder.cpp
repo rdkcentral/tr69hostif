@@ -12,7 +12,7 @@
 #define SUPPORTED_RES_STRING "SupportedResolutions"
 #define PREF_RES_STRING      "PreferredResolution"
 
-#define THUNDER_DI_CONNECTED   "org.rdk.DisplayInfo.connected"
+#define THUNDER_DI_DISPLAYINFO "DisplayInfo.1.displayinfo"
 #define THUNDER_DS_READ_EDID   "org.rdk.DisplaySettings.readEDID"
 #define THUNDER_DS_GET_SUPPORTED_RESOLUTIONS        "org.rdk.DisplaySettings.getSupportedResolutions"
 #define THUNDER_DS_GET_DEFAULT_RESOLUTION           "org.rdk.DisplaySettings.getDefaultResolution"
@@ -46,8 +46,9 @@ int hostIf_STBServiceDisplayDevice::handleGetMsg(const char *paramName, HOSTIF_M
         return getSupportedResolutions(stMsgData);
     if (strcasecmp(paramName, PREF_RES_STRING) == 0)
         return getPreferredResolution(stMsgData);
-    if (strcasecmp(paramName, EEDID_STRING) == 0 ||
-        strcasecmp(paramName, EDID_BYTES_STRING) == 0)
+    if (strcasecmp(paramName, EEDID_STRING) == 0)
+        return getX_COMCAST_COM_EDID(stMsgData);  /* parsed EDID format, matching libds */
+    if (strcasecmp(paramName, EDID_BYTES_STRING) == 0)
         return getEDID_BYTES(stMsgData);
     if (strcasecmp(paramName, COMCAST_EDID_STRING) == 0)
         return getX_COMCAST_COM_EDID(stMsgData);
@@ -72,9 +73,9 @@ void hostIf_STBServiceDisplayDevice::doUpdates(const char *baseName, updateCallb
 int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool connected = false;
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", connected))
+    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_DISPLAYINFO, "{}", "connected", connected))
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.connected failed\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.displayinfo failed\n", __FUNCTION__);
         return NOK;
     }
     const char *status = connected ? "Present" : "Absent";
@@ -88,6 +89,42 @@ int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool 
     strncpy(backupDisplayDeviceStatus, stMsgData->paramValue, sizeof(backupDisplayDeviceStatus) - 1);
     backupDisplayDeviceStatus[sizeof(backupDisplayDeviceStatus) - 1] = '\0';
     return OK;
+}
+
+/* Convert DisplaySettings resolution code (e.g. "2160p60") to the full TR-069 format
+ * (e.g. "3840x2160p/59.94Hz"), matching the format libds produced. */
+static const char *resolveResolutionCode(const char *code, char *buf, size_t bufLen)
+{
+    static const struct { const char *code; const char *full; } kTable[] = {
+        { "480p",    "720x480p/59.94Hz"   },
+        { "576i",    "720x576i/50Hz"      },
+        { "576p",    "720x576p/50Hz"      },
+        { "720p50",  "1280x720p/50Hz"     },
+        { "720p",    "1280x720p/59.94Hz"  },
+        { "1080i50", "1920x1080i/50Hz"    },
+        { "1080i",   "1920x1080i/59.94Hz" },
+        { "1080p24", "1920x1080p/23.98Hz" },
+        { "1080p25", "1920x1080p/25Hz"    },
+        { "1080p30", "1920x1080p/30Hz"    },
+        { "1080p50", "1920x1080p/50Hz"    },
+        { "1080p60", "1920x1080p/59.94Hz" },
+        { "2160p24", "3840x2160p/23.98Hz" },
+        { "2160p25", "3840x2160p/25Hz"    },
+        { "2160p30", "3840x2160p/30Hz"    },
+        { "2160p50", "3840x2160p/50Hz"    },
+        { "2160p60", "3840x2160p/59.94Hz" },
+        { NULL, NULL }
+    };
+    for (int i = 0; kTable[i].code; i++)
+    {
+        if (strcmp(code, kTable[i].code) == 0)
+        {
+            snprintf(buf, bufLen, "%s", kTable[i].full);
+            return buf;
+        }
+    }
+    snprintf(buf, bufLen, "%s", code);  /* unknown code — return as-is */
+    return buf;
 }
 
 int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
@@ -105,7 +142,21 @@ int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *st
         return NOK;
     }
 
-    strncpy(stMsgData->paramValue, resolutionsCsv.c_str(), PARAM_LEN);
+    /* Convert each raw plugin code to the full format (e.g. "720p" -> "1280x720p/59.94Hz") */
+    std::string formatted;
+    {
+        std::istringstream ss(resolutionsCsv);
+        std::string token;
+        char fmtBuf[64];
+        while (std::getline(ss, token, ','))
+        {
+            if (token.empty()) continue;
+            if (!formatted.empty()) formatted += ',';
+            formatted += resolveResolutionCode(token.c_str(), fmtBuf, sizeof(fmtBuf));
+        }
+    }
+
+    strncpy(stMsgData->paramValue, formatted.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
@@ -134,7 +185,11 @@ int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stM
         return NOK;
     }
 
-    strncpy(stMsgData->paramValue, resolution.c_str(), PARAM_LEN);
+    /* Convert raw plugin code to full format (e.g. "720p" -> "1280x720p/59.94Hz") */
+    char fmtBuf[64];
+    resolveResolutionCode(resolution.c_str(), fmtBuf, sizeof(fmtBuf));
+
+    strncpy(stMsgData->paramValue, fmtBuf, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);

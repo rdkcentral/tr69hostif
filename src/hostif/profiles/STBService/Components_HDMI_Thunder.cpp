@@ -222,10 +222,30 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
         isProgressive = (strncmp(pos, "true", 4) == 0);
     }
 
-    /* Step 2: get frame rate from DisplayInfo.1.framerate */
+    /* Step 2: get frame rate.
+     * Primary  : query DisplayInfo.1.framerate (THUNDER_DI_FRAMERATE).
+     * Fallback : parse from the "resolution" string in the getCurrentResolution
+     *            response (e.g. "2160p60" -> 60, "1080i50" -> 50). */
     int frameRate = 0;
-    invokeThunderPluginMethodAndExtractNumberField(
-            THUNDER_DI_FRAMERATE, "{}", "framerate", frameRate);
+    if (!invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DI_FRAMERATE, "{}", "framerate", frameRate) || frameRate <= 0)
+    {
+        const char *resField = strstr(rawResponse.c_str(), "\"resolution\":\"");
+        if (resField)
+        {
+            resField += 14; /* advance past "\"resolution\":\"" */
+            while (*resField && *resField != '"')
+            {
+                if ((*resField == 'p' || *resField == 'i') &&
+                    (*(resField + 1) >= '0') && (*(resField + 1) <= '9'))
+                {
+                    frameRate = (int)strtol(resField + 1, NULL, 10);
+                    break;
+                }
+                resField++;
+            }
+        }
+    }
 
     /* Step 3: reconstruct full format string matching original libds format */
     char resStr[PARAM_LEN];
@@ -301,7 +321,7 @@ int hostIf_STBServiceHDMI::getEnable(HOSTIF_MsgData_t *stMsgData)
 int hostIf_STBServiceHDMI::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool enabled = false;
-    const std::string params = std::string("{\"audioPort\":\"") + m_portName + "\"}";
+    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
     if (!invokeThunderPluginMethodAndExtractBoolField(
             THUNDER_DS_GET_ENABLE_VIDEO_PORT, params, "enable", enabled))
     {

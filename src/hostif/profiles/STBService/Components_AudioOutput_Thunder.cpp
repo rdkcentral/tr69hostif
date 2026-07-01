@@ -350,7 +350,7 @@ int hostIf_STBServiceAudioInterface::getEnable(HOSTIF_MsgData_t *stMsgData)
 
 int hostIf_STBServiceAudioInterface::getName(HOSTIF_MsgData_t *stMsgData)
 {
-    snprintf(stMsgData->paramValue, PARAM_LEN, "%s", m_portName.c_str());
+    snprintf(stMsgData->paramValue, PARAM_LEN, "AudioOutputPort%s%d", m_portName.c_str(), dev_id);
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
     return OK;
@@ -405,6 +405,13 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioEncoding(HOSTIF_MsgDa
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioEncoding failed for %s\n",
                 __FUNCTION__, m_portName.c_str());
         return NOK;
+    }
+    /* Normalize Thunder UPPERCASE encoding to Title case (e.g. "DISPLAY" -> "Display") */
+    if (!encoding.empty())
+    {
+        encoding[0] = (char)toupper((unsigned char)encoding[0]);
+        for (size_t i = 1; i < encoding.size(); i++)
+            encoding[i] = (char)tolower((unsigned char)encoding[i]);
     }
     strncpy(stMsgData->paramValue, encoding.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
@@ -531,9 +538,9 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_MaxAudioDB(HOSTIF_MsgData_
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioGain(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    snprintf(stMsgData->paramValue, PARAM_LEN, "0.000000");
+    stMsgData->paramValue[0] = '\0';
     stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    stMsgData->paramLen = 0;
     return OK;
 }
 
@@ -541,9 +548,9 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioGain(HOSTIF_MsgData_t
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioLoopThru(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    snprintf(stMsgData->paramValue, PARAM_LEN, "0");
+    stMsgData->paramValue[0] = '\0';
     stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    stMsgData->paramLen = 0;
     return OK;
 }
 

@@ -13,6 +13,7 @@
 #define CONTENT_AR_STRING     "ContentAspectRatio"
 #define COMCAST_STANDBY_STRING "X_COMCAST-COM_Standby"
 #define HEVC_STRING           "X_RDKCENTRAL-COM_MPEGHPart2"
+#define HEVC_PROFILE_PATH     ".Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1"
 #define NAME_STRING           "Name"
 #define ENABLE_STRING         "Enable"
 #define ENABLED_STRING        "Enabled"
@@ -123,13 +124,18 @@ int hostIf_STBServiceVideoDecoder::handleGetMsg(const char *paramName, HOSTIF_Ms
     } else if (strcasecmp(paramName, STATUS_STRING) == 0) {
         return getStatus(stMsgData);
     } else if (strcasecmp(paramName, NAME_STRING) == 0) {
-        snprintf(stMsgData->paramValue, PARAM_LEN, "VideoDecoder%d", dev_id);
+        snprintf(stMsgData->paramValue, PARAM_LEN, "VideoDecoder%s", m_portName.c_str());
         stMsgData->paramtype = hostIf_StringType;
         stMsgData->paramLen = strlen(stMsgData->paramValue);
         return OK;
-    } else if (strcasecmp(paramName, CONTENT_AR_STRING) == 0 || strcasecmp(paramName, HEVC_STRING) == 0) {
-        /* ContentAspectRatio and HEVC: no Thunder equivalent */
+    } else if (strcasecmp(paramName, CONTENT_AR_STRING) == 0) {
+        /* ContentAspectRatio: no Thunder equivalent, use DisplaySettings aspect ratio */
         return getContentAspectRatio(stMsgData);
+    } else if (strcasecmp(paramName, HEVC_STRING) == 0) {
+        strncpy(stMsgData->paramValue, HEVC_PROFILE_PATH, strlen(HEVC_PROFILE_PATH)+1);
+        stMsgData->paramtype = hostIf_StringType;
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
+        return OK;
     }
     return NOT_HANDLED;
 }
