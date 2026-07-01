@@ -223,17 +223,14 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
     }
 
     /* Step 2: get frame rate from DisplayInfo.1.framerate */
-    double frameRate = 0.0;
+    int frameRate = 0;
     invokeThunderPluginMethodAndExtractNumberField(
             THUNDER_DI_FRAMERATE, "{}", "framerate", frameRate);
 
     /* Step 3: reconstruct full format string matching original libds format */
     char resStr[PARAM_LEN];
-    if (frameRate > 0.0 && frameRate == (double)(int)frameRate)
+    if (frameRate > 0)
         snprintf(resStr, sizeof(resStr), "%dx%d%s/%dHz",
-                 w, h, isProgressive ? "p" : "i", (int)frameRate);
-    else if (frameRate > 0.0)
-        snprintf(resStr, sizeof(resStr), "%dx%d%s/%.2fHz",
                  w, h, isProgressive ? "p" : "i", frameRate);
     else
         snprintf(resStr, sizeof(resStr), "%dx%d%s",

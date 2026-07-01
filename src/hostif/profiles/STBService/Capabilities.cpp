@@ -30,51 +30,6 @@
 #define THUNDER_DS_GET_VIDEO_CODEC_INFO "org.rdk.DisplaySettings.getVideoCodecInfo"
 #define THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS "org.rdk.DisplaySettings.getSupportedSettopResolutions"
 
-static bool parseSupportedVideoFormatsFromThunder(const std::string& response, int& supportedStandards)
-{
-    supportedStandards = 0;
-    cJSON* root = cJSON_Parse(response.c_str());
-    if (root == NULL)
-    {
-        return false;
-    }
-
-    cJSON* resultObj = cJSON_GetObjectItem(root, "result");
-    cJSON* formatsObj = cJSON_GetObjectItem(resultObj, "supportedFormats");
-    if (!cJSON_IsArray(formatsObj))
-    {
-        cJSON_Delete(root);
-        return false;
-    }
-
-    const int formatCount = cJSON_GetArraySize(formatsObj);
-    for (int i = 0; i < formatCount; ++i)
-    {
-        cJSON* formatObj = cJSON_GetArrayItem(formatsObj, i);
-        if (!cJSON_IsString(formatObj) || (formatObj->valuestring == NULL))
-        {
-            continue;
-        }
-
-        const std::string format(formatObj->valuestring);
-        if ((format == "MPEG2") || (format == "MPEG2-Part2") || (format == "MPEG2PART2"))
-        {
-            supportedStandards |= dsVIDEO_CODEC_MPEG2;
-        }
-        else if ((format == "H264") || (format == "MPEG4-Part10") || (format == "MPEG4PART10"))
-        {
-            supportedStandards |= dsVIDEO_CODEC_MPEG4PART10;
-        }
-        else if ((format == "MPEGHPart2") || (format == "HEVC") || (format == "H265"))
-        {
-            supportedStandards |= dsVIDEO_CODEC_MPEGHPART2;
-        }
-    }
-
-    cJSON_Delete(root);
-    return (supportedStandards != 0);
-}
-
 hostIf_STBServiceCapabilities* hostIf_STBServiceCapabilities::getInstance()
 {
     hostIf_STBServiceCapabilities* pRet = NULL;
@@ -190,14 +145,9 @@ int hostIf_STBServiceCapabilities::getVideoStandards(HOSTIF_MsgData_t *stMsgData
                 "{}",
                 response))
         {
-            std::string response;
-            if (!invokeThunderPluginMethod(THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS, "{}", response) ||
-                !parseSupportedVideoFormatsFromThunder(response, supported_standards))
-            {
-                RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Failed to fetch supported video coding formats from Thunder\n",__FUNCTION__);
-                stMsgData->faultCode = fcInternalError;
-                return NOK;
-            }
+            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Failed to fetch supported video coding formats from Thunder\n",__FUNCTION__);
+            stMsgData->faultCode = fcInternalError;
+            return NOK;
         }
 
         const char* resp = response.c_str();
@@ -251,7 +201,7 @@ static bool getThunderVideoCodecInfo(unsigned int& numEntries, std::vector<Thund
 
     std::string response;
     // Query specifically for MPEGHPart2 — matching the original libds getVideoCodecInfo(dsVIDEO_CODEC_MPEGHPART2).
-    if (!invokeThunderPluginMethod(THUNDER_DS_GET_VIDEO_CODEC_INFO, "{\"codec\":\"MPEGHPart2\"}", response))
+    if (!invokeThunderPluginMethod(THUNDER_DS_GET_VIDEO_CODEC_INFO, "{\"codec\":\"MPEGH-Part2\"}", response))
     {
         return false;
     }

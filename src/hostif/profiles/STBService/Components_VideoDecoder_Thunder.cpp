@@ -2,6 +2,7 @@
  * Copyright 2016 RDK Management — Apache-2.0
  * Components_VideoDecoder_Thunder.cpp: Thunder-backed VideoDecoder implementation.
  */
+#include <sstream>
 #include "Components_VideoDecoder.h"
 
 #define DEV_NAME "VideoDecoder"
