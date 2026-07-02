@@ -111,12 +111,13 @@
  */
 class hostIf_STBServiceAudioInterface
 {
-    static GHashTable *ifHash;
-    hostIf_STBServiceAudioInterface(int dev_id, device::AudioOutputPort& port);
+    static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceAudioInterface* */
+    hostIf_STBServiceAudioInterface(int dev_id, const std::string& portName);
     ~hostIf_STBServiceAudioInterface() {};
     static GMutex m_mutex;
     int dev_id;
-    device::AudioOutputPort& aPort;
+    std::string m_portName;
+    static void buildPortNameHash();
 
     char backupStatus[_BUF_LEN_16];
     bool backupCancelMute;

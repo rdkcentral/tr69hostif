@@ -87,12 +87,13 @@
  */
 class  hostIf_STBServiceHDMI
 {
-    static GHashTable *ifHash;
-    hostIf_STBServiceHDMI(int devid, device::VideoOutputPort& port);
+    static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceHDMI* */
+    hostIf_STBServiceHDMI(int devid, const std::string& portName);
     ~hostIf_STBServiceHDMI();
     static GMutex m_mutex;
     int dev_id;
-    device::VideoOutputPort& vPort;
+    std::string m_portName;
+    static void buildPortNameHash();
     hostIf_STBServiceDisplayDevice *displayDevice;
 
     static char dsHDMIResolutionMode[10];
@@ -110,7 +111,7 @@ private:
     int setResolution(const HOSTIF_MsgData_t *stMsgData);
     int getResolutionValue(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData);
-    int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+    int getEnable(HOSTIF_MsgData_t *stMsgData);
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getName(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setHDMIResolutionMode(const char* value);

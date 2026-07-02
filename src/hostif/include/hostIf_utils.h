@@ -284,6 +284,13 @@ bool invokeThunderPluginMethodAndExtractDelimitedStringArrayField(const std::str
 bool invokeThunderPluginMethodAndExtractScalarStringResult(const std::string& method,
     const std::string& paramsJson, std::string& value);
 
+/**
+ * Invoke a Thunder JSON-RPC method and extract the top-level "result" field as a plain bool.
+ * Use this when the response shape is {"result": true} rather than {"result": {"field": true}}.
+ */
+bool invokeThunderPluginMethodAndExtractScalarBoolResult(const std::string& method,
+    const std::string& paramsJson, bool& value);
+
 #endif /* HOSTIF_UTILS_H_*/
 
 

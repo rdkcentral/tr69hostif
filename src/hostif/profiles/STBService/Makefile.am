@@ -34,12 +34,12 @@ AM_CXXFLAGS += $(XRDK_EMMC_PROFILE_FLAG)
 endif
 
 noinst_LTLIBRARIES = libstbservice.la
-libstbservice_la_SOURCES =	Components_AudioOutput.cpp \
-				Components_SPDIF.cpp \
-				Components_HDMI.cpp \
-				Components_DisplayDevice.cpp \
-				Components_VideoOutput.cpp \
-				Components_VideoDecoder.cpp \
+libstbservice_la_SOURCES =	Components_AudioOutput_Thunder.cpp \
+				Components_SPDIF_Thunder.cpp \
+				Components_HDMI_Thunder.cpp \
+				Components_DisplayDevice_Thunder.cpp \
+				Components_VideoOutput_Thunder.cpp \
+				Components_VideoDecoder_Thunder.cpp \
 				Capabilities.cpp
 if WITH_XRDK_SDCARD_PROFILE
 libstbservice_la_SOURCES += Components_XrdkSDCard.cpp
