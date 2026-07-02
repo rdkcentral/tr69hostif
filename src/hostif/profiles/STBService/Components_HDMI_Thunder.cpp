@@ -224,11 +224,21 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
 
     /* Step 2: get frame rate.
      * Primary  : query DisplayInfo.1.framerate (THUNDER_DI_FRAMERATE).
+     *            Response is {"result":"FramerateXXXX"} where XXXX = framerate * 100.
+     *            e.g. "Framerate5994" -> 59.94 Hz, "Framerate6000" -> 60 Hz.
      * Fallback : parse from the "resolution" string in the getCurrentResolution
      *            response (e.g. "2160p60" -> 60, "1080i50" -> 50). */
-    int frameRate = 0;
-    if (!invokeThunderPluginMethodAndExtractNumberField(
-            THUNDER_DI_FRAMERATE, "{}", "framerate", frameRate) || frameRate <= 0)
+    double frameRateD = 0.0;
+    std::string framerateStr;
+    if (invokeThunderPluginMethodAndExtractScalarStringResult(THUNDER_DI_FRAMERATE, "{}", framerateStr))
+    {
+        /* Parse "FramerateXXXX" -> XXXX / 100.0 */
+        const char *p = framerateStr.c_str();
+        while (*p && (*p < '0' || *p > '9')) p++;
+        if (*p)
+            frameRateD = strtol(p, NULL, 10) / 100.0;
+    }
+    if (frameRateD <= 0.0)
     {
         const char *resField = strstr(rawResponse.c_str(), "\"resolution\":\"");
         if (resField)
@@ -239,7 +249,7 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
                 if ((*resField == 'p' || *resField == 'i') &&
                     (*(resField + 1) >= '0') && (*(resField + 1) <= '9'))
                 {
-                    frameRate = (int)strtol(resField + 1, NULL, 10);
+                    frameRateD = (double)strtol(resField + 1, NULL, 10);
                     break;
                 }
                 resField++;
@@ -247,11 +257,20 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
         }
     }
 
-    /* Step 3: reconstruct full format string matching original libds format */
+    /* Step 3: reconstruct full format string matching original libds format.
+     * Use decimal notation for non-integer framerates (e.g. 59.94Hz),
+     * integer for whole-number framerates (e.g. 60Hz). */
     char resStr[PARAM_LEN];
-    if (frameRate > 0)
-        snprintf(resStr, sizeof(resStr), "%dx%d%s/%dHz",
-                 w, h, isProgressive ? "p" : "i", frameRate);
+    if (frameRateD > 0.0)
+    {
+        long frameRateCentis = (long)(frameRateD * 100.0 + 0.5);
+        if (frameRateCentis % 100 == 0)
+            snprintf(resStr, sizeof(resStr), "%dx%d%s/%ldHz",
+                     w, h, isProgressive ? "p" : "i", frameRateCentis / 100);
+        else
+            snprintf(resStr, sizeof(resStr), "%dx%d%s/%.2fHz",
+                     w, h, isProgressive ? "p" : "i", frameRateD);
+    }
     else
         snprintf(resStr, sizeof(resStr), "%dx%d%s",
                  w, h, isProgressive ? "p" : "i");

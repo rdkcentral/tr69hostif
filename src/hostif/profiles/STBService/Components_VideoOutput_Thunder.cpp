@@ -21,11 +21,11 @@
 
 #define THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS "org.rdk.DisplaySettings.getSupportedVideoDisplays"
 #define THUNDER_DS_GET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.getCurrentResolution"
-#define THUNDER_DS_GET_VIDEO_FORMAT             "org.rdk.DisplaySettings.getVideoFormat"
+#define THUNDER_DS_GET_DISPLAY_ASPECT_RATIO     "org.rdk.DisplaySettings.getDisplayAspectRatio"
 #define THUNDER_DS_GET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.getEnableVideoPort"
 #define THUNDER_AVO_GET_ZOOM_MODE               "org.rdk.AVOutput.getZoomMode"
 #define THUNDER_HDCP_GET_STATUS                 "org.rdk.HdcpProfile.getHDCPStatus"
-#define THUNDER_DI_CONNECTED                    "org.rdk.DisplayInfo.connected"
+#define THUNDER_DI_CONNECTED                    "DisplayInfo.1.connected"
 
 GHashTable * hostIf_STBServiceVideoOutput::ifHash = NULL;
 GMutex hostIf_STBServiceVideoOutput::m_mutex;
@@ -170,7 +170,7 @@ void hostIf_STBServiceVideoOutput::doUpdates(updateCallback mUpdateCallback)
 int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool isConnected = false;
-    invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected);
+    invokeThunderPluginMethodAndExtractScalarBoolResult(THUNDER_DI_CONNECTED, "{}", isConnected);
     const char *status = isConnected ? ENABLED_STRING : DISABLED_STRING;
     strncpy(stMsgData->paramValue, status, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
@@ -228,7 +228,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
     std::string fmt;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
     if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_GET_VIDEO_FORMAT, params, "currentVideoFormat", fmt))
+            THUNDER_DS_GET_DISPLAY_ASPECT_RATIO, params, "aspectRatio", fmt))
         fmt = "Unknown";
     strncpy(stMsgData->paramValue, fmt.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';

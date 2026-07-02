@@ -12,7 +12,7 @@
 #define SUPPORTED_RES_STRING "SupportedResolutions"
 #define PREF_RES_STRING      "PreferredResolution"
 
-#define THUNDER_DI_DISPLAYINFO "DisplayInfo.1.displayinfo"
+#define THUNDER_DI_CONNECTED   "DisplayInfo.1.connected"
 #define THUNDER_DS_READ_EDID   "org.rdk.DisplaySettings.readEDID"
 #define THUNDER_DS_GET_SUPPORTED_RESOLUTIONS        "org.rdk.DisplaySettings.getSupportedResolutions"
 #define THUNDER_DS_GET_DEFAULT_RESOLUTION           "org.rdk.DisplaySettings.getDefaultResolution"
@@ -73,9 +73,9 @@ void hostIf_STBServiceDisplayDevice::doUpdates(const char *baseName, updateCallb
 int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool connected = false;
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_DISPLAYINFO, "{}", "connected", connected))
+    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", connected))
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.displayinfo failed\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed\n", __FUNCTION__);
         return NOK;
     }
     const char *status = connected ? "Present" : "Absent";
