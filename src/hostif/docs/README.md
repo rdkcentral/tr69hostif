@@ -4,7 +4,7 @@
 
 The `src/hostif/` directory contains the complete implementation of the tr69hostif daemon — the RDK management TR-69/TR-181 host-interface process. The daemon exposes TR-181 parameter GET, SET, and attribute operations to remote management systems (TR-069 ACS, WebPA/Parodus, RBUS) and to local management clients over HTTP and IARM IPC.
 
-The module is organized into a core daemon layer (`src/`) surrounded by five specialized subsystems: `handlers/`, `httpserver/`, `parodusClient/`, `profiles/`, and `snmpAdapter/`. Each subsystem has its own documentation under its `docs/` folder. This README documents the core layer and the daemon-wide lifecycle that binds all subsystems together.
+The module is organized into a core daemon layer (`src/`) surrounded by specialized subsystems: `handlers/`, `httpserver/`, `parodusClient/`, and `profiles/`. Each subsystem has its own documentation under its `docs/` folder. This README documents the core layer and the daemon-wide lifecycle that binds all subsystems together.
 
 ---
 
@@ -28,7 +28,6 @@ src/hostif/
 ├── httpserver/                 # libsoup-based HTTP server for JSON GET/SET
 ├── parodusClient/              # WebPA/Parodus IPC client integration
 ├── profiles/                   # TR-181 object implementations (Device.*, etc.)
-├── snmpAdapter/                # SNMP bridge for DOCSIS and STB OIDs
 │
 └── docs/                       # This documentation (you are here)
 ```
@@ -62,12 +61,11 @@ graph TB
         NOTIF["NotificationHandler<br/>GAsyncQueue"]
     end
 
-    subgraph Profiles[Profile Layer - profiles/ + snmpAdapter/]
+    subgraph Profiles[Profile Layer - profiles/]
         DEV[Device.*]
         ETH[Ethernet.*]
         IP[IP.*]
         WIFI[WiFi.*]
-        SNMP[DocsIf.* via SNMP]
         OTHER[Time.* DHCPv4.* etc.]
     end
 
@@ -135,7 +133,7 @@ sequenceDiagram
 | Step | Function | What it does |
 |------|----------|-------------|
 | 1 | `hostIf_initalize_ConfigManger()` | Parses `mgrlist.conf` into `paramMgrhash`: maps TR-181 prefixes to manager enums |
-| 2 | `hostIf_IARM_IF_Start()` | Initializes IARM bus, registers GET/SET/attribute RPCs, starts Device/DS/SNMP managers |
+| 2 | `hostIf_IARM_IF_Start()` | Initializes IARM bus, registers GET/SET/attribute RPCs, starts Device and DS managers |
 | 3 | `mergeDataModel()` | Reads `RDK_PROFILE` from `/etc/device.properties`, merges STB/TV/generic XML into `/tmp/data-model.xml` |
 | 4 | `loadDataModel()` | Loads the merged data model into the waldb handle for param validation |
 | 5 | `json_if_handler_thread` | Old HTTP/JSON request path (always started) |
@@ -287,7 +285,6 @@ The daemon is inherently multi-threaded. The following threads are alive during 
 | `graceful_exit_mutex` (pthread_mutex) | `hostIf_main.cpp` | Re-entrant shutdown prevention |
 | `mtx_httpServerThreadDone` (std::mutex) | `hostIf_main.cpp` | HTTP server startup coordination |
 | `cv_httpServerThreadDone` (std::condition_variable) | `hostIf_main.cpp` | Main thread waits for server ready |
-| `m_mutex` (GMutex) | `snmpAdapter.cpp` | SNMP adapter access serialization |
 | `NotificationHandler` GAsyncQueue | `hostIf_NotificationHandler.cpp` | Notification event queue |
 
 ---
@@ -355,7 +352,6 @@ The daemon's compiled feature set is controlled by a set of build-time macros. T
 | `USE_WIFI_PROFILE` | Compiles in WiFi profile; calls `WiFiDevice::init/shutdown` |
 | `IS_YOCTO_ENABLED` | Links `libsecure_wrapper` explicitly |
 | `RDK_DEVICE_EMU` | Selects `eth0` instead of `eth1` as the Ethernet interface |
-| `SNMP_ADAPTER_ENABLED` | Compiles in SNMP adapter and `SNMPClientReqHandler` |
 
 ---
 
@@ -375,7 +371,6 @@ The daemon reads, writes, or checks these paths at runtime:
 | `/opt/debug.ini` or `/etc/debug.ini` | Read | RDK logger level configuration |
 | `/opt/RFC/.RFC_LegacyRFCEnabled.ini` | Existence check | Legacy RFC mode flag |
 | `/opt/notify_webpa_cfg.json` or `/etc/notify_webpa_cfg.json` | Read | Parodus notification config |
-| `/etc/tr181_snmpOID.conf` | Read | SNMP OID mapping (via snmpAdapter) |
 | `/tmp/.tr69hostif_http_server_ready` | Write | Sentinel for RFC readiness check |
 | `/tmp/webpa/` | Create + Write | Parodus working directory |
 | `/tmp/webpa/start_time` | Read | WebPA manageable-time epoch |
@@ -415,10 +410,6 @@ graph LR
     subgraph ProfilesLayer[Profiles - hostif/profiles/]
         PROFILES[TR-181 profile classes]
     end
-    subgraph SNMPLayer[SNMP]
-        SNMP[snmpAdapter]
-    end
-
     ACS --> IARMH
     HTTPCLIENT --> HTTP
     WEBPA --> PARODUS
@@ -431,7 +422,6 @@ graph LR
     JSONH --> MSGDISP
     RBUSDML --> MSGDISP
     MSGDISP --> PROFILES
-    MSGDISP --> SNMP
     UPDH --> PROFILES
     UPDH --> NOTIFH
     NOTIFH --> PARODUS
@@ -755,7 +745,6 @@ When modifying the core layer, validate:
 - [handlers/docs/README.md](../handlers/docs/README.md) — Request dispatch and transport bridges
 - [httpserver/docs/README.md](../httpserver/docs/README.md) — libsoup HTTP server module
 - [parodusClient/docs/README.md](../parodusClient/docs/README.md) — WebPA/Parodus integration
-- [snmpAdapter/docs/README.md](../snmpAdapter/docs/README.md) — SNMP adapter for DOCSIS and STB OIDs
 - [docs/architecture/overview.md](../../../docs/architecture/overview.md) — Daemon-wide architecture
 - [docs/api/public-api.md](../../../docs/api/public-api.md) — Public API reference
 - [docs/architecture/threading-model.md](../../../docs/architecture/threading-model.md) — Full runtime thread model

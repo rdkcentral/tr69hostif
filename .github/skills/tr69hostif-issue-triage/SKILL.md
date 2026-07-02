@@ -185,10 +185,6 @@ Navigate to the relevant source based on the anomaly type. Key modules:
 - Each profile implements data-model object instances and their parameters
 - Integer table indices can cause off-by-one issues in bulk GET operations
 
-### SNMP Adapter (`src/hostif/snmpAdapter/`)
-- Translates SNMP OID requests to TR-181 parameter paths
-- Uses `tr181_snmpOID.conf` for OID-to-parameter mapping
-
 ---
 
 ## Step 6: Characterize Root Cause
@@ -204,7 +200,6 @@ Use this matrix to classify the issue based on observed evidence:
 | Crash (SIGSEGV) on specific parameter | NULL pointer dereference in handler | handler `GetParamValue` / `SetParamValue` |
 | High CPU during bulk GET operation | Iterating large object table without bounds | profile handler loop logic |
 | Memory growth over uptime | Handler context never freed on module unload | handler `init` / `free` lifecycle |
-| SNMP OID returns wrong value | OID mapping incorrect or TR-181 path stale | `tr181_snmpOID.conf`, `snmpAdapter.cpp` |
 | Bootstrap parameters not persisted | `bootstrap.ini` write path wrong or permissions | RFC store path configuration |
 | Parameter visible via CWMP but not WebPA | waldb data-model XML missing the parameter | `waldb/data-model/data-model-*.xml` |
 

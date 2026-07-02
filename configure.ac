@@ -46,7 +46,6 @@ STORAGESERVICE_PROFILE_FLAG=" "
 INTFSTACK_PROFILE_FLAG=" "
 XRDK_BT_PROFILE_FLAG=" "
 HAVE_VALUE_CHANGE_EVENT_FLAG=" "
-SNMP_ADAPTER_FLAG=" "
 SYSTEMD_SDNOTIFY_CFLAGS=" "
 SYSTEMD_SDNOTIFY_LDFLAGS=" "
 HWSELFTEST_PROFILE_FLAG=" "
@@ -310,22 +309,6 @@ AC_ARG_ENABLE([hwselftest],
            ],
          [echo "HW Self Test profile is disabled"])
 
-AC_ARG_ENABLE([snmpAdapter],
-        AS_HELP_STRING([--enable-snmpAdapter],[enable SNMP_ADAPTER (default is no)]),
-        [
-          case "${enableval}" in
-           yes) SNMP_ADAPTER_ENABLE=true
-                SNMP_ADAPTER_FLAG="-DSNMP_ADAPTER_ENABLED"
-                m4_syscmd([test -d src/hostif/snmpAdapter])
-                m4_if(m4_sysval,[0],[AC_CONFIG_FILES([src/hostif/snmpAdapter/Makefile])])
-                m4_if(m4_sysval,[0],[SUBDIRS_SNMPADAPTER="src/hostif/snmpAdapter"])  ;;
-           no) SNMP_ADAPTER_ENABLE=false AC_MSG_ERROR([SNMP_ADAPTER is disabled]) ;;
-          *) AC_MSG_ERROR([bad value ${enableval} for --enable-snmpAdapter ]) ;;
-           esac
-           ],
-         [echo "SNMP_ADAPTER profile is disabled"])
-
-
 # Disable new http server
 AC_ARG_ENABLE([new_http_server],
         AS_HELP_STRING([--disable-new-http-server],[This will enable/disable new http server.]),
@@ -431,7 +414,6 @@ AM_CONDITIONAL([WITH_IPV6_SUPPORT], [test x$IPV6_SUPPORT_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_SPEEDTEST_SUPPORT], [test x$SPEEDTEST_SUPPORT_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_NOTIFICATION_SUPPORT], [test x$HAVE_VALUE_CHANGE_EVENT_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_WEBPA_RFC], [test x$WEBPA_RFC_ENABLE = xtrue])
-AM_CONDITIONAL([WITH_SNMP_ADAPTER], [test x$SNMP_ADAPTER_ENABLE = xtrue])
 AM_CONDITIONAL([ENABLE_BLE_TILE_PROFILE], [test x$ENABLE_BLE_TILE_PROFILE = xtrue])
 AM_CONDITIONAL([WITH_PARODUS_SUPPORT], [test x$PARODUS_SUPPORT_ENABLED = xtrue])
 
@@ -483,7 +465,6 @@ AC_SUBST(HAVE_VALUE_CHANGE_EVENT_FLAG)
 AC_SUBST(SYSTEMD_SDNOTIFY_CFLAGS)
 AC_SUBST(SYSTEMD_SDNOTIFY_LDFLAGS)
 AC_SUBST(HWSELFTEST_PROFILE_FLAG)
-AC_SUBST(SNMP_ADAPTER_FLAG)
 AC_SUBST(WIFI_CLIENT_ROAMING)
 AC_SUBST(NEW_HTTP_SERVER_DISABLE_FLAG)
 AC_SUBST(BLE_TILE_PROFILE)
