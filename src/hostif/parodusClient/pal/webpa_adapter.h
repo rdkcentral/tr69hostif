@@ -88,7 +88,6 @@ typedef enum
     CHANGED_BY_ACS                  = (1<<1), /**< ACS/TR-069 */
     CHANGED_BY_WEBPA                = (1<<2), /**< WebPA */
     CHANGED_BY_CLI                  = (1<<3), /**< Command Line Interface (CLI) */
-    CHANGED_BY_SNMP                 = (1<<4), /**< SNMP */
     CHANGED_BY_FIRMWARE_UPGRADE     = (1<<5), /**< Firmware Upgrade */
     CHANGED_BY_WEBUI                = (1<<7), /**< Local Web UI (HTTP) */
     CHANGED_BY_UNKNOWN              = (1<<8), /**< Unknown */

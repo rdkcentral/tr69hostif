@@ -42,9 +42,6 @@
 #include "power_controller.h"
 #include <thread>
 #endif
-#ifdef SNMP_ADAPTER_ENABLED
-#include "hostIf_SNMPClient_ReqHandler.h"
-#endif
 #include "waldb.h"
 #include "hostIf_NotificationHandler.h"
 #include "Device_DeviceInfo.h"
@@ -92,12 +89,6 @@ bool hostIf_IARM_IF_Start()
         #endif
         pMsgHandler = DeviceClientReqHandler::getInstance();
         pMsgHandler->init();
-        
-
-#ifdef SNMP_ADAPTER_ENABLED
-        pMsgHandler = SNMPClientReqHandler::getInstance();
-        pMsgHandler->init();
-#endif
     }
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);

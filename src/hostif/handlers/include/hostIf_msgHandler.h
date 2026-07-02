@@ -78,9 +78,6 @@ typedef enum _HostIf_ParamMgr
     HOSTIF_WebConfigMgr,
 #endif
     HOSTIF_StorageSrvcMgr
-#ifdef SNMP_ADAPTER_ENABLED
-    , HOSTIF_SNMPAdapterMgr
-#endif
 } HostIf_ParamMgr_t;
 
 

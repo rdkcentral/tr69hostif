@@ -75,7 +75,7 @@ void wdmp_parse_generic_request(char * payload, PAYLOAD_TYPE payload_type, req_s
             out = cJSON_PrintUnformatted(request);
 
             //allocate structure according to payload type
-            if (payload_type == WDMP_TR181 || payload_type == WDMP_SNMP)
+            if (payload_type == WDMP_TR181)
             {
                 (*reqObj) = (req_struct *) malloc(sizeof(req_struct));
                 memset((*reqObj), 0, sizeof(req_struct));

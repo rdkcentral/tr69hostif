@@ -55,7 +55,6 @@ cat Makefile.am | grep "SUBDIRS"
 # Source level: identifies compiled subsystems
 cat src/Makefile.am | grep "SUBDIRS"
 # → SUBDIRS = hostif/handlers hostif/profiles
-# → SUBDIRS += hostif/snmpAdapter       (if WITH_SNMP_ADAPTER)
 # → SUBDIRS += hostif/parodusClient
 # → SUBDIRS += hostif/httpserver         (if !WITH_NEW_HTTP_SERVER_DISABLE)
 
@@ -364,7 +363,6 @@ Based on `src/Makefile.am` and `src/hostif/profiles/Makefile.am`:
 - `profiles/StorageService/` — `WITH_STORAGESERVICE_PROFILE`
 - `profiles/InterfaceStack/` — `WITH_INTFSTACK_PROFILE`
 - `profiles/wifi/` — `WITH_WIFI_PROFILE`
-- `snmpAdapter/` — `WITH_SNMP_ADAPTER`
 - `httpserver/` — `!WITH_NEW_HTTP_SERVER_DISABLE`
 
 ### Not Documented (Not Compiled)
