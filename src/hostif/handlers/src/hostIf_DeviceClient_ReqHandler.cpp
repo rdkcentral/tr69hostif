@@ -112,6 +112,8 @@ bool DeviceClientReqHandler::unInit()
     return true;
 }
 
+
+
 /**
  * @brief This function is used to set the Device reset, FirmwareDownload and FirmwareDownload Status.
  * The possible reset states of the device are "Cold", "Factory", "Warehouse" and "Customer".

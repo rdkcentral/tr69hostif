@@ -21,9 +21,12 @@ SUBDIRS =
 DIST_SUBDIRS = 
 
 
-AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include -I$(top_srcdir)/src/hostif/handlers/include -I./include $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) \
--I=/usr/include/rdk/ds-hal/ \
--I=/usr/include/rdk/ds/
+AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include -I$(top_srcdir)/src/hostif/handlers/include -I./include $(GLIB_CFLAGS) $(G_THREAD_CFLAGS)
+
+if !WITH_THUNDER_CLIENT
+AM_CXXFLAGS += -I=/usr/include/rdk/ds-hal/ \
+               -I=/usr/include/rdk/ds/
+endif
 
 if WITH_XRDK_SDCARD_PROFILE
 AM_CXXFLAGS += $(XRDK_SDCARD_PROFILE_FLAG)

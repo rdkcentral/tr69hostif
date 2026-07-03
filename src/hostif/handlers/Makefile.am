@@ -89,7 +89,11 @@ if WITH_SNMP_ADAPTER
 AM_CXXFLAGS += -DSNMP_ADAPTER_ENABLED -I$(top_srcdir)/src/hostif/snmpAdapter
 endif
 
-AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lsoup-3.0 -lgobject-2.0 -lsecure_wrapper
+AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lsoup-3.0 -lgobject-2.0 -lsecure_wrapper
+
+if !WITH_THUNDER_CLIENT
+AM_LDFLAGS += -lds -ldshalcli
+endif
 if WIFI_CLIENT_ROAMING
 AM_CXXFLAGS += -DWIFI_CLIENT_ROAMING
 endif

@@ -90,14 +90,17 @@ if XRELIB_FLAG
 AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	$(G_THREAD_LIBS) -lyajl $(SOUP_LIBS) \
 	$(NEXUS_LIB) -ldbus-1 \
-	-lIARMBus -lrdkloggers\
-	-lds -ldshalcli -ltr69ProfileXcaliber -lrbus
+	-lIARMBus -lrdkloggers \
+	-ltr69ProfileXcaliber -lrbus
 else
 AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	$(G_THREAD_LIBS) -lyajl $(SOUP_LIBS) \
 	$(NEXUS_LIB) -ldbus-1 \
-	-lIARMBus -lrdkloggers\ -lrbus
-	-lds -ldshalcli
+	-lIARMBus -lrdkloggers -lrbus
+endif
+
+if !WITH_THUNDER_CLIENT
+AM_LDFLAGS += -lds -ldshalcli
 endif
 
 if POWERCONTROLLER_ENABLE

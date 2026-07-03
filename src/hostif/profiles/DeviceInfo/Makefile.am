@@ -33,7 +33,11 @@ $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLA
 -I=/usr/include/wdmp-c/ \
 -I=/usr/include/rbus/
 
-AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lcurl -lrfcapi -lrbus
+AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lcurl -lrfcapi -lrbus
+
+if !WITH_THUNDER_CLIENT
+AM_LDFLAGS += -lds -ldshalcli
+endif
 
 if IS_YOCTO_ENABLED
 AM_LDFLAGS += -lsecure_wrapper
