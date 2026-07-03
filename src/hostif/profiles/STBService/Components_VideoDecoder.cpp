@@ -49,7 +49,7 @@
 #define ERROR_STRING "Error"
 
 GHashTable * hostIf_STBServiceVideoDecoder::ifHash = NULL;
-GMutex * hostIf_STBServiceVideoDecoder::m_mutex = NULL;
+GMutex hostIf_STBServiceVideoDecoder::m_mutex;
 
 hostIf_STBServiceVideoDecoder* hostIf_STBServiceVideoDecoder::getInstance(int dev_id)
 {
@@ -114,16 +114,14 @@ void hostIf_STBServiceVideoDecoder::closeAllInstances()
 
 void hostIf_STBServiceVideoDecoder::getLock()
 {
-    if(!m_mutex)
-    {
-        m_mutex = g_mutex_new();
-    }
-    g_mutex_lock(m_mutex);
+    g_mutex_init(&hostIf_STBServiceVideoDecoder::m_mutex);
+    g_mutex_lock(&hostIf_STBServiceVideoDecoder::m_mutex);
 }
 
 void hostIf_STBServiceVideoDecoder::releaseLock()
 {
-    g_mutex_unlock(m_mutex);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    g_mutex_unlock(&hostIf_STBServiceVideoDecoder::m_mutex);
 }
 
 /**
@@ -323,7 +321,7 @@ int hostIf_STBServiceVideoDecoder::getContentAspectRatio(HOSTIF_MsgData_t *stMsg
         backupContentAspectRatio[_BUF_LEN_16-1] = '\0';
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] In getVideoDecoderContentAspectRatio(): Value: %s \n",__FUNCTION__, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -365,7 +363,7 @@ int hostIf_STBServiceVideoDecoder::getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *st
         backupStandby = get_boolean(stMsgData->paramValue);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] PowerMode: [%d , %s] \n", __FUNCTION__, iPowerMode, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -413,7 +411,7 @@ int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData,bool *p
         backupVideoDecoderStatus[_BUF_LEN_32-1] = '\0';
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] PowerMode: [%d , %s] \n", __FUNCTION__, iPowerMode, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -452,7 +450,7 @@ int hostIf_STBServiceVideoDecoder::setX_COMCAST_COM_Standby(const HOSTIF_MsgData
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Get value as \'%d\' and Set as: \'%d\' \n", __FILE__, __FUNCTION__, get_boolean(stMsgData->paramValue), iPowerMode);
         device::Host::getInstance().setPowerMode(iPowerMode);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }

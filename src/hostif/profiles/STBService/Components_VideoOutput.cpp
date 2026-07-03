@@ -51,7 +51,7 @@
 #define DISABLED_STRING "Disabled"
 
 GHashTable * hostIf_STBServiceVideoOutput::ifHash = NULL;
-GMutex * hostIf_STBServiceVideoOutput::m_mutex = NULL;
+GMutex  hostIf_STBServiceVideoOutput::m_mutex;
 
 hostIf_STBServiceVideoOutput* hostIf_STBServiceVideoOutput::getInstance(int dev_id)
 {
@@ -132,16 +132,14 @@ void hostIf_STBServiceVideoOutput::closeAllInstances()
 
 void hostIf_STBServiceVideoOutput::getLock()
 {
-    if(!m_mutex)
-    {
-        m_mutex = g_mutex_new();
-    }
-    g_mutex_lock(m_mutex);
+    g_mutex_init(&hostIf_STBServiceVideoOutput::m_mutex);
+    g_mutex_lock(&hostIf_STBServiceVideoOutput::m_mutex);
 }
 
 void hostIf_STBServiceVideoOutput::releaseLock()
 {
-    g_mutex_unlock(m_mutex);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    g_mutex_unlock(&hostIf_STBServiceVideoOutput::m_mutex);
 }
 
 /**
@@ -156,31 +154,16 @@ hostIf_STBServiceVideoOutput::hostIf_STBServiceVideoOutput(int devid, device::Vi
 {
     errno_t rc = -1;
     rc=strcpy_s(backupAspectRatioBehaviour,sizeof(backupAspectRatioBehaviour)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupDisplayFormat,sizeof(backupDisplayFormat)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupDisplayName,sizeof(backupDisplayName)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupVideoFormat,sizeof(backupVideoFormat)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupHDCP = false;
     rc=strcpy_s(backupVideoOutputStatus,sizeof(backupVideoOutputStatus)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     bCalledAspectRatioBehaviour = false;
     bCalledDisplayFormat = false;
@@ -409,7 +392,7 @@ int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData,bool *pC
         strncpy(backupVideoOutputStatus,stMsgData->paramValue,_BUF_LEN_16-1);
         backupVideoOutputStatus[_BUF_LEN_16-1] = '\0';
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -446,7 +429,7 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
         strncpy(backupAspectRatioBehaviour,stMsgData->paramValue,_BUF_LEN_16-1);
         backupAspectRatioBehaviour[_BUF_LEN_16-1] = '\0';
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -484,7 +467,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData,boo
         strncpy(backupVideoFormat,stMsgData->paramValue,_BUF_LEN_16-1);
         backupVideoFormat[_BUF_LEN_16-1] = '\0';
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -520,7 +503,7 @@ int hostIf_STBServiceVideoOutput::getDisplayFormat(HOSTIF_MsgData_t *stMsgData,b
         strncpy(backupDisplayFormat,stMsgData->paramValue,_BUF_LEN_16-1);
         backupDisplayFormat[_BUF_LEN_16-1] = '\0';
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -555,7 +538,7 @@ int hostIf_STBServiceVideoOutput::getName(HOSTIF_MsgData_t *stMsgData,bool *pCha
         strncpy(backupDisplayName,stMsgData->paramValue,_BUF_LEN_16-1);
         backupDisplayName[_BUF_LEN_16-1] = '\0';
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -596,7 +579,7 @@ int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData,bool *pCha
         bCalledHDCP = true;
         backupHDCP = get_boolean(stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }

@@ -35,6 +35,7 @@
 #include "illegalArgumentException.hpp"
 #include "exception.hpp"
 #include "Components_HDMI.h"
+#include "dsVideoResolutionSettings.h"
 #include "Components_DisplayDevice.h"
 #include "safec_lib.h"
 
@@ -75,7 +76,7 @@ static EnumStringMapper dsVideoFrameRateMapper[] =
 
 char hostIf_STBServiceHDMI::dsHDMIResolutionMode[10] = HDMI_RESOLUTION_MODE_MANUAL;
 GHashTable* hostIf_STBServiceHDMI::ifHash = NULL;
-GMutex* hostIf_STBServiceHDMI::m_mutex = NULL;
+GMutex hostIf_STBServiceHDMI::m_mutex;
 
 /** Description: Counts the number of HDMI
  *               interfaces present in the device.
@@ -166,16 +167,14 @@ void hostIf_STBServiceHDMI::closeAllInstances()
 
 void hostIf_STBServiceHDMI::getLock()
 {
-    if(!m_mutex)
-    {
-        m_mutex = g_mutex_new();
-    }
-    g_mutex_lock(m_mutex);
+    g_mutex_init(&hostIf_STBServiceHDMI::m_mutex);
+    g_mutex_lock(&hostIf_STBServiceHDMI::m_mutex);
 }
 
 void hostIf_STBServiceHDMI::releaseLock()
 {
-    g_mutex_unlock(m_mutex);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    g_mutex_unlock(&hostIf_STBServiceHDMI::m_mutex);
 }
 
 /**
@@ -191,20 +190,11 @@ hostIf_STBServiceHDMI::hostIf_STBServiceHDMI(int devid, device::VideoOutputPort&
     errno_t rc = -1;
     backupEnable = false;
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupResolutionValue,sizeof(backupResolutionValue)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupName,sizeof(backupName)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     bCalledEnable = false;
     bCalledStatus = false;
@@ -482,7 +472,7 @@ int hostIf_STBServiceHDMI::setResolution(const HOSTIF_MsgData_t *stMsgData)
 
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] (): Out of range values entered\n",__FUNCTION__);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
     }
 
@@ -522,7 +512,7 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData,bool *
         stMsgData->paramLen = strlen(stMsgData->paramValue);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] getHDMIResolution(): Value: %s\n",__FUNCTION__, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -556,7 +546,7 @@ int hostIf_STBServiceHDMI::setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData)
             return NOK;
         }
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }
@@ -604,7 +594,7 @@ int hostIf_STBServiceHDMI::getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged)
 
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] In getHDMIEnable(): Value: %s \n",__FUNCTION__, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\r\n",__FUNCTION__);
         return NOK;
     }

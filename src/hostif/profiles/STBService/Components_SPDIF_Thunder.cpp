@@ -43,7 +43,7 @@
 #define THUNDER_DS_GET_SUPPORTED_AUDIO_PORTS  "org.rdk.DisplaySettings.getSupportedAudioPorts"
 #define THUNDER_DS_GET_ENABLE_AUDIO_PORT      "org.rdk.DisplaySettings.getEnableAudioPort"
 #define THUNDER_DS_GET_AUDIO_ENCODING         "org.rdk.DisplaySettings.getAudioEncoding"
-#define THUNDER_DS_SET_AUDIO_ENCODING         "org.rdk.DisplaySettings.setAudioEncoding"
+
 #define THUNDER_DS_GET_AUDIO_DELAY            "org.rdk.DisplaySettings.getAudioDelay"
 
 GHashTable * hostIf_STBServiceSPDIF::ifHash = NULL;
@@ -339,18 +339,8 @@ int hostIf_STBServiceSPDIF::setAlias(HOSTIF_MsgData_t *stMsgData)
 
 int hostIf_STBServiceSPDIF::setForcePCM(HOSTIF_MsgData_t *stMsgData)
 {
-    const bool forcePcm = get_boolean(stMsgData->paramValue);
-    const std::string encValue = forcePcm ? "PCM" : "DISPLAY";
-    const std::string paramsJson = std::string("{\"audioPort\":\"") + m_portName
-        + "\",\"audioEncoding\":\"" + encValue + "\"}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_AUDIO_ENCODING, paramsJson, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setAudioEncoding failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)

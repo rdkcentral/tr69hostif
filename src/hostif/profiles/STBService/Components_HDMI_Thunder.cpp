@@ -19,13 +19,8 @@
 
 #define THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS "org.rdk.DisplaySettings.getSupportedVideoDisplays"
 #define THUNDER_DS_GET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.getCurrentResolution"
-#define THUNDER_DS_SET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.setCurrentResolution"
-#define THUNDER_DS_SET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.setEnableVideoPort"
 #define THUNDER_DS_GET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.getEnableVideoPort"
-#define THUNDER_DS_GET_MUTED                    "org.rdk.DisplaySettings.getMuted"
 #define THUNDER_DI_FRAMERATE                    "DisplayInfo.1.framerate"
-
-#define MUTED_STRING      "Muted"
 
 char hostIf_STBServiceHDMI::dsHDMIResolutionMode[10] = HDMI_RESOLUTION_MODE_MANUAL;
 GHashTable * hostIf_STBServiceHDMI::ifHash = NULL;
@@ -178,16 +173,8 @@ void hostIf_STBServiceHDMI::doUpdates(updateCallback mUpdateCallback)
 
 int hostIf_STBServiceHDMI::setResolution(const HOSTIF_MsgData_t *stMsgData)
 {
-    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName
-        + "\",\"resolution\":\"" + stMsgData->paramValue + "\"}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_CURRENT_RESOLUTION, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setCurrentResolution failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
@@ -294,17 +281,8 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
 
 int hostIf_STBServiceHDMI::setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData)
 {
-    const bool enable = get_boolean(stMsgData->paramValue);
-    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName
-        + "\",\"enable\":" + (enable ? "true" : "false") + "}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_ENABLE_VIDEO_PORT, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setEnableVideoPort failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 /************************************************************
@@ -397,15 +375,8 @@ int hostIf_STBServiceHDMI::getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 
 int hostIf_STBServiceHDMI::setHDMIResolutionMode(const char* value)
 {
-    if ((0 != strcasecmp(value, HDMI_RESOLUTION_MODE_AUTO)) &&
-        (0 != strcasecmp(value, HDMI_RESOLUTION_MODE_MANUAL)))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Invalid resolution mode: %s\n", __FUNCTION__, value);
-        return NOK;
-    }
-    strncpy(dsHDMIResolutionMode, value, sizeof(dsHDMIResolutionMode) - 1);
-    dsHDMIResolutionMode[sizeof(dsHDMIResolutionMode) - 1] = '\0';
-    return OK;
+    (void)value;
+    return NOT_HANDLED;
 }
 
 const char* hostIf_STBServiceHDMI::getHDMIResolutionMode()

@@ -22,6 +22,15 @@
  * @brief This source file contains the APIs of TR069 Components AudioOutput.
  */
 
+
+/**
+* @defgroup tr69hostif
+* @{
+* @defgroup hostif
+* @{
+**/
+
+
 #include "hostIf_main.h"
 #include "dsTypes.h"
 #include "illegalArgumentException.hpp"

@@ -20,7 +20,7 @@
 #define DISABLED_STRING       "Disabled"
 
 #define THUNDER_PM_GET_POWER_STATE "org.rdk.PowerManager.GetPowerState"
-#define THUNDER_PM_SET_POWER_STATE "org.rdk.PowerManager.SetPowerState"
+
 #define THUNDER_DS_GET_DISPLAY_ASPECT_RATIO "org.rdk.DisplaySettings.getDisplayAspectRatio"
 
 #define THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS "org.rdk.DisplaySettings.getSupportedVideoDisplays"
@@ -238,14 +238,6 @@ int hostIf_STBServiceVideoDecoder::getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *st
 
 int hostIf_STBServiceVideoDecoder::setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData)
 {
-    const bool wantStandby = get_boolean(stMsgData->paramValue);
-    const std::string state = wantStandby ? "STANDBY" : "ON";
-    const std::string params = std::string("{\"keyCode\":0,\"powerState\":\"") + state + "\",\"reason\":\"STBService\"}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_PM_SET_POWER_STATE, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder SetPowerState failed\n", __FUNCTION__);
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }

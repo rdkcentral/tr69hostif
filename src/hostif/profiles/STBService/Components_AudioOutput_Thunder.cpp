@@ -49,21 +49,14 @@
 
 #define THUNDER_DS_GET_SUPPORTED_AUDIO_PORTS   "org.rdk.DisplaySettings.getSupportedAudioPorts"
 #define THUNDER_DS_GET_ENABLE_AUDIO_PORT       "org.rdk.DisplaySettings.getEnableAudioPort"
-#define THUNDER_DS_SET_ENABLE_AUDIO_PORT       "org.rdk.DisplaySettings.setEnableAudioPort"
 #define THUNDER_DS_GET_MUTED                   "org.rdk.DisplaySettings.getMuted"
-#define THUNDER_DS_SET_MUTED                   "org.rdk.DisplaySettings.setMuted"
 #define THUNDER_DS_GET_VOLUME_LEVEL            "org.rdk.DisplaySettings.getVolumeLevel"
-#define THUNDER_DS_SET_VOLUME_LEVEL            "org.rdk.DisplaySettings.setVolumeLevel"
 #define THUNDER_DS_GET_AUDIO_ENCODING          "org.rdk.DisplaySettings.getAudioEncoding"
-#define THUNDER_DS_SET_AUDIO_ENCODING          "org.rdk.DisplaySettings.setAudioEncoding"
 #define THUNDER_DS_GET_AUDIO_FORMAT            "org.rdk.DisplaySettings.getAudioFormat"
 #define THUNDER_DS_GET_SOUND_MODE              "org.rdk.DisplaySettings.getSoundMode"
-#define THUNDER_DS_SET_SOUND_MODE              "org.rdk.DisplaySettings.setSoundMode"
 #define THUNDER_DS_GET_MS12_AUDIO_COMPRESSION  "org.rdk.DisplaySettings.getMS12AudioCompression"
-#define THUNDER_DS_SET_MS12_AUDIO_COMPRESSION  "org.rdk.DisplaySettings.setMS12AudioCompression"
 #define THUNDER_DS_GET_AUDIO_DELAY             "org.rdk.DisplaySettings.getAudioDelay"
 #define THUNDER_DS_GET_DIALOG_ENHANCEMENT      "org.rdk.DisplaySettings.getDialogEnhancement"
-#define THUNDER_DS_SET_DIALOG_ENHANCEMENT      "org.rdk.DisplaySettings.setDialogEnhancement"
 
 GHashTable * hostIf_STBServiceAudioInterface::ifHash = NULL;
 GMutex hostIf_STBServiceAudioInterface::m_mutex;
@@ -582,130 +575,46 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioOptimalLevel(HOSTIF_M
 
 int hostIf_STBServiceAudioInterface::setCancelMute(const HOSTIF_MsgData_t *stMsgData)
 {
-    const bool mute = get_boolean(stMsgData->paramValue);
-    const std::string params = std::string("{\"audioPort\":\"") + m_portName
-        + "\",\"muted\":" + (mute ? "true" : "false") + "}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_MUTED, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setMuted failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setAudioLevel(const HOSTIF_MsgData_t *stMsgData)
 {
-    const int level = get_int(stMsgData->paramValue);
-    if (level < 0 || level > 100)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid level %d\n", __FUNCTION__, level);
-        return NOK;
-    }
-    const std::string params = std::string("{\"audioPort\":\"") + m_portName
-        + "\",\"volumeLevel\":" + std::to_string(level) + "}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_VOLUME_LEVEL, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setVolumeLevel failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setAudioEncoding(const HOSTIF_MsgData_t *stMsgData)
 {
-    std::string encoding(stMsgData->paramValue);
-    if (encoding == "0")
-        encoding = "NONE";
-    else if (encoding == "1")
-        encoding = "DISPLAY";
-    else if (encoding == "2")
-        encoding = "PCM";
-    else if (encoding == "3")
-        encoding = "AC3";
-
-    const std::string params = std::string("{\"audioPort\":\"") + m_portName
-        + "\",\"audioEncoding\":\"" + encoding + "\"}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_AUDIO_ENCODING, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setAudioEncoding failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
-// Need to checck -s <value> option with t69hostif usecase.
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioStereoMode(const HOSTIF_MsgData_t *stMsgData)
 {
-    const std::string params = std::string("{\"audioPort\":\"") + m_portName
-        + "\",\"soundMode\":\"" + std::string(stMsgData->paramValue) + "\"}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_SOUND_MODE, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setSoundMode failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioCompression(const HOSTIF_MsgData_t *stMsgData)
 {
-    const int comp = get_int(stMsgData->paramValue);
-    if (comp < 0 || comp > 10)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid compression %d\n", __FUNCTION__, comp);
-        return NOK;
-    }
-    const std::string params = std::string("{\"audioPort\":\"") + m_portName
-        + "\",\"compresionLevel\":" + std::to_string(comp) + "}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_MS12_AUDIO_COMPRESSION, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setAudioCompression failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_DialogEnhancement(const HOSTIF_MsgData_t *stMsgData)
 {
-    const int level = get_int(stMsgData->paramValue);
-    if (level < 0 || level > 16)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid DialogEnhancement level %d\n", __FUNCTION__, level);
-        return NOK;
-    }
-    const std::string params = std::string("{\"audioPort\":\"") + m_portName
-        + "\",\"enhancerlevel\":" + std::to_string(level) + "}";
-    std::string response;
-    if (!invokeThunderPluginMethod(THUNDER_DS_SET_DIALOG_ENHANCEMENT, params, response))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder setDialogEnhancement failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    return OK;
+    (void)stMsgData;
+    return NOT_HANDLED;
 }
 
-/* No direct Thunder equivalent — guard these */
-#if 0
-int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t *stMsgData) { return NOT_HANDLED; }
-int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t *stMsgData) { return NOT_HANDLED; }
-#endif
-// TODO: No Thunder API. Update after Operations team confirmation.
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t *stMsgData)
 {
     (void)stMsgData;
     return NOT_HANDLED;
 }
-// TODO: No Thunder API. Update after Operations team confirmation.
+
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t *stMsgData)
 {
     (void)stMsgData;

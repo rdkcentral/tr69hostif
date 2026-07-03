@@ -52,7 +52,7 @@
 #define DISABLED_STRING "Disabled"
 
 GHashTable * hostIf_STBServiceSPDIF::ifHash = NULL;
-GMutex * hostIf_STBServiceSPDIF::m_mutex = NULL;
+GMutex  hostIf_STBServiceSPDIF::m_mutex;
 
 hostIf_STBServiceSPDIF* hostIf_STBServiceSPDIF::getInstance(int dev_id)
 {
@@ -131,16 +131,14 @@ void hostIf_STBServiceSPDIF::closeAllInstances()
 
 void hostIf_STBServiceSPDIF::getLock()
 {
-    if(!m_mutex)
-    {
-        m_mutex = g_mutex_new();
-    }
-    g_mutex_lock(m_mutex);
+    g_mutex_init(&hostIf_STBServiceSPDIF::m_mutex);
+    g_mutex_lock(&hostIf_STBServiceSPDIF::m_mutex);
 }
 
 void hostIf_STBServiceSPDIF::releaseLock()
 {
-    g_mutex_unlock(m_mutex);
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] Unlocking mutex...  \n", __FUNCTION__, __LINE__);
+    g_mutex_unlock(&hostIf_STBServiceSPDIF::m_mutex);
 }
 
 /**
@@ -156,10 +154,7 @@ hostIf_STBServiceSPDIF::hostIf_STBServiceSPDIF(int devid, device::AudioOutputPor
     backupEnable = false;
     errno_t rc = -1;
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     backupForcePCM = false;
     backupPassthrough = false;
     backupAudioDelay = 0;
@@ -362,7 +357,7 @@ int hostIf_STBServiceSPDIF::getNumberOfInstances(HOSTIF_MsgData_t *stMsgData)
 {
     int portCount = 0;
     device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
-    for (int i = 0; i < aPorts.size() ; i++)   //CID:18299 - UNINIT
+    for ( unsigned int i = 0; i < aPorts.size() ; i++)   //CID:18299 - UNINIT
     {
         if (strcasestr(aPorts.at(i).getName().c_str(), "spdif"))
             portCount++;
@@ -425,7 +420,7 @@ int hostIf_STBServiceSPDIF::setForcePCM(HOSTIF_MsgData_t *stMsgData)
             newEncoding = dsAUDIO_ENC_DISPLAY;
         aPort.setEncoding(newEncoding);
     }
-    catch (const std::exception e)
+    catch (const std::exception &e)
     {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception: %s\r\n",__FUNCTION__, e.what());
         ret = NOK;
@@ -514,7 +509,6 @@ int hostIf_STBServiceSPDIF::getForcePCM(HOSTIF_MsgData_t *stMsgData, bool *pChan
     int ret = OK;
     try
     {
-        dsAudioEncoding_t newEncoding;
         if (aPort.getEncoding().getId() == dsAUDIO_ENC_PCM)
         {
             put_boolean(stMsgData->paramValue, true);
@@ -532,7 +526,7 @@ int hostIf_STBServiceSPDIF::getForcePCM(HOSTIF_MsgData_t *stMsgData, bool *pChan
         bCalledForcePCM = true;
         backupForcePCM = get_boolean(stMsgData->paramValue);
     }
-    catch (const std::exception e)
+    catch (const std::exception &e)
     {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception: %s\r\n",__FUNCTION__, e.what());
         ret = NOK;
@@ -575,7 +569,7 @@ int hostIf_STBServiceSPDIF::getPassthrough(HOSTIF_MsgData_t *stMsgData, bool *pC
         bCalledPassthrough = true;
         backupPassthrough = get_boolean(stMsgData->paramValue);
     }
-    catch (const std::exception e)
+    catch (const std::exception &e)
     {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception: %s\r\n",__FUNCTION__, e.what());
         ret = NOK;

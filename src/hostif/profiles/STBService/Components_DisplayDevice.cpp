@@ -62,30 +62,15 @@ hostIf_STBServiceDisplayDevice::hostIf_STBServiceDisplayDevice(int devId, device
 {
     errno_t rc = -1;
     rc=strcpy_s(backupDisplayDeviceStatus,sizeof(backupDisplayDeviceStatus)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupEDID,sizeof(backupEDID)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupEDIDBytes,sizeof(backupEDIDBytes)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupSupportedResolution,sizeof(backupSupportedResolution)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
     rc=strcpy_s(backupPreferredResolution,sizeof(backupPreferredResolution)," ");
-    if(rc!=EOK)
-    {
-	    ERR_CHK(rc);
-    }
+    ERR_CHK(rc);
 
     bCalledDisplayDeviceStatus = false;
     bCalledEDID = false;
@@ -314,7 +299,7 @@ int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData,bool *
         backupDisplayDeviceStatus[_BUF_LEN_16-1] = '\0';
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] In getHDMIDisplayDeviceStatus(): Value: %s \n",__FUNCTION__, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\n",__FUNCTION__);
         return NOK;
     }
@@ -365,7 +350,7 @@ int hostIf_STBServiceDisplayDevice::getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMs
         backupEDID[_BUF_LEN_16-1] = '\0';
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] In getHDMIDisplayDeviceX_COMCAST_COM_EDID(): Value: %s \n",__FUNCTION__, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\n",__FUNCTION__);
         return NOK;
     }
@@ -396,11 +381,11 @@ int hostIf_STBServiceDisplayDevice::getEDID_BYTES(HOSTIF_MsgData_t *stMsgData,bo
             vPort.getDisplay().getEDIDBytes(bytes);
             size_t len = bytes.size();
             if (len > valueSize/2) {
-                RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] HDMI Display has EDID of %lu bytes. We only support %lu bytes!\n",__FUNCTION__, len, valueSize/2);
+                RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] HDMI Display has EDID of %u bytes. We only support %u bytes!\n",__FUNCTION__, len, valueSize/2);
                 RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Rest of EDID will be cut\n", __FUNCTION__);
                 len = valueSize/2;
             }
-            for(int j = 0; j < len; j++)
+            for(size_t j = 0; j < len; j++)
                 sprintf(&stMsgData->paramValue[2*j], "%02X", bytes[j]);
         }
         else {
@@ -416,7 +401,7 @@ int hostIf_STBServiceDisplayDevice::getEDID_BYTES(HOSTIF_MsgData_t *stMsgData,bo
         strncpy(backupEDIDBytes,stMsgData->paramValue,_BUF_LEN_256-1);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] In getHDMIDisplayDeviceEDIDBytes(): Value: %s \n",__FUNCTION__, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\n",__FUNCTION__);
         return NOK;
     }
@@ -471,7 +456,7 @@ int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *st
         backupSupportedResolution[_BUF_LEN_16-1] = '\0';
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s]  : Value: %s \n",__FUNCTION__, stMsgData->paramValue);
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\n",__FUNCTION__);
         return NOK;
     }
@@ -509,7 +494,7 @@ int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stM
         strncpy(backupPreferredResolution, stMsgData->paramValue, _BUF_LEN_16-1);
         backupPreferredResolution[_BUF_LEN_16-1] = '\0';
     }
-    catch (const std::exception e) {
+    catch (const std::exception &e) {
         RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Exception\n",__FUNCTION__);
         return NOK;
     }
