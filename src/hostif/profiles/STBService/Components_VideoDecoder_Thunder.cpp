@@ -199,30 +199,6 @@ int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData, bool *
     return OK;
 }
 
-int hostIf_STBServiceVideoDecoder::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    std::string currentState;
-    if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_PM_GET_POWER_STATE, "{}", "currentState", currentState))
-    {
-        currentState = "POWER_STATE_ON";
-    }
-
-    const bool enabled = (currentState == "POWER_STATE_ON");
-    put_boolean(stMsgData->paramValue, enabled);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen = sizeof(bool);
-
-    if (pChanged && bCalledVideoDecoderStatus)
-    {
-        const char *status = enabled ? ENABLED_STRING : DISABLED_STRING;
-        if (strcmp(backupVideoDecoderStatus, status))
-            *pChanged = true;
-    }
-
-    return OK;
-}
-
 int hostIf_STBServiceVideoDecoder::getContentAspectRatio(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string aspectRatio;

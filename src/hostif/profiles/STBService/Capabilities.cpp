@@ -19,16 +19,16 @@
 
 
 #include <string>
-#include <vector>
+#include <list>
 #include "rdk_debug.h" 
 #include "hostIf_main.h"
 #include "Capabilities.h"
 
-#define MAX_RESOLUTION_LENGTH 30
+#include "host.hpp"
+#include "dsTypes.h"
+#include "videoDevice.hpp"
 
-#define THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS "org.rdk.DisplaySettings.getSupportedVideoCodingFormats"
-#define THUNDER_DS_GET_VIDEO_CODEC_INFO "org.rdk.DisplaySettings.getVideoCodecInfo"
-#define THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS "org.rdk.DisplaySettings.getSupportedSettopResolutions"
+#define MAX_RESOLUTION_LENGTH 30
 
 hostIf_STBServiceCapabilities* hostIf_STBServiceCapabilities::getInstance()
 {
@@ -137,45 +137,21 @@ int hostIf_STBServiceCapabilities::getVideoStandards(HOSTIF_MsgData_t *stMsgData
 {
     int bytes_written = 0;
     try {
-        // Thunder response: { "supportedFormats": ["HEVC", "H264", "MPEG2"], "success": true }
-        // The field is a string array — use raw response + strstr per codec.
-        std::string response;
-        if (!invokeThunderPluginMethod(
-                THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS,
-                "{}",
-                response))
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Failed to fetch supported video coding formats from Thunder\n",__FUNCTION__);
-            stMsgData->faultCode = fcInternalError;
-            return NOK;
-        }
-
-        const char* resp = response.c_str();
-        // Codec strings are set by the plugin as: HEVC, H264, MPEG2
-        //   dsVIDEO_CODEC_MPEGHPART2  → "HEVC"
-        //   dsVIDEO_CODEC_MPEG4PART10 → "H264"
-        //   dsVIDEO_CODEC_MPEG2       → "MPEG2"
-        if (strstr(resp, "\"HEVC\""))
+        device::VideoDevice decoder = device::Host::getInstance().getVideoDevices().at(0);
+        unsigned int supported_standards = decoder.getSupportedVideoCodingFormats();
+        if(0 != (supported_standards & dsVIDEO_CODEC_MPEGHPART2))
         {
             bytes_written += snprintf(&(stMsgData->paramValue[bytes_written]), (TR69HOSTIFMGR_MAX_PARAM_LEN - bytes_written), "%s,", "MPEGH-Part2 ([ISO/IEC23008-1]])");
         }
-        if (strstr(resp, "\"MPEG2\""))
+        if(0 != (supported_standards & dsVIDEO_CODEC_MPEG2))
         {
             bytes_written += snprintf(&(stMsgData->paramValue[bytes_written]), (TR69HOSTIFMGR_MAX_PARAM_LEN - bytes_written), "%s,", "MPEG2-Part2 ([ISO/IEC13818-1])");
         }
-        if (strstr(resp, "\"H264\""))
+        if(0 != (supported_standards & dsVIDEO_CODEC_MPEG4PART10))
         {
             bytes_written += snprintf(&(stMsgData->paramValue[bytes_written]), (TR69HOSTIFMGR_MAX_PARAM_LEN - bytes_written), "%s,", "MPEG4-Part10 ([ISO/IEC14496-10])");
         }
-
-        if (bytes_written <= 0)
-        {
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Thunder returned no supported video standards\n",__FUNCTION__);
-            stMsgData->faultCode = fcInternalError;
-            return NOK;
-        }
-
-        stMsgData->paramValue[bytes_written -1] = '\0'; //substitute string terminator for the final comma.
+        stMsgData->paramValue[bytes_written -1] = '\0'; //substitue string terminator for the final comma.
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] : Value: %s \n",__FUNCTION__, stMsgData->paramValue);
         stMsgData->paramtype = hostIf_StringType;
         stMsgData->paramLen = strlen(stMsgData->paramValue);
@@ -189,94 +165,19 @@ int hostIf_STBServiceCapabilities::getVideoStandards(HOSTIF_MsgData_t *stMsgData
     return OK;
 }
 
-struct ThunderHEVCEntry {
-    std::string profile;   // directly from Thunder: "MAIN", "MAIN 10", "MAIN STILL PICTURE"
-    float       level;     // raw libds float, e.g. 5.1 for Level 5.1
-};
-
-static bool getThunderVideoCodecInfo(unsigned int& numEntries, std::vector<ThunderHEVCEntry>& entries)
-{
-    numEntries = 0;
-    entries.clear();
-
-    std::string response;
-    // Query specifically for MPEGHPart2 — matching the original libds getVideoCodecInfo(dsVIDEO_CODEC_MPEGHPART2).
-    if (!invokeThunderPluginMethod(THUNDER_DS_GET_VIDEO_CODEC_INFO, "{\"codec\":\"MPEGH-Part2\"}", response))
-    {
-        return false;
-    }
-
-    cJSON* root = cJSON_Parse(response.c_str());
-    if (root == NULL)
-    {
-        return false;
-    }
-
-    cJSON* resultObj = cJSON_GetObjectItem(root, "result");
-    if (!cJSON_IsObject(resultObj))
-    {
-        cJSON_Delete(root);
-        return false;
-    }
-
-    cJSON* numEntriesObj = cJSON_GetObjectItem(resultObj, "numberOfEntries");
-    if (!cJSON_IsNumber(numEntriesObj))
-    {
-        cJSON_Delete(root);
-        return false;
-    }
-
-    cJSON* entriesObj = cJSON_GetObjectItem(resultObj, "entries");
-    if (!cJSON_IsArray(entriesObj))
-    {
-        cJSON_Delete(root);
-        return false;
-    }
-
-    numEntries = numEntriesObj->valueint;
-
-    bool ok = (numEntries > 0);
-    for (unsigned int i = 0; ok && (i < numEntries); ++i)
-    {
-        cJSON* entryObj = cJSON_GetArrayItem(entriesObj, i);
-        cJSON* profileObj = cJSON_GetObjectItem(entryObj, "profile");
-        cJSON* levelObj = cJSON_GetObjectItem(entryObj, "level");
-
-        if (!cJSON_IsString(profileObj) || (profileObj->valuestring == NULL) || !cJSON_IsNumber(levelObj))
-        {
-            ok = false;
-            break;
-        }
-
-        ThunderHEVCEntry entry;
-        entry.profile = profileObj->valuestring;
-        entry.level = (float)levelObj->valuedouble;
-        entries.push_back(entry);
-    }
-
-    cJSON_Delete(root);
-    return ok;
-}
-
 int hostIf_STBServiceCapabilities::getNumHEVCProfileEntries(HOSTIF_MsgData_t *stMsgData)
 {
     try {
-        unsigned int numEntries = 0;
-        std::vector<ThunderHEVCEntry> entries;
-        if (!getThunderVideoCodecInfo(numEntries, entries))
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Failed to fetch HEVC codec info from Thunder\n",__FUNCTION__);
-            stMsgData->faultCode = fcInternalError;
-            return NOK;
-        }
+        device::VideoDevice decoder = device::Host::getInstance().getVideoDevices().at(0);
+        dsVideoCodecInfo_t info = decoder.getVideoCodecInfo(dsVIDEO_CODEC_MPEGHPART2);
 
-        if(0 == numEntries)
+        if(0 == info.num_entries)
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Zero profile entries reported.\n",__FUNCTION__);
             stMsgData->faultCode = fcInternalError;
             return NOK;
         }
-        put_int(stMsgData->paramValue, numEntries);
+        put_int(stMsgData->paramValue, info.num_entries);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] : Value: %s \n",__FUNCTION__, stMsgData->paramValue);
         stMsgData->paramtype = hostIf_UnsignedIntType;
         stMsgData->paramLen = sizeof(unsigned int); 
@@ -290,80 +191,106 @@ int hostIf_STBServiceCapabilities::getNumHEVCProfileEntries(HOSTIF_MsgData_t *st
     return OK;
 }
 
-static const char* getTR181ResolutionString(const std::string& resolution)
+static const char * convertHEVCProfileNameToString(dsVideoCodecHevcProfiles_t profile)
 {
-    if (resolution == "720p")                                    return "1280x720p/59.94Hz";
-    if (resolution == "1080i")                                   return "1920x1080i/59.94Hz";
-    if (resolution == "1080p60" || resolution == "1080p")        return "1920x1080p/59.94Hz";
-    if (resolution == "2160p30")                                 return "3840x2160p/30Hz";
-    if (resolution == "2160p60")                                 return "3840x2160p/59.94Hz";
-    if (resolution == "480i")                                    return "720x480i/59.94Hz";
-    if (resolution == "480p")                                    return "720x480p/59.94Hz";
-    if (resolution == "576p50" || resolution == "576p")          return "720x576p/50Hz";
-    if (resolution == "720p50")                                  return "1280x720p/50Hz";
-    if (resolution == "1080p30")                                 return "1920x1080p/30Hz";
-    if (resolution == "1080i50" || resolution == "1080i25")      return "1920x1080i/50Hz";
-    if (resolution == "1080p24")                                 return "1920x1080p/24Hz";
-    if (resolution == "1080p50")                                 return "1920x1080p/50Hz";
-    if (resolution == "2160p50")                                 return "3840x2160p/50Hz";
-    if (resolution == "1080p25")                                 return "1920x1080p/25Hz";
-    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Unhandled resolution: %s. Cannot translate!\n", __FUNCTION__, resolution.c_str());
-    return "";
+    switch(profile)
+    {
+        case dsVIDEO_CODEC_HEVC_PROFILE_MAIN:
+            return "MAIN";
+        case dsVIDEO_CODEC_HEVC_PROFILE_MAIN10:
+            return "MAIN 10";
+        case dsVIDEO_CODEC_HEVC_PROFILE_MAINSTILLPICTURE:
+            return "MAIN STILL PICTURE";
+        default:
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Unknown profile 0x%x!\n",__FUNCTION__, (unsigned int)profile);
+            return "";
+    }
 }
 
-static unsigned int getMaxHEVCDecodeKBitRate(const ThunderHEVCEntry& entry)
+static unsigned int getMaxHEVCDecodeKBitRate(dsVideoCodecProfileSupport_t &entry)
 {
-    unsigned int kbit_rate = 0;
-    if ((entry.profile == "MAIN 10") && (5.1f == entry.level))
+    unsigned int kbit_rate = 0; 
+    if((dsVIDEO_CODEC_HEVC_PROFILE_MAIN10 == entry.profile) && (5.1f == entry.level))
     {
         kbit_rate = 40000;
     }
     else
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Unknown profile (%s) and level (%g) combination!\n",__FUNCTION__, entry.profile.c_str(), entry.level);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Unknown profile (0x%x) and level (%g) combination!\n",__FUNCTION__, entry.profile, entry.level);
     }
     return kbit_rate;
+}
+
+static const char* getTR181ResolutionString(std::string &resolution)
+{
+    if("720p" == resolution)
+        return "1280x720p/59.94Hz";
+    else if("1080i" == resolution)
+        return "1920x1080i/59.94Hz";
+    else if(("1080p60" == resolution) || ("1080p" == resolution))
+        return "1920x1080p/59.94Hz";
+    else if("2160p30" == resolution)
+        return "3840x2160p/30Hz";
+    else if("2160p60" == resolution)
+        return "3840x2160p/59.94Hz";
+    else if("480i" == resolution)
+        return "720x480i/59.94Hz";
+    else if("480p" == resolution)
+        return "720x480p/59.94Hz";
+    else if(("576p50" == resolution) || ("576p" == resolution))
+        return "720x576p/50Hz";
+    else if("720p50" == resolution)
+        return "1280x720p/50Hz";
+    else if("1080p30" == resolution)
+        return "1920x1080p/30Hz";
+    else if(("1080i50" == resolution) || ("1080i25" == resolution))
+        return "1920x1080i/50Hz";
+    else if("1080p24" == resolution)
+        return "1920x1080p/24Hz";
+    else if("1080p50" == resolution)
+        return "1920x1080p/50Hz";
+    else if("2160p50" == resolution)
+        return "3840x2160p/50Hz";
+    else if ("1080p25" == resolution)
+        return "1920x1080p/25Hz";
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Unhandled resolution: %s. Cannot translate!\n", __FUNCTION__, resolution.c_str());
+        return "";
+    }
 }
 
 int hostIf_STBServiceCapabilities::getHEVCProfileDetails(HOSTIF_MsgData_t * stMsgData, const char* attr, unsigned int index)
 {
     int bytes_written = 0;
     try {
-        unsigned int numEntries = 0;
-        std::vector<ThunderHEVCEntry> entries;
-        if (!getThunderVideoCodecInfo(numEntries, entries))
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Failed to fetch HEVC codec info from Thunder\n",__FUNCTION__);
-            stMsgData->faultCode = fcInternalError;
-            return NOK;
-        }
+        device::VideoDevice decoder = device::Host::getInstance().getVideoDevices().at(0);
+        dsVideoCodecInfo_t info = decoder.getVideoCodecInfo(dsVIDEO_CODEC_MPEGHPART2);
 
-        if((0 == numEntries) || (index > numEntries))
+        if((0 == info.num_entries) || (index > info.num_entries))
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Could not find profiles matching index %d.\n",__FUNCTION__, index);
-            stMsgData->faultCode = ((0 == numEntries) ? fcInternalError : fcInvalidParameterName);
+            stMsgData->faultCode = ((0 == info.num_entries) ? fcInternalError : fcInvalidParameterName );
             return NOK;
         }
-
-        const ThunderHEVCEntry& entry = entries[index - 1];
 
         if(strcasecmp(attr, PROFILE_NAME_STRING) == 0)
         {
-            bytes_written = snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", entry.profile.c_str());
+            bytes_written = snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", convertHEVCProfileNameToString(info.entries[index - 1].profile));
             stMsgData->paramValue[bytes_written] = '\0';
             stMsgData->paramtype = hostIf_StringType;
             stMsgData->paramLen = bytes_written;
         }
         else if(strcasecmp(attr, PROFILE_LEVEL_STRING) == 0)
         {
-            bytes_written = snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "L%g", entry.level);
+            bytes_written = snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "L%g", info.entries[index - 1].level);
             stMsgData->paramValue[bytes_written] = '\0';
             stMsgData->paramtype = hostIf_StringType;
             stMsgData->paramLen = bytes_written;
         }
         else if(strcasecmp(attr, PROFILE_MAX_DECODE_CAPABILITY_STRING) == 0)
         {
-            put_int(stMsgData->paramValue, getMaxHEVCDecodeKBitRate(entry));
+            put_int(stMsgData->paramValue,getMaxHEVCDecodeKBitRate(info.entries[index -1])); 
             stMsgData->paramtype = hostIf_UnsignedIntType;
             stMsgData->paramLen = sizeof(unsigned int);
         }
@@ -386,65 +313,29 @@ int hostIf_STBServiceCapabilities::getHEVCProfileDetails(HOSTIF_MsgData_t * stMs
 
 int hostIf_STBServiceCapabilities::getSupportedResolutions(HOSTIF_MsgData_t *stMsgData)
 {
+    size_t iElementInList = 0;
+    size_t iResolutionsListSize = 0;
+    char aiResolution[MAX_RESOLUTION_LENGTH] = {'\0'};
     try
     {
-        // Thunder returns: { "supportedSettopResolutions": ["720p", "1080p", ...], "success": true }
-        // Each entry is a short-form name — must be translated to TR-181 "WxHp/FHz" format,
-        // matching the behaviour of the original libds getSettopSupportedResolutions().
-        std::string response;
-        if (!invokeThunderPluginMethod(
-                THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS,
-                "{}",
-                response))
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Failed to fetch supported settop resolutions from Thunder\n",__FUNCTION__);
-            stMsgData->faultCode = fcInternalError;
-            return NOK;
-        }
+        std::list <std::string> supported_resolutions;
+        device::VideoDevice decoder = device::Host::getInstance().getVideoDevices().at(0);
+        decoder.getSettopSupportedResolutions(supported_resolutions);
+        iResolutionsListSize = supported_resolutions.size();
 
-        cJSON* root = cJSON_Parse(response.c_str());
-        if (root == NULL)
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] Failed to parse Thunder response\n",__FUNCTION__);
-            stMsgData->faultCode = fcInternalError;
-            return NOK;
-        }
-
-        // Response may be the full JSON-RPC envelope ({ result: { ... } }) or just the result object.
-        cJSON* resultObj = cJSON_GetObjectItem(root, "result");
-        cJSON* arrayObj = cJSON_IsObject(resultObj)
-            ? cJSON_GetObjectItem(resultObj, "supportedSettopResolutions")
-            : cJSON_GetObjectItem(root, "supportedSettopResolutions");
-
-        if (!cJSON_IsArray(arrayObj))
-        {
-            cJSON_Delete(root);
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s] supportedSettopResolutions not found or not an array\n",__FUNCTION__);
-            stMsgData->faultCode = fcInternalError;
-            return NOK;
-        }
-
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] : List Size: %d \n",__FUNCTION__, iResolutionsListSize);
         memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
-        bool first = true;
-        const int count = cJSON_GetArraySize(arrayObj);
-        for (int i = 0; i < count; ++i)
+
+        std::list<std::string>::iterator entry;
+        for(entry = supported_resolutions.begin(); entry != supported_resolutions.end(); entry++)
         {
-            cJSON* item = cJSON_GetArrayItem(arrayObj, i);
-            if (!cJSON_IsString(item) || (item->valuestring == NULL))
-                continue;
-
-            const char* tr181 = getTR181ResolutionString(std::string(item->valuestring));
-            if (tr181[0] == '\0')
-                continue;   // unknown short name — skip
-
-            if (!first)
-                strncat(stMsgData->paramValue, ",", TR69HOSTIFMGR_MAX_PARAM_LEN - strlen(stMsgData->paramValue) - 1);
-            strncat(stMsgData->paramValue, tr181, TR69HOSTIFMGR_MAX_PARAM_LEN - strlen(stMsgData->paramValue) - 1);
-            first = false;
-            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] : resolution: %s -> %s\n",__FUNCTION__, item->valuestring, tr181);
+            iElementInList++;
+            snprintf(aiResolution, MAX_RESOLUTION_LENGTH, "%s", getTR181ResolutionString(*entry));
+            strncat(stMsgData->paramValue, aiResolution, TR69HOSTIFMGR_MAX_PARAM_LEN-strlen(stMsgData->paramValue)-1);
+            if(iElementInList < iResolutionsListSize)
+                strncat(stMsgData->paramValue,",", TR69HOSTIFMGR_MAX_PARAM_LEN-strlen(stMsgData->paramValue)-1);
+            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] : resolution: %s\n",__FUNCTION__, (*entry).c_str());
         }
-
-        cJSON_Delete(root);
         stMsgData->paramtype = hostIf_StringType;
         stMsgData->paramLen = strlen(stMsgData->paramValue);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s]  : Value: %s \n",__FUNCTION__, stMsgData->paramValue);

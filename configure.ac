@@ -428,6 +428,19 @@ AC_ARG_ENABLE([libsoup3],
 esac],[libsoup3=false])
 AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
 
+# Enable Thunder-backed STBService implementation
+AC_ARG_ENABLE([thunder],
+    AS_HELP_STRING([--enable-thunder],[enable Thunder-backed STBService implementation (default is no)]),
+    [
+      case "${enableval}" in
+       yes) THUNDER_CLIENT_ENABLE=true ;;
+       no)  THUNDER_CLIENT_ENABLE=false ;;
+      *) AC_MSG_ERROR([bad value ${enableval} for --enable-thunder]) ;;
+       esac
+       ],
+     [THUNDER_CLIENT_ENABLE=false; echo "Thunder STBService client is disabled"])
+AM_CONDITIONAL([WITH_THUNDER_CLIENT], [test x$THUNDER_CLIENT_ENABLE = xtrue])
+
 AM_CONDITIONAL([WITH_MOCA_PROFILE], [test "x$enable_moca" = "xyes"])
 AM_CONDITIONAL([WITH_MOCA20], [test "x$enable_moca2" = "xyes"])
 AM_CONDITIONAL([WITH_WIFI_PROFILE], [test x$WIFI_PROFILE_ENABLE = xtrue])

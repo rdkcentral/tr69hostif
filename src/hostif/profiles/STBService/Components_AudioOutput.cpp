@@ -19,12 +19,15 @@
 
 /**
  * @file Components_AudioOutput.cpp
- * @brief Legacy implementation moved to Components_AudioOutput_Thunder.cpp.
+ * @brief This source file contains the APIs of TR069 Components AudioOutput.
  */
-/* All functions moved to Components_AudioOutput_Thunder.cpp */
-#if 0
-#endif /* 0 */
 
+#include "hostIf_main.h"
+#include "dsTypes.h"
+#include "illegalArgumentException.hpp"
+#include "exception.hpp"
+#include "Components_AudioOutput.h"
+#include "safec_lib.h"
 
 #define DEV_NAME "AudioOutput"
 #define BASE_NAME "Device.Services.STBService.1.Components.AudioOutput"

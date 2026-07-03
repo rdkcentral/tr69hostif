@@ -90,7 +90,11 @@ class  hostIf_STBServiceDisplayDevice
 {
 
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
     std::string m_portName;
+#else
+    device::VideoOutputPort& vPort;
+#endif
 
     char backupDisplayDeviceStatus[_BUF_LEN_16];
     char backupEDID[_BUF_LEN_256];
@@ -111,7 +115,11 @@ class  hostIf_STBServiceDisplayDevice
     int getPreferredResolution(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
 
 public:
+#ifdef USE_THUNDER_CLIENT
     hostIf_STBServiceDisplayDevice(int devId, const std::string& portName);
+#else
+    hostIf_STBServiceDisplayDevice(int devId, device::VideoOutputPort& port);
+#endif
     void doUpdates(const char *baseName, updateCallback mUpdateCallback);
     int handleSetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);
     int handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);

@@ -87,13 +87,22 @@
  */
 class  hostIf_STBServiceHDMI
 {
+#ifdef USE_THUNDER_CLIENT
     static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceHDMI* */
     hostIf_STBServiceHDMI(int devid, const std::string& portName);
+#else
+    static GHashTable *ifHash;
+    hostIf_STBServiceHDMI(int devid, device::VideoOutputPort& port);
+#endif
     ~hostIf_STBServiceHDMI();
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
     std::string m_portName;
     static void buildPortNameHash();
+#else
+    device::VideoOutputPort& vPort;
+#endif
     hostIf_STBServiceDisplayDevice *displayDevice;
 
     static char dsHDMIResolutionMode[10];
@@ -111,7 +120,7 @@ private:
     int setResolution(const HOSTIF_MsgData_t *stMsgData);
     int getResolutionValue(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData);
-    int getEnable(HOSTIF_MsgData_t *stMsgData);
+    int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getName(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setHDMIResolutionMode(const char* value);

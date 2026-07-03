@@ -308,67 +308,79 @@ int hostIf_STBServiceHDMI::setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData)
 }
 
 /************************************************************
- * Description  : Get the enabled status for the HDMI port.
- * Precondition : None
- * Input        : stMsgData for result return.
-
- * Return       : OK -> Success
-                  NOK -> Failure
-                  stMsgData->paramValue -> true
-************************************************************/
-int hostIf_STBServiceHDMI::getEnable(HOSTIF_MsgData_t *stMsgData)
-{
-    put_boolean(stMsgData->paramValue, true);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen = sizeof(bool);
-    return OK;
-}
-
-/************************************************************
- * Description  : Get Audio Status
+ * Description  : Get HDMI port Enable state  [MIGRATED to Thunder]
+ * Thunder API  : org.rdk.DisplaySettings.getEnableVideoPort
+ * Request      : { "videoDisplay": "<portName>" }
+ * Response     : { "enable": <bool>, "success": true }
  * Precondition : None
  * Input        : stMsgData for result return.
                   pChanged
 
  * Return       : OK -> Success
                   NOK -> Failure
-                  stMsgData->paramValue -> Disabled: Audio port diabled
-                                        -> Enabled: Audio port enabled
-                                        -> Muted: Audio port enabled and muted
+                  stMsgData->paramValue -> true : Enabled
+                                        -> false : Disabled
+************************************************************/
+int hostIf_STBServiceHDMI::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
+{
+    bool isEnabled = false;
+    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
+
+    if (!invokeThunderPluginMethodAndExtractBoolField(
+            THUNDER_DS_GET_ENABLE_VIDEO_PORT, params, "enable", isEnabled))
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Thunder %s failed (port=%s)\n",
+                __FUNCTION__, THUNDER_DS_GET_ENABLE_VIDEO_PORT, m_portName.c_str());
+        return NOK;
+    }
+
+    put_boolean(stMsgData->paramValue, isEnabled);
+    stMsgData->paramtype = hostIf_BooleanType;
+    stMsgData->paramLen  = sizeof(bool);
+
+    if (bCalledEnable && pChanged && (backupEnable != isEnabled))
+        *pChanged = true;
+    bCalledEnable = true;
+    backupEnable  = isEnabled;
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+            "[%s] Enable=%d (port=%s)\n", __FUNCTION__, isEnabled, m_portName.c_str());
+    return OK;
+}
+
+/************************************************************
+ * Description  : Get HDMI port status  [MIGRATED to Thunder]
+ * Thunder API  : org.rdk.DisplaySettings.getEnableVideoPort
+ * Request      : { "videoDisplay": "<portName>" }
+ * Response     : { "enable": <bool>, "success": true }
+ * Precondition : None
+ * Input        : stMsgData for result return.
+                  pChanged
+
+ * Return       : OK -> Success
+                  NOK -> Failure
+                  stMsgData->paramValue -> Disabled: HDMI port disabled
+                                        -> Enabled: HDMI port enabled
                                         -> Error: Error
 ************************************************************/
 int hostIf_STBServiceHDMI::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    bool enabled = false;
-    const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractBoolField(
-            THUNDER_DS_GET_ENABLE_VIDEO_PORT, params, "enable", enabled))
+    int ret = getEnable(stMsgData);
+    if (ret == OK)
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableVideoPort failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
+        const char *statusStr = get_boolean(stMsgData->paramValue) ? ENABLED_STRING : DISABLED_STRING;
+        strncpy(stMsgData->paramValue, statusStr, PARAM_LEN);
+        stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+        stMsgData->paramtype = hostIf_StringType;
+        stMsgData->paramLen = strlen(stMsgData->paramValue);
+        if (bCalledStatus && pChanged && strcmp(backupStatus, stMsgData->paramValue))
+            *pChanged = true;
+        bCalledStatus = true;
+        strncpy(backupStatus, stMsgData->paramValue, _BUF_LEN_16 - 1);
+        backupStatus[_BUF_LEN_16 - 1] = '\0';
     }
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s()] dev_id = %d, isEnabled = %s\n",
-            __FUNCTION__, dev_id, enabled ? "true" : "false");
-
-    const char *status = DISABLED_STRING;
-    if (enabled)
-    {
-        bool muted = false;
-        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, params, "muted", muted);
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s()] dev_id = %d, isMute = %s\n",
-                __FUNCTION__, dev_id, muted ? "true" : "false");
-        status = muted ? MUTED_STRING : ENABLED_STRING;
-    }
-    strncpy(stMsgData->paramValue, status, PARAM_LEN);
-    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(status);
-    if (bCalledStatus && pChanged && strcmp(backupStatus, stMsgData->paramValue)) *pChanged = true;
-    bCalledStatus = true;
-    strncpy(backupStatus, stMsgData->paramValue, _BUF_LEN_16 - 1);
-    backupStatus[_BUF_LEN_16 - 1] = '\0';
-    return OK;
+    return ret;
 }
 
 int hostIf_STBServiceHDMI::getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged)

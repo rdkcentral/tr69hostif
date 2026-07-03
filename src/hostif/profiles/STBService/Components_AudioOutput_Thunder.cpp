@@ -435,10 +435,24 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioFormat(HOSTIF_MsgData
                 __FUNCTION__, m_portName.c_str());
         return NOK;
     }
-    strncpy(stMsgData->paramValue, encoding.c_str(), PARAM_LEN);
+    /* Map Thunder encoding string to TR-181 AudioFormat — mirrors libds dsAudioEncoding_t switch:
+     *   NONE    -> "None"
+     *   DISPLAY -> "Other"  (platform-selected digital format)
+     *   PCM     -> "PCM"
+     *   AC3     -> "AC3"
+     *   EAC3    -> "EAC3"
+     */
+    const char *fmt = "Other";
+    if (encoding == "NONE")         fmt = "None";
+    else if (encoding == "DISPLAY") fmt = "Other";
+    else if (encoding == "PCM")     fmt = "PCM";
+    else if (encoding == "AC3")     fmt = "AC3";
+    else if (encoding == "EAC3")    fmt = "EAC3";
+
+    strncpy(stMsgData->paramValue, fmt, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    stMsgData->paramLen = strlen(fmt);
     return OK;
 }
 
@@ -468,7 +482,7 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioCompression(HOSTIF_Ms
 {
     int compression = 0;
     if (!invokeThunderPluginMethodAndExtractNumberField(
-            THUNDER_DS_GET_MS12_AUDIO_COMPRESSION, portParam(m_portName), "compressionLevel", compression))
+            THUNDER_DS_GET_MS12_AUDIO_COMPRESSION, portParam(m_portName), "compressionlevel", compression))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioCompression failed for %s\n",
                 __FUNCTION__, m_portName.c_str());

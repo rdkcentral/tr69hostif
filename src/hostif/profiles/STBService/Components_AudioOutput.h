@@ -111,13 +111,22 @@
  */
 class hostIf_STBServiceAudioInterface
 {
+#ifdef USE_THUNDER_CLIENT
     static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceAudioInterface* */
     hostIf_STBServiceAudioInterface(int dev_id, const std::string& portName);
+#else
+    static GHashTable *ifHash;
+    hostIf_STBServiceAudioInterface(int dev_id, device::AudioOutputPort& port);
+#endif
     ~hostIf_STBServiceAudioInterface() {};
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
     std::string m_portName;
     static void buildPortNameHash();
+#else
+    device::AudioOutputPort& aPort;
+#endif
 
     char backupStatus[_BUF_LEN_16];
     bool backupCancelMute;

@@ -78,11 +78,17 @@
 class  hostIf_STBServiceVideoDecoder
 {
     static GHashTable *ifHash;
+#ifdef USE_THUNDER_CLIENT
     hostIf_STBServiceVideoDecoder(int devid, const std::string& portName = "HDMI0");
+#else
+    hostIf_STBServiceVideoDecoder(int devid);
+#endif
     ~hostIf_STBServiceVideoDecoder() {};
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
     std::string m_portName;
+#endif
 
     char backupContentAspectRatio[_BUF_LEN_16];
     bool backupStandby;
@@ -94,13 +100,17 @@ class  hostIf_STBServiceVideoDecoder
 
 private:
     int getContentAspectRatio(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#ifdef USE_THUNDER_CLIENT
     int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#endif
     int getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData);
 
 public:
+#ifdef USE_THUNDER_CLIENT
     static void buildPortNameHash();
+#endif
     static hostIf_STBServiceVideoDecoder *getInstance(int dev_id);
     static void closeInstance(hostIf_STBServiceVideoDecoder *);
 /**

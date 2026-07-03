@@ -79,12 +79,20 @@
 class hostIf_STBServiceSPDIF
 {
     static GHashTable *ifHash;
+#ifdef USE_THUNDER_CLIENT
     hostIf_STBServiceSPDIF(int dev_id, const std::string& portName);
+#else
+    hostIf_STBServiceSPDIF(int dev_id, device::AudioOutputPort& port);
+#endif
     ~hostIf_STBServiceSPDIF() {};
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
     std::string m_portName;
     static void buildPortNameHash();
+#else
+    device::AudioOutputPort& aPort;
+#endif
 
     bool backupEnable;
     char backupStatus[_BUF_LEN_16];
