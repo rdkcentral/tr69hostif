@@ -52,6 +52,14 @@ int hostIf_STBServiceDisplayDevice::handleGetMsg(const char *paramName, HOSTIF_M
         return getEDID_BYTES(stMsgData);
     if (strcasecmp(paramName, COMCAST_EDID_STRING) == 0)
         return getX_COMCAST_COM_EDID(stMsgData);
+    if (strcasecmp(paramName, "VideoLatency") == 0 ||
+        strcasecmp(paramName, "AutoLipSyncSupport") == 0 ||
+        strcasecmp(paramName, "CECSupport") == 0 ||
+        strcasecmp(paramName, "HDMI3DPresent") == 0)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+        return NOT_HANDLED;
+    }
     return NOT_HANDLED;
 }
 
@@ -206,25 +214,9 @@ int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stM
 
 int hostIf_STBServiceDisplayDevice::getEDID_BYTES(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string edidBase64;
-    if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_READ_EDID, "{}", "EDID", edidBase64))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder %s failed\n",
-                __FUNCTION__, THUNDER_DS_READ_EDID);
-        return NOK;
-    }
-
-    strncpy(stMsgData->paramValue, edidBase64.c_str(), PARAM_LEN);
-    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
-    if (bCalledEDIDBytes && pChanged && strcmp(backupEDIDBytes, stMsgData->paramValue))
-        *pChanged = true;
-    bCalledEDIDBytes = true;
-    strncpy(backupEDIDBytes, stMsgData->paramValue, sizeof(backupEDIDBytes) - 1);
-    backupEDIDBytes[sizeof(backupEDIDBytes) - 1] = '\0';
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceDisplayDevice::getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMsgData, bool *pChanged)

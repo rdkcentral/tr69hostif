@@ -327,71 +327,34 @@ int hostIf_STBServiceSPDIF::getNumberOfInstances(HOSTIF_MsgData_t *stMsgData)
 
 int hostIf_STBServiceSPDIF::setEnable(HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::setAlias(HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::setForcePCM(HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    bool enabled = false;
-    const std::string paramsJson = std::string("{\"audioPort\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractBoolField(
-            THUNDER_DS_GET_ENABLE_AUDIO_PORT, paramsJson, "enable", enabled))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableAudioPort failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-
-    put_boolean(stMsgData->paramValue, enabled);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen = sizeof(bool);
-
-    if(bCalledEnable && pChanged && (backupEnable != enabled))
-        *pChanged = true;
-
-    bCalledEnable = true;
-    backupEnable = enabled;
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    bool enabled = false;
-    const std::string paramsJson = std::string("{\"audioPort\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractBoolField(
-            THUNDER_DS_GET_ENABLE_AUDIO_PORT, paramsJson, "enable", enabled))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableAudioPort failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-
-    const char *status = enabled ? ENABLED_STRING : DISABLED_STRING;
-    strncpy(stMsgData->paramValue, status, PARAM_LEN);
-    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(status);
-
-    if(bCalledStatus && pChanged && strcmp(backupStatus, stMsgData->paramValue))
-        *pChanged = true;
-
-    bCalledStatus = true;
-    strncpy(backupStatus, stMsgData->paramValue, _BUF_LEN_16-1);
-    backupStatus[_BUF_LEN_16-1] = '\0';
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::getAlias(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
@@ -407,85 +370,30 @@ int hostIf_STBServiceSPDIF::getAlias(HOSTIF_MsgData_t *stMsgData, bool *pChanged
 
 int hostIf_STBServiceSPDIF::getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    bCalledName = true;
-    return getAlias(stMsgData, pChanged);
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::getForcePCM(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string encoding;
-    const std::string paramsJson = std::string("{\"audioPort\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_GET_AUDIO_ENCODING, paramsJson, "audioEncoding", encoding))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioEncoding failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-
-    bool forcePcm = (0 == strcasecmp(encoding.c_str(), "PCM"));
-    put_boolean(stMsgData->paramValue, forcePcm);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen = sizeof(bool);
-
-    if(bCalledForcePCM && pChanged && (backupForcePCM != forcePcm))
-        *pChanged = true;
-
-    bCalledForcePCM = true;
-    backupForcePCM = forcePcm;
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::getPassthrough(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string encoding;
-    const std::string paramsJson = std::string("{\"audioPort\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractStringField(
-            THUNDER_DS_GET_AUDIO_ENCODING, paramsJson, "audioEncoding", encoding))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioEncoding failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-
-    bool passthrough = (0 != strcasecmp(encoding.c_str(), "PCM"));
-    put_boolean(stMsgData->paramValue, passthrough);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen = sizeof(bool);
-
-    if(bCalledPassthrough && pChanged && (backupPassthrough != passthrough))
-        *pChanged = true;
-
-    bCalledPassthrough = true;
-    backupPassthrough = passthrough;
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::getAudioDelay(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    int delay = 0;
-    const std::string paramsJson = std::string("{\"audioPort\":\"") + m_portName + "\"}";
-    if (!invokeThunderPluginMethodAndExtractNumberField(
-            THUNDER_DS_GET_AUDIO_DELAY, paramsJson, "audioDelay", delay))
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getAudioDelay failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-
-    if (delay < 0)
-        delay = 0;
-
-    put_uint(stMsgData->paramValue, (uint)delay);
-    stMsgData->paramtype = hostIf_UnsignedIntType;
-    stMsgData->paramLen = sizeof(unsigned int);
-
-    if (bCalledAudioDelay && pChanged && (backupAudioDelay != (unsigned)delay))
-        *pChanged = true;
-
-    bCalledAudioDelay = true;
-    backupAudioDelay = (unsigned)delay;
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 /** @} */

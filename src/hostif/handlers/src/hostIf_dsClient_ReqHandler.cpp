@@ -84,6 +84,11 @@ bool DSClientReqHandler::init()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] Device manager Initializing\n", __FUNCTION__);
+#ifdef USE_THUNDER_CLIENT
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] STBService interface: Thunder (WPEFramework)\n", __FUNCTION__);
+#else
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] STBService interface: IARM/libds\n", __FUNCTION__);
+#endif
 #ifndef USE_THUNDER_CLIENT
     while(true)
     {

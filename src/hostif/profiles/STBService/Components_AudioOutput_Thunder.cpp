@@ -371,21 +371,33 @@ int hostIf_STBServiceAudioInterface::getCancelMute(HOSTIF_MsgData_t *stMsgData, 
 
 int hostIf_STBServiceAudioInterface::getAudioLevel(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    int level = 0;
-    if (!invokeThunderPluginMethodAndExtractNumberField(
-            THUNDER_DS_GET_VOLUME_LEVEL, portParam(m_portName), "volumeLevel", level))
+    bool enabled = false;
+    if (!invokeThunderPluginMethodAndExtractBoolField(
+            THUNDER_DS_GET_ENABLE_AUDIO_PORT, portParam(m_portName), "enable", enabled))
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getVolumeLevel failed for %s\n",
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableAudioPort failed for %s\n",
                 __FUNCTION__, m_portName.c_str());
         return NOK;
     }
-    put_int(stMsgData->paramValue, level);
-    stMsgData->paramtype = hostIf_UnsignedIntType;
-    stMsgData->paramLen = sizeof(unsigned int);
-    if (bCalledAudioLevel && pChanged && (backupAudioLevel != (unsigned)level))
+
+    const char *status = "Disabled";
+    if (enabled)
+    {
+        bool muted = false;
+        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted);
+        status = muted ? "Muted" : "Enabled";
+    }
+
+    strncpy(stMsgData->paramValue, status, PARAM_LEN);
+    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
+    stMsgData->paramtype = hostIf_StringType;
+    stMsgData->paramLen = strlen(status);
+
+    if (bCalledStatus && pChanged && strcmp(backupStatus, stMsgData->paramValue))
         *pChanged = true;
-    bCalledAudioLevel = true;
-    backupAudioLevel = (unsigned)level;
+    bCalledStatus = true;
+    strncpy(backupStatus, stMsgData->paramValue, sizeof(backupStatus) - 1);
+    backupStatus[sizeof(backupStatus) - 1] = '\0';
     return OK;
 }
 
@@ -493,72 +505,44 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioCompression(HOSTIF_Ms
 
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_DialogEnhancement(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    int level = 0;
-    if (!invokeThunderPluginMethodAndExtractNumberField(
-            THUNDER_DS_GET_DIALOG_ENHANCEMENT, portParam(m_portName), "enhancerlevel", level) )
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getDialogEnhancement failed for %s\n",
-                __FUNCTION__, m_portName.c_str());
-        return NOK;
-    }
-    put_int(stMsgData->paramValue, level);
-    stMsgData->paramtype = hostIf_UnsignedIntType;
-    stMsgData->paramLen = sizeof(unsigned int);
-    if (bCalledDialogEnhancement && pChanged && (backupDialogEnhancement != (unsigned)level))
-        *pChanged = true;
-    bCalledDialogEnhancement = true;
-    backupDialogEnhancement = (unsigned)level;
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
-// TODO: No Thunder API. Update after Operations team confirmation.
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    snprintf(stMsgData->paramValue, PARAM_LEN, "0.000000");
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
-    return OK;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
-// TODO: No Thunder API. Update after Operations team confirmation.
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_MinAudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    snprintf(stMsgData->paramValue, PARAM_LEN, "-120.000000");
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
-    return OK;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
-// TODO: No Thunder API. Update after Operations team confirmation.
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_MaxAudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    snprintf(stMsgData->paramValue, PARAM_LEN, "0.000000");
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(stMsgData->paramValue);
-    return OK;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
-// TODO: No Thunder API. Update after Operations team confirmation.
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioGain(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    stMsgData->paramValue[0] = '\0';
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = 0;
-    return OK;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
-// TODO: No Thunder API. Update after Operations team confirmation.
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioLoopThru(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
-    stMsgData->paramValue[0] = '\0';
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = 0;
-    return OK;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 // TODO: No Thunder API. Update after Operations team confirmation.
@@ -575,48 +559,48 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioOptimalLevel(HOSTIF_M
 
 int hostIf_STBServiceAudioInterface::setCancelMute(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setAudioLevel(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setAudioEncoding(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioStereoMode(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioCompression(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_DialogEnhancement(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }

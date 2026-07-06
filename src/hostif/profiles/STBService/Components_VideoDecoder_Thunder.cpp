@@ -224,20 +224,13 @@ int hostIf_STBServiceVideoDecoder::getContentAspectRatio(HOSTIF_MsgData_t *stMsg
 
 int hostIf_STBServiceVideoDecoder::getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    std::string currentState;
-    invokeThunderPluginMethodAndExtractStringField(THUNDER_PM_GET_POWER_STATE, "{}", "currentState", currentState);
-    const bool standby = (currentState.find("STANDBY") != std::string::npos);
-    put_boolean(stMsgData->paramValue, standby);
-    stMsgData->paramtype = hostIf_BooleanType;
-    stMsgData->paramLen = sizeof(bool);
-    if (bCalledStandby && pChanged && (backupStandby != standby)) *pChanged = true;
-    bCalledStandby = true;
-    backupStandby = standby;
-    return OK;
+    (void)pChanged;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceVideoDecoder::setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData)
 {
-    (void)stMsgData;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
     return NOT_HANDLED;
 }

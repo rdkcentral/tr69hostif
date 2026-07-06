@@ -216,6 +216,11 @@ hostIf_DeviceInfo::hostIf_DeviceInfo(int dev_id):
         m_rfcStore = XRFCStore::getInstance();
 #endif
     m_bsStore = XBSStore::getInstance();
+#ifdef USE_THUNDER_CLIENT
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] DeviceInfo interface: Thunder (WPEFramework)\n", __FUNCTION__);
+#else
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] DeviceInfo interface: IARM/libds\n", __FUNCTION__);
+#endif
 }
 hostIf_DeviceInfo::~hostIf_DeviceInfo()
 {
