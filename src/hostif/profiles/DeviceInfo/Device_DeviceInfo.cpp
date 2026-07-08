@@ -4461,18 +4461,17 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCRoamTrigger(HOSTIF_MsgData_t *stMsgD
 int hostIf_DeviceInfo::set_xRDKCentralComRFCLoudnessEquivalenceEnable(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
-    bool enable = false;
 
     if(stMsgData->paramtype == hostIf_BooleanType)
     {
-        enable = get_boolean(stMsgData->paramValue);
 #ifdef USE_THUNDER_CLIENT
         /* enableLEConfig is not supported on RDKe with Thunder client */
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] enableLEConfig not supported with Thunder client\n",__FUNCTION__);
         ret = NOK;
         stMsgData->faultCode = fcInternalError;
 #else
-        dsError_t status = dsERR_GENERAL;
+        bool enable = get_boolean(stMsgData->paramValue);
+		dsError_t status = dsERR_GENERAL;
         try
         {
             //set the value TRUE/FALSE.
