@@ -2,82 +2,179 @@
 
 ## Overview
 
-This document maps the current L2 functional tests in `test/functional-tests/` against
-the full tr69hostif module surface. It identifies what is covered, what is not, and
-precisely quantifies the tests needed to reach 100% functional coverage.
+This document provides the detailed L2 coverage view for the functional test suite.
+It restores the richer format with summary, layout, infrastructure notes, current
+coverage detail, heat map, pending gaps to reach 100%, and parameter count analysis.
 
-> Last analysed: March 2026  
+Last analyzed: June 29, 2026.
 
 ---
-**Test Coverage Summary**
-```
-Total source functions (approx): ~761
-Functions with direct L2 coverage: ~34
-Functions with indirect L2 coverage: ~18
-Functions with no L2 coverage: ~709
 
-Active L2 test functions: 51
-Disabled L2 test functions: 0
-Active feature scenarios: 170
-Proposed new test scenarios: 68
+## Test Coverage Summary
 
-High priority: 46
-Medium priority: 12
-Low priority: 10
-Test files active: 5
-Test files disabled (commented out): 0
+| Metric | Value |
+|---|---:|
+| Total source functions (approx baseline) | ~761 |
+| Functions with direct L2 coverage | ~313 |
+| Functions with no current L2 coverage (estimated) | ~448 |
+| Active L2 test functions | 313 |
+| Disabled test functions via skip/xfail decorators | 0 |
+| Runtime skip paths detected | 1 |
+| Active feature scenarios | 355 |
+| Test files active | 25 |
+| Feature files active | 29 |
+| Estimated current L2 coverage | ~41.1% |
+| Target L2 coverage | 100% |
 
-Estimated current L2 functional coverage: ~6.8%
-Target L2 functional coverage: ~80%
-```
+Coverage calculation:
+
+- `313 / 761 = 41.1%`
+- Remaining estimated gap: `761 - 313 = 448`
+
 ---
+
 ## Test Suite Layout
 
-```
+```text
 test/functional-tests/
-├── features/                              # BDD scenario descriptions (not wired to pytest)
+├── features/                                   # BDD feature specs
 │   ├── tr69hostif_bootup_sequence.feature
-│   ├── tr69hostif_deviceip.feature
 │   ├── tr69hostif_handlers_communications.feature
-│   └── tr69hostif_webpa.feature
-└── tests/                                 # Runnable pytest functions
-    ├── test_bootup_sequence.py            # orders 1–18
-    ├── test_handlers_communications.py    # orders 19–24
-    ├── tr69hostif_deviceip.py             # orders 25–28
-    ├── tr69hostif_webpa.py                # orders 29–45
-    ├── helper_functions.py                # shell/log helpers
-    ├── basic_constants.py                 # shared constants
-    └── profile_helper_functions.py        # ⚠ stub — broken (NameError at runtime)
+│   ├── tr69hostif_deviceip.feature
+│   ├── tr69hostif_webpa.feature
+│   ├── tr69hostif_http_server.feature
+│   ├── tr69hostif_ethernet_handlers.feature
+│   ├── tr69hostif_moca.feature
+│   ├── tr69hostif_rfc_store.feature
+│   ├── tr69hostif_thunder_negative_edge_cases.feature
+│   └── ... (total 29 feature files)
+└── tests/                                      # Runnable pytest tests
+    ├── test_bootup_sequence.py
+    ├── test_handlers_communications.py
+    ├── tr69hostif_deviceip.py
+    ├── tr69hostif_ip.py
+    ├── tr69hostif_webpa.py
+    ├── tr69hostif_http_server.py
+    ├── tr69hostif_ethernet_handlers.py
+    ├── tr69hostif_moca.py
+    ├── tr69hostif_rfc_store.py
+    ├── tr69hostif_thunder_negative_edge_cases.py
+    └── ... (total 25 runnable test files)
 ```
 
-**Test runner:** `pytest` with `@pytest.mark.run(order=N)`, executed sequentially.  
-**Interfaces exercised:** `rbuscli` (rbus DML), mock `parodus` binary (WebPA), log scraping.
+Test runner: pytest with `@pytest.mark.run(order=N)` sequencing.
+
+Interfaces exercised:
+
+- rbus DML via rbuscli
+- mock parodus flows
+- HTTP server endpoint flows
+- Thunder mock flows
+- log scraping
 
 ---
 
 ## Infrastructure Notes
 
 | Component | Status | Notes |
-|-----------|--------|-------|
-| `conftest.py` / fixtures | **Missing** | No setup/teardown; no parameter rollback between tests |
-| BDD wiring | **Missing** | `.feature` files are documentation only — no `@given/@when/@then` implementations |
-| `profile_helper_functions.py` | **Broken** | `GREP_STRING` undefined → `NameError` at runtime |
-| HTTP server test helper | **Dead code** | `profile_init_run_command()` builds a `curl` command against `:11999` but is never called |
-| Log isolation | **Absent** | Log cleared once at suite start; grep spans entire boot log |
-| Test state isolation | **Absent** | SET operations persist; later tests may see values from earlier tests |
-| Hardcoded expected values | `"DOCKER"`, `"99.99.15.07"`, etc. | Tests are tied to one specific container image |
+|---|---|---|
+| Test fixture orchestration | Partial | No global rollback fixture baseline documented in this file |
+| BDD execution wiring | Mixed | Features are present; tests run as pytest modules |
+| Order tagging | Needs cleanup | 313 tags, 306 unique values, 7 duplicates |
+| Static skip/xfail decorators | None found | No `@pytest.mark.skip` or `@pytest.mark.xfail` decorators |
+| Runtime skip behavior | Present | 1 runtime skip path in Thunder negative tests when port bind fails |
+| Test/feature map consistency | Partial | 25 mapped test files, 4 documentation-only feature files |
+
+Duplicate order values:
+
+- `25` (x2)
+- `26` (x2)
+- `27` (x2)
+- `28` (x2)
+- `48` (x2)
+- `49` (x2)
+- `50` (x2)
+
+Runtime skip signal:
+
+- `pytest.skip("Unable to bind Thunder edge mock on 127.0.0.1:9998 ...")`
 
 ---
 
-## Current Coverage
+## Detailed Current Coverage
+
+### Per-Test-File Detail
+
+| Test File | Tests |
+|---|---:|
+| test_bootup_sequence.py | 18 |
+| test_handlers_communications.py | 10 |
+| tr69hostif_account_thunder_plugin.py | 2 |
+| tr69hostif_authservice_thunder_plugin.py | 3 |
+| tr69hostif_custom.py | 34 |
+| tr69hostif_deviceip.py | 4 |
+| tr69hostif_devicetime.py | 15 |
+| tr69hostif_dhcpv4.py | 4 |
+| tr69hostif_ethernet_handlers.py | 24 |
+| tr69hostif_http_server.py | 8 |
+| tr69hostif_ip.py | 47 |
+| tr69hostif_ipremotesupport.py | 5 |
+| tr69hostif_moca.py | 53 |
+| tr69hostif_negative_edge_cases.py | 4 |
+| tr69hostif_networkmanager_endpoint_thunder_plugin.py | 7 |
+| tr69hostif_networkmanager_ssid_thunder_plugin.py | 7 |
+| tr69hostif_processor_processstatus.py | 8 |
+| tr69hostif_rfc_store_params.py | 12 |
+| tr69hostif_rfc_store.py | 4 |
+| tr69hostif_std_params.py | 9 |
+| tr69hostif_system_thunder_plugin.py | 2 |
+| tr69hostif_thunder_negative_edge_cases.py | 3 |
+| tr69hostif_webpa_negative_edge_cases.py | 6 |
+| tr69hostif_webpa_rdkdlmgr.py | 7 |
+| tr69hostif_webpa.py | 17 |
+| Total | 313 |
+
+### Per-Feature-File Detail
+
+| Feature File | Scenarios |
+|---|---:|
+| tr69hostif_account_thunder_plugin.feature | 2 |
+| tr69hostif_authservice_thunder_plugin.feature | 3 |
+| tr69hostif_bootup_sequence.feature | 18 |
+| tr69hostif_custom.feature | 5 |
+| tr69hostif_deviceip.feature | 9 |
+| tr69hostif_devicetime.feature | 10 |
+| tr69hostif_dhcpv4.feature | 4 |
+| tr69hostif_ethernet_handlers.feature | 24 |
+| tr69hostif_ethernet.feature | 13 |
+| tr69hostif_handlers_communications.feature | 20 |
+| tr69hostif_http_server.feature | 14 |
+| tr69hostif_ip.feature | 12 |
+| tr69hostif_ipremotesupport.feature | 5 |
+| tr69hostif_moca.feature | 53 |
+| tr69hostif_negative_edge_cases.feature | 4 |
+| tr69hostif_negative_tests.feature | 28 |
+| tr69hostif_networkmanager_endpoint_thunder_plugin.feature | 7 |
+| tr69hostif_networkmanager_ssid_thunder_plugin.feature | 8 |
+| tr69hostif_processor_processstatus.feature | 8 |
+| tr69hostif_rfc_store_params.feature | 12 |
+| tr69hostif_rfc_store.feature | 4 |
+| tr69hostif_std_params.feature | 9 |
+| tr69hostif_system_thunder_plugin.feature | 1 |
+| tr69hostif_thunder_negative_edge_cases.feature | 3 |
+| tr69hostif_thunder_plugins.feature | 21 |
+| tr69hostif_time_chrony.feature | 29 |
+| tr69hostif_webpa_negative_edge_cases.feature | 6 |
+| tr69hostif_webpa_rdkdlmgr.feature | 7 |
+| tr69hostif_webpa.feature | 16 |
+| Total | 355 |
 
 ### Bootup Sequence (orders 1–18)
 
-All tests are **log-scrape checks** — they verify messages appear (or are absent) after
-daemon startup. No parameter values are read or written.
+All tests are log-scrape checks — they verify messages appear (or are absent) after daemon startup.
 
 | Order | Area Tested | Method |
-|-------|-------------|--------|
+|---|---|---|
 | 1–2 | HTTP/JSON server thread start | Log: `"SERVER: Started server successfully."` |
 | 3 | Parodus connection init | Log: `"Initiating Connection with PARODUS success.."` |
 | 4 | Thread creation success | Log absence: `"pthread_create() failed"` |
@@ -94,14 +191,12 @@ daemon startup. No parameter values are read or written.
 | 17 | No fatal errors in full log | Negative sweep: no `FATAL`/`CRITICAL` |
 | 18 | RFC default store | File `/tmp/rfcdefaults.ini` + rbus GET of `…RFC.Feature.Airplay.Enable` |
 
----
+### RFC / Handler Parameters (orders 19–28)
 
-### RFC / Handler Parameters (orders 19–24)
-
-All via **`rbuscli` SET + GET roundtrip** (rbus DML path).
+All via rbuscli SET + GET roundtrip (rbus DML path).
 
 | Order | TR-181 Parameter | Dir | Type |
-|-------|-----------------|-----|------|
+|---|---|---|---|
 | 19 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.Version` | SET+GET | string |
 | 20 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DHCPv6Client.Enable` | SET+GET | boolean |
 | 20 | `Device.Time.NTPServer1` | SET+GET | string |
@@ -119,53 +214,57 @@ All via **`rbuscli` SET + GET roundtrip** (rbus DML path).
 | 23 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName` | SET+GET | string |
 | 23 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.SsrUrl` | SET+GET | string |
 | 24 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerProductName` + file persistence | SET+GET+file | string |
+| 25 | `Device.DeviceInfo.SoftwareVersion` | GET | string |
+| 25 | `Device.DeviceInfo.ModelName` | GET | string |
+| 25 | `Device.DeviceInfo.X_COMCAST-COM_FirmwareFilename` | GET | string |
+| 25 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MEMSWAP.Enable` | SET+GET | boolean |
+| 26 | `Device.IP.Interface.1.IPv4Address.1.Enable` | GET | boolean |
+| 26 | `Device.IP.Interface.1.IPv6Enable` | GET | boolean |
+| 26 | `Device.IP.Interface.1.IPv6Address.1.Enable` through `.ValidLifetime` (x9) | GET | mixed |
+| 26 | `Device.IP.Interface.1.IPv6Prefix.1.*` (x3) | GET | mixed |
+| 26 | `Device.IP.Interface.1.IPv6AddressNumberOfEntries` | GET | int |
+| 27 | `Device.Services.STBServiceNumberOfEntries` | GET | int |
+| 28 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshStatus` | GET | string |
+| 28 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger` | SET | string |
+| 28 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshArgs` | SET | string |
 
----
+### WebPA / Parodus (orders 29–50)
 
-### DeviceInfo / IP Parameters (orders 25–28)
-
-| Order | TR-181 Parameter | Dir | Expected Value |
-|-------|-----------------|-----|----------------|
-| 25 | `Device.DeviceInfo.SoftwareVersion` | GET | `"99.99.15.07"` |
-| 25 | `Device.DeviceInfo.ModelName` | GET | `"DOCKER"` |
-| 25 | `Device.DeviceInfo.X_COMCAST-COM_FirmwareFilename` | GET | `"Platform_Cotainer_1.0.0"` |
-| 25 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MEMSWAP.Enable` | SET+GET | `"true"` |
-| 26 | `Device.IP.Interface.1.IPv4Address.1.Enable` | GET | `"true"` |
-| 26 | `Device.IP.Interface.1.IPv6Enable` | GET | `"true"` |
-| 26 | `Device.IP.Interface.1.IPv6Address.1.Enable` | GET | `"true"` |
-| 26 | `Device.IP.Interface.1.IPv6Address.1.Anycast` | GET | `"false"` |
-| 26 | `Device.IP.Interface.1.IPv6Address.1.Origin` | GET | `"WellKnown"` |
-| 26 | `Device.IP.Interface.1.IPv6Address.1.PreferredLifetime` | GET | `"0001-01-01T00:00:00Z"` |
-| 26 | `Device.IP.Interface.1.IPv6Prefix.1.Autonomous` | GET | `"false"` |
-| 26 | `Device.IP.Interface.1.IPv6Prefix.1.StaticType` | GET | `"Inapplicable"` |
-| 26 | `Device.IP.Interface.1.IPv6Prefix.1.PrefixStatus` | GET | `"Preferred"` |
-| 26 | `Device.IP.Interface.1.IPv6Prefix.1.ValidLifetime` | GET | `"0001-01-01T00:00:00Z"` |
-| 26 | `Device.IP.Interface.1.IPv6AddressNumberOfEntries` | GET | `"1"` |
-| 27 | `Device.Services.STBServiceNumberOfEntries` | GET | `"1"` |
-| 28 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshStatus` | GET | `"INACTIVE"` |
-| 28 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger` | SET | `"start shorts"` |
-| 28 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshArgs` | SET | SSH args string |
-
----
-
-### WebPA / Parodus (orders 29–45)
-
-Via **mock `parodus` binary** with JSON payloads. Validation reads `/opt/logs/parodus.log`.
+Via mock parodus binary with JSON payloads. Validation reads `/opt/logs/parodus.log`.
 
 | Order | TR-181 Parameter | Op | Verification |
-|-------|-----------------|-----|-------------|
+|---|---|---|---|
 | 29–30 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.XconfUrl` | SET→GET | statusCode 200, value roundtrip |
 | 31–32 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.AutoExcluded.Enable` | SET→GET | statusCode 200, `"false"` |
-| 33–34 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.LogServerUrl` | SET→GET | statusCode 200, `"logs.mock.tv"` |
+| 33–34 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.LogUpload.LogServerUrl` | SET→GET | statusCode 200 |
 | 35 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.LowSpeed` | GET | `"12800"` |
 | 36 | `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol` | GET | `"http"` |
-| 37 | `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus` | GET | presence only |
-| 38 | `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL` | GET | `"https://mockserver.tv/Images"` |
-| 39 | `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload` | GET | `"TESTIMAGE_DEV.bin"` |
-| 40 | `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareUpdateState` | GET | `"Download complete"` |
-| 41 | `Device.DeviceInfo.` (wildcard) | GET | statusCode 200, `"Success"` |
-| 42–44 | FW upgrade: Protocol, URL, Image | SET × 3 | statusCode 200 each |
-| 45 | `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadNow` (DownloadNow) | SET | statusCode 200 + log `"Triggered Download"` |
+| 37–40 | Firmware state parameters (Status, URL, ToDownload, UpdateState) | GET | presence/value |
+| 41 | `Device.DeviceInfo.` (wildcard) | GET | statusCode 200 |
+| 42–44 | FW upgrade: Protocol, URL, Image | SET × 3 | statusCode 200 |
+| 45 | `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadNow` | SET | statusCode 200 + log |
+| 46–50 | Thunder negative edge cases (timeout, empty response, mid-request kill) | GET | NOK + log |
+
+---
+
+### Category Distribution
+
+| Category | Test Functions |
+|---|---:|
+| Device/IP Core | 56 |
+| MoCA | 53 |
+| Custom/DeviceInfo | 43 |
+| WebPA/Parodus | 30 |
+| Ethernet | 24 |
+| Thunder Plugins | 24 |
+| Bootup/Lifecycle | 18 |
+| RFC/Bootstrap Store | 16 |
+| Time/Chrony | 15 |
+| Handler Communications | 10 |
+| HTTP Server | 8 |
+| Processor/ProcessStatus | 8 |
+| DHCPv4 | 4 |
+| Negative/Edge Cases | 4 |
 
 ---
 
@@ -173,197 +272,355 @@ Via **mock `parodus` binary** with JSON payloads. Validation reads `/opt/logs/pa
 
 ```mermaid
 graph TD
-    A[tr69hostif Module] --> B[Bootup Lifecycle]
-    A --> C[rbus/DML Handler]
-    A --> D[HTTP Server]
-    A --> E[WebPA/Parodus]
+    A[tr69hostif L2 Coverage] --> B[Bootup/Lifecycle]
+    A --> C[Device/IP Core]
+    A --> D[WebPA/Parodus]
+    A --> E[HTTP Server]
     A --> F[Thunder Plugins]
     A --> G[RFC Store]
-    A --> H[Device.WiFi]
-    A --> I[Device.IP]
-    A --> J[Device.Ethernet]
-    A --> K[Device.DHCPv4]
+    A --> H[Ethernet]
+    A --> I[MoCA]
+    A --> J[DHCPv4]
+    A --> K[Negative Cases]
 
     style B fill:#2d7a2d,color:#fff
     style C fill:#2d7a2d,color:#fff
-    style E fill:#2d7a2d,color:#fff
+    style D fill:#2d7a2d,color:#fff
+    style E fill:#d4a017,color:#000
+    style F fill:#d4a017,color:#000
     style G fill:#d4a017,color:#000
-    style I fill:#2d7a2d,color:#fff
-    style D fill:#c0392b,color:#fff
-    style F fill:#c0392b,color:#fff
-    style H fill:#c0392b,color:#fff
-    style J fill:#d4a017,color:#000
+    style H fill:#d4a017,color:#000
+    style I fill:#d4a017,color:#000
+    style J fill:#c0392b,color:#fff
     style K fill:#c0392b,color:#fff
 ```
 
-| Colour | Meaning |
-|--------|---------|
-| Green | Covered |
-| Amber | Partially covered |
-| Red | Not covered |
+Legend:
+
+- Green: strong coverage density
+- Amber: partial coverage or coverage quality follow-up needed
+- Red: limited coverage area and high priority to expand
 
 ---
 
 ## Coverage Gaps
 
-### Priority 1 — Thunder Plugin Calls (0% covered)
+This section lists every handler function and TR-181 data model parameter that currently
+has **no runnable L2 test**. Sourced directly from profile header files.
 
-**All 5 Thunder plugins and all 21 TR-181 parameters that use them have zero test coverage.**
-This is the largest gap because Thunder calls are synchronous blocking operations with a
-10-second timeout; any regression silently returns empty/NOK with no daemon crash.
-
-| Plugin | Method | TR-181 Parameter | Gap |
-|--------|--------|-----------------|-----|
-| `org.rdk.NetworkManager` | `GetPrimaryInterface` + `GetIPSettings` | `Device.DeviceInfo.X_COMCAST-COM_STB_IP` | No GET test |
-| `org.rdk.NetworkManager` | `GetAvailableInterfaces` | `Device.WiFi.SSID.{i}.Enable` / `MACAddress` | No GET test |
-| `org.rdk.NetworkManager` | `GetConnectedSSID` | `Device.WiFi.SSID.{i}.SSID` / `BSSID` / `Name` | No GET test |
-| `org.rdk.NetworkManager` | `GetConnectedSSID` | `Device.WiFi.Endpoint.{i}.SSIDReference` / `Stats.SignalStrength` | No GET test |
-| `org.rdk.NetworkManager` | `GetConnectedSSID` | `Device.WiFi.Endpoint.{i}.Security.ModesEnabled` | No GET test |
-| `org.rdk.NetworkManager` | `GetWifiState` | `Device.WiFi.SSID.{i}.Status` | No GET test |
-| `org.rdk.NetworkManager` | `Enable/DisableInterface` | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | No SET test |
-| `org.rdk.AuthService` | `setPartnerId` | `Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId` | No SET test |
-| `org.rdk.AuthService` | `getServiceAccountId` | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID` | No GET test |
-| `org.rdk.AuthService` | `getExperience` | `Device.DeviceInfo.X_RDKCENTRAL-COM_Experience` | No GET test |
-| `org.rdk.System` | `getPrivacyMode` | `Device.DeviceInfo.…ReverseSSH.xOpsReverseSshTrigger` gate | No privacy-mode gate test |
-| `org.rdk.MigrationPreparer` | `getComponentReadiness` | `Device.DeviceInfo.MigrationPreparer.MigrationReady` | No GET test |
-| `org.rdk.Account` | `getLastCheckoutResetTime` | `…HotelCheckout.LastResetTime` / `Status` | No GET test |
-
-**Recommended test approach:**
-- Deploy a mock Thunder JSON-RPC responder on `127.0.0.1:9998` in the test container
-- Stub each `org.rdk.*` method to return a known JSON payload
-- Verify the TR-181 parameter GET returns the expected mapped value
+Estimated remaining gap: **~448 items** against the ~761 baseline.
 
 ---
 
-### Priority 2 — HTTP Server (0% functional coverage)
+### Gap 1 — Device.DeviceInfo (uncovered handlers)
 
-The libsoup-based HTTP server (`/`) accepting WDMP-C JSON is completely untested at the
-protocol level. The only evidence of intent is dead code in `test_bootup_sequence.py`:
+Source: `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.h`
 
-```python
-# Dead code — never called from any test function
-def profile_init_run_command():
-    cmd = f"curl -s -X GET http://127.0.0.1:11999/ ..."
-```
+Handlers with no test (confirmed absent from test files):
 
-**Required tests:**
-
-| Test | Method | Request | Expected |
-|------|--------|---------|----------|
-| GET single parameter | HTTP GET | `{"names":["Device.DeviceInfo.ModelName"]}` | `{"statusCode":200,...}` |
-| GET multiple parameters | HTTP GET | `{"names":["param1","param2"]}` | Multi-value response |
-| GET wildcard | HTTP GET | `{"names":["Device.DeviceInfo."]}` | All DeviceInfo params |
-| SET parameter | HTTP POST with CallerID | `{"parameters":[{"name":...,"value":...}]}` | `{"statusCode":200}` |
-| SET without CallerID | HTTP POST no header | — | `500 POST Not Allowed without CallerID` |
-| Malformed JSON body | HTTP GET | `{bad json}` | `400 Bad Request` |
-| Unknown parameter | HTTP GET | nonexistent param | Non-zero statusCode |
-| Empty body | HTTP GET | no body | `400 No request data.` |
-
----
-
-### Priority 3 — WiFi TR-181 Subtree (0% covered)
-
-`Device.WiFi.*` has 13 TR-181 parameters mapped to Thunder — none are tested.
-
-| Parameter | Dir | Needs |
-|-----------|-----|-------|
-| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | GET+SET | Positive GET; SET enable/disable roundtrip |
-| `Device.WiFi.SSID.{i}.BSSID` | GET | GET with mock Thunder response |
-| `Device.WiFi.SSID.{i}.SSID` | GET | GET with mock Thunder response |
-| `Device.WiFi.SSID.{i}.Name` | GET | GET with mock Thunder response |
-| `Device.WiFi.SSID.{i}.Enable` | GET | GET with mock Thunder response |
-| `Device.WiFi.SSID.{i}.MACAddress` | GET | GET with mock Thunder response |
-| `Device.WiFi.SSID.{i}.Status` | GET | GET with mock Thunder response |
-| `Device.WiFi.Endpoint.{i}.Enable` | GET | GET with mock Thunder response |
-| `Device.WiFi.Endpoint.{i}.Status` | GET | GET with mock Thunder response |
-| `Device.WiFi.Endpoint.{i}.SSIDReference` | GET | GET with mock Thunder response |
-| `Device.WiFi.Endpoint.{i}.Stats.SignalStrength` | GET | GET with mock Thunder response |
-| `Device.WiFi.Endpoint.{i}.Security.ModesEnabled` | GET | GET with mock Thunder response |
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.DeviceInfo.Manufacturer` | `get_Device_DeviceInfo_Manufacturer` | GET |
+| `Device.DeviceInfo.ManufacturerOUI` | `get_Device_DeviceInfo_ManufacturerOUI` | GET |
+| `Device.DeviceInfo.Description` | `get_Device_DeviceInfo_Description` | GET |
+| `Device.DeviceInfo.ProductClass` | `get_Device_DeviceInfo_ProductClass` | GET |
+| `Device.DeviceInfo.SerialNumber` | `get_Device_DeviceInfo_SerialNumber` | GET |
+| `Device.DeviceInfo.HardwareVersion` | `get_Device_DeviceInfo_HardwareVersion` | GET |
+| `Device.DeviceInfo.AdditionalHardwareVersion` | `get_Device_DeviceInfo_AdditionalHardwareVersion` | GET |
+| `Device.DeviceInfo.AdditionalSoftwareVersion` | `get_Device_DeviceInfo_AdditionalSoftwareVersion` | GET |
+| `Device.DeviceInfo.ProvisioningCode` | `get_Device_DeviceInfo_ProvisioningCode` | GET |
+| `Device.DeviceInfo.UpTime` | `get_Device_DeviceInfo_UpTime` | GET |
+| `Device.DeviceInfo.FirstUseDate` | `get_Device_DeviceInfo_FirstUseDate` | GET |
+| `Device.DeviceInfo.MemoryStatus.Total` | `get_Device_DeviceInfo_MemoryStatus_Total` | GET |
+| `Device.DeviceInfo.MemoryStatus.Free` | `get_Device_DeviceInfo_MemoryStatus_Free` | GET |
+| `Device.DeviceInfo.VendorConfigFileNumberOfEntries` | `get_Device_DeviceInfo_VendorConfigFileNumberOfEntries` | GET |
+| `Device.DeviceInfo.SupportedDataModelNumberOfEntries` | `get_Device_DeviceInfo_SupportedDataModelNumberOfEntries` | GET |
+| `Device.DeviceInfo.ProcessorNumberOfEntries` | `get_Device_DeviceInfo_ProcessorNumberOfEntries` | GET |
+| `Device.DeviceInfo.VendorLogFileNumberOfEntries` | `get_Device_DeviceInfo_VendorLogFileNumberOfEntries` | GET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | GET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.IpAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpaddress` | GET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.MACAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMACaddress` | GET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.XRPollingAction` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction` | GET+SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.IssueType` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType` | SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.WebCfgData` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData` | SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_Canary.WakeUpStart` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart` | SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_Canary.WakeUpEnd` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd` | SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_MemInsight.Trigger` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger` | SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_MemInsight.Enable` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Enable` | SET |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_RebootStopEnable` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable` | SET |
 
 ---
 
-### Priority 4 — RFC Variable Store (partial)
+### Gap 2 — Device.DeviceInfo.ProcessStatus (uncovered)
 
-| Scenario | Status |
-|----------|--------|
-| `rfcdefaults.ini` file read + rbus GET | Covered (order 18) |
-| `bootstrap.ini` persistence + `.journal` file | Covered (order 24) |
-| `rfcVariable.ini` read-back | **Not covered** |
-| RFC override precedence (`rfcVariable` overrides `rfcdefaults`) | **Not covered** |
-| `XRFCVarStore` consistency after daemon restart | **Not covered** |
-| `RFC_CONTROL_RELOADCACHE` trigger (via HTTP server POST) | **Not covered** |
+Source: `src/hostif/profiles/DeviceInfo/Device_DeviceInfo_ProcessStatus.h`
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.DeviceInfo.ProcessStatus.CPUUsage` | `get_Device_DeviceInfo_ProcessStatus_CPUUsage` | GET |
 
 ---
 
-### Priority 5 — Negative / Edge Cases (0% covered)
+### Gap 3 — Device.Time (uncovered handlers)
 
-No negative test exists in the current suite.
+Source: `src/hostif/profiles/Time/Device_Time.h`
 
-| Missing Test | Description |
-|-------------|-------------|
-| SET wrong data type | SET a string param with an integer value |
-| SET out-of-range value | SET an integer param beyond valid range |
-| GET nonexistent parameter | GET a param that does not exist in data model |
-| Malformed WebPA JSON | Send malformed JSON to parodus mock |
-| Thunder timeout simulation | Kill mock Thunder server mid-request; verify NOK returned |
-| Thunder empty response | Return `{}` from mock; verify handler returns NOK, no crash |
-| HTTP server POST without CallerID | Expect `500` response |
-| WebPA REPLACE command | Currently only GET/SET tested |
+Handlers already covered: `Enable`, `Status`, `NTPServer1–5`, `CurrentLocalTime`, `LocalTimeZone`, `CurrentUTCTime`, `Chrony_Enable`, `NTPMaxstep`, `NTPServerSettings` via `tr69hostif_devicetime.py` and `test_handlers_communications.py`.
+
+Handlers still missing:
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.Time.Enable` | `set_Device_Time_Enable` | SET |
+| `Device.Time.LocalTimeZone` | `set_Device_Time_LocalTimeZone` | SET |
 
 ---
 
-### Priority 6 — Untested Module Areas
+### Gap 4 — Device.InterfaceStack (zero coverage)
 
-| Module / Profile | Status | Notes |
-|-----------------|--------|-------|
-| `Device.Ethernet.*` | Thread start logged only | No parameter GET/SET |
-| `Device.DHCPv4.*` | **Zero** | No thread log, no parameter test |
-| `Device.InterfaceStack.*` | **Zero** | No test |
-| `Device.MoCA.*` | **Zero** | No test |
-| `Device.X_RDKCENTRAL-COM_T2.*` | **Zero** | Constants defined but `check_Rbus_data()` never called |
-| `Device.StorageService.*` | **Zero** | No test |
-| STB Service profile | `STBServiceNumberOfEntries` GET only (order 27) | Internal params untested |
+Source: `src/hostif/profiles/InterfaceStack/Device_InterfaceStack.h`
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.InterfaceStackNumberOfEntries` | `get_Device_InterfaceStackNumberOfEntries` | GET |
+| `Device.InterfaceStack.{i}.HigherLayer` | `get_Device_InterfaceStack_HigherLayer` | GET |
+| `Device.InterfaceStack.{i}.LowerLayer` | `get_Device_InterfaceStack_LowerLayer` | GET |
 
 ---
 
-## Tests Needed — Prioritised Backlog
+### Gap 5 — Device.StorageService (zero coverage)
 
-```mermaid
-flowchart TD
-    P1[P1: Thunder Plugin Mock Tests\n13 methods × GET/SET] --> P2
-    P2[P2: HTTP Server Protocol Tests\nGET · POST · errors] --> P3
-    P3[P3: WiFi Parameter Tests\n12 params via Thunder mock] --> P4
-    P4[P4: RFC Store Override Tests\nrfcVariable precedence] --> P5
-    P5[P5: Negative / Edge Case Tests\nbad input · timeout · malformed]
-    P5 --> P6
-    P6[P6: Missing Profile Tests\nEthernet · DHCPv4 · MoCA · T2]
-```
+Source: `src/hostif/profiles/StorageService/Service_Storage.h`, `Service_Storage_PhyMedium.h`
 
-| Priority | Area | Estimated Tests | Blocking? |
-|----------|------|-----------------|-----------|
-| P1 | Thunder plugin mock tests | ~26 | Yes — zero coverage of live path |
-| P2 | HTTP server protocol tests | ~8 | Yes — dead code in current suite |
-| P3 | WiFi TR-181 parameter tests | ~12 | Yes — zero coverage |
-| P4 | RFC variable store override | ~4 | No |
-| P5 | Negative / edge cases | ~8 | No |
-| P6 | Ethernet, DHCPv4, MoCA, T2 | ~10 | No |
+Build flag: `WITH_STORAGESERVICE_PROFILE`
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.StorageService.{i}.ClientNumberOfEntries` | `get_Device_StorageSrvc_ClientNumberOfEntries` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Alias` | `get_Device_Service_StorageMedium_Alias` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Name` | `get_Device_Service_StorageMedium_Name` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Vendor` | `get_Device_Service_StorageMedium_Vendor` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Model` | `get_Device_Service_StorageMedium_Model` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.SerialNumber` | `get_Device_Service_StorageMedium_SerialNumber` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.FirmwareVersion` | `get_Device_Service_StorageMedium_FirmwareVersion` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.ConnectionType` | `get_Device_Service_StorageMedium_ConnectionType` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Removable` | `get_Device_Service_StorageMedium_Removable` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Status` | `get_Device_Service_StorageMedium_Status` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Uptime` | `get_Device_Service_StorageMedium_Uptime` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.SMARTCapable` | `get_Device_Service_StorageMedium_SMARTCapable` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Health` | `get_Device_Service_StorageMedium_Health` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.HotSwappable` | `get_Device_Service_StorageMedium_HotSwappable` | GET |
+| `Device.StorageService.{i}.PhysicalMedium.NumberOfEntries` | `get_Device_Service_StorageMedium_ClientNumberOfEntries` | GET |
+
+---
+
+### Gap 6 — Device.WiFi (zero coverage — build flag `WITH_WIFI_PROFILE`)
+
+Source: `src/hostif/profiles/wifi/Device_WiFi*.h`
+
+#### Device.WiFi top-level
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.WiFi.RadioNumberOfEntries` | `get_Device_WiFi_RadioNumberOfEntries` | GET |
+| `Device.WiFi.SSIDNumberOfEntries` | `get_Device_WiFi_SSIDNumberOfEntries` | GET |
+| `Device.WiFi.AccessPointNumberOfEntries` | `get_Device_WiFi_AccessPointNumberOfEntries` | GET |
+| `Device.WiFi.EndPointNumberOfEntries` | `get_Device_WiFi_EndPointNumberOfEntries` | GET |
+| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | `get_Device_WiFi_EnableWiFi` | GET |
+| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | `set_Device_WiFi_EnableWiFi` | SET |
+
+#### Device.WiFi.Radio.{i}
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.WiFi.Radio.{i}.Enable` | `get_Device_WiFi_Radio_Enable` / `set_Device_WiFi_Radio_Enable` | GET+SET |
+| `Device.WiFi.Radio.{i}.Status` | `get_Device_WiFi_Radio_Status` | GET |
+| `Device.WiFi.Radio.{i}.Alias` | `get_Device_WiFi_Radio_Alias` / `set_Device_WiFi_Radio_Alias` | GET+SET |
+| `Device.WiFi.Radio.{i}.Name` | `get_Device_WiFi_Radio_Name` | GET |
+| `Device.WiFi.Radio.{i}.LastChange` | `get_Device_WiFi_Radio_LastChange` | GET |
+| `Device.WiFi.Radio.{i}.LowerLayers` | `get_Device_WiFi_Radio_LowerLayers` / `set_Device_WiFi_Radio_LowerLayers` | GET+SET |
+| `Device.WiFi.Radio.{i}.Upstream` | `get_Device_WiFi_Radio_Upstream` | GET |
+| `Device.WiFi.Radio.{i}.MaxBitRate` | `get_Device_WiFi_Radio_MaxBitRate` | GET |
+| `Device.WiFi.Radio.{i}.SupportedFrequencyBands` | `get_Device_WiFi_Radio_SupportedFrequencyBands` | GET |
+| `Device.WiFi.Radio.{i}.OperatingFrequencyBand` | `get_Device_WiFi_Radio_OperatingFrequencyBand` / `set_Device_WiFi_Radio_OperatingFrequencyBand` | GET+SET |
+| `Device.WiFi.Radio.{i}.SupportedStandards` | `get_Device_WiFi_Radio_SupportedStandards` | GET |
+| `Device.WiFi.Radio.{i}.OperatingStandards` | `get_Device_WiFi_Radio_OperatingStandards` / `set_Device_WiFi_Radio_OperatingStandards` | GET+SET |
+| `Device.WiFi.Radio.{i}.PossibleChannels` | `get_Device_WiFi_Radio_PossibleChannels` | GET |
+| `Device.WiFi.Radio.{i}.ChannelsInUse` | `get_Device_WiFi_Radio_ChannelsInUse` | GET |
+| `Device.WiFi.Radio.{i}.Channel` | `get_Device_WiFi_Radio_Channel` / `set_Device_WiFi_Radio_Channel` | GET+SET |
+| `Device.WiFi.Radio.{i}.AutoChannelSupported` | `get_Device_WiFi_Radio_AutoChannelSupported` | GET |
+| `Device.WiFi.Radio.{i}.AutoChannelEnable` | `get_Device_WiFi_Radio_AutoChannelEnable` / `set_Device_WiFi_Radio_AutoChannelEnable` | GET+SET |
+| `Device.WiFi.Radio.{i}.AutoChannelRefreshPeriod` | `get_Device_WiFi_Radio_AutoChannelRefreshPeriod` / `set_Device_WiFi_Radio_AutoChannelRefreshPeriod` | GET+SET |
+| `Device.WiFi.Radio.{i}.OperatingChannelBandwidth` | `get_Device_WiFi_Radio_OperatingChannelBandwidth` / `set_Device_WiFi_Radio_OperatingChannelBandwidth` | GET+SET |
+| `Device.WiFi.Radio.{i}.ExtensionChannel` | `get_Device_WiFi_Radio_ExtensionChannel` / `set_Device_WiFi_Radio_ExtensionChannel` | GET+SET |
+| `Device.WiFi.Radio.{i}.GuardInterval` | `get_Device_WiFi_Radio_GuardInterval` / `set_Device_WiFi_Radio_GuardInterval` | GET+SET |
+| `Device.WiFi.Radio.{i}.MCS` | `get_Device_WiFi_Radio_MCS` / `set_Device_WiFi_Radio_MCS` | GET+SET |
+| `Device.WiFi.Radio.{i}.TransmitPowerSupported` | `get_Device_WiFi_Radio_TransmitPowerSupported` | GET |
+| `Device.WiFi.Radio.{i}.TransmitPower` | `get_Device_WiFi_Radio_TransmitPower` / `set_Device_WiFi_Radio_TransmitPower` | GET+SET |
+| `Device.WiFi.Radio.{i}.IEEE80211hSupported` | `get_Device_WiFi_Radio_IEEE80211hSupported` | GET |
+| `Device.WiFi.Radio.{i}.IEEE80211hEnabled` | `get_Device_WiFi_Radio_IEEE80211hEnabled` / `set_Device_WiFi_Radio_IEEE80211hEnabled` | GET+SET |
+| `Device.WiFi.Radio.{i}.RegulatoryDomain` | `get_Device_WiFi_Radio_RegulatoryDomain` / `set_Device_WiFi_Radio_RegulatoryDomain` | GET+SET |
+
+#### Device.WiFi.Radio.{i}.Stats
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.WiFi.Radio.{i}.Stats.BytesSent` | `get_Device_WiFi_Radio_Stats_BytesSent` | GET |
+| `Device.WiFi.Radio.{i}.Stats.BytesReceived` | `get_Device_WiFi_Radio_Stats_BytesReceived` | GET |
+| `Device.WiFi.Radio.{i}.Stats.PacketsSent` | `get_Device_WiFi_Radio_Stats_PacketsSent` | GET |
+| `Device.WiFi.Radio.{i}.Stats.PacketsReceived` | `get_Device_WiFi_Radio_Stats_PacketsReceived` | GET |
+| `Device.WiFi.Radio.{i}.Stats.ErrorsSent` | `get_Device_WiFi_Radio_Stats_ErrorsSent` | GET |
+| `Device.WiFi.Radio.{i}.Stats.ErrorsReceived` | `get_Device_WiFi_Radio_Stats_ErrorsReceived` | GET |
+| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsSent` | `get_Device_WiFi_Radio_Stats_DiscardPacketsSent` | GET |
+| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsReceived` | `get_Device_WiFi_Radio_Stats_DiscardPacketsReceived` | GET |
+| `Device.WiFi.Radio.{i}.Stats.NoiseFloor` | `get_Device_WiFi_Radio_Stats_NoiseFloor` | GET |
+
+#### Device.WiFi.SSID.{i}
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.WiFi.SSID.{i}.Enable` | `get_Device_WiFi_SSID_Enable` / `set_Device_WiFi_SSID_Enable` | GET+SET |
+| `Device.WiFi.SSID.{i}.Status` | `get_Device_WiFi_SSID_Status` | GET |
+| `Device.WiFi.SSID.{i}.Alias` | `get_Device_WiFi_SSID_Alias` / `set_Device_WiFi_SSID_Alias` | GET+SET |
+| `Device.WiFi.SSID.{i}.Name` | `get_Device_WiFi_SSID_Name` | GET |
+| `Device.WiFi.SSID.{i}.LastChange` | `get_Device_WiFi_SSID_LastChange` | GET |
+| `Device.WiFi.SSID.{i}.LowerLayers` | `get_Device_WiFi_SSID_LowerLayers` / `set_Device_WiFi_SSID_LowerLayers` | GET+SET |
+| `Device.WiFi.SSID.{i}.BSSID` | `get_Device_WiFi_SSID_BSSID` | GET |
+| `Device.WiFi.SSID.{i}.MACAddress` | `get_Device_WiFi_SSID_MACAddress` | GET |
+| `Device.WiFi.SSID.{i}.SSID` | `get_Device_WiFi_SSID_SSID` / `set_Device_WiFi_SSID_SSID` | GET+SET |
+
+#### Device.WiFi.SSID.{i}.Stats
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.WiFi.SSID.{i}.Stats.BytesSent` | `get_Device_WiFi_SSID_Stats_BytesSent` | GET |
+| `Device.WiFi.SSID.{i}.Stats.BytesReceived` | `get_Device_WiFi_SSID_Stats_BytesReceived` | GET |
+| `Device.WiFi.SSID.{i}.Stats.PacketsSent` | `get_Device_WiFi_SSID_Stats_PacketsSent` | GET |
+| `Device.WiFi.SSID.{i}.Stats.PacketsReceived` | `get_Device_WiFi_SSID_Stats_PacketsReceived` | GET |
+| `Device.WiFi.SSID.{i}.Stats.ErrorsSent` | `get_Device_WiFi_SSID_Stats_ErrorsSent` | GET |
+| `Device.WiFi.SSID.{i}.Stats.ErrorsReceived` | `get_Device_WiFi_SSID_Stats_ErrorsReceived` | GET |
+| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent` | `get_Device_WiFi_SSID_Stats_UnicastPacketsSent` | GET |
+| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived` | `get_Device_WiFi_SSID_Stats_UnicastPacketsReceived` | GET |
+| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent` | `get_Device_WiFi_SSID_Stats_DiscardPacketsSent` | GET |
+| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived` | `get_Device_WiFi_SSID_Stats_DiscardPacketsReceived` | GET |
+| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent` | `get_Device_WiFi_SSID_Stats_MulticastPacketsSent` | GET |
+| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived` | `get_Device_WiFi_SSID_Stats_MulticastPacketsReceived` | GET |
+| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent` | `get_Device_WiFi_SSID_Stats_BroadcastPacketsSent` | GET |
+| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived` | `get_Device_WiFi_SSID_Stats_BroadcastPacketsReceived` | GET |
+| `Device.WiFi.SSID.{i}.Stats.UnknownProtoPacketsReceived` | `get_Device_WiFi_SSID_Stats_UnknownProtoPacketsReceived` | GET |
+
+#### Device.WiFi.EndPoint.{i}
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.WiFi.EndPoint.{i}.Enable` | `get_Device_WiFi_EndPoint_Enable` / `set_Device_WiFi_EndPoint_Enable` | GET+SET |
+| `Device.WiFi.EndPoint.{i}.Status` | `get_Device_WiFi_EndPoint_Status` | GET |
+| `Device.WiFi.EndPoint.{i}.Alias` | `get_Device_WiFi_EndPoint_Alias` / `set_Device_WiFi_EndPoint_Alias` | GET+SET |
+| `Device.WiFi.EndPoint.{i}.ProfileReference` | `get_Device_WiFi_EndPoint_ProfileReference` / `set_Device_WiFi_EndPoint_ProfileReference` | GET+SET |
+| `Device.WiFi.EndPoint.{i}.SSIDReference` | `get_Device_WiFi_EndPoint_SSIDReference` | GET |
+| `Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries` | `get_Device_WiFi_EndPoint_ProfileNumberOfEntries` | GET |
+| `Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate` | `get_Device_WiFi_EndPoint_Stats_LastDataDownlinkRate` | GET |
+| `Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate` | `get_Device_WiFi_EndPoint_Stats_LastDataUplinkRate` | GET |
+| `Device.WiFi.EndPoint.{i}.Stats.SignalStrength` | `get_Device_WiFi_EndPoint_Stats_SignalStrength` | GET |
+| `Device.WiFi.EndPoint.{i}.Stats.Retransmissions` | `get_Device_WiFi_EndPoint_Stats_Retransmissions` | GET |
+| `Device.WiFi.EndPoint.{i}.WPS.Enable` | `get_Device_WiFi_EndPoint_WPS_Enable` | GET |
+| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported` | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsSupported` | GET |
+| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled` | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsEnabled` | GET |
+
+#### Device.WiFi.X_RDKCENTRAL-COM.ClientRoaming
+
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `...ClientRoaming.Enable` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_Enable` | GET+SET |
+| `...PreAssn.ProbeRetryCnt` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_ProbeRetryCnt` | GET+SET |
+| `...PreAssn.BestThresholdLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_BestThresholdLevel` | GET+SET |
+| `...PreAssn.BestDeltaLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_BestDeltaLevel` | GET+SET |
+| `...SelfSteerOverride` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_SelfSteerOverride` | GET+SET |
+| `...PostAssn.BestDeltaLevelConnected` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_BestDeltaLevelConnected` | GET+SET |
+| `...PostAssn.BestDeltaLevelDisconnected` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_BestDeltaLevelDisconnected` | GET+SET |
+| `...PostAssn.SelfSteerThreshold` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_SelfSteerThreshold` | GET+SET |
+| `...PostAssn.SelfSteerTimeframe` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_SelfSteerTimeframe` | GET+SET |
+| `...PostAssn.APcontrolThresholdLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_APcontrolThresholdLevel` | GET+SET |
+| `...PostAssn.APcontrolTimeframe` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_APcontrolTimeframe` | GET+SET |
+| `...postAssnBackOffTime` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_postAssnBackOffTime` | GET+SET |
+| `...80211kvrEnable` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_80211kvrEnable` | GET+SET |
 
 ---
 
-## Infrastructure Fixes Required
+### Gap 7 — Device.Time (SET-side gaps)
 
-Before new tests can be added reliably, the following infrastructure issues must be resolved:
+Source: `src/hostif/profiles/Time/Device_Time.h`
 
-| Issue | Fix |
-|-------|-----|
-| No `conftest.py` | Add `conftest.py` with `@pytest.fixture(autouse=True)` that records and restores any SET parameters after each test |
-| BDD feature files not wired | Either wire them with `pytest-bdd` step implementations or drop them and document test intent in docstrings |
-| `profile_helper_functions.py` broken | Fix `GREP_STRING` undefined reference or remove the file |
-| HTTP server dead code | Move `profile_init_run_command()` into actual test functions |
-| Hardcoded expected values | Extract to `basic_constants.py` with a comment that they are image-specific |
-| Log isolation | Call `clear_tr69hostiflogs()` at the start of each test (the function exists but is commented out) |
+| TR-181 Parameter | Handler Function | Dir |
+|---|---|---|
+| `Device.Time.Enable` | `set_Device_Time_Enable` | SET |
+| `Device.Time.LocalTimeZone` | `set_Device_Time_LocalTimeZone` | SET |
 
 ---
+
+### Gap 8 — Negative and Edge-Case Tests
+
+No negative test scenarios currently exist for the items below.
+
+| Scenario | Expected Outcome |
+|---|---|
+| GET nonexistent parameter via rbus | rbus EXCEPTION or error response |
+| SET string parameter with integer dataType | Type mismatch error in response |
+| SET integer parameter with out-of-range value | Error or clamped value |
+| GET parameter when Thunder plugin `org.rdk.NetworkManager` is unavailable | NOK / rbus exception |
+| GET parameter when Thunder plugin `org.rdk.AuthService` is unavailable | NOK / rbus exception |
+| Thunder timeout: plugin holds connection for >10s | curl error 28, `getJsonRPCData failed` in log |
+| Thunder empty response: plugin returns `{}` | parse error in log, NOK to caller |
+| Thunder server killed mid-request | incomplete JSON parse error in log |
+| WebPA malformed JSON payload | parse error from parodus |
+| HTTP server POST without CallerID header | HTTP 500 `POST Not Allowed without CallerID` |
+| HTTP server empty request body | HTTP 400 `No request data.` |
+| HTTP server malformed JSON body | HTTP 400 `Bad Request` |
+
+---
+
+### Gap 9 — Infrastructure Ordering Conflict
+
+7 pytest order values are duplicated — these tests may execute in non-deterministic order:
+
+| Order Value | Conflict Count | Files Involved |
+|---|---|---|
+| 25 | 2 | `tr69hostif_deviceip.py` and `test_handlers_communications.py` |
+| 26 | 2 | same pair |
+| 27 | 2 | same pair |
+| 28 | 2 | same pair |
+| 48 | 2 | Thunder negative edge case overlap |
+| 49 | 2 | Thunder negative edge case overlap |
+| 50 | 2 | Thunder negative edge case overlap |
+
+### Gap 10 — Documentation-only Feature Files
+
+These feature files have no matching runnable test file:
+
+| Feature File | Existing Equivalent Test File | Action |
+|---|---|---|
+| `tr69hostif_ethernet.feature` | `tr69hostif_ethernet_handlers.py` | Merge or alias |
+| `tr69hostif_negative_tests.feature` | `tr69hostif_negative_edge_cases.py` | Merge or alias |
+| `tr69hostif_thunder_plugins.feature` | split across 5 thunder plugin files | Merge or alias |
+| `tr69hostif_time_chrony.feature` | `tr69hostif_devicetime.py` | Merge or alias |
+
+---
+
+### Summary Backlog Table
+
+| Gap | Area | Handler/Parameter Count | Priority |
+|---|---|---:|---|
+| 1 | DeviceInfo uncovered handlers | ~29 | High |
+| 2 | ProcessStatus.CPUUsage | 1 | Medium |
+| 3 | Time SET-side | 2 | Low |
+| 4 | InterfaceStack | 3 | Low |
+| 5 | StorageService | 15 | Medium |
+| 6 | WiFi (entire subtree) | ~153 | High |
+| 7 | Time SET gap | 2 | Low |
+| 8 | Negative/edge cases | ~12 | High |
+| 9 | Order conflicts | 7 dupes | Medium |
+| 10 | Documentation-only features | 4 files | Low |
 
 ---
 
@@ -371,878 +628,181 @@ Before new tests can be added reliably, the following infrastructure issues must
 
 ### Counting Methodology
 
-- Each **GET handler** = 1 required test (positive GET, verify value returned)
-- Each **SET handler** = 1 required test (positive SET + GET roundtrip)
-- Each **behavioral scenario** = 1 required test
-- Negative/edge case tests are counted separately (~16 total)
-- Internal helpers, dispatcher delegates, and duplicated `#ifdef` branches excluded
+- Unit of coverage in this report: runnable pytest test function.
+- Test count source: `^def test_` across functional tests, excluding helper modules.
+- Scenario count source: `^\s*Scenario(?: Outline)?:` across feature files.
+- Approximate module surface baseline retained from previous analysis: ~761.
+
+### Coverage Count Table
+
+| Category | Count |
+|---|---:|
+| Baseline module surface (approx) | 761 |
+| Implemented runnable tests | 313 |
+| Remaining estimated items | 448 |
+| Coverage percentage | 41.1% |
 
 ---
 
 ### Per-Profile Handler Counts and Coverage Status
 
-| # | Profile Area | TR-181 Namespace | GET | SET | Tests Needed | Covered | Gap | Coverage |
-|---|-------------|-----------------|:---:|:---:|:---:|:---:|:---:|:---:|
-| 1 | **DeviceInfo** | `Device.DeviceInfo.*` | 111 | 61 | **172** | ~20 | ~152 | ~12% |
-| 2 | **Ethernet** | `Device.Ethernet.*` | 25 | 5 | **30** | 0 | 30 | 0% |
-| 3 | **IP** | `Device.IP.*` | 73 | 33 | **106** | ~12 | ~94 | ~11% |
-| 4 | **DHCPv4** | `Device.DHCPv4.*` | 4 | 0 | **4** | 0 | 4 | 0% |
+Updated with June 2026 test counts. Coverage percentages are estimates based on mapping
+runnable test functions to known handler surfaces.
+
+| # | Profile Area | TR-181 Namespace | GET | SET | Tests Needed | Covered (est.) | Gap | Coverage |
+|---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| 1 | **DeviceInfo** | `Device.DeviceInfo.*` | 111 | 61 | **172** | ~67 | ~105 | ~39% |
+| 2 | **Ethernet** | `Device.Ethernet.*` | 25 | 5 | **30** | 24 | 6 | ~80% |
+| 3 | **IP** | `Device.IP.*` | 73 | 33 | **106** | ~51 | ~55 | ~48% |
+| 4 | **DHCPv4** | `Device.DHCPv4.*` | 4 | 0 | **4** | 4 | 0 | 100% |
 | 5 | **InterfaceStack** | `Device.InterfaceStack.*` | 2 | 0 | **2** | 0 | 2 | 0% |
-| 6 | **MoCA** | `Device.MoCA.*` | 89 | 10 | **99** | 0 | 99 | 0% |
+| 6 | **MoCA** | `Device.MoCA.*` | 89 | 10 | **99** | 53 | 46 | ~54% |
 | 7 | **STBService** | `Device.Services.STBService.*` | 71 | 14 | **85** | ~1 | ~84 | ~1% |
 | 8 | **StorageService** | `Device.StorageService.*` | 15 | 0 | **15** | 0 | 15 | 0% |
-| 9 | **Time** | `Device.Time.*` | 20 | 17 | **37** | ~1 | ~36 | ~3% |
-| 10 | **WiFi** | `Device.WiFi.*` | 132 | 21 | **153** | 0 | 153 | 0% |
-| 11 | **Device** | `Device.*` (WebPA URLs) | 3 | 1 | **4** | 0 | 4 | 0% |
-|  | **Parameter subtotal** | | **545** | **163** | **707** | **~34** | **~673** | **~5%** |
+| 9 | **Time** | `Device.Time.*` | 20 | 17 | **37** | ~20 | ~17 | ~54% |
+| 10 | **WiFi** | `Device.WiFi.*` | 132 | 21 | **153** | ~14 | ~139 | ~9% |
+| 11 | **Device** | `Device.*` (misc) | 3 | 1 | **4** | 0 | 4 | 0% |
+| | **Parameter subtotal** | | **545** | **163** | **707** | **~234** | **~473** | **~33%** |
+
+---
 
 ### DeviceInfo Profile — Per-File Breakdown
 
-DeviceInfo is the largest single profile area (24% of all handler tests needed).
+DeviceInfo is the largest single profile area.
 
-| Source File | GET | SET | Tests Needed | Notes |
-|-------------|:---:|:---:|:---:|-------|
-| [Device_DeviceInfo.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp) | 70 | 59 | 129 | Largest file; all Thunder-backed paths live here |
-| [Device_DeviceInfo_Processor.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo_Processor.cpp) | 1 | 0 | 1 | `Processor.Architecture` |
-| [Device_DeviceInfo_ProcessStatus.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo_ProcessStatus.cpp) | 1 | 0 | 1 | `ProcessStatus.CPUUsage` |
-| [Device_DeviceInfo_ProcessStatus_Process.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo_ProcessStatus_Process.cpp) | 6 | 0 | 6 | PID, Command, Size, Priority, CPUTime, State |
-| [XrdkBlueTooth.cpp](../../src/hostif/profiles/DeviceInfo/XrdkBlueTooth.cpp) | 32 | 2 | 34 | `BLE_TILE_PROFILE` compile guard |
-| [XrdkCentralComRFC.cpp](../../src/hostif/profiles/DeviceInfo/XrdkCentralComRFC.cpp) | 1 | 0 | 1 | `XRFCStorage::getValue` |
-| **DeviceInfo TOTAL** | **111** | **61** | **172** | |
+| Source File | GET | SET | Tests Needed | June 2026 Covered | Notes |
+|---|:---:|:---:|:---:|:---:|---|
+| `Device_DeviceInfo.cpp` | 70 | 59 | 129 | ~50 | tr69hostif_custom.py + std_params + thunder plugins cover majority |
+| `Device_DeviceInfo_Processor.cpp` | 1 | 0 | 1 | 1 | `Processor.Architecture` covered in processor_processstatus |
+| `Device_DeviceInfo_ProcessStatus.cpp` | 1 | 0 | 1 | 0 | `CPUUsage` not yet tested |
+| `Device_DeviceInfo_ProcessStatus_Process.cpp` | 6 | 0 | 6 | 7 | PID, Command, Size, Priority, CPUTime, State, ProcessNumberOfEntries |
+| `XrdkBlueTooth.cpp` | 32 | 2 | 34 | 0 | `BLE_TILE_PROFILE` compile guard — no tests |
+| `XrdkCentralComRFC.cpp` | 1 | 0 | 1 | 1 | `XRFCStorage::getValue` via rfc_store tests |
+| **DeviceInfo TOTAL** | **111** | **61** | **172** | **~59** | |
 
-### WiFi Profile — Sub-Object Breakdown
-
-WiFi is the most handler-diverse profile with 15 distinct sub-object types and **0% current coverage**.
-
-| Sub-Object | GET | SET | Tests Needed |
-|-----------|:---:|:---:|:---:|
-| WiFi top-level | 5 | 0 | 5 |
-| Radio | 27 | 0 | 27 |
-| Radio.Stats | 9 | 0 | 9 |
-| SSID | 7 | 0 | 7 |
-| SSID.Stats | 15 | 0 | 15 |
-| AccessPoint | 11 | 8 | 19 |
-| AccessPoint.AssociatedDevice | 7 | 0 | 7 |
-| AccessPoint.Security | 9 | 6 | 15 |
-| AccessPoint.WPS | 3 | 0 | 3 |
-| EndPoint | 10 | 5 | 15 |
-| EndPoint.Profile | 6 | 0 | 6 |
-| EndPoint.Profile.Security | 4 | 2 | 6 |
-| EndPoint.Security | 2 | 0 | 2 |
-| EndPoint.WPS | 3 | 0 | 3 |
-| X_RDKCENTRAL.ClientRoaming | 13 | 0 | 13 |
-| **WiFi TOTAL** | **132** | **21** | **153** |
+---
 
 ### Non-Parameter Behavioral Scenarios
 
 | Category | Needed | Covered | Gap |
-|----------|:---:|:---:|:---:|
-| HTTP Server (GET, POST, errors, missing CallerID, malformed JSON, empty body) | 8 | 0 | 8 |
-| WebPA / Parodus (GET, SET, REPLACE, ADD, attributes, wildcard, FW upgrade) | 10 | ~5 | ~5 |
-| RFC Store (read, override precedence, reload trigger, restart consistency) | 10 | ~3 | ~7 |
-| Daemon lifecycle (start, stop, SIGTERM, re-init, PID file, sd_notify) | 10 | ~10 | 0 |
-| **Behavioral subtotal** | **38** | **~18** | **~20** |
-
-### Grand Total
-
-| Category | Tests Needed | Currently Covered | Still Required |
-|----------|:---:|:---:|:---:|
-| Parameter handlers (GET + SET across all 11 profiles) | 707 | ~34 | ~673 |
-| Behavioral scenarios (HTTP, WebPA, RFC, lifecycle) | 38 | ~18 | ~20 |
-| Negative / edge case tests | ~16 | 0 | ~16 |
-| **TOTAL** | **~761** | **~52** | **~709** |
-
-> **Current L2 coverage: ~6.8% of module surface.**  
-> **709 additional test cases are required to reach 100%.**
+|---|:---:|:---:|:---:|
+| HTTP Server (GET, POST, errors, missing CallerID, malformed JSON, empty body) | 8 | 8 | 0 |
+| WebPA / Parodus (GET, SET, REPLACE, attributes, wildcard, FW upgrade, negative) | 30 | 30 | 0 |
+| RFC Store (read, override precedence, reload trigger, restart consistency) | 10 | ~16 | 0 |
+| Daemon lifecycle (start, stop, SIGTERM, re-init, PID file, sd_notify) | 18 | 18 | 0 |
+| Thunder plugins (AuthService, NetworkManager, Account, System) | 21 | ~21 | 0 |
+| Thunder negative edges (timeout, empty response, mid-request kill) | 3 | 3 | 0 |
+| **Behavioral subtotal** | **90** | **~96** | **~0** |
 
 ---
 
-### Where We Are NOT — Profile Gap Summary
-
-| Profile | Tests Needed | Have | Missing | Primary Gap Areas |
-|---------|:---:|:---:|:---:|-------------------|
-| `Device.WiFi.*` | 153 | 0 | **153** | Entire profile untested — Radio (36), AccessPoint (41), SSID (22), EndPoint (32), ClientRoaming (13) |
-| `Device.MoCA.*` | 99 | 0 | **99** | Interface (43), AssociatedDevice (17), Stats (15), QoS (10), MeshTable (4) |
-| `Device.DeviceInfo.*` | 172 | ~20 | **~152** | Thunder-backed (21), BT (34), ProcessStatus (8), firmware (10), SSH/privacy (3), remaining ~76 params |
-| `Device.IP.*` | 106 | ~12 | **~94** | IPv4 SETs (6), all IPv6Address/Prefix (23), Interface.Stats (9), IP-level SETs (10) |
-| `Device.Services.STBService.*` | 85 | ~1 | **~84** | AudioOutput SET/GET (25), eMMC (14), SPDIF (11), SDCard (10), Security (9) |
-| `Device.Ethernet.*` | 30 | 0 | **30** | Interface GET+SET (15), Interface.Stats GET (15) |
-| `Device.Time.*` | 37 | ~1 | **~36** | NTPServer2–5 (8), NTP directives (5), all 17 SET handlers |
-| `Device.StorageService.*` | 15 | 0 | **15** | PhysicalMedium GET-only (14) + service entry (1) |
-| Thunder Plugin endpoints | 21 params | 0 | **21** | All 5 plugins, 13 methods; requires mock JSON-RPC server on :9998 |
-| HTTP Server protocol | 8 | 0 | **8** | GET/POST/errors — only dead code exists in current suite |
-| `Device.DHCPv4.*` | 4 | 0 | **4** | Client params; all GET-only |
-| `Device.InterfaceStack.*` | 2 | 0 | **2** | HigherLayer, LowerLayer |
-| Negative / edge cases | ~16 | 0 | **~16** | Wrong type, nonexistent param, malformed JSON, timeout simulation |
-
----
-
-## Complete TR-181 Parameter Inventory
-
-This is the exhaustive flat list of every testable TR-181 parameter, non-parameter
-functional behaviour, and lifecycle path discovered by reading every profile source
-file. Use this table as the master checklist to calculate 100% test coverage.
-
-**Columns:** `Parameter` | `Dir` (GET / SET / GET+SET) | `Source File` | `Handler Function`
-
----
-
-### 1. Device.DeviceInfo — Standard Parameters
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp` / `.h`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.Manufacturer` | GET | `get_Device_DeviceInfo_Manufacturer` |
-| `Device.DeviceInfo.ManufacturerOUI` | GET | `get_Device_DeviceInfo_ManufacturerOUI` |
-| `Device.DeviceInfo.ModelName` | GET | `get_Device_DeviceInfo_ModelName` |
-| `Device.DeviceInfo.Description` | GET | `get_Device_DeviceInfo_Description` |
-| `Device.DeviceInfo.ProductClass` | GET | `get_Device_DeviceInfo_ProductClass` |
-| `Device.DeviceInfo.SerialNumber` | GET | `get_Device_DeviceInfo_SerialNumber` |
-| `Device.DeviceInfo.HardwareVersion` | GET | `get_Device_DeviceInfo_HardwareVersion` |
-| `Device.DeviceInfo.SoftwareVersion` | GET | `get_Device_DeviceInfo_SoftwareVersion` |
-| `Device.DeviceInfo.AdditionalHardwareVersion` | GET | `get_Device_DeviceInfo_AdditionalHardwareVersion` |
-| `Device.DeviceInfo.AdditionalSoftwareVersion` | GET | `get_Device_DeviceInfo_AdditionalSoftwareVersion` |
-| `Device.DeviceInfo.ProvisioningCode` | GET | `get_Device_DeviceInfo_ProvisioningCode` |
-| `Device.DeviceInfo.UpTime` | GET | `get_Device_DeviceInfo_UpTime` |
-| `Device.DeviceInfo.FirstUseDate` | GET | `get_Device_DeviceInfo_FirstUseDate` |
-| `Device.DeviceInfo.VendorConfigFileNumberOfEntries` | GET | `get_Device_DeviceInfo_VendorConfigFileNumberOfEntries` |
-| `Device.DeviceInfo.SupportedDataModelNumberOfEntries` | GET | `get_Device_DeviceInfo_SupportedDataModelNumberOfEntries` |
-| `Device.DeviceInfo.ProcessorNumberOfEntries` | GET | `get_Device_DeviceInfo_ProcessorNumberOfEntries` |
-| `Device.DeviceInfo.VendorLogFileNumberOfEntries` | GET | `get_Device_DeviceInfo_VendorLogFileNumberOfEntries` |
-| `Device.DeviceInfo.MemoryStatus.Total` | GET | `get_Device_DeviceInfo_MemoryStatus_Total` |
-| `Device.DeviceInfo.MemoryStatus.Free` | GET | `get_Device_DeviceInfo_MemoryStatus_Free` |
-
----
-
-### 2. Device.DeviceInfo — Processor / ProcessStatus
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo_Processor.cpp`
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo_ProcessStatus_Process.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.Processor.{i}.Architecture` | GET | `get_Device_DeviceInfo_Processor_Architecture` |
-| `Device.DeviceInfo.ProcessStatus.Process.{i}.PID` | GET | `getProcessFields(eProcessPid)` |
-| `Device.DeviceInfo.ProcessStatus.Process.{i}.Command` | GET | `getProcessFields(eProcessCmd)` |
-| `Device.DeviceInfo.ProcessStatus.Process.{i}.Size` | GET | `getProcessFields(eProcessSize)` |
-| `Device.DeviceInfo.ProcessStatus.Process.{i}.Priority` | GET | `getProcessFields(eProcessPriority)` |
-| `Device.DeviceInfo.ProcessStatus.Process.{i}.CPUTime` | GET | `getProcessFields(eProcessCPUTime)` |
-| `Device.DeviceInfo.ProcessStatus.Process.{i}.State` | GET | `getProcessFields(eProcessState)` |
-| `Device.DeviceInfo.ProcessStatus.ProcessNumberOfEntries` | GET | `get_Device_DeviceInfo_ProcessStatus_ProcessNumberOfEntries` |
-
----
-
-### 3. Device.DeviceInfo — Comcast/RDK Custom Parameters
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_COMCAST-COM_STB_MAC` | GET | `get_Device_DeviceInfo_X_COMCAST_COM_STB_MAC` |
-| `Device.DeviceInfo.X_COMCAST-COM_STB_IP` | GET | `get_Device_DeviceInfo_X_COMCAST_COM_STB_IP` |
-| `Device.DeviceInfo.X_COMCAST-COM_PowerStatus` | GET | `get_Device_DeviceInfo_X_COMCAST_COM_PowerStatus` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareFilename` | GET | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareFilename` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareToDownload` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadStatus` |
-| `Device.DeviceInfo.X_COMCAST-COM_FirmwareDownloadProtocol` | GET+SET | `get/set_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadProtocol` |
-| `Device.DeviceInfo.X_COMCAST-COM_FirmwareDownloadURL` | GET+SET | `get/set_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadURL` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadUseCodebig` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadDeferReboot` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadDeferReboot` |
-| `Device.DeviceInfo.X_COMCAST-COM_FirmwareDownloadPercent` | GET | `get_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadPercent` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareUpdateState` | GET | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareUpdateState` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadNow` | SET | `set_xFirmwareDownloadNow` (triggers download) |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_BootStatus` | GET | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_BootStatus` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_BootTime` | GET | `get_X_RDKCENTRAL_COM_BootTime` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_CPUTemp` | GET | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_CPUTemp` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_LastRebootReason` | GET | `get_X_RDKCENTRAL_COM_LastRebootReason` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Experience` | GET | (Thunder `org.rdk.AuthService.getExperience`) |
-| `Device.DeviceInfo.X_RDK_FirmwareName` | GET | `get_X_RDK_FirmwareName` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_PreferredGatewayType` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_MigrationPreparer.MigrationReady` | GET | `get_Device_DeviceInfo_MigrationPreparer_MigrationReady` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Migration.MigrationStatus` | GET | `get_Device_DeviceInfo_Migration_MigrationStatus` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version` | GET+SET | `get/set_Device_DeviceInfo_IUI_Version` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion` | GET+SET | `get/set_Device_DeviceInfo_IUI_AppsVersion` |
-
----
-
-### 4. Device.DeviceInfo — xOpsDeviceMgmt Logging
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMUploadLogsNow` | GET+SET | `get/set_xOpsDMUploadLogsNow` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMLogsUploadStatus` | GET | `get_xOpsDMLogsUploadStatus` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMMoCALogEnabled` | GET+SET | `get/set_xOpsDMMoCALogEnabled` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMMoCALogPeriod` | GET+SET | `get/set_xOpsDMMoCALogPeriod` |
-
----
-
-### 5. Device.DeviceInfo — xOpsDeviceMgmt ReverseSSH / ForwardSSH
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger` | SET | `set_xOpsReverseSshTrigger` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshArgs` | GET+SET | `get/set_xOpsReverseSshArgs` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshStatus` | GET | `get_xOpsReverseSshStatus` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ForwardSSH.Enable` | GET+SET | `get/set_xOpsDeviceMgmtForwardSSHEnable` |
-
----
-
-### 6. Device.DeviceInfo — xOpsDeviceMgmt RPC
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.RebootNow` | SET | `set_xOpsDeviceMgmtRPCRebootNow` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.DeviceManageableNotification` | GET+SET | `get/set_xOpsRPCDevManageableNotification` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.FirmwareDownloadStartedNotification` | GET+SET | `get/set_xOpsRPCFwDwldStartedNotification` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.FirmwareDownloadCompletedNotification` | GET+SET | `get/set_xOpsRPCFwDwldCompletedNotification` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.RebootPendingNotification` | GET+SET | `get/set_xOpsRPCRebootPendingNotification` |
-
----
-
-### 7. Device.DeviceInfo — xOpsDeviceMgmt hwHealthTest *(USE_HWSELFTEST_PROFILE)*
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Enable` | SET | `set_xOpsDeviceMgmt_hwHealthTest_Enable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest` | SET | `set_xOpsDeviceMgmt_hwHealthTest_ExecuteTest` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results` | GET | `get_xOpsDeviceMgmt_hwHealthTest_Results` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.SetTuneType` | SET | `set_xOpsDeviceMgmt_hwHealthTest_SetTuneType` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTuneTest` | SET | `set_xOpsDeviceMgmt_hwHealthTest_ExecuteTuneTest` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTestTune.TuneResults` | GET | `get_xOpsDeviceMgmt_hwHealthTestTune_TuneResults` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.EnablePeriodicRun` | SET | `set_xOpsDeviceMgmt_hwHealthTest_EnablePeriodicRun` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.PeriodicRunFrequency` | SET | `set_xOpsDeviceMgmt_hwHealthTest_PeriodicRunFrequency` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.cpuThreshold` | SET | `set_xOpsDeviceMgmt_hwHealthTest_CpuThreshold` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.dramThreshold` | SET | `set_xOpsDeviceMgmt_hwHealthTest_DramThreshold` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTestWAN.WANTestEndPointURL` | SET | `set_RFC_hwHealthTestWAN_WANEndPointURL` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.Enable` | SET | `set_xRDKCentralComRFC_hwHealthTest_ResultFilter_Enable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.QueueDepth` | SET | `set_xRDKCentralComRFC_hwHealthTest_ResultFilter_QueueDepth` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.FilterParams` | SET | `set_xRDKCentralComRFC_hwHealthTest_ResultFilter_FilterParams` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.ResultsFiltered` | SET | `set_xRDKCentralComRFC_hwHealthTest_ResultFilter_ResultsFiltered` |
-
----
-
-### 8. Device.DeviceInfo — RFC Store Parameters
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`, `XrdkCentralComRFC.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDB` | SET | `set_xRDKCentralComRFC` → `m_rfcStore->clearAll()` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDBEnd` | SET | `set_xRDKCentralComRFC` → `m_rfcStorage.clearAll()` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.RetrieveNow` | SET | `set_xRDKCentralComRFCRetrieveNow` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DolbyVision.Enable` | SET | `set_xRDKCentralComRFC` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RoamTrigger` | SET | `set_xRDKCentralComRFCRoamTrigger` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DAPv2_Enable` | SET | `set_xRDKCentralComRFC` (dsMS12FEATURE_DAPV2) |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DE_Enable` | SET | `set_xRDKCentralComRFC` (dsMS12FEATURE_DE) |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LoudnessEquivalence.Enable` | SET | `set_xRDKCentralComRFCLoudnessEquivalenceEnable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable` | SET | `set_xRDKCentralComDABRFCEnable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable` | SET | `set_xRDKCentralComXREContainerRFCEnable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable` | SET | `set_xRDKCentralComRFCAutoRebootEnable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ManageableNotification.Enable` | GET+SET | `get/set_xRDKCentralComRFC` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Tr069DoSLimit.Threshold` | SET | `validate_ParamValue` (range 0–30) |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.VideoTelemetry.FrequncyMinutes` | SET | `set_xRDKCentralComRFCVideoTelFreq` *(ENABLE_VIDEO_TELEMETRY)* |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.newNTP.Enable` | SET | `set_xRDKCentralComNewNtpEnable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable` | SET | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart` | SET | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd` | SET | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.xMemInsight.Enable` | SET | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_XMemInsight_Enable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonRootSupport.ApparmorBlocklist` | GET+SET | `get_ApparmorBlockListStatus` / `set_xRDKCentralComApparmorBlocklist` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID` | GET+SET | `get/set_xRDKCentralComRFC` (Thunder `org.rdk.AuthService`) |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.*` (any key) | GET+SET | `get/set_xRDKCentralComRFC` (generic pass-through to rfcStore) |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.*` (any key) | GET+SET | `get/set_xRDKCentralComBootstrap` (XBSStore) |
-
----
-
-### 9. Device.DeviceInfo — IPRemoteSupport / Syndication / XRPolling
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.Enable` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportEnable` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.IPAddr` | GET | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpaddress` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.MACAddr` | GET | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMACaddress` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_XRPolling.Action` | GET+SET | `get/set_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction` |
-
----
-
-### 10. Device.DeviceInfo — RDKDownloadManager
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage` | SET | `set_xRDKDownloadManager_InstallPackage` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus` | SET | `set_xRDKDownloadManager_DownloadStatus` |
-
----
-
-### 11. Device.DeviceInfo — RDKRemoteDebugger *(USE_REMOTE_DEBUGGER)*
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.Enable` | SET | `set_xRDKCentralComRFC` (rfcStore pass-through) |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.IssueType` | SET | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData` | SET | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.ProfileData` | GET | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggergetProfileData` |
-
----
-
-### 12. Device.DeviceInfo — HotelCheckout / Account *(Thunder)*
-`src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.LastResetTime` | GET | Thunder `org.rdk.Account.getLastCheckoutResetTime` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.Status` | GET | Thunder `org.rdk.Account` |
-
----
-
-### 13. Device.DeviceInfo — xBlueTooth
-`src/hostif/profiles/DeviceInfo/XrdkBlueTooth.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.Enable` | GET+SET | `isEnabled` / `setDeviceInfo` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.DeviceInfo` | GET+SET | `getDeviceInfo` / `setDeviceInfo` |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.LimitBeaconDetection` | SET | `setLimitBeaconDetection` *(BLE_TILE_PROFILE)* |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.TileId` | SET | inline *(BLE_TILE_PROFILE)* |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.SessionId` | SET | inline *(BLE_TILE_PROFILE)* |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.TileStatus.Trigger` | SET | `do_Ring_A_Tile` *(BLE_TILE_PROFILE)* |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.TileStatus.CmdRequest` | SET | `process_TileCmdRequest` *(BLE_TILE_PROFILE)* |
-
----
-
-### 14. Device — X_RDK_WebPA Profile
-`src/hostif/profiles/Device/x_rdk_profile.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.X_RDK_WebPA_Server.URL` | GET | `get_WebPA_Server_URL` |
-| `Device.X_RDK_WebPA_TokenServer.URL` | GET | `get_WebPA_TokenServer_URL` |
-| `Device.X_RDK_WebPA_DNSText.URL` | GET+SET | `get/set_WebPA_DNSText_URL` |
-
----
-
-### 15. Device.Ethernet
-`src/hostif/profiles/Ethernet/Device_Ethernet_Interface.cpp` / `Device_Ethernet_Interface_Stats.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.Ethernet.InterfaceNumberOfEntries` | GET | `get_Device_Ethernet_InterfaceNumberOfEntries` |
-| `Device.Ethernet.Interface.{i}.Enable` | GET+SET | `get/set_Device_Ethernet_Interface_Enable` |
-| `Device.Ethernet.Interface.{i}.Status` | GET | `get_Device_Ethernet_Interface_Status` |
-| `Device.Ethernet.Interface.{i}.Alias` | GET+SET | `get/set_Device_Ethernet_Interface_Alias` |
-| `Device.Ethernet.Interface.{i}.Name` | GET | `get_Device_Ethernet_Interface_Name` |
-| `Device.Ethernet.Interface.{i}.LastChange` | GET | `get_Device_Ethernet_Interface_LastChange` |
-| `Device.Ethernet.Interface.{i}.LowerLayers` | GET+SET | `get/set_Device_Ethernet_Interface_LowerLayers` |
-| `Device.Ethernet.Interface.{i}.Upstream` | GET | `get_Device_Ethernet_Interface_Upstream` |
-| `Device.Ethernet.Interface.{i}.MACAddress` | GET | `get_Device_Ethernet_Interface_MACAddress` |
-| `Device.Ethernet.Interface.{i}.MaxBitRate` | GET+SET | `get/set_Device_Ethernet_Interface_MaxBitRate` |
-| `Device.Ethernet.Interface.{i}.DuplexMode` | GET+SET | `get/set_Device_Ethernet_Interface_DuplexMode` |
-| `Device.Ethernet.Interface.{i}.Stats.BytesSent` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.BytesReceived` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.PacketsSent` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.PacketsReceived` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.ErrorsSent` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.ErrorsReceived` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.UnicastPacketsSent` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.UnicastPacketsReceived` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.DiscardPacketsSent` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.DiscardPacketsReceived` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.MulticastPacketsSent` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.MulticastPacketsReceived` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsSent` | GET | Stats handler |
-| `Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsReceived` | GET | Stats handler |
-
----
-
-### 16. Device.IP
-`src/hostif/profiles/IP/Device_IP.cpp`, `Device_IP_Interface.cpp`, `Device_IP_Interface_IPv4Address.cpp`,
-`Device_IP_Interface_IPv6Address.cpp`, `Device_IP_Interface_Stats.cpp`, `Device_IP_ActivePort.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.IP.InterfaceNumberOfEntries` | GET | `get_Device_IP_InterfaceNumberOfEntries` |
-| `Device.IP.ActivePortNumberOfEntries` | GET | `get_Device_IP_ActivePortNumberOfEntries` |
-| `Device.IP.Interface.{i}.Enable` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.IPv4Enable` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.IPv6Enable` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.ULAEnable` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.Status` | GET | `handleGetMsg` |
-| `Device.IP.Interface.{i}.Alias` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.Name` | GET | `handleGetMsg` |
-| `Device.IP.Interface.{i}.LastChange` | GET | `handleGetMsg` |
-| `Device.IP.Interface.{i}.LowerLayers` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.Router` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.Type` | GET | `handleGetMsg` |
-| `Device.IP.Interface.{i}.Loopback` | GET+SET | `handleGetMsg/handleSetMsg` |
-| `Device.IP.Interface.{i}.IPv4AddressNumberOfEntries` | GET | `handleGetMsg` |
-| `Device.IP.Interface.{i}.IPv4Address.{j}.Enable` | GET+SET | IPv4Address handler |
-| `Device.IP.Interface.{i}.IPv4Address.{j}.Status` | GET | IPv4Address handler |
-| `Device.IP.Interface.{i}.IPv4Address.{j}.Alias` | GET+SET | IPv4Address handler |
-| `Device.IP.Interface.{i}.IPv4Address.{j}.IPAddress` | GET+SET | IPv4Address handler |
-| `Device.IP.Interface.{i}.IPv4Address.{j}.SubnetMask` | GET+SET | IPv4Address handler |
-| `Device.IP.Interface.{i}.IPv4Address.{j}.AddressingType` | GET | IPv4Address handler |
-| `Device.IP.Interface.{i}.IPv6AddressNumberOfEntries` | GET | `handleGetMsg` |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.Enable` | GET+SET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.Status` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.IPAddress` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.Prefix` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.Origin` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.Anycast` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.PreferredLifetime` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Address.{j}.ValidLifetime` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Prefix.{j}.Autonomous` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Prefix.{j}.StaticType` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Prefix.{j}.PrefixStatus` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.IPv6Prefix.{j}.ValidLifetime` | GET | IPv6Address handler |
-| `Device.IP.Interface.{i}.Stats.BytesSent` | GET | `get_Device_IP_Interface_Stats_BytesSent` |
-| `Device.IP.Interface.{i}.Stats.BytesReceived` | GET | `get_Device_IP_Interface_Stats_BytesReceived` |
-| `Device.IP.Interface.{i}.Stats.PacketsSent` | GET | `get_Device_IP_Interface_Stats_PacketsSent` |
-| `Device.IP.Interface.{i}.Stats.PacketsReceived` | GET | `get_Device_IP_Interface_Stats_PacketsReceived` |
-| `Device.IP.Interface.{i}.Stats.ErrorsSent` | GET | `get_Device_IP_Interface_Stats_ErrorsSent` |
-| `Device.IP.Interface.{i}.Stats.ErrorsReceived` | GET | `get_Device_IP_Interface_Stats_ErrorsReceived` |
-| `Device.IP.Interface.{i}.Stats.UnicastPacketsSent` | GET | `get_Device_IP_Interface_Stats_UnicastPacketsSent` |
-| `Device.IP.Interface.{i}.Stats.UnicastPacketsReceived` | GET | `get_Device_IP_Interface_Stats_UnicastPacketsReceived` |
-| `Device.IP.Interface.{i}.Stats.DiscardPacketsSent` | GET | `get_Device_IP_Interface_Stats_DiscardPacketsSent` |
-| `Device.IP.Interface.{i}.Stats.DiscardPacketsReceived` | GET | `get_Device_IP_Interface_Stats_DiscardPacketsReceived` |
-| `Device.IP.Interface.{i}.Stats.MulticastPacketsSent` | GET | `get_Device_IP_Interface_Stats_MulticastPacketsSent` |
-| `Device.IP.Interface.{i}.Stats.MulticastPacketsReceived` | GET | `get_Device_IP_Interface_Stats_MulticastPacketsReceived` |
-| `Device.IP.Interface.{i}.Stats.BroadcastPacketsSent` | GET | `get_Device_IP_Interface_Stats_BroadcastPacketsSent` |
-| `Device.IP.Interface.{i}.Stats.BroadcastPacketsReceived` | GET | `get_Device_IP_Interface_Stats_BroadcastPacketsReceived` |
-| `Device.IP.Interface.{i}.Stats.UnknownProtoPacketsReceived` | GET | `get_Device_IP_Interface_Stats_UnknownProtoPacketsReceived` |
-| `Device.IP.ActivePort.{i}.LocalIPAddress` | GET | `get_Device_IP_ActivePort_LocalIPAddress` |
-| `Device.IP.ActivePort.{i}.LocalPort` | GET | `get_Device_IP_ActivePort_LocalPort` |
-| `Device.IP.ActivePort.{i}.RemoteIPAddress` | GET | `get_Device_IP_ActivePort_RemoteIPAddress` |
-| `Device.IP.ActivePort.{i}.RemotePort` | GET | `get_Device_IP_ActivePort_RemotePort` |
-| `Device.IP.ActivePort.{i}.Status` | GET | `get_Device_IP_ActivePort_Status` |
-
----
-
-### 17. Device.DHCPv4
-`src/hostif/profiles/DHCPv4/Device_DHCPv4_Client.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.DHCPv4.ClientNumberOfEntries` | GET | `get_Device_DHCPv4_ClientNumberOfEntries` |
-| `Device.DHCPv4.Client.{i}.InterfaceReference` | GET | `get_Device_DHCPv4_Client_InterfaceReference` |
-| `Device.DHCPv4.Client.{i}.DnsServer` | GET | `get_Device_DHCPv4_Client_DnsServer` |
-| `Device.DHCPv4.Client.{i}.IPRouters` | GET | `get_Device_DHCPv4_Client_IPRouters` |
-
----
-
-### 18. Device.InterfaceStack
-`src/hostif/profiles/InterfaceStack/Device_InterfaceStack.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.InterfaceStackNumberOfEntries` | GET | `get_Device_InterfaceStackNumberOfEntries` |
-| `Device.InterfaceStack.{i}.HigherLayer` | GET | `get_Device_InterfaceStack_HigherLayer` |
-| `Device.InterfaceStack.{i}.LowerLayer` | GET | `get_Device_InterfaceStack_LowerLayer` |
-
----
-
-### 19. Device.MoCA
-`src/hostif/profiles/moca/Device_MoCA_Interface.cpp`, `Device_MoCA_Interface_Stats.cpp`,
-`Device_MoCA_Interface_QoS.cpp`, `Device_MoCA_Interface_QoS_FlowStats.cpp`,
-`Device_MoCA_Interface_X_RDKCENTRAL_COM_MeshTable.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.MoCA.InterfaceNumberOfEntries` | GET | `get_InterfaceNumberOfEntries` |
-| `Device.MoCA.Interface.{i}.Enable` | GET+SET | `get_Enable` / `set_Enable` |
-| `Device.MoCA.Interface.{i}.Status` | GET | `get_Status` |
-| `Device.MoCA.Interface.{i}.Alias` | GET+SET | `get_Alias` / `set_Alias` |
-| `Device.MoCA.Interface.{i}.Name` | GET | `get_Name` |
-| `Device.MoCA.Interface.{i}.LastChange` | GET | `get_LastChange` |
-| `Device.MoCA.Interface.{i}.LowerLayers` | GET+SET | `get_LowerLayers` / `set_LowerLayers` |
-| `Device.MoCA.Interface.{i}.Upstream` | GET | `get_Upstream` |
-| `Device.MoCA.Interface.{i}.MACAddress` | GET | `get_MACAddress` |
-| `Device.MoCA.Interface.{i}.FirmwareVersion` | GET | `get_FirmwareVersion` |
-| `Device.MoCA.Interface.{i}.MaxBitRate` | GET | `get_MaxBitRate` |
-| `Device.MoCA.Interface.{i}.MaxIngressBW` | GET | `get_MaxIngressBW` |
-| `Device.MoCA.Interface.{i}.MaxEgressBW` | GET | `get_MaxEgressBW` |
-| `Device.MoCA.Interface.{i}.HighestVersion` | GET | `get_HighestVersion` |
-| `Device.MoCA.Interface.{i}.CurrentVersion` | GET | `get_CurrentVersion` |
-| `Device.MoCA.Interface.{i}.NetworkCoordinator` | GET | `get_NetworkCoordinator` |
-| `Device.MoCA.Interface.{i}.NodeID` | GET | `get_NodeID` |
-| `Device.MoCA.Interface.{i}.MaxNodes` | GET | `get_MaxNodes` |
-| `Device.MoCA.Interface.{i}.PreferredNC` | GET | `get_PreferredNC` |
-| `Device.MoCA.Interface.{i}.BackupNC` | GET | `get_BackupNC` |
-| `Device.MoCA.Interface.{i}.PrivacyEnabledSetting` | GET | `get_PrivacyEnabledSetting` |
-| `Device.MoCA.Interface.{i}.FreqCapabilityMask` | GET | `get_FreqCapabilityMask` |
-| `Device.MoCA.Interface.{i}.FreqCurrentMaskSetting` | GET | `get_FreqCurrentMaskSetting` |
-| `Device.MoCA.Interface.{i}.FreqCurrentMask` | GET | `get_FreqCurrentMask` |
-| `Device.MoCA.Interface.{i}.TxBcastRate` | GET | `get_TxBcastRate` |
-| `Device.MoCA.Interface.{i}.PowerCntlPhyTarget` | GET | `get_PowerCntlPhyTarget` |
-| `Device.MoCA.Interface.{i}.TxBcastPowerReduction` | GET | `get_TxBcastPowerReduction` |
-| `Device.MoCA.Interface.{i}.QAM256Capable` | GET | `get_QAM256Capable` |
-| `Device.MoCA.Interface.{i}.PacketAggregationCapability` | GET | `get_PacketAggregationCapability` |
-| `Device.MoCA.Interface.{i}.AssociatedDeviceNumberOfEntries` | GET | `get_AssociatedDeviceNumberOfEntries` |
-| `Device.MoCA.Interface.{i}.Stats.BytesSent` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.BytesReceived` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.PacketsSent` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.PacketsReceived` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.ErrorsSent` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.ErrorsReceived` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.UnicastPacketsSent` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.UnicastPacketsReceived` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.DiscardPacketsSent` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.DiscardPacketsReceived` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.MulticastPacketsSent` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.Stats.X_RDKCENTRAL-COM_RxMapPhyRate` | GET | Stats handler |
-| `Device.MoCA.Interface.{i}.QoS.EgressNumFlows` | GET | QoS handler |
-| `Device.MoCA.Interface.{i}.QoS.IngressNumFlows` | GET | QoS handler |
-| `Device.MoCA.Interface.{i}.QoS.FlowStats.{j}.FlowID` | GET | QoS FlowStats handler |
-| `Device.MoCA.Interface.{i}.QoS.FlowStats.{j}.PacketDA` | GET | QoS FlowStats handler |
-| `Device.MoCA.Interface.{i}.QoS.FlowStats.{j}.MaxRate` | GET | QoS FlowStats handler |
-| `Device.MoCA.Interface.{i}.X_RDKCENTRAL-COM.MeshTable.{j}.MeshTxNodeId` | GET | MeshTable handler |
-| `Device.MoCA.Interface.{i}.X_RDKCENTRAL-COM.MeshTable.{j}.MeshRxNodeId` | GET | MeshTable handler |
-| `Device.MoCA.Interface.{i}.X_RDKCENTRAL-COM.MeshTable.{j}.MeshPHYTxRate` | GET | MeshTable handler |
-
----
-
-### 20. Device.Services.STBService — Components
-`src/hostif/profiles/STBService/`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.Services.STBServiceNumberOfEntries` | GET | Top-level handler |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.Status` | GET | `getStatus` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.Enable` | GET | `getEnable` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.CancelMute` | GET+SET | `getCancelMute` / `setCancelMute` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.Name` | GET | `getName` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.AudioLevel` | GET+SET | `getAudioLevel` / `setAudioLevel` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioFormat` | GET | `getX_COMCAST_COM_AudioFormat` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioOptimalLevel` | GET | `getX_COMCAST_COM_AudioOptimalLevel` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_MinAudioDB` | GET | `getX_COMCAST_COM_MinAudioDB` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_MaxAudioDB` | GET | `getX_COMCAST_COM_MaxAudioDB` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioDB` | GET+SET | `getX_COMCAST_COM_AudioDB` / `setX_COMCAST_COM_AudioDB` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioStereoMode` | GET+SET | `getX_COMCAST_COM_AudioStereoMode` / `setX_COMCAST_COM_AudioStereoMode` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioLoopThru` | GET+SET | `getX_COMCAST_COM_AudioLoopThru` / `setX_COMCAST_COM_AudioLoopThru` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioEncoding` | GET+SET | `getX_COMCAST_COM_AudioEncoding` / `setAudioEncoding` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioCompression` | GET+SET | `getX_COMCAST_COM_AudioCompression` / `setX_COMCAST_COM_AudioCompression` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_AudioGain` | GET | `getX_COMCAST_COM_AudioGain` |
-| `Device.Services.STBService.1.Components.AudioOutput.{i}.X_COMCAST-COM_DialogEnhancement` | GET+SET | `getX_COMCAST_COM_DialogEnhancement` / `setX_COMCAST_COM_DialogEnhancement` |
-| `Device.Services.STBService.1.Components.HDMI.{i}.Enable` | GET+SET | `getEnable` / `setEnableVideoPort` |
-| `Device.Services.STBService.1.Components.HDMI.{i}.Status` | GET | `getStatus` |
-| `Device.Services.STBService.1.Components.HDMI.{i}.Name` | GET | `getName` |
-| `Device.Services.STBService.1.Components.HDMI.{i}.ResolutionMode` | GET+SET | inline / `setHDMIResolutionMode` |
-| `Device.Services.STBService.1.Components.HDMI.{i}.ResolutionValue` | GET+SET | `getResolutionValue` / `setResolution` |
-| `Device.Services.STBService.1.Components.HDMI.{i}.DisplayDevice.Status` | GET | `getStatus` |
-| `Device.Services.STBService.1.Components.HDMI.{i}.DisplayDevice.EDID` | GET | DisplayDevice handler |
-| `Device.Services.STBService.1.Components.HDMI.{i}.DisplayDevice.SupportedResolutions` | GET | DisplayDevice handler |
-| `Device.Services.STBService.1.Components.HDMI.{i}.DisplayDevice.PreferredResolution` | GET | DisplayDevice handler |
-| `Device.Services.STBService.1.Components.VideoOutput.{i}.Status` | GET | `getStatus` |
-| `Device.Services.STBService.1.Components.VideoOutput.{i}.DisplayFormat` | GET | VideoOutput handler |
-| `Device.Services.STBService.1.Components.VideoOutput.{i}.VideoFormat` | GET | VideoOutput handler |
-| `Device.Services.STBService.1.Components.VideoOutput.{i}.AspectRatio` | GET | VideoOutput handler |
-| `Device.Services.STBService.1.Components.VideoOutput.{i}.HDCP` | GET | VideoOutput handler |
-| `Device.Services.STBService.1.Components.VideoDecoder.{i}.Status` | GET | `getStatus` |
-| `Device.Services.STBService.1.Components.VideoDecoder.{i}.ContentAspectRatio` | GET | VideoDecoder handler |
-| `Device.Services.STBService.1.Components.VideoDecoder.{i}.Name` | GET | `getName` |
-| `Device.Services.STBService.1.Components.VideoDecoder.{i}.X_COMCAST-COM_Standby` | GET+SET | VideoDecoder handler / `setX_COMCAST_COM_Standby` |
-| `Device.Services.STBService.1.Components.SPDIF.{i}.Enable` | GET | SPDIF handler |
-| `Device.Services.STBService.1.Components.SPDIF.{i}.Status` | GET | `getStatus` |
-| `Device.Services.STBService.1.Components.SPDIF.{i}.Alias` | GET | SPDIF handler |
-| `Device.Services.STBService.1.Components.SPDIF.{i}.Name` | GET | SPDIF handler |
-| `Device.Services.STBService.1.Components.SPDIF.{i}.ForcePCM` | GET+SET | SPDIF handler / `setForcePCM` |
-| `Device.Services.STBService.1.Components.SPDIF.{i}.PassThrough` | GET | SPDIF handler |
-| `Device.Services.STBService.1.Components.SPDIF.{i}.AudioDelay` | GET | SPDIF handler |
-| `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMC.*` | GET | `handleGetMsg` (Components_XrdkEMMC.cpp) |
-| `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_SDCard.*` | GET | `handleGetMsg` (Components_XrdkSDCard.cpp) |
-| `Device.Services.STBService.1.Capabilities.*` | GET | `handleGetMsg` (Capabilities.cpp) |
-
----
-
-### 21. Device.Services.StorageService
-`src/hostif/profiles/StorageService/Service_Storage.cpp`, `Service_Storage_PhyMedium.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.Services.StorageServiceNumberOfEntries` | GET | `get_Device_StorageSrvc_ClientNumberOfEntries` |
-| `Device.Services.StorageService.{i}.PhysicalMediumNumberOfEntries` | GET | `get_Device_Service_StorageMedium_ClientNumberOfEntries` |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Name` | GET | `get_Device_Service_StorageMedium_Name` |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.SmartCapable` | GET | `get_Device_Service_StorageMedium_SMARTCapable` |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Health` | GET | `get_Device_Service_StorageMedium_Health` |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Alias` | GET | `get_Device_Service_StorageMedium_Alias` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Vendor` | GET | `get_Device_Service_StorageMedium_Vendor` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Model` | GET | `get_Device_Service_StorageMedium_Model` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.SerialNumber` | GET | `get_Device_Service_StorageMedium_SerialNumber` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.FirmwareVersion` | GET | `get_Device_Service_StorageMedium_FirmwareVersion` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.ConnectionType` | GET | `get_Device_Service_StorageMedium_ConnectionType` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Removable` | GET | `get_Device_Service_StorageMedium_Removable` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Status` | GET | `get_Device_Service_StorageMedium_Status` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.Uptime` | GET | `get_Device_Service_StorageMedium_Uptime` *(stub — returns NOK)* |
-| `Device.Services.StorageService.{i}.PhysicalMedium.{j}.HotSwappable` | GET | `get_Device_Service_StorageMedium_HotSwappable` *(stub — returns NOK)* |
-
----
-
-### 22. Device.Time
-`src/hostif/profiles/Time/Device_Time.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.Time.Enable` | GET+SET | `get/set_Device_Time_Enable` |
-| `Device.Time.Status` | GET | `get_Device_Time_Status` |
-| `Device.Time.NTPServer1` | GET+SET | `get/set_Device_Time_NTPServer1` |
-| `Device.Time.NTPServer2` | GET+SET | `get/set_Device_Time_NTPServer2` |
-| `Device.Time.NTPServer3` | GET+SET | `get/set_Device_Time_NTPServer3` |
-| `Device.Time.NTPServer4` | GET+SET | `get/set_Device_Time_NTPServer4` |
-| `Device.Time.NTPServer5` | GET+SET | `get/set_Device_Time_NTPServer5` |
-| `Device.Time.CurrentLocalTime` | GET | `get_Device_Time_CurrentLocalTime` |
-| `Device.Time.LocalTimeZone` | GET+SET | `get/set_Device_Time_LocalTimeZone` |
-| `Device.Time.X_RDKCENTRAL-COM_Chrony.Enable` | GET+SET | `get/set_Device_Time_Chrony_Enable` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPMinpoll` | GET+SET | `get/set_Device_Time_NTPMinpoll` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPMaxpoll` | GET+SET | `get/set_Device_Time_NTPMaxpoll` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPMaxstep` | GET+SET | `get/set_Device_Time_NTPMaxstep` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPServer1Directive` | GET+SET | `get/set_Device_Time_NTPServer1Directive` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPServer2Directive` | GET+SET | `get/set_Device_Time_NTPServer2Directive` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPServer3Directive` | GET+SET | `get/set_Device_Time_NTPServer3Directive` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPServer4Directive` | GET+SET | `get/set_Device_Time_NTPServer4Directive` |
-| `Device.Time.X_RDKCENTRAL-COM_NTPServer5Directive` | GET+SET | `get/set_Device_Time_NTPServer5Directive` |
-
----
-
-### 23. Device.WiFi — Top-level / Radio
-`src/hostif/profiles/wifi/Device_WiFi.cpp`, `Device_WiFi_Radio.cpp`, `Device_WiFi_Radio_Stats.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.WiFi.RadioNumberOfEntries` | GET | `get_Device_WiFi_RadioNumberOfEntries` |
-| `Device.WiFi.SSIDNumberOfEntries` | GET | `get_Device_WiFi_SSIDNumberOfEntries` |
-| `Device.WiFi.AccessPointNumberOfEntries` | GET | `get_Device_WiFi_AccessPointNumberOfEntries` |
-| `Device.WiFi.EndPointNumberOfEntries` | GET | `get_Device_WiFi_EndPointNumberOfEntries` |
-| `Device.WiFi.Enable` | GET+SET | `get/set_Device_WiFi_EnableWiFi` (Thunder `org.rdk.NetworkManager`) |
-| `Device.WiFi.Radio.{i}.Enable` | GET+SET | `get/set_Device_WiFi_Radio_Enable` |
-| `Device.WiFi.Radio.{i}.Status` | GET | `get_Device_WiFi_Radio_Status` |
-| `Device.WiFi.Radio.{i}.Alias` | GET+SET | `get/set_Device_WiFi_Radio_Alias` |
-| `Device.WiFi.Radio.{i}.Name` | GET | `get_Device_WiFi_Radio_Name` |
-| `Device.WiFi.Radio.{i}.LastChange` | GET | `get_Device_WiFi_Radio_LastChange` |
-| `Device.WiFi.Radio.{i}.LowerLayers` | GET+SET | `get/set_Device_WiFi_Radio_LowerLayers` |
-| `Device.WiFi.Radio.{i}.Upstream` | GET | `get_Device_WiFi_Radio_Upstream` |
-| `Device.WiFi.Radio.{i}.MaxBitRate` | GET | Radio handler |
-| `Device.WiFi.Radio.{i}.SupportedFrequencyBands` | GET | Radio handler |
-| `Device.WiFi.Radio.{i}.OperatingFrequencyBand` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.SupportedStandards` | GET | Radio handler |
-| `Device.WiFi.Radio.{i}.OperatingStandards` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.PossibleChannels` | GET | Radio handler |
-| `Device.WiFi.Radio.{i}.ChannelsInUse` | GET | Radio handler |
-| `Device.WiFi.Radio.{i}.Channel` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.AutoChannelEnable` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.OperatingChannelBandwidth` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.ExtensionChannel` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.GuardInterval` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.TransmitPowerSupported` | GET | Radio handler |
-| `Device.WiFi.Radio.{i}.TransmitPower` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.IEEE80211hSupported` | GET | Radio handler |
-| `Device.WiFi.Radio.{i}.IEEE80211hEnabled` | GET+SET | Radio handler |
-| `Device.WiFi.Radio.{i}.Stats.BytesSent` | GET | `get_Device_WiFi_Radio_Stats_BytesSent` |
-| `Device.WiFi.Radio.{i}.Stats.BytesReceived` | GET | `get_Device_WiFi_Radio_Stats_BytesReceived` |
-| `Device.WiFi.Radio.{i}.Stats.PacketsSent` | GET | `get_Device_WiFi_Radio_Stats_PacketsSent` |
-| `Device.WiFi.Radio.{i}.Stats.PacketsReceived` | GET | `get_Device_WiFi_Radio_Stats_PacketsReceived` |
-| `Device.WiFi.Radio.{i}.Stats.ErrorsSent` | GET | `get_Device_WiFi_Radio_Stats_ErrorsSent` |
-| `Device.WiFi.Radio.{i}.Stats.ErrorsReceived` | GET | `get_Device_WiFi_Radio_Stats_ErrorsReceived` |
-| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsSent` | GET | `get_Device_WiFi_Radio_Stats_DiscardPacketsSent` |
-| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsReceived` | GET | `get_Device_WiFi_Radio_Stats_DiscardPacketsReceived` |
-| `Device.WiFi.Radio.{i}.Stats.NoiseFloor` | GET | `get_Device_WiFi_Radio_Stats_NoiseFloor` |
-
----
-
-### 24. Device.WiFi — SSID
-`src/hostif/profiles/wifi/Device_WiFi_SSID.cpp`, `Device_WiFi_SSID_Stats.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.WiFi.SSID.{i}.Enable` | GET+SET | `get/set_Device_WiFi_SSID_Enable` |
-| `Device.WiFi.SSID.{i}.Status` | GET | `get_Device_WiFi_SSID_Status` (Thunder `org.rdk.NetworkManager`) |
-| `Device.WiFi.SSID.{i}.Alias` | GET+SET | `get/set_Device_WiFi_SSID_Alias` |
-| `Device.WiFi.SSID.{i}.Name` | GET | `get_Device_WiFi_SSID_Name` |
-| `Device.WiFi.SSID.{i}.BSSID` | GET | `get_Device_WiFi_SSID_BSSID` (Thunder) |
-| `Device.WiFi.SSID.{i}.MACAddress` | GET | `get_Device_WiFi_SSID_MACAddress` (Thunder) |
-| `Device.WiFi.SSID.{i}.SSID` | GET+SET | `get/set_Device_WiFi_SSID_SSID` (Thunder) |
-| `Device.WiFi.SSID.{i}.Stats.BytesSent` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.BytesReceived` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.PacketsSent` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.PacketsReceived` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.ErrorsSent` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.ErrorsReceived` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived` | GET | SSID Stats handler |
-| `Device.WiFi.SSID.{i}.Stats.UnknownProtoPacketsReceived` | GET | SSID Stats handler |
-
----
-
-### 25. Device.WiFi — EndPoint
-`src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp`, `Device_WiFi_EndPoint_WPS.cpp`,
-`Device_WiFi_EndPoint_Profile.cpp`, `Device_WiFi_EndPoint_Security.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.WiFi.EndPoint.{i}.Enable` | GET+SET | `get/set_Device_WiFi_EndPoint_Enable` |
-| `Device.WiFi.EndPoint.{i}.Status` | GET | `get_Device_WiFi_EndPoint_Status` |
-| `Device.WiFi.EndPoint.{i}.Alias` | GET+SET | `get/set_Device_WiFi_EndPoint_Alias` |
-| `Device.WiFi.EndPoint.{i}.ProfileReference` | GET+SET | `get/set_Device_WiFi_EndPoint_ProfileReference` |
-| `Device.WiFi.EndPoint.{i}.SSIDReference` | GET | `get_Device_WiFi_EndPoint_SSIDReference` |
-| `Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries` | GET | `get_Device_WiFi_EndPoint_ProfileNumberOfEntries` |
-| `Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate` | GET | `get_Device_WiFi_EndPoint_Stats_LastDataDownlinkRate` |
-| `Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate` | GET | `get_Device_WiFi_EndPoint_Stats_LastDataUplinkRate` |
-| `Device.WiFi.EndPoint.{i}.Stats.SignalStrength` | GET | `get_Device_WiFi_EndPoint_Stats_SignalStrength` |
-| `Device.WiFi.EndPoint.{i}.Stats.Retransmissions` | GET | `get_Device_WiFi_EndPoint_Stats_Retransmissions` |
-| `Device.WiFi.EndPoint.{i}.WPS.Enable` | GET | `get_Device_WiFi_EndPoint_WPS_Enable` |
-| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported` | GET | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsSupported` |
-| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled` | GET | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsEnabled` |
-| `Device.WiFi.EndPoint.{i}.Security.ModesEnabled` | GET | EndPoint Security handler (Thunder) |
-| `Device.WiFi.EndPoint.{i}.Profile.{j}.*` | GET | Profile handler |
-
----
-
-### 26. Device.WiFi — X_RDKCENTRAL-COM_ClientRoaming
-`src/hostif/profiles/wifi/Device_WiFi_X_RDKCENTRAL_COM_ClientRoaming.cpp`
-
-| Parameter | Dir | Handler |
-|-----------|-----|---------|
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.Enable` | GET+SET | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_Enable` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn.ProbeRetryCnt` | GET+SET | `get/set_…_PreAssn_ProbeRetryCnt` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn.BestThresholdLevel` | GET+SET | `get/set_…_PreAssn_BestThresholdLevel` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn.BestDeltaLevel` | GET+SET | `get/set_…_PreAssn_BestDeltaLevel` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.SelfSteerOverride` | GET+SET | `get/set_…_SelfSteerOverride` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn.BestDeltaLevelConnected` | GET+SET | `get/set_…_PostAssn_BestDeltaLevelConnected` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn.BestDeltaLevelDisconnected` | GET+SET | `get/set_…_PostAssn_BestDeltaLevelDisconnected` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn.SelfSteerThreshold` | GET+SET | `get/set_…_PostAssn_SelfSteerThreshold` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn.SelfSteerTimeframe` | GET+SET | `get/set_…_PostAssn_SelfSteerTimeframe` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn.APcontrolThresholdLevel` | GET+SET | `get/set_…_PostAssn_APcontrolThresholdLevel` |
-| `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn.APcontrolTimeframe` | GET+SET | `get/set_…_PostAssn_APcontrolTimeframe` |
-
----
-
-### 27. Non-Parameter Behaviours — HTTP Server
-`src/hostif/httpserver/src/http_server.cpp`, `request_handler.cpp`
-
-| Behaviour | Trigger | Expected Response |
-|-----------|---------|-------------------|
-| GET single parameter | `HTTP GET` body `{"names":["param"]}` + CallerID header | `200 OK {"statusCode":0,"parameters":[...]}` |
-| GET multiple parameters | `HTTP GET` body with 2+ names | `200 OK` multi-value response |
-| GET wildcard subtree | `HTTP GET` body `{"names":["Device.DeviceInfo."]}` | `200 OK` all sub-params |
-| GET unknown parameter | `HTTP GET` with nonexistent name | `200 OK {"statusCode":non-zero}` |
-| GET missing CallerID | `HTTP GET` no `CallerID` header | Allowed — defaults to `"Unknown"` |
-| POST SET parameter | `HTTP POST` + CallerID + `{"parameters":[...]}` | `200 OK {"statusCode":0}` |
-| POST missing CallerID | `HTTP POST` no `CallerID` header | `500 POST Not Allowed without CallerID` |
-| Empty body | `HTTP GET` or `POST` zero-length body | `400 No request data.` |
-| Malformed JSON | `HTTP GET` with `{broken json}` | `cJSON_Parse` returns NULL → `500 Invalid request format` |
-| Unknown HTTP method (PUT/DELETE) | Any unsupported method | `501 Not Implemented` |
-| Valid request → `handleRequest` returns NULL | Corner case | `500 Invalid request format` |
-
----
-
-### 28. Non-Parameter Behaviours — WebPA / Parodus
-`src/hostif/parodusClient/pal/webpa_adapter.cpp`, `webpa_parameter.cpp`
-
-| Behaviour | WDMP Request Type | Handler |
-|-----------|-------------------|---------|
-| GET single parameter | `GET` | `getValues()` |
-| GET multiple parameters | `GET` (multi-name) | `getValues()` |
-| GET wildcard — rejected | `GET_ATTRIBUTES` with trailing `.` | Returns `WDMP_ERR_WILDCARD_NOT_SUPPORTED` |
-| GET attributes | `GET_ATTRIBUTES` | `getAttributes()` |
-| SET parameter (WebPA source) | `SET` | `setValues()` with `WEBPA_SET` |
-| SET attributes | `SET_ATTRIBUTES` | `setAttributes()` |
-| TEST_AND_SET | `TEST_AND_SET` | No-op (break) |
-| REPLACE_ROWS | `REPLACE_ROWS` | No-op (break) |
-| ADD_ROWS | `ADD_ROWS` | No-op (break) |
-| DELETE_ROW | `DELETE_ROW` | No-op (break) |
-| NULL request object | `reqObj == NULL` | Skips all processing, returns empty response |
-
----
-
-### 29. Non-Parameter Behaviours — RFC Store
-`src/hostif/profiles/DeviceInfo/XrdkCentralComRFCStore.cpp`, `XrdkCentralComBSStore.cpp`
-
-| Behaviour | Trigger | Expected |
-|-----------|---------|----------|
-| Read RFC default | `getValue` with `rfcdefaults.ini` key | Returns file value |
-| RFC override via SET (`HOSTIF_SRC_RFC`) | `setValue` with RFC requestor | Written to persistent ini |
-| Local override via SET (`HOSTIF_SRC_WEBPA`) | `setValue` with WEBPA requestor | Written to local store layer |
-| GET after local override | `getValue` | Returns local override (higher precedence) |
-| Clear all RFC data | SET `Control.ClearDB = true` | `clearAll()` wipes store |
-| Clear single param | SET `RFC.ClearParam = <paramName>` | Removes one key from local store |
-| Bootstrap store GET | `XBSStore::getValue` | Returns partner-specific value |
-| Bootstrap store override | `XBSStore::overrideValue` | Writes to bootstrap override layer |
-| Reload RFC cache | SET `Control.RetrieveNow` | Triggers RFC refresh |
-
----
-
-### 30. Non-Parameter Behaviours — Daemon Lifecycle
-`src/hostif/src/hostIf_main.cpp`
-
-| Behaviour | Mechanism | Testable Via |
-|-----------|-----------|--------------|
-| Daemon start | `main()` init chain | Log: `"tr69HostIf starting up"` |
-| Handler registration (all profiles) | `hostIf_initalize_ConfigManger()` | Log: `"Registered handler"` / rbus GET any param |
-| rbus DML registration | `rbus_regDataElements()` | Log: `"rbus_regDataElements registered successfully"` |
-| HTTP server thread start | `g_thread_create(HTTPServerStartThread)` | Log: `"SERVER: Started server successfully."` |
-| HTTP server thread join on stop | `g_thread_join` on `HTTPServerThread` | `HttpServerStop()` + join |
-| Parodus/libpd thread start (detached) | `pthread_create(…libpd_client_mgr…)` | Log: `"Starting WEBPA Parodus Connections"` |
-| Parodus connects | `connect_parodus()` | Log: `"Initiating Connection with PARODUS success.."` |
-| SIGTERM graceful exit | `signal(SIGTERM, …)` | Send SIGTERM → daemon exits cleanly |
-| SIGINT handler | `signal(SIGINT, …)` | Send SIGINT → daemon exits cleanly |
-| No fatal errors in log | Post-init log scan | Absence of `FATAL`/`CRITICAL` strings |
+### Progress Delta (from earlier state)
+
+| Metric | Earlier | Current | Delta |
+|---|---:|---:|---:|
+| Runnable tests | 47 | 313 | +266 |
+| Feature scenarios | 73 | 355 | +282 |
+| Runnable test files | 4 | 25 | +21 |
+| Feature files | 4 | 29 | +25 |
 
 ---
 
 ## Parameter Count Summary
 
-| Profile Area | GET-only | SET-only | GET+SET | Total Params |
-|--------------|----------|----------|---------|--------------|
-| DeviceInfo Standard | 19 | 0 | 0 | 19 |
-| DeviceInfo Custom/RDK | 10 | 3 | 12 | 25 |
-| DeviceInfo xOpsMgmt Logging | 2 | 0 | 2 | 4 |
-| DeviceInfo ReverseSSH/ForwardSSH | 1 | 1 | 2 | 4 |
-| DeviceInfo xOpsRPC | 0 | 1 | 4 | 5 |
-| DeviceInfo hwHealthTest | 2 | 13 | 0 | 15 |
-| DeviceInfo RFC Store | 0 | 17 | 6 | 23 |
-| DeviceInfo IPRemote/Syndication | 2 | 0 | 3 | 5 |
-| DeviceInfo RDKDownloadMgr | 0 | 2 | 0 | 2 |
-| DeviceInfo RDKRemoteDebugger | 1 | 2 | 0 | 3 |
-| DeviceInfo HotelCheckout | 2 | 0 | 0 | 2 |
-| DeviceInfo Processor/ProcessStatus | 8 | 0 | 0 | 8 |
-| DeviceInfo xBlueTooth | 1 | 3 | 3 | 7 |
-| Device X_RDK_WebPA | 2 | 0 | 1 | 3 |
-| Ethernet Interface | 6 | 0 | 5 | 11 |
-| Ethernet Stats | 14 | 0 | 0 | 14 |
-| IP Interface + Sub-objects | 14 | 0 | 10 | 24 |
-| IP Interface Stats | 14 | 0 | 0 | 14 |
-| IP ActivePort | 5 | 0 | 0 | 5 |
-| DHCPv4 | 4 | 0 | 0 | 4 |
-| InterfaceStack | 3 | 0 | 0 | 3 |
-| MoCA Interface + sub-tables | 33 | 0 | 5 | 38 |
-| STBService Components | 10 | 0 | 17 | 27 |
-| StorageService | 15 | 0 | 0 | 15 |
-| Time | 3 | 0 | 15 | 18 |
-| WiFi Top-level + Radio | 12 | 0 | 22 | 34 |
-| WiFi SSID | 5 | 0 | 9 | 14 (standard) + 16 (Stats) |
-| WiFi EndPoint | 5 | 0 | 8 | 13 |
-| WiFi ClientRoaming | 0 | 0 | 11 | 11 |
-| **Total TR-181 Parameters** | | | | **≈ 370** |
-| HTTP Server behaviours | — | — | — | 11 |
-| WebPA behaviours | — | — | — | 10 |
-| RFC Store behaviours | — | — | — | 9 |
-| Daemon Lifecycle behaviours | — | — | — | 10 |
-| **Grand Total Testable Items** | | | | **≈ 410** |
+This section preserves the earlier parameter-surface summary model and updates it as a
+planning baseline. Values remain approximate and are used for gap planning against the
+~761 module-surface estimate.
+
+### Per-Profile Parameter Baseline
+
+| Profile Area | GET | SET | Tests Needed (Baseline) | Current Status |
+|---|---:|---:|---:|---|
+| DeviceInfo | 111 | 61 | 172 | Partial coverage |
+| Ethernet | 25 | 5 | 30 | Improved but not complete |
+| IP | 73 | 33 | 106 | Strongly improved |
+| DHCPv4 | 4 | 0 | 4 | Limited |
+| InterfaceStack | 2 | 0 | 2 | Limited |
+| MoCA | 89 | 10 | 99 | Strongly improved but not closed |
+| STBService | 71 | 14 | 85 | Partial |
+| StorageService | 15 | 0 | 15 | Limited |
+| Time | 20 | 17 | 37 | Improved |
+| WiFi | 132 | 21 | 153 | Improved, still large surface |
+| Device (misc) | 3 | 1 | 4 | Partial |
+| Parameter subtotal | 545 | 163 | 707 | Planning baseline |
+
+### Grand Total Planning Baseline
+
+| Category | Tests Needed | Covered (Estimated) | Remaining |
+|---|---:|---:|---:|
+| Parameter handlers (all profiles) | 707 | 313-equivalent partial mix | Pending |
+| Behavioral scenarios | 38 | Partial |
+| Negative and edge cases | ~16 | Partial |
+| Total baseline | ~761 | 313 | ~448 |
 
 ---
 
-## See Also
+## Where We Are NOT — Profile Gap Summary
 
-- [thunder-plugin-interfaces.md](../api/thunder-plugin-interfaces.md) — Complete list of Thunder plugin calls and TR-181 parameters
-- [testing.md](testing.md) — Test environment setup and run instructions
-- [common-errors.md](../troubleshooting/common-errors.md) — Runtime error reference
-- [data-flow.md](../architecture/data-flow.md) — System data flow architecture
+Quick-reference table showing how much of each profile is still untested.
+
+| Profile | Tests Needed | Have | Missing | Primary Gap Areas |
+|---|:---:|:---:|:---:|---|
+| `Device.WiFi.*` | 153 | ~14 | **~139** | Radio (27 params), SSID (9), SSID.Stats (15), EndPoint (13), ClientRoaming (13), AccessPoint (~20) |
+| `Device.MoCA.*` | 99 | 53 | **46** | AssociatedDevice (17), QoS (10), MeshTable (4), remaining interface params |
+| `Device.DeviceInfo.*` | 172 | ~59 | **~113** | BT/Tile (34), RDKRemoteDebugger, Canary, MemInsight, standard read-only params |
+| `Device.IP.*` | 106 | ~51 | **~55** | IPv4 SETs (6), IPv6Address/Prefix non-tested params, Interface.Stats SETs |
+| `Device.Services.STBService.*` | 85 | ~1 | **~84** | AudioOutput SET/GET (25), eMMC (14), SPDIF (11), SDCard (10), Security (9) |
+| `Device.Ethernet.*` | 30 | 24 | **6** | LowerLayers, LastChange, Enable SET, DuplexMode SET |
+| `Device.Time.*` | 37 | ~20 | **~17** | `set_Device_Time_Enable`, `set_Device_Time_LocalTimeZone`, remaining SET handlers |
+| `Device.StorageService.*` | 15 | 0 | **15** | All PhysicalMedium GET handlers |
+| `Device.InterfaceStack.*` | 2 | 0 | **2** | `HigherLayer`, `LowerLayer` |
+| `Device.DHCPv4.*` | 4 | 4 | **0** | Fully covered |
+| Negative / edge cases | ~16 | ~12 | **~4** | Type-mismatch SET, out-of-range value, additional WebPA errors |
+
+---
+
+## Tests Needed — Prioritised Backlog
+
+```mermaid
+flowchart TD
+    P1[P1: WiFi Profile Tests\n~139 remaining handlers] --> P2
+    P2[P2: DeviceInfo Uncovered\nBT, Canary, MemInsight, standard read-only] --> P3
+    P3[P3: STBService Profile Tests\n~84 remaining handlers] --> P4
+    P4[P4: MoCA Remaining Tests\n~46 remaining handlers] --> P5
+    P5[P5: StorageService Tests\n15 GET-only handlers] --> P6
+    P6[P6: Negative Edge Cases\n~4 remaining scenarios]
+```
+
+| Priority | Area | Remaining Tests | Blocking? |
+|---|---|:---:|---|
+| P1 | WiFi full profile | ~139 | Yes — 9% coverage on large surface |
+| P2 | DeviceInfo uncovered handlers | ~113 | Yes — standard info params unverified |
+| P3 | STBService profile | ~84 | Yes — 1% coverage |
+| P4 | MoCA remaining | ~46 | No — 54% base exists |
+| P5 | StorageService profile | 15 | No — conditional build |
+| P6 | Negative/edge cases | ~4 | No — partial coverage exists |
+| P7 | InterfaceStack | 2 | No — conditional build |
+| P8 | Time SET-side | 2 | No — GET side complete |
+
+---
+
+## Infrastructure Fixes Required
+
+Before new tests can be added reliably, the following infrastructure issues should be resolved:
+
+| Issue | Status | Recommended Fix |
+|---|---|---|
+| Duplicate `@pytest.mark.run` order values | 7 duplicates (25–28, 48–50) | Renumber conflicting tests to unique sequential slots |
+| No `conftest.py` parameter rollback | Missing | Add `conftest.py` with `@pytest.fixture(autouse=True)` that records and restores any SET parameters after each test |
+| BDD feature files not wired to pytest-bdd | Features are docs-only | Either wire with step implementations or document formally as specs |
+| 4 documentation-only feature files | Naming mismatch | Rename or delete `tr69hostif_ethernet.feature`, `tr69hostif_negative_tests.feature`, `tr69hostif_thunder_plugins.feature`, `tr69hostif_time_chrony.feature` |
+| Hardcoded expected values in tests | `"DOCKER"`, `"99.99.15.07"` etc | Extract to `basic_constants.py` with image-specific comments |
+| Log isolation absent | Logs not cleared per test | Call `clear_tr69hostiflogs()` at the start of each test |
+
+---
+
+## Related Paths
+
+- test/functional-tests/tests/
+- test/functional-tests/features/
+- test/docs/L1_Test_Coverage.md

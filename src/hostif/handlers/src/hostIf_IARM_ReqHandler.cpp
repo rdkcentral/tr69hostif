@@ -42,13 +42,11 @@
 #include "power_controller.h"
 #include <thread>
 #endif
-#ifdef SNMP_ADAPTER_ENABLED
-#include "hostIf_SNMPClient_ReqHandler.h"
-#endif
 #include "waldb.h"
 #include "hostIf_NotificationHandler.h"
 #include "Device_DeviceInfo.h"
 #include "safec_lib.h"
+#include <cstdio>
 
 #define X_RDK_RFC_DEEPSLEEP_ENABLE           "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable"
 #define RETRYSLEEP (300 * 1000) //Retry sleep
@@ -92,12 +90,6 @@ bool hostIf_IARM_IF_Start()
         #endif
         pMsgHandler = DeviceClientReqHandler::getInstance();
         pMsgHandler->init();
-        
-
-#ifdef SNMP_ADAPTER_ENABLED
-        pMsgHandler = SNMPClientReqHandler::getInstance();
-        pMsgHandler->init();
-#endif
     }
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
@@ -483,12 +475,12 @@ static void _hostIf_EventHandler(const char *owner, IARM_EventId_t eventId, void
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     if (0 == strcmp(owner, IARM_BUS_PWRMGR_NAME))
     {
-        errno_t rc = -1;
         HOSTIF_MsgData_t stRfcData = {0};
-        rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_DEEPSLEEP_ENABLE);
-        if(rc!=EOK)
+        int rc = snprintf(stRfcData.paramName, sizeof(stRfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
+        if((rc < 0) || (static_cast<size_t>(rc) >= sizeof(stRfcData.paramName)))
         {
-            ERR_CHK(rc);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to populate RFC parameter name.\n", __FUNCTION__);
+            return;
         }
         if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
         {
@@ -525,12 +517,12 @@ static void _hostIf_EventHandler(const PowerController_PowerState_t currentState
     const PowerController_PowerState_t newState, void* userdata)
 {
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-    errno_t rc = -1;
     HOSTIF_MsgData_t stRfcData = {0};
-    rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_DEEPSLEEP_ENABLE);
-    if(rc!=EOK)
+    int rc = snprintf(stRfcData.paramName, sizeof(stRfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
+    if((rc < 0) || (static_cast<size_t>(rc) >= sizeof(stRfcData.paramName)))
     {
-        ERR_CHK(rc);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to populate RFC parameter name.\n", __FUNCTION__);
+        return;
     }
     if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
     {

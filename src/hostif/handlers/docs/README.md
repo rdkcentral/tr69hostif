@@ -57,7 +57,6 @@ graph TB
         DHCP[DHCPv4ClientReqHandler]
         IFS[InterfaceStackClientReqHandler]
         STOR[StorageSrvcReqHandler]
-        SNMP[SNMPClientReqHandler]
         T2[XRdkCentralT2]
         XRDK[X_rdk_req_hdlr]
     end
@@ -142,7 +141,7 @@ The GET and SET paths also include:
 
 - bus initialization and connection
 - registration of TR-069 host interface RPCs
-- initial manager startup for Device, DS, and optional SNMP paths
+- initial manager startup for Device and DS paths
 - translation from incoming IARM calls to the common `hostIf_*MsgHandler()` dispatcher APIs
 - power-state event handling used to publish deep-sleep notifications when the matching RFC parameter is enabled
 
@@ -186,7 +185,7 @@ These classes own specific TR-181 areas or integration namespaces and are the ob
 
 | Handler | Operates on | Notes from implementation |
 |---------|-------------|---------------------------|
-| `DeviceClientReqHandler` | `Device.DeviceInfo.*`, selected bootstrap and firmware paths, and some SNMP-adjacent DeviceInfo parameters | Routes DeviceInfo GET and SET requests into `hostIf_DeviceInfo`, `hostIf_DeviceProcessorInterface`, and `hostIf_DeviceProcessStatusInterface`; handles reset, firmware download, preferred gateway, log upload, reverse SSH, bootstrap updates, and some `Device.DeviceInfo.X_RDK_SNMP.*` paths |
+| `DeviceClientReqHandler` | `Device.DeviceInfo.*`, selected bootstrap and firmware paths | Routes DeviceInfo GET and SET requests into `hostIf_DeviceInfo`, `hostIf_DeviceProcessorInterface`, and `hostIf_DeviceProcessStatusInterface`; handles reset, firmware download, preferred gateway, log upload, reverse SSH, and bootstrap updates |
 | `DSClientReqHandler` | `Device.Services.STBService.1.Components.*` and related DS-backed capabilities | Initializes `device::Manager`, then dispatches HDMI, VideoDecoder, AudioOutput, SPDIF, VideoOutput, and capability-related requests to the Device Settings service layer |
 | `EthernetClientReqHandler` | `Device.Ethernet.Interface.*` and `Device.Ethernet.Interface.{i}.Stats.*` | Handles Ethernet interface state, alias, lower-layer relationships, bitrate, duplex mode, and per-interface statistics; also tracks interface count changes for event reporting |
 | `IPClientReqHandler` | `Device.IP.*`, `Device.IP.Interface.*`, `IPv4Address`, optional `IPv6Address`, `ActivePort`, and diagnostics | Dispatches IP stack, interface, address, and active-port reads; when built with optional flags it also covers IPv6 and speed-test related objects; maintains cached entry counts for update detection |
@@ -196,7 +195,6 @@ These classes own specific TR-181 areas or integration namespaces and are the ob
 | `DHCPv4ClientReqHandler` | `Device.DHCPv4.Client.*` | Read-only handler in practice for the current code path; returns client interface references, routers, and DNS servers, and reports the client entry count |
 | `InterfaceStackClientReqHandler` | `Device.InterfaceStack.*` | Read-only handler that exposes higher-layer and lower-layer relationships between interfaces and reports `InterfaceStackNumberOfEntries` |
 | `StorageSrvcReqHandler` | `Device.services.StorageService.*` | Delegates storage-service GET requests to `hostIf_StorageSrvc`; the current implementation exposes reads and leaves SET and attribute support effectively unimplemented |
-| `SNMPClientReqHandler` | `Device.X_RDKCENTRAL-COM_DocsIf.*` and `Device.DeviceInfo.X_RDK_SNMP.*` | Bridges hostif requests to the SNMP adapter, supports selected DOCSIS and DeviceInfo-backed SNMP values, initializes the SNMP adapter, and stores notification attributes in a hash table |
 | `XREClientReqHandler` | `Device.X_COMCAST-COM_Xcalibur.Client.*`, `...Client.XRE.*`, and related XRE/DevApp control parameters | Handles XRE operational controls such as xconf check-now, session refresh, XRE restart, cache flush, log level changes, and receiver/dev-app restart flows when the XRE profile is enabled |
 | `XRdkCentralT2` | `Device.X_RDKCENTRAL-COM_T2.ReportProfiles` and `...ReportProfilesMsgPack` | Pass-through handler that forwards Telemetry 2 profile payloads to RBUS, supports long-string transfer using `paramValueLong`, and cross-checks written report profile data |
 | `X_rdk_req_hdlr` | Parameters under the internal `X_RDK_PREFIX_STR` namespace | Thin mutex-protected wrapper around `X_rdk_profile`, used for RDK-specific parameters that are not part of the main standard object handlers |
@@ -218,7 +216,6 @@ Common feature gates include:
 - `WITH_DHCP_PROFILE` for DHCPv4 support
 - `WITH_INTFSTACK_PROFILE` for InterfaceStack support
 - `WITH_STORAGESERVICE_PROFILE` for StorageService support
-- `WITH_SNMP_ADAPTER` for SNMP adapter integration
 - `WITH_NOTIFICATION_SUPPORT` for value-change notification behavior
 - `IS_TELEMETRY2_ENABLED` for T2 metrics and reporting hooks
 

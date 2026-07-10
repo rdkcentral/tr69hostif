@@ -55,7 +55,6 @@ cat Makefile.am | grep "SUBDIRS"
 # Source level: identifies compiled subsystems
 cat src/Makefile.am | grep "SUBDIRS"
 # → SUBDIRS = hostif/handlers hostif/profiles
-# → SUBDIRS += hostif/snmpAdapter       (if WITH_SNMP_ADAPTER)
 # → SUBDIRS += hostif/parodusClient
 # → SUBDIRS += hostif/httpserver         (if !WITH_NEW_HTTP_SERVER_DISABLE)
 
@@ -110,7 +109,7 @@ For each compiled profile/component:
 1. **Read the header file** (`.h`) — Identify all `get_*` and `set_*` handler declarations
 2. **Read the implementation** (`.cpp`) — Extract TR-181 parameter names from string comparisons, Thunder plugin calls, file I/O paths
 3. **Identify the request handler** — Map the profile to its `hostIf_*_ReqHandler.cpp` in `handlers/src/`
-4. **Note conditional compilation** — `#ifdef USE_HWSELFTEST_PROFILE`, `#ifdef USE_WIFI_PROFILE`, etc.
+4. **Note conditional compilation** — `#ifdef USE_WIFI_PROFILE`, `#ifdef BLE_TILE_PROFILE`, etc.
 5. **Note Thunder dependencies** — Any `JSONRPCLink` or `org.rdk.*` plugin invocations
 6. **Note file-backed parameters** — INI files, RFC stores, `/opt/secure/RFC/` paths
 
@@ -124,7 +123,7 @@ For each compiled profile/component:
 | Thunder plugin calls | `.cpp` `Invoke()` calls | `org.rdk.NetworkManager.GetIPSettings` |
 | File-backed state | `.cpp` file open/write | `/opt/secure/RFC/bootstrap.ini` |
 | Error return codes | `.cpp` return statements | `NOK`, `OK` |
-| Compile guards | `.h` / `.cpp` `#ifdef` | `USE_HWSELFTEST_PROFILE`, `BLE_TILE_PROFILE` |
+| Compile guards | `.h` / `.cpp` `#ifdef` | `USE_WIFI_PROFILE`, `BLE_TILE_PROFILE` |
 
 ### Step 3: Create Feature File Structure
 
@@ -364,7 +363,6 @@ Based on `src/Makefile.am` and `src/hostif/profiles/Makefile.am`:
 - `profiles/StorageService/` — `WITH_STORAGESERVICE_PROFILE`
 - `profiles/InterfaceStack/` — `WITH_INTFSTACK_PROFILE`
 - `profiles/wifi/` — `WITH_WIFI_PROFILE`
-- `snmpAdapter/` — `WITH_SNMP_ADAPTER`
 - `httpserver/` — `!WITH_NEW_HTTP_SERVER_DISABLE`
 
 ### Not Documented (Not Compiled)

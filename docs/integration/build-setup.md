@@ -38,7 +38,6 @@ The top-level `configure.ac` currently exposes feature toggles including:
 | `--enable-IPv6` | Enable IPv6 behavior in IP profile |
 | `--enable-SpeedTest` | Enable speed-test diagnostics |
 | `--enable-systemd-notify` | Enable `sd_notify()` integration |
-| `--enable-hwselftest` | Enable hardware self-test profile |
 
 Not every platform uses every flag. The effective feature set should match the device image, available HALs, and deployment requirements.
 

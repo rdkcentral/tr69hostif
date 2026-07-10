@@ -52,9 +52,6 @@
 #include "dsError.h"
 #include "libIBus.h"
 
-#ifdef USE_XRDK_RF4CE_PROFILE
-#include "Components_XrdkRf4ce.h"
-#endif
 #define CAPABILTIES_OBJ "Device.Services.STBService.1.Capabilities."
 
 DSClientReqHandler* DSClientReqHandler::pInstance = NULL;
@@ -389,20 +386,6 @@ int DSClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
     }
 #endif
 
-#ifdef USE_XRDK_RF4CE_PROFILE
-    else if(strncasecmp(stMsgData->paramName, X_RF4CE_REMOTE_OBJ, strlen(X_RF4CE_REMOTE_OBJ)) == 0)
-    {
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s:%d] Parameter Name : [\'%s\'] \n", __FILE__, __FUNCTION__, __LINE__, stMsgData->paramName);
-        hostIf_STBServiceXrdkRf4ce *pIface = hostIf_STBServiceXrdkRf4ce::getInstance();
-        if(!pIface)
-        {
-            hostIf_STBServiceHDMI::releaseLock();
-            return NOK;
-        }
-        stMsgData->instanceNum = 0;
-        ret = pIface->handleGetMsg(stMsgData);
-    }
-#endif /* USE_XRDK_RF4CE_PROFILE */
     else
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s%s] Failed to match STBSevice Object. Not supported \'%s\' object. \n", __FILE__, __FUNCTION__, stMsgData->paramName);
