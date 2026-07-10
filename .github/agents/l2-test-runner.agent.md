@@ -230,7 +230,6 @@ Always check these areas at minimum:
 | RFC parameter retrieval and override | `src/hostif/handlers/src/` — rfcapi path | ❌ |
 | Device.Time parameter handlers | `src/hostif/profiles/Time/` | ❌ |
 | STBService profile handlers | `src/hostif/profiles/STBService/` | ❌ |
-| SNMP adapter integration | `src/hostif/snmpAdapter/` | ❌ |
 | DeviceInfo firmware update status | `src/hostif/profiles/DeviceInfo/` — fwdnld handlers | partial |
 | Ethernet interface handlers | `src/hostif/profiles/Ethernet/` | ❌ |
 | moca profile handlers | `src/hostif/profiles/moca/` | ❌ |

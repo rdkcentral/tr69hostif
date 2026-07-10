@@ -206,51 +206,12 @@
       </parameter>
     </object>
 
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest." access="readOnly" minEntries="0" maxEntries="unbounded" >
-      <parameter base="Enable" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
-      <parameter base="EnablePeriodicRun" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
-      <parameter base="PeriodicRunFrequency" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="cpuThreshold" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="dramThreshold" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.vodclient." access="readOnly" minEntries="1" maxEntries="1" >
        <parameter base="StunnelConnect" access="readWrite" notification="0" maxNotification="2" >
          <syntax>
            <string/>
          </syntax>
        </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest." access="readOnly" minEntries="0" maxEntries="unbounded" >
-      <parameter base="ExecuteTest" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <int/>
-        </syntax>
-      </parameter>
-      <parameter base="Results" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NTP." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="failoverServer" access="readWrite" notification="0" maxNotification="2" >
