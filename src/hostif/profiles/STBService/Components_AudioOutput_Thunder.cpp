@@ -203,24 +203,8 @@ int hostIf_STBServiceAudioInterface::getNumberOfInstances(HOSTIF_MsgData_t *stMs
 
 int hostIf_STBServiceAudioInterface::handleSetMsg(const char *pSetting, HOSTIF_MsgData_t *stMsgData)
 {
-    int ret = NOT_HANDLED;
-    if (strcasecmp(pSetting, CANCELMUTE_STRING) == 0)
-        ret = setCancelMute(stMsgData);
-    else if (strcasecmp(pSetting, AUDIOLEVEL_STRING) == 0)
-        ret = setAudioLevel(stMsgData);
-    else if (strcasecmp(pSetting, COMCAST_AUDIODB_STRING) == 0)
-        ret = setX_COMCAST_COM_AudioDB(stMsgData);
-    else if (strcasecmp(pSetting, COMCAST_AUDIOSTEREOMODE_STRING) == 0)
-        ret = setX_COMCAST_COM_AudioStereoMode(stMsgData);
-    else if (strcasecmp(pSetting, COMCAST_AUDIOLOOPTHRU_STRING) == 0)
-        ret = setX_COMCAST_COM_AudioLoopThru(stMsgData);
-    else if (strcasecmp(pSetting, COMCAST_AUDIOENCODING_STRING) == 0)
-        ret = setAudioEncoding(stMsgData);
-    else if (strcasecmp(pSetting, COMCAST_AUDIOCOMPRESSION_STRING) == 0)
-        ret = setX_COMCAST_COM_AudioCompression(stMsgData);
-    else if (strcasecmp(pSetting, COMCAST_DIALOGENHANCEMENT_STRING) == 0)
-        ret = setX_COMCAST_COM_DialogEnhancement(stMsgData);
-    return ret;
+    (void)pSetting; (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceAudioInterface::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
@@ -240,24 +224,12 @@ int hostIf_STBServiceAudioInterface::handleGetMsg(const char *paramName, HOSTIF_
         ret = getAudioLevel(stMsgData);
     else if (strcasecmp(paramName, COMCAST_AUDIOOPTIMALLEVEL_STRING) == 0)
         ret = getX_COMCAST_COM_AudioOptimalLevel(stMsgData);
-    else if (strcasecmp(paramName, COMCAST_MINAUDIODB_STRING) == 0)
-        ret = getX_COMCAST_COM_MinAudioDB(stMsgData);
-    else if (strcasecmp(paramName, COMCAST_MAXAUDIODB_STRING) == 0)
-        ret = getX_COMCAST_COM_MaxAudioDB(stMsgData);
-    else if (strcasecmp(paramName, COMCAST_AUDIODB_STRING) == 0)
-        ret = getX_COMCAST_COM_AudioDB(stMsgData);
     else if (strcasecmp(paramName, COMCAST_AUDIOSTEREOMODE_STRING) == 0)
         ret = getX_COMCAST_COM_AudioStereoMode(stMsgData);
-    else if (strcasecmp(paramName, COMCAST_AUDIOLOOPTHRU_STRING) == 0)
-        ret = getX_COMCAST_COM_AudioLoopThru(stMsgData);
     else if (strcasecmp(paramName, COMCAST_AUDIOENCODING_STRING) == 0)
         ret = getX_COMCAST_COM_AudioEncoding(stMsgData);
     else if (strcasecmp(paramName, COMCAST_AUDIOCOMPRESSION_STRING) == 0)
         ret = getX_COMCAST_COM_AudioCompression(stMsgData);
-    else if (strcasecmp(paramName, COMCAST_AUDIOGAIN_STRING) == 0)
-        ret = getX_COMCAST_COM_AudioGain(stMsgData);
-    else if (strcasecmp(paramName, COMCAST_DIALOGENHANCEMENT_STRING) == 0)
-        ret = getX_COMCAST_COM_DialogEnhancement(stMsgData);
     return ret;
 }
 
@@ -280,14 +252,8 @@ void hostIf_STBServiceAudioInterface::doUpdates(updateCallback mUpdateCallback)
     DO_UPDATE(getX_COMCAST_COM_AudioEncoding, COMCAST_AUDIOENCODING_STRING)
     DO_UPDATE(getAudioLevel, AUDIOLEVEL_STRING)
     DO_UPDATE(getX_COMCAST_COM_AudioOptimalLevel, COMCAST_AUDIOOPTIMALLEVEL_STRING)
-    DO_UPDATE(getX_COMCAST_COM_MinAudioDB, COMCAST_MINAUDIODB_STRING)
-    DO_UPDATE(getX_COMCAST_COM_MaxAudioDB, COMCAST_MAXAUDIODB_STRING)
-    DO_UPDATE(getX_COMCAST_COM_AudioDB, COMCAST_AUDIODB_STRING)
     DO_UPDATE(getX_COMCAST_COM_AudioStereoMode, COMCAST_AUDIOSTEREOMODE_STRING)
-    DO_UPDATE(getX_COMCAST_COM_AudioLoopThru, COMCAST_AUDIOLOOPTHRU_STRING)
     DO_UPDATE(getX_COMCAST_COM_AudioCompression, COMCAST_AUDIOCOMPRESSION_STRING)
-    DO_UPDATE(getX_COMCAST_COM_AudioGain, COMCAST_AUDIOGAIN_STRING)
-    DO_UPDATE(getX_COMCAST_COM_DialogEnhancement, COMCAST_DIALOGENHANCEMENT_STRING)
 
 #undef DO_UPDATE
 }
@@ -503,48 +469,6 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioCompression(HOSTIF_Ms
     return OK;
 }
 
-int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_DialogEnhancement(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_MinAudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_MaxAudioDB(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioGain(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioLoopThru(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
 // TODO: No Thunder API. Update after Operations team confirmation.
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioOptimalLevel(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
@@ -555,52 +479,4 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioOptimalLevel(HOSTIF_M
     return OK;
 }
 
-/* ---- setters ---- */
 
-int hostIf_STBServiceAudioInterface::setCancelMute(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::setAudioLevel(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::setAudioEncoding(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioStereoMode(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioCompression(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_DialogEnhancement(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioDB(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceAudioInterface::setX_COMCAST_COM_AudioLoopThru(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}

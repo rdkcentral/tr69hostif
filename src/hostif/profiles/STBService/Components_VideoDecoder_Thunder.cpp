@@ -107,16 +107,13 @@ hostIf_STBServiceVideoDecoder::hostIf_STBServiceVideoDecoder(int devid, const st
 
 int hostIf_STBServiceVideoDecoder::handleSetMsg(const char *pSetting, HOSTIF_MsgData_t *stMsgData)
 {
-    if (strcasecmp(pSetting, COMCAST_STANDBY_STRING) == 0)
-        return setX_COMCAST_COM_Standby(stMsgData);
+    (void)pSetting; (void)stMsgData;
     return NOT_HANDLED;
 }
 
 int hostIf_STBServiceVideoDecoder::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
-    if (strcasecmp(paramName, COMCAST_STANDBY_STRING) == 0) {
-        return getX_COMCAST_COM_Standby(stMsgData);
-    } else if (strcasecmp(paramName, ENABLE_STRING) == 0) {
+    if (strcasecmp(paramName, ENABLE_STRING) == 0) {
         put_boolean(stMsgData->paramValue, true);
         stMsgData->paramtype = hostIf_BooleanType;
         stMsgData->paramLen = sizeof(bool);
@@ -150,7 +147,6 @@ void hostIf_STBServiceVideoDecoder::doUpdates(updateCallback mUpdateCallback)
     if(mUpdateCallback) mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff,msgData.paramValue,msgData.paramtype); }
 
     DO_UPD(getStatus, STATUS_STRING)
-    DO_UPD(getX_COMCAST_COM_Standby, COMCAST_STANDBY_STRING)
 #undef DO_UPD
 }
 
@@ -220,17 +216,4 @@ int hostIf_STBServiceVideoDecoder::getContentAspectRatio(HOSTIF_MsgData_t *stMsg
     strncpy(backupContentAspectRatio, stMsgData->paramValue, _BUF_LEN_16 - 1);
     backupContentAspectRatio[_BUF_LEN_16 - 1] = '\0';
     return OK;
-}
-
-int hostIf_STBServiceVideoDecoder::getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceVideoDecoder::setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
 }

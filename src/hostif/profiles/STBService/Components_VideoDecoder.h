@@ -103,9 +103,11 @@ private:
 #ifdef USE_THUNDER_CLIENT
     int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
 #endif
+#ifndef USE_THUNDER_CLIENT
     int getX_COMCAST_COM_Standby(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
-    int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int setX_COMCAST_COM_Standby(const HOSTIF_MsgData_t *stMsgData);
+#endif
+    int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
 
 public:
 #ifdef USE_THUNDER_CLIENT

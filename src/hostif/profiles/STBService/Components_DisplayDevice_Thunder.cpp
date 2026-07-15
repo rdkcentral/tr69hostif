@@ -48,18 +48,8 @@ int hostIf_STBServiceDisplayDevice::handleGetMsg(const char *paramName, HOSTIF_M
         return getPreferredResolution(stMsgData);
     if (strcasecmp(paramName, EEDID_STRING) == 0)
         return getX_COMCAST_COM_EDID(stMsgData);  /* parsed EDID format, matching libds */
-    if (strcasecmp(paramName, EDID_BYTES_STRING) == 0)
-        return getEDID_BYTES(stMsgData);
     if (strcasecmp(paramName, COMCAST_EDID_STRING) == 0)
         return getX_COMCAST_COM_EDID(stMsgData);
-    if (strcasecmp(paramName, "VideoLatency") == 0 ||
-        strcasecmp(paramName, "AutoLipSyncSupport") == 0 ||
-        strcasecmp(paramName, "CECSupport") == 0 ||
-        strcasecmp(paramName, "HDMI3DPresent") == 0)
-    {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-        return NOT_HANDLED;
-    }
     return NOT_HANDLED;
 }
 
@@ -210,13 +200,6 @@ int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stM
             "[%s] PreferredResolution: %s\n",
             __FUNCTION__, stMsgData->paramValue);
     return OK;
-}
-
-int hostIf_STBServiceDisplayDevice::getEDID_BYTES(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceDisplayDevice::getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMsgData, bool *pChanged)

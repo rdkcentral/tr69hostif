@@ -166,46 +166,17 @@ hostIf_STBServiceSPDIF::hostIf_STBServiceSPDIF(int devid, const std::string& por
 
 int hostIf_STBServiceSPDIF::handleSetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
-    int ret = NOT_HANDLED;
-    if (strcasecmp(paramName, FORCEPCM_STRING) == 0)
-    {
-        ret = setForcePCM(stMsgData);
-    }
-    return ret;
+    (void)paramName; (void)stMsgData;
+    return NOT_HANDLED;
 }
 
 int hostIf_STBServiceSPDIF::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOT_HANDLED;
-    if (strcasecmp(paramName, ENABLE_STRING) == 0)
-    {
-        ret = getEnable(stMsgData);
-    }
-    else if (strcasecmp(paramName, STATUS_STRING) == 0)
-    {
-        ret = getStatus(stMsgData);
-    }
-    else if (strcasecmp(paramName, ALIAS_STRING) == 0)
+    if (strcasecmp(paramName, ALIAS_STRING) == 0)
     {
         ret = getAlias(stMsgData);
     }
-    else if (strcasecmp(paramName, NAME_STRING) == 0)
-    {
-        ret = getName(stMsgData);
-    }
-    else if (strcasecmp(paramName, FORCEPCM_STRING) == 0)
-    {
-        ret = getForcePCM(stMsgData);
-    }
-    else if (strcasecmp(paramName, PASSTHROUGH_STRING) == 0)
-    {
-        ret = getPassthrough(stMsgData);
-    }
-    else if (strcasecmp(paramName, AUDIODELAY_STRING) == 0)
-    {
-        ret = getAudioDelay(stMsgData);
-    }
-
     return ret;
 }
 
@@ -219,94 +190,10 @@ void hostIf_STBServiceSPDIF::doUpdates(updateCallback mUpdateCallback)
     memset(tmp_buff,0,PARAM_LEN);
     bChanged =  false;
     msgData.instanceNum=dev_id;
-    getEnable(&msgData,&bChanged);
-    if(bChanged)
-    {
-        snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, ENABLE_STRING);
-        if(mUpdateCallback)
-        {
-            mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff, msgData.paramValue, msgData.paramtype);
-        }
-    }
-
-    memset(&msgData,0,sizeof(msgData));
-    memset(tmp_buff,0,PARAM_LEN);
-    bChanged =  false;
-    msgData.instanceNum=dev_id;
-    getStatus(&msgData,&bChanged);
-    if(bChanged)
-    {
-        snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, STATUS_STRING);
-        if(mUpdateCallback)
-        {
-            mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff, msgData.paramValue, msgData.paramtype);
-        }
-    }
-
-    memset(&msgData,0,sizeof(msgData));
-    memset(tmp_buff,0,PARAM_LEN);
-    bChanged =  false;
-    msgData.instanceNum=dev_id;
     getAlias(&msgData,&bChanged);
     if(bChanged)
     {
         snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, ALIAS_STRING);
-        if(mUpdateCallback)
-        {
-            mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff, msgData.paramValue, msgData.paramtype);
-        }
-    }
-
-    memset(&msgData,0,sizeof(msgData));
-    memset(tmp_buff,0,PARAM_LEN);
-    bChanged =  false;
-    msgData.instanceNum=dev_id;
-    getName(&msgData,&bChanged);
-    if(bChanged)
-    {
-        snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, NAME_STRING);
-        if(mUpdateCallback)
-        {
-            mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff, msgData.paramValue, msgData.paramtype);
-        }
-    }
-
-    memset(&msgData,0,sizeof(msgData));
-    memset(tmp_buff,0,PARAM_LEN);
-    bChanged =  false;
-    msgData.instanceNum=dev_id;
-    getForcePCM(&msgData,&bChanged);
-    if(bChanged)
-    {
-        snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, FORCEPCM_STRING);
-        if(mUpdateCallback)
-        {
-            mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff, msgData.paramValue, msgData.paramtype);
-        }
-    }
-
-    memset(&msgData,0,sizeof(msgData));
-    memset(tmp_buff,0,PARAM_LEN);
-    bChanged =  false;
-    msgData.instanceNum=dev_id;
-    getPassthrough(&msgData,&bChanged);
-    if(bChanged)
-    {
-        snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, PASSTHROUGH_STRING);
-        if(mUpdateCallback)
-        {
-            mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff, msgData.paramValue, msgData.paramtype);
-        }
-    }
-
-    memset(&msgData,0,sizeof(msgData));
-    memset(tmp_buff,0,PARAM_LEN);
-    bChanged =  false;
-    msgData.instanceNum=dev_id;
-    getAudioDelay(&msgData,&bChanged);
-    if(bChanged)
-    {
-        snprintf(tmp_buff, PARAM_LEN, UPDATE_FORMAT_STRING, BASE_NAME, dev_id, AUDIODELAY_STRING);
         if(mUpdateCallback)
         {
             mUpdateCallback(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,tmp_buff, msgData.paramValue, msgData.paramtype);
@@ -325,38 +212,6 @@ int hostIf_STBServiceSPDIF::getNumberOfInstances(HOSTIF_MsgData_t *stMsgData)
     return OK;
 }
 
-int hostIf_STBServiceSPDIF::setEnable(HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceSPDIF::setAlias(HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceSPDIF::setForcePCM(HOSTIF_MsgData_t *stMsgData)
-{
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceSPDIF::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceSPDIF::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
 int hostIf_STBServiceSPDIF::getAlias(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     (void)pChanged;
@@ -366,34 +221,6 @@ int hostIf_STBServiceSPDIF::getAlias(HOSTIF_MsgData_t *stMsgData, bool *pChanged
     stMsgData->paramLen = strlen(stMsgData->paramValue);
     bCalledAlias = true;
     return OK;
-}
-
-int hostIf_STBServiceSPDIF::getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceSPDIF::getForcePCM(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceSPDIF::getPassthrough(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
-}
-
-int hostIf_STBServiceSPDIF::getAudioDelay(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
-{
-    (void)pChanged;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-    return NOT_HANDLED;
 }
 
 /** @} */

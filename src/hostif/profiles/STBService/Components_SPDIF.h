@@ -109,17 +109,21 @@ class hostIf_STBServiceSPDIF
     bool bCalledAudioDelay;
 
 private:
+#ifndef USE_THUNDER_CLIENT
     int setEnable(HOSTIF_MsgData_t *stMsgData);
     int setAlias(HOSTIF_MsgData_t *stMsgData);
     int setForcePCM(HOSTIF_MsgData_t *stMsgData);
 
     int getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+#endif
     int getAlias(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+#ifndef USE_THUNDER_CLIENT
     int getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getForcePCM(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getPassthrough(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getAudioDelay(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+#endif
 
 public:
     static hostIf_STBServiceSPDIF *getInstance(int devid);

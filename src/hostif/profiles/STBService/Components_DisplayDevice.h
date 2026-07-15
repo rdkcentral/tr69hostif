@@ -109,7 +109,9 @@ class  hostIf_STBServiceDisplayDevice
     bool bCalledPreferredResolution;
 
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#ifndef USE_THUNDER_CLIENT
     int getEDID_BYTES(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#endif
     int getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getSupportedResolutions(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getPreferredResolution(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);

@@ -116,11 +116,6 @@ int hostIf_STBServiceCapabilities::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = getSupportedResolutions(stMsgData);
         }
-        else if(strstr(stMsgData->paramName, "AudioStandards") != NULL)
-        {
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s()] %s: not supported on RDK-E\n", __FUNCTION__, stMsgData->paramName);
-            ret = NOT_HANDLED;
-        }
         else
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s] Parameter \'%s\' is Not Supported  \n", __FILE__, __FUNCTION__, paramName);
