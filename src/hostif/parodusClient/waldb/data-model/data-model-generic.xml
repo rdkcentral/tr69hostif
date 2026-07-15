@@ -3558,28 +3558,6 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter." access="readOnly" minEntries="0" maxEntries="unbounded" >
-      <parameter base="Enable" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
-      <parameter base="QueueDepth" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="FilterParams" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-      <parameter base="ResultsFiltered" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonPersistent." access="readOnly" minEntries="0" maxEntries="1" />
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.NonPersistent.WebPACDL." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >

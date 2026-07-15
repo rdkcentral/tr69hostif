@@ -96,9 +96,6 @@
 #ifdef USE_XRESRC
 #include "Device_XComcast_Xcalibur_Client_XRE_ConnectionTable.h"
 #endif
-#if USE_HWSELFTEST_PROFILE
-#include "DeviceInfo_hwHealthTest.h"
-#endif
 
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
@@ -1291,19 +1288,18 @@ string hostIf_DeviceInfo::getEstbIp()
     if (!invokeThunderPluginMethodAndExtractStringField("org.rdk.NetworkManager.GetPrimaryInterface", "", "interface", ifc))
     {
         RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to fetch interface from NetworkManager\n", __FUNCTION__);
-        return retAddr;
-    }
-
-    std::string paramsJson = "{\"interface\":\"" + ifc + "\"}";
-    if (invokeThunderPluginMethodAndExtractStringField("org.rdk.NetworkManager.GetIPSettings", paramsJson, "ipaddress", retAddr))
-    {
-        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] successfully fetched ipaddress from NetworkManager\n", __FUNCTION__);
-        return retAddr;
     }
     else
     {
-        RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to fetch ipaddress from NetworkManager\n", __FUNCTION__);
-        return retAddr;
+        std::string paramsJson = "{\"interface\":\"" + ifc + "\"}";
+        if (invokeThunderPluginMethodAndExtractStringField("org.rdk.NetworkManager.GetIPSettings", paramsJson, "ipaddress", retAddr))
+        {
+            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] successfully fetched ipaddress from NetworkManager\n", __FUNCTION__);
+        }
+        else
+        {
+            RDK_LOG (RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] failed to fetch ipaddress from NetworkManager\n", __FUNCTION__);
+        }
     }
 
     #endif
@@ -3376,82 +3372,6 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
 }
 
 
-#ifdef USE_HWSELFTEST_PROFILE
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_Enable(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_Enable(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_ExecuteTest(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_ExecuteTest(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::get_xOpsDeviceMgmt_hwHealthTest_Results(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::get_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_Results(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_SetTuneType(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_SetTuneType(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_ExecuteTuneTest(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_ExecuteTuneTest(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::get_xOpsDeviceMgmt_hwHealthTestTune_TuneResults(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::get_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTestTune_TuneResults(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_EnablePeriodicRun(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_EnablePeriodicRun(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_PeriodicRunFrequency(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_PeriodicRunFrequency(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_CpuThreshold(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_CpuThreshold(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xOpsDeviceMgmt_hwHealthTest_DramThreshold(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xOpsDeviceMgmt_hwHealthTest_DramThreshold(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_RFC_hwHealthTestWAN_WANEndPointURL(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_RFC_hwHealthTestWAN_WANEndPointURL(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xRDKCentralComRFC_hwHealthTest_ResultFilter_Enable(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xRDKCentralComRFC_hwHealthTest_ResultFilter_Enable(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xRDKCentralComRFC_hwHealthTest_ResultFilter_QueueDepth(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xRDKCentralComRFC_hwHealthTest_ResultFilter_QueueDepth(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xRDKCentralComRFC_hwHealthTest_ResultFilter_FilterParams(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xRDKCentralComRFC_hwHealthTest_ResultFilter_FilterParams(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-
-int hostIf_DeviceInfo::set_xRDKCentralComRFC_hwHealthTest_ResultFilter_ResultsFiltered(HOSTIF_MsgData_t *stMsgData)
-{
-    return hwselftest::set_Device_DeviceInfo_xRDKCentralComRFC_hwHealthTest_ResultFilter_ResultsFiltered(LOG_TR69HOSTIF, stMsgData)? OK : NOK;
-}
-#endif /* USE_HWSELFTEST_PROFILE */
 /*
  * * int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData * sMsgData)
  * * in : stMsgData pointer
@@ -3877,48 +3797,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComNewNtpEnable(stMsgData);
     }
-#ifdef USE_HWSELFTEST_PROFILE
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.Enable"))
-    {
-        ret = set_xOpsDeviceMgmt_hwHealthTest_Enable(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.EnablePeriodicRun"))
-    {
-        ret = set_xOpsDeviceMgmt_hwHealthTest_EnablePeriodicRun(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.PeriodicRunFrequency"))
-    {
-        ret = set_xOpsDeviceMgmt_hwHealthTest_PeriodicRunFrequency(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.cpuThreshold"))
-    {
-        ret = set_xOpsDeviceMgmt_hwHealthTest_CpuThreshold(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.dramThreshold"))
-    {
-        ret = set_xOpsDeviceMgmt_hwHealthTest_DramThreshold(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTestWAN.WANTestEndPointURL"))
-    {
-        ret = set_RFC_hwHealthTestWAN_WANEndPointURL(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.Enable"))
-    {
-        ret = set_xRDKCentralComRFC_hwHealthTest_ResultFilter_Enable(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.QueueDepth"))
-    {
-        ret = set_xRDKCentralComRFC_hwHealthTest_ResultFilter_QueueDepth(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.FilterParams"))
-    {
-        ret = set_xRDKCentralComRFC_hwHealthTest_ResultFilter_FilterParams(stMsgData);
-    }
-    else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.hwHealthTest.ResultFilter.ResultsFiltered"))
-    {
-        ret = set_xRDKCentralComRFC_hwHealthTest_ResultFilter_ResultsFiltered(stMsgData);
-    }
-#endif /* USE_HWSELFTEST_PROFILE */
     return ret;
 }
 

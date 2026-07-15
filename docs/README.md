@@ -64,7 +64,6 @@ The `tr69hostif` module depends on a mix of middleware services, platform-facing
 | Device Settings / DS HAL | Backing implementation for `STBService` and selected device state queries |
 | WiFi HAL / WiFi manager | Backing implementation for the `Device.WiFi.*` profile |
 | MoCA HAL | Backing implementation for the `Device.MoCA.*` profile when enabled |
-| SNMP stack | Used by the SNMP adapter to expose mapped TR-181 values through OIDs |
 | systemd notify | Optional readiness signaling for service startup integration |
 
 ### Thunder JSON-RPC Runtime Dependencies
@@ -109,7 +108,6 @@ When these plugins are absent, disabled, renamed, or version-mismatched, the aff
 | `/opt/secure/RFC/` store | RFC override and bootstrap persistence area |
 | `webpa_cfg.json` | WebPA and Parodus runtime configuration |
 | `notify_webpa_cfg.json` | Initial WebPA notification subscription list |
-| `tr181_snmpOID.conf` | SNMP OID to TR-181 mapping for the SNMP adapter |
 
 ### Feature-Scoped Internal Components
 
@@ -119,7 +117,6 @@ When these plugins are absent, disabled, renamed, or version-mismatched, the aff
 | Profiles under `src/hostif/profiles/` | Platform HALs, sysfs, process utilities, JSON-RPC helpers, bootstrap stores |
 | Parodus client under `src/hostif/parodusClient/` | Parodus, WRP-C, WDMP-C, notification config, data-model lookup |
 | HTTP server under `src/hostif/httpserver/` | libsoup 3, WDMP-C, cJSON, WAL DB support |
-| SNMP adapter under `src/hostif/snmpAdapter/` | SNMP OID map, local TR-181 parameter access, GLib threading support |
 
 For build-time package expectations and runtime file prerequisites, see [Build Setup](integration/build-setup.md). For component-specific dependency details, use the documentation under `src/hostif/**/docs/`.
 
