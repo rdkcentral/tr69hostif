@@ -18,10 +18,6 @@
 ##########################################################################
 SUBDIRS = hostif/handlers hostif/profiles
 DIST_SUBDIRS = hostif/handlers hostif/profiles
-if WITH_SNMP_ADAPTER
-SUBDIRS += hostif/snmpAdapter
-DIST_SUBDIRS += hostif/snmpAdapter
-endif
 
 SUBDIRS +=hostif/parodusClient
 DIST_SUBDIRS += hostif/parodusClient
@@ -79,11 +75,6 @@ endif
 
 if WITH_WEBPA_RFC
 AM_CXXFLAGS += -DWEBPA_RFC_ENABLED
-endif
-
-if WITH_SNMP_ADAPTER
-AM_CXXFLAGS += -DSNMP_ADAPTER_ENABLED
-AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/snmpAdapter
 endif
 
 if XRELIB_FLAG
@@ -153,10 +144,6 @@ if WITH_STORAGESERVICE_PROFILE
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/StorageService/libstorageservice.la
 endif
 
-if WITH_HWSELFTEST_PROFILE
-tr69hostif_LDADD += -ltr69ProfileHwSelfTest
-endif
-
 if WITH_MOCA_PROFILE
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/moca/libhostIfMoCA.la
 endif
@@ -167,10 +154,6 @@ endif
 
 if WITH_WIFI_PROFILE
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/wifi/libhostIfWiFi.la
-endif
-
-if WITH_SNMP_ADAPTER
-tr69hostif_LDADD += $(top_builddir)/src/hostif/snmpAdapter/libSNMPAdapter.la
 endif
 
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/parodusClient/pal 

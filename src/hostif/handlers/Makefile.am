@@ -43,7 +43,6 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
         -I=/usr/include/rdk/iarmmgrs/sysmgr/ \
         -I=/usr/include/rdk/ds/ \
         -I=/usr/include/rdk/ds-hal/ \
-	$(XRDK_RF4CE_PROFILE_FLAG) \
         -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/ \
 		-I=/usr/include/libsoup-3.0/
 
@@ -69,24 +68,10 @@ if WITH_STORAGESERVICE_PROFILE
 AM_CXXFLAGS += -DUSE_STORAGESERVICE_PROFILE -I$(top_srcdir)/src/hostif/profiles/StorageService
 endif
 
-if WITH_XRDK_RF4CE_PROFILE
-AM_CXXFLAGS += $(XRDK_RF4CE_PROFILE_FLAG)
-endif
-
 if WITH_XRDK_BT_PROFILE
 AM_CXXFLAGS += $(XRDK_BT_PROFILE_FLAG)
 AM_CXXFLAGS += -DBTMGR_ENABLE_IARM_INTERFACE
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/DeviceInfo
-endif
-
-
-
-if WITH_HWSELFTEST_PROFILE
-AM_CXXFLAGS += $(HWSELFTEST_PROFILE_FLAG)
-endif
-
-if WITH_SNMP_ADAPTER
-AM_CXXFLAGS += -DSNMP_ADAPTER_ENABLED -I$(top_srcdir)/src/hostif/snmpAdapter
 endif
 
 AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lsoup-3.0 -lgobject-2.0 -lsecure_wrapper
@@ -141,10 +126,6 @@ endif
 
 if WITH_STORAGESERVICE_PROFILE
 libMsgHandlers_la_SOURCES +=     src/hostIf_StorageService_ReqHandler.cpp
-endif
-
-if WITH_SNMP_ADAPTER
-libMsgHandlers_la_SOURCES +=     src/hostIf_SNMPClient_ReqHandler.cpp
 endif
 
 if WITH_IPV6_SUPPORT

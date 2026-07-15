@@ -43,10 +43,6 @@
 #include "Device_DeviceInfo_ProcessStatus_Process.h"
 #include "hostIf_msgHandler.h"
 #include "safec_lib.h"
-#ifdef SNMP_ADAPTER_ENABLED
-#include "hostIf_SNMPClient_ReqHandler.h"
-#include "snmpAdapter.h"
-#endif
 #ifdef USE_XRDK_BT_PROFILE
 #include "XrdkBlueTooth.h"
 #endif
@@ -150,20 +146,6 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         else
             RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] Not setting the bootstrap param:%s [bsUpdate=%d, requestor=%d]\n", __FUNCTION__, stMsgData->paramName, stMsgData->bsUpdate, stMsgData->requestor);
     }
-#ifdef SNMP_ADAPTER_ENABLED
-    else if(strncasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDK_SNMP",strlen("Device.DeviceInfo.X_RDK_SNMP"))==0)
-     {
-          hostIf_snmpAdapter *pIStatus = hostIf_snmpAdapter::getInstance(instanceNumber);
-          stMsgData->instanceNum = instanceNumber;
-          if(pIStatus){
-              ret = pIStatus->set_ValueToSNMPAdapter(stMsgData);
-          }
-          else{
-            ret = NOK;
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] hostIf_snmpAdapter::getInstance is NULL for %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
-             }
-     }
-#endif
     else if(strncasecmp(stMsgData->paramName,"Device.DeviceInfo",strlen("Device.DeviceInfo"))==0)
     {
         hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
@@ -270,20 +252,6 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
             ret = pIface->handleSetMsg(stMsgData);
         }
 #endif
-#ifdef USE_HWSELFTEST_PROFILE
-        else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTest"))
-        {
-            ret = pIface->set_xOpsDeviceMgmt_hwHealthTest_ExecuteTest(stMsgData);
-        }
-        else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.SetTuneType"))
-        {
-            ret = pIface->set_xOpsDeviceMgmt_hwHealthTest_SetTuneType(stMsgData);
-        }
-        else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.ExecuteTuneTest"))
-        {
-            ret = pIface->set_xOpsDeviceMgmt_hwHealthTest_ExecuteTuneTest(stMsgData);
-        }
-#endif /* USE_HWSELFTEST_PROFILE */
         else if (!strcasecmp(stMsgData->paramName, xFirmwareDownloadNow_STR))
         {
             ret = pIface->set_xFirmwareDownloadNow(stMsgData);
@@ -468,20 +436,6 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         }
         ret = pIface->handleGetMsg(stMsgData);
     }
-#endif
-#ifdef SNMP_ADAPTER_ENABLED
-    else if(strncasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDK_SNMP",strlen("Device.DeviceInfo.X_RDK_SNMP"))==0)
-        {
-          hostIf_snmpAdapter *pIStatus = hostIf_snmpAdapter::getInstance(instanceNumber);
-          stMsgData->instanceNum = instanceNumber;
-          if(pIStatus){
-              ret = pIStatus->get_ValueFromSNMPAdapter(stMsgData);
-          }
-          else{
-            ret = NOK;
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] hostIf_snmpAdapter::getInstance is NULL for %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
-             }
-        }
 #endif
     else if(strncasecmp(stMsgData->paramName,"Device.DeviceInfo",strlen("Device.DeviceInfo"))==0)
     {
@@ -697,16 +651,6 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
             ret = pIface->get_xRDKCentralComRFC(stMsgData);
             // RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] return for parameter: %s , is: %s \n", __FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
         }
-#ifdef USE_HWSELFTEST_PROFILE
-        else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results"))
-        {
-            ret = pIface->get_xOpsDeviceMgmt_hwHealthTest_Results(stMsgData);
-        }
-        else if (!strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTestTune.TuneResults"))
-        {
-            ret = pIface->get_xOpsDeviceMgmt_hwHealthTestTune_TuneResults(stMsgData);
-        }
-#endif /* USE_HWSELFTEST_PROFILE */
         else if (strncmp(stMsgData->paramName,X_OPS_RPC_PROFILE, strlen(X_OPS_RPC_PROFILE)) == 0)
         {
             ret = pIface->get_xOpsRPC_Profile(stMsgData);

@@ -53,6 +53,8 @@ cp ./src/integrationtest/conf/rfc.properties /etc/
 cp ./src/integrationtest/conf/tr181store.ini /opt/secure/RFC/
 cp ./src/integrationtest/conf/bootstrap.ini /opt/secure/RFC/
 cp ./partners_defaults.json /etc/
+cp ./src/integrationtest/conf/rfcVariable.ini /opt/secure/RFC/
+
 touch /opt/secure/RFC/tr181localstore.ini
 touch /opt/persistent/tr181localstore.ini
 touch /opt/secure/RFC/bootstrap.journal
@@ -68,4 +70,31 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communications.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/deviceip.json test/functional-tests/tests/tr69hostif_deviceip.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa.json test/functional-tests/tests/tr69hostif_webpa.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_plugin.json test/functional-tests/tests/tr69hostif_thunder_plugin.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/authservice_thunder_plugin.json test/functional-tests/tests/tr69hostif_authservice_thunder_plugin.py
+# TODO: These NetworkManager Thunder suites are currently excluded from the L2 run.
+# Enable them for regression coverage, or remove/relocate them if this exclusion is intentional.
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/networkmanager_ssid_thunder_plugin.json test/functional-tests/tests/tr69hostif_networkmanager_ssid_thunder_plugin.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/networkmanager_endpoint_thunder_plugin.json test/functional-tests/tests/tr69hostif_networkmanager_endpoint_thunder_plugin.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/account_thunder_plugin.json test/functional-tests/tests/tr69hostif_account_thunder_plugin.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/system_thunder_plugin.json test/functional-tests/tests/tr69hostif_system_thunder_plugin.py
+
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/http_server.json test/functional-tests/tests/tr69hostif_http_server.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/rfc_store.json test/functional-tests/tests/tr69hostif_rfc_store.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/rfc_store_params.json test/functional-tests/tests/tr69hostif_rfc_store_params.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/negative_edge.json test/functional-tests/tests/tr69hostif_negative_edge_cases.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_negative_edge.json test/functional-tests/tests/tr69hostif_webpa_negative_edge_cases.py
+
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/ethernet_handlers.json test/functional-tests/tests/tr69hostif_ethernet_handlers.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/devicetime.json test/functional-tests/tests/tr69hostif_devicetime.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/ip.json test/functional-tests/tests/tr69hostif_ip.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/ipremotesupport.json test/functional-tests/tests/tr69hostif_ipremotesupport.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/processor_processstatus.json test/functional-tests/tests/tr69hostif_processor_processstatus.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/std_params.json test/functional-tests/tests/tr69hostif_std_params.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_rdkdlmgr.json test/functional-tests/tests/tr69hostif_webpa_rdkdlmgr.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom.json test/functional-tests/tests/tr69hostif_custom.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
+
+pkill -f thunder-mock-server.js
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
+

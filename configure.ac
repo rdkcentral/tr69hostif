@@ -44,13 +44,10 @@ SUBDIRS_DHCPv4=" "
 DHCPv4_PROFILE_FLAG=" "
 STORAGESERVICE_PROFILE_FLAG=" "
 INTFSTACK_PROFILE_FLAG=" "
-XRDK_RF4CE_PROFILE_FLAG=" "
 XRDK_BT_PROFILE_FLAG=" "
 HAVE_VALUE_CHANGE_EVENT_FLAG=" "
-SNMP_ADAPTER_FLAG=" "
 SYSTEMD_SDNOTIFY_CFLAGS=" "
 SYSTEMD_SDNOTIFY_LDFLAGS=" "
-HWSELFTEST_PROFILE_FLAG=" "
 PARODUS_ENABLE_FLAG=" "
 NEW_HTTP_SERVER_DISABLE_FLAG=" "
 YOCTO_FLAG=" "
@@ -237,17 +234,7 @@ AM_CONDITIONAL([POWERCONTROLLER_ENABLE], [test x$powercontroller = xtrue])
 
 
 
-AC_ARG_ENABLE([rf4ce],
-        AS_HELP_STRING([--enable-rf4ce],[enable X_RDKCENTRAL_COM RF4CE profile (default is no)]),
-        [
-          case "${enableval}" in
-           yes) XRDK_RF4CE_PROFILE_ENABLE=true
-                XRDK_RF4CE_PROFILE_FLAG="-DUSE_XRDK_RF4CE_PROFILE" ;;	
-           no) XRDK_RF4CE_PROFILE_ENABLE=false AC_MSG_ERROR([X_RDKCENTRAL_COM RF4CE profile is disabled]) ;;
-          *) AC_MSG_ERROR([bad value ${enableval} for --enable-rf4ce ]) ;;
-           esac
-           ],
-         [echo "X_RDKCENTRAL_COM RF4CE  profile is disabled"])
+
 
 AC_ARG_ENABLE([bt],
         AS_HELP_STRING([--enable-bt],[enable X_RDKCENTRAL_COM BlueTooth profile (default is no)]),
@@ -308,34 +295,6 @@ AC_ARG_ENABLE([systemd-notify],
                 esac
                 ],
         [echo "systemd sd notify  is disable"])
-
-AC_ARG_ENABLE([hwselftest],
-        AS_HELP_STRING([--enable-hwselftest],[enable HW Self Test profile (default is no)]),
-        [
-          case "${enableval}" in
-           yes) HWSELFTEST_PROFILE_ENABLE=true
-                HWSELFTEST_PROFILE_FLAG="-DUSE_HWSELFTEST_PROFILE" ;;
-           no) HWSELFTEST_PROFILE_ENABLE=false AC_MSG_ERROR([HW Self Test is disabled]) ;;
-          *) AC_MSG_ERROR([bad value ${enableval} for --enable-hwselftest ]) ;;
-           esac
-           ],
-         [echo "HW Self Test profile is disabled"])
-
-AC_ARG_ENABLE([snmpAdapter],
-        AS_HELP_STRING([--enable-snmpAdapter],[enable SNMP_ADAPTER (default is no)]),
-        [
-          case "${enableval}" in
-           yes) SNMP_ADAPTER_ENABLE=true
-                SNMP_ADAPTER_FLAG="-DSNMP_ADAPTER_ENABLED"
-                m4_syscmd([test -d src/hostif/snmpAdapter])
-                m4_if(m4_sysval,[0],[AC_CONFIG_FILES([src/hostif/snmpAdapter/Makefile])])
-                m4_if(m4_sysval,[0],[SUBDIRS_SNMPADAPTER="src/hostif/snmpAdapter"])  ;;
-           no) SNMP_ADAPTER_ENABLE=false AC_MSG_ERROR([SNMP_ADAPTER is disabled]) ;;
-          *) AC_MSG_ERROR([bad value ${enableval} for --enable-snmpAdapter ]) ;;
-           esac
-           ],
-         [echo "SNMP_ADAPTER profile is disabled"])
-
 
 # Disable new http server
 AC_ARG_ENABLE([new_http_server],
@@ -449,14 +408,11 @@ AM_CONDITIONAL([WITH_XRDK_EMMC_PROFILE], [test x$XRDK_EMMC_PROFILE_ENABLE = xtru
 AM_CONDITIONAL([WITH_DHCP_PROFILE], [test x$DHCPv4_PROFILE_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_INTFSTACK_PROFILE], [test x$INTFSTACK_PROFILE_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_STORAGESERVICE_PROFILE], [test x$STORAGESERVICE_PROFILE_ENABLE = xtrue])
-AM_CONDITIONAL([WITH_HWSELFTEST_PROFILE], [test x$HWSELFTEST_PROFILE_ENABLE = xtrue])
-AM_CONDITIONAL([WITH_XRDK_RF4CE_PROFILE], [test x$XRDK_RF4CE_PROFILE_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_XRDK_BT_PROFILE], [test x$XRDK_BT_PROFILE_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_IPV6_SUPPORT], [test x$IPV6_SUPPORT_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_SPEEDTEST_SUPPORT], [test x$SPEEDTEST_SUPPORT_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_NOTIFICATION_SUPPORT], [test x$HAVE_VALUE_CHANGE_EVENT_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_WEBPA_RFC], [test x$WEBPA_RFC_ENABLE = xtrue])
-AM_CONDITIONAL([WITH_SNMP_ADAPTER], [test x$SNMP_ADAPTER_ENABLE = xtrue])
 AM_CONDITIONAL([ENABLE_BLE_TILE_PROFILE], [test x$ENABLE_BLE_TILE_PROFILE = xtrue])
 AM_CONDITIONAL([WITH_PARODUS_SUPPORT], [test x$PARODUS_SUPPORT_ENABLED = xtrue])
 
@@ -501,15 +457,12 @@ AC_SUBST(XRDK_EMMC_PROFILE_FLAG)
 AC_SUBST(DHCPv4_PROFILE_FLAG)
 AC_SUBST(STORAGESERVICE_PROFILE_FLAG)
 AC_SUBST(INTFSTACK_PROFILE_FLAG)
-AC_SUBST(XRDK_RF4CE_PROFILE_FLAG)
 AC_SUBST(XRDK_BT_PROFILE_FLAG)
 AC_SUBST(IPV6_SUPPORT_FLAG)
 AC_SUBST(SPEEDTEST_SUPPORT_FLAG)
 AC_SUBST(HAVE_VALUE_CHANGE_EVENT_FLAG)
 AC_SUBST(SYSTEMD_SDNOTIFY_CFLAGS)
 AC_SUBST(SYSTEMD_SDNOTIFY_LDFLAGS)
-AC_SUBST(HWSELFTEST_PROFILE_FLAG)
-AC_SUBST(SNMP_ADAPTER_FLAG)
 AC_SUBST(WIFI_CLIENT_ROAMING)
 AC_SUBST(NEW_HTTP_SERVER_DISABLE_FLAG)
 AC_SUBST(BLE_TILE_PROFILE)

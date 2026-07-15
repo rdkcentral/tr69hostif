@@ -61,6 +61,7 @@
 
 #ifdef SAFEC_DUMMY_API
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <strings.h>
 typedef int errno_t;

@@ -438,481 +438,480 @@
 | 424 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.RebootPendingNotification` | readWrite | unsignedInt | xOps RPC notification control for the named event. |
 | 425 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshArgs` | readWrite | string | Arguments used to start reverse SSH through xOps. |
 | 426 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshStatus` | readOnly | string | Current reverse SSH status reported by xOps. |
-| 427 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.hwHealthTest.Results` | readOnly | string | Result payload reported by the related diagnostic or test. |
-| 428 | `Device.DeviceInfo.X_RDK_FirmwareName` | readOnly | string | Firmware image name currently reported by the RDK platform. |
-| 429 | `Device.DeviceInfo.X_RDK_RDKProfileName` | readWrite | string | Active RDK profile name associated with the device configuration. |
-| 430 | `Device.Ethernet.Interface.{i}.Alias` | readWrite | string | User-assigned alias for this Ethernet interface. |
-| 431 | `Device.Ethernet.Interface.{i}.DuplexMode` | readWrite | string | Configured or reported duplex mode for the interface. |
-| 432 | `Device.Ethernet.Interface.{i}.Enable` | readWrite | boolean | Enables or disables this Ethernet interface. |
-| 433 | `Device.Ethernet.Interface.{i}.LastChange` | readOnly | unsignedInt | Seconds since this Ethernet interface last changed state. |
-| 434 | `Device.Ethernet.Interface.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this Ethernet interface. |
-| 435 | `Device.Ethernet.Interface.{i}.MACAddress` | readOnly | string | MAC address associated with this Ethernet interface. |
-| 436 | `Device.Ethernet.Interface.{i}.MaxBitRate` | readWrite | int | Configured or negotiated maximum link bit rate for this Ethernet interface. |
-| 437 | `Device.Ethernet.Interface.{i}.Name` | readOnly | string | Name reported for this Ethernet interface. |
-| 438 | `Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsReceived` | readOnly | unsignedLong | Broadcast packets received on this Ethernet interface. |
-| 439 | `Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsSent` | readOnly | unsignedLong | Broadcast packets sent on this Ethernet interface. |
-| 440 | `Device.Ethernet.Interface.{i}.Stats.BytesReceived` | readOnly | unsignedLong | Total bytes received on this Ethernet interface. |
-| 441 | `Device.Ethernet.Interface.{i}.Stats.BytesSent` | readOnly | unsignedLong | Total bytes sent on this Ethernet interface. |
-| 442 | `Device.Ethernet.Interface.{i}.Stats.DiscardPacketsReceived` | readOnly | unsignedInt | Received packets discarded on this Ethernet interface. |
-| 443 | `Device.Ethernet.Interface.{i}.Stats.DiscardPacketsSent` | readOnly | unsignedInt | Outbound packets discarded on this Ethernet interface. |
-| 444 | `Device.Ethernet.Interface.{i}.Stats.ErrorsReceived` | readOnly | unsignedInt | Receive errors seen on this Ethernet interface. |
-| 445 | `Device.Ethernet.Interface.{i}.Stats.ErrorsSent` | readOnly | unsignedInt | Transmit errors seen on this Ethernet interface. |
-| 446 | `Device.Ethernet.Interface.{i}.Stats.MulticastPacketsReceived` | readOnly | unsignedLong | Multicast packets received on this Ethernet interface. |
-| 447 | `Device.Ethernet.Interface.{i}.Stats.MulticastPacketsSent` | readOnly | unsignedLong | Multicast packets sent on this Ethernet interface. |
-| 448 | `Device.Ethernet.Interface.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this Ethernet interface. |
-| 449 | `Device.Ethernet.Interface.{i}.Stats.PacketsSent` | readOnly | unsignedLong | Total packets sent on this Ethernet interface. |
-| 450 | `Device.Ethernet.Interface.{i}.Stats.UnicastPacketsReceived` | readOnly | unsignedLong | Unicast packets received on this Ethernet interface. |
-| 451 | `Device.Ethernet.Interface.{i}.Stats.UnicastPacketsSent` | readOnly | unsignedLong | Unicast packets sent on this Ethernet interface. |
-| 452 | `Device.Ethernet.Interface.{i}.Stats.UnknownProtoPacketsReceived` | readOnly | unsignedInt | Packets with unknown protocol received on this Ethernet interface. |
-| 453 | `Device.Ethernet.Interface.{i}.Status` | readOnly | string | Current status of this Ethernet interface. |
-| 454 | `Device.Ethernet.Interface.{i}.Upstream` | readOnly | boolean | Indicates whether the interface is designated as upstream. |
-| 455 | `Device.Ethernet.InterfaceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 456 | `Device.Ethernet.Link.{i}.Enable` | readWrite | boolean | Enables or disables this Ethernet link. |
-| 457 | `Device.Ethernet.Link.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this Ethernet link. |
-| 458 | `Device.Ethernet.Link.{i}.MACAddress` | readOnly | string | MAC address associated with this Ethernet link. |
-| 459 | `Device.Ethernet.Link.{i}.Name` | readOnly | string | Name reported for this Ethernet link. |
-| 460 | `Device.Ethernet.Link.{i}.Status` | readOnly | string | Current status of this Ethernet link. |
-| 461 | `Device.Ethernet.LinkNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 462 | `Device.IP.ActivePort.{i}.LocalIPAddress` | readOnly | string | IP address used by this active port entry. |
-| 463 | `Device.IP.ActivePort.{i}.LocalPort` | readOnly | unsignedInt | Port value used by this active port entry. |
-| 464 | `Device.IP.ActivePort.{i}.RemoteIPAddress` | readOnly | string | IP address used by this active port entry. |
-| 465 | `Device.IP.ActivePort.{i}.RemotePort` | readOnly | unsignedInt | Port value used by this active port entry. |
-| 466 | `Device.IP.ActivePort.{i}.Status` | readOnly | string | Current status of this active port entry. |
-| 467 | `Device.IP.ActivePortNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 468 | `Device.IP.Diagnostics.DownloadDiagnostics.BOMTime` | readOnly | dateTime | Beginning of measurement time for the diagnostic run. |
-| 469 | `Device.IP.Diagnostics.DownloadDiagnostics.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
-| 470 | `Device.IP.Diagnostics.DownloadDiagnostics.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
-| 471 | `Device.IP.Diagnostics.DownloadDiagnostics.DownloadTransports` | readOnly | string | Transfer transports supported by the diagnostic. |
-| 472 | `Device.IP.Diagnostics.DownloadDiagnostics.DownloadURL` | readWrite | string | Target URL used by the diagnostic. |
-| 473 | `Device.IP.Diagnostics.DownloadDiagnostics.EOMTime` | readOnly | dateTime | End of measurement time for the diagnostic run. |
-| 474 | `Device.IP.Diagnostics.DownloadDiagnostics.EthernetPriority` | readWrite | unsignedInt | Ethernet priority used by the diagnostic traffic. |
-| 475 | `Device.IP.Diagnostics.DownloadDiagnostics.Interface` | readWrite | string | Interface reference used by the download diagnostic. |
-| 476 | `Device.IP.Diagnostics.DownloadDiagnostics.ROMTime` | readOnly | dateTime | Request start time for the diagnostic run. |
-| 477 | `Device.IP.Diagnostics.DownloadDiagnostics.TCPOpenRequestTime` | readOnly | dateTime | Timestamp when the diagnostic opened the TCP connection request. |
-| 478 | `Device.IP.Diagnostics.DownloadDiagnostics.TCPOpenResponseTime` | readOnly | dateTime | Timestamp when the diagnostic received the TCP connection response. |
-| 479 | `Device.IP.Diagnostics.DownloadDiagnostics.TestBytesReceived` | readOnly | unsignedInt | Configured or measured test payload size for the diagnostic. |
-| 480 | `Device.IP.Diagnostics.DownloadDiagnostics.TotalBytesReceived` | readOnly | unsignedInt | Total payload bytes transferred during the diagnostic. |
-| 481 | `Device.IP.Diagnostics.IPPing.AverageResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
-| 482 | `Device.IP.Diagnostics.IPPing.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
-| 483 | `Device.IP.Diagnostics.IPPing.DataBlockSize` | readWrite | unsignedInt | Payload size used by the diagnostic packets. |
-| 484 | `Device.IP.Diagnostics.IPPing.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
-| 485 | `Device.IP.Diagnostics.IPPing.FailureCount` | readOnly | unsignedInt | Count of failed or successful attempts in the diagnostic run. |
-| 486 | `Device.IP.Diagnostics.IPPing.Host` | readWrite | string | Host name or address used by the IP ping diagnostic. |
-| 487 | `Device.IP.Diagnostics.IPPing.Interface` | readWrite | string | Interface reference used by the IP ping diagnostic. |
-| 488 | `Device.IP.Diagnostics.IPPing.MaximumResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
-| 489 | `Device.IP.Diagnostics.IPPing.MinimumResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
-| 490 | `Device.IP.Diagnostics.IPPing.NumberOfRepetitions` | readWrite | unsignedInt | Number of attempts configured for the diagnostic. |
-| 491 | `Device.IP.Diagnostics.IPPing.SuccessCount` | readOnly | unsignedInt | Count of failed or successful attempts in the diagnostic run. |
-| 492 | `Device.IP.Diagnostics.IPPing.Timeout` | readWrite | unsignedInt | Timeout value used by the diagnostic run. |
-| 493 | `Device.IP.Diagnostics.TraceRoute.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
-| 494 | `Device.IP.Diagnostics.TraceRoute.DataBlockSize` | readWrite | unsignedInt | Payload size used by the diagnostic packets. |
-| 495 | `Device.IP.Diagnostics.TraceRoute.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
-| 496 | `Device.IP.Diagnostics.TraceRoute.Host` | readWrite | string | Host name or address used by the traceroute diagnostic. |
-| 497 | `Device.IP.Diagnostics.TraceRoute.Interface` | readWrite | string | Interface reference used by the traceroute diagnostic. |
-| 498 | `Device.IP.Diagnostics.TraceRoute.MaxHopCount` | readWrite | unsignedInt | Maximum hop count allowed for the traceroute run. |
-| 499 | `Device.IP.Diagnostics.TraceRoute.NumberOfTries` | readWrite | unsignedInt | Number of attempts configured for the diagnostic. |
-| 500 | `Device.IP.Diagnostics.TraceRoute.ResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
-| 501 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.ErrorCode` | readOnly | unsignedInt | Error code reported for this traceroute hop. |
-| 502 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.Host` | readOnly | string | Host name or address used by this traceroute hop. |
-| 503 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.HostAddress` | readOnly | string | Resolved host address for this traceroute hop. |
-| 504 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.RTTimes` | readOnly | string | Round-trip time samples for this traceroute hop. |
-| 505 | `Device.IP.Diagnostics.TraceRoute.RouteHopsNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the traceroute diagnostic. |
-| 506 | `Device.IP.Diagnostics.TraceRoute.Timeout` | readWrite | unsignedInt | Timeout value used by the diagnostic run. |
-| 507 | `Device.IP.Diagnostics.UDPEchoConfig.BytesReceived` | readOnly | unsignedInt | Total bytes received by the related diagnostic or service. |
-| 508 | `Device.IP.Diagnostics.UDPEchoConfig.BytesResponded` | readOnly | unsignedInt | Total bytes sent in response by the related diagnostic or service. |
-| 509 | `Device.IP.Diagnostics.UDPEchoConfig.EchoPlusEnabled` | readWrite | boolean | Echo Plus capability state for the UDP echo server. |
-| 510 | `Device.IP.Diagnostics.UDPEchoConfig.EchoPlusSupported` | readOnly | boolean | Echo Plus capability state for the UDP echo server. |
-| 511 | `Device.IP.Diagnostics.UDPEchoConfig.Enable` | readWrite | boolean | Enables or disables the UDP echo server. |
-| 512 | `Device.IP.Diagnostics.UDPEchoConfig.Interface` | readWrite | string | Interface reference used by the UDP echo server. |
-| 513 | `Device.IP.Diagnostics.UDPEchoConfig.PacketsReceived` | readOnly | unsignedInt | Packet count recorded by the UDP echo server. |
-| 514 | `Device.IP.Diagnostics.UDPEchoConfig.PacketsResponded` | readOnly | unsignedInt | Packet count recorded by the UDP echo server. |
-| 515 | `Device.IP.Diagnostics.UDPEchoConfig.SourceIPAddress` | readWrite | string | IP address used by the UDP echo server. |
-| 516 | `Device.IP.Diagnostics.UDPEchoConfig.TimeFirstPacketReceived` | readOnly | dateTime | Timestamp of the first or last packet seen by the UDP echo server. |
-| 517 | `Device.IP.Diagnostics.UDPEchoConfig.TimeLastPacketReceived` | readOnly | dateTime | Timestamp of the first or last packet seen by the UDP echo server. |
-| 518 | `Device.IP.Diagnostics.UDPEchoConfig.UDPPort` | readWrite | unsignedInt | Port value used by the UDP echo server. |
-| 519 | `Device.IP.Diagnostics.UploadDiagnostics.BOMTime` | readOnly | dateTime | Beginning of measurement time for the diagnostic run. |
-| 520 | `Device.IP.Diagnostics.UploadDiagnostics.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
-| 521 | `Device.IP.Diagnostics.UploadDiagnostics.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
-| 522 | `Device.IP.Diagnostics.UploadDiagnostics.EOMTime` | readOnly | dateTime | End of measurement time for the diagnostic run. |
-| 523 | `Device.IP.Diagnostics.UploadDiagnostics.EthernetPriority` | readWrite | unsignedInt | Ethernet priority used by the diagnostic traffic. |
-| 524 | `Device.IP.Diagnostics.UploadDiagnostics.Interface` | readWrite | string | Interface reference used by the upload diagnostic. |
-| 525 | `Device.IP.Diagnostics.UploadDiagnostics.ROMTime` | readOnly | dateTime | Request start time for the diagnostic run. |
-| 526 | `Device.IP.Diagnostics.UploadDiagnostics.TCPOpenRequestTime` | readOnly | dateTime | Timestamp when the diagnostic opened the TCP connection request. |
-| 527 | `Device.IP.Diagnostics.UploadDiagnostics.TCPOpenResponseTime` | readOnly | dateTime | Timestamp when the diagnostic received the TCP connection response. |
-| 528 | `Device.IP.Diagnostics.UploadDiagnostics.TestFileLength` | readWrite | unsignedInt | Configured or measured test payload size for the diagnostic. |
-| 529 | `Device.IP.Diagnostics.UploadDiagnostics.TotalBytesSent` | readOnly | unsignedInt | Total payload bytes transferred during the diagnostic. |
-| 530 | `Device.IP.Diagnostics.UploadDiagnostics.UploadTransports` | readOnly | string | Transfer transports supported by the diagnostic. |
-| 531 | `Device.IP.Diagnostics.UploadDiagnostics.UploadURL` | readWrite | string | Target URL used by the diagnostic. |
-| 532 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Argument` | readWrite | string | Input value used by the RDK speed test. |
-| 533 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Authentication` | readWrite | string | Input value used by the RDK speed test. |
-| 534 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.ClientType` | readWrite | unsignedInt | Client type used by the RDK speed test. |
-| 535 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Enable` | readWrite | boolean | Enables or disables the RDK speed test. |
-| 536 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Enable_Speedtest` | readWrite | boolean | Configuration or status value for the RDK speed test. |
-| 537 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Run` | readWrite | boolean | Triggers immediate execution of the related diagnostic or action. |
-| 538 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Status` | readOnly | unsignedInt | Current status of the RDK speed test. |
-| 539 | `Device.IP.IPv4Capable` | readOnly | boolean | Indicates whether the device supports IPv4. |
-| 540 | `Device.IP.IPv4Enable` | readWrite | boolean | Enables or disables IPv4 on this object. |
-| 541 | `Device.IP.IPv4Status` | readOnly | string | Current IPv4 operational status of the device. |
-| 542 | `Device.IP.Interface.{i}.Alias` | readWrite | string | User-assigned alias for this IP interface. |
-| 543 | `Device.IP.Interface.{i}.AutoIPEnable` | readWrite | boolean | Enables or disables AutoIP on this IP interface. |
-| 544 | `Device.IP.Interface.{i}.Enable` | readWrite | boolean | Enables or disables this IP interface. |
-| 545 | `Device.IP.Interface.{i}.IPv4Address.{i}.AddressingType` | readOnly | string | Addressing method used for this IPv4 address entry. |
-| 546 | `Device.IP.Interface.{i}.IPv4Address.{i}.Alias` | readWrite | string | User-assigned alias for this IPv4 address entry. |
-| 547 | `Device.IP.Interface.{i}.IPv4Address.{i}.Enable` | readWrite | boolean | Enables or disables this IPv4 address entry. |
-| 548 | `Device.IP.Interface.{i}.IPv4Address.{i}.IPAddress` | readWrite | string | IP address associated with this IPv4 address entry. |
-| 549 | `Device.IP.Interface.{i}.IPv4Address.{i}.Status` | readOnly | string | Current status of this IPv4 address entry. |
-| 550 | `Device.IP.Interface.{i}.IPv4Address.{i}.SubnetMask` | readWrite | string | Subnet mask assigned to this IPv4 address entry. |
-| 551 | `Device.IP.Interface.{i}.IPv4AddressNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this IP interface. |
-| 552 | `Device.IP.Interface.{i}.IPv4Enable` | readWrite | boolean | Enables or disables IPv4 on this IP interface. |
-| 553 | `Device.IP.Interface.{i}.IPv6Address.{i}.Alias` | readWrite | string | User-assigned alias for this IPv6 address entry. |
-| 554 | `Device.IP.Interface.{i}.IPv6Address.{i}.Anycast` | readWrite | boolean | Indicates whether this IPv6 address is anycast. |
-| 555 | `Device.IP.Interface.{i}.IPv6Address.{i}.Enable` | readWrite | boolean | Enables or disables this IPv6 address entry. |
-| 556 | `Device.IP.Interface.{i}.IPv6Address.{i}.IPAddress` | readWrite | string | IP address associated with this IPv6 address entry. |
-| 557 | `Device.IP.Interface.{i}.IPv6Address.{i}.IPAddressStatus` | readOnly | string | Current status of this IPv6 address. |
-| 558 | `Device.IP.Interface.{i}.IPv6Address.{i}.Origin` | readOnly | string | Origin by which the related address or prefix was created. |
-| 559 | `Device.IP.Interface.{i}.IPv6Address.{i}.PreferredLifetime` | readWrite | dateTime | Preferred lifetime for the related address or prefix. |
-| 560 | `Device.IP.Interface.{i}.IPv6Address.{i}.Prefix` | readWrite | string | IP prefix associated with the related address or prefix entry. |
-| 561 | `Device.IP.Interface.{i}.IPv6Address.{i}.Status` | readOnly | string | Current status of this IPv6 address entry. |
-| 562 | `Device.IP.Interface.{i}.IPv6Address.{i}.ValidLifetime` | readWrite | dateTime | Valid lifetime for the related address or prefix. |
-| 563 | `Device.IP.Interface.{i}.IPv6AddressNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this IP interface. |
-| 564 | `Device.IP.Interface.{i}.IPv6Enable` | readWrite | boolean | Enables or disables IPv6 on this IP interface. |
-| 565 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Alias` | readWrite | string | User-assigned alias for this IPv6 prefix entry. |
-| 566 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Autonomous` | readWrite | boolean | Indicates whether the prefix is used for autonomous addressing. |
-| 567 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.ChildPrefixBits` | readWrite | string | Child prefix bits delegated from this IPv6 prefix. |
-| 568 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Enable` | readWrite | boolean | Enables or disables this IPv6 prefix entry. |
-| 569 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.OnLink` | readWrite | boolean | Indicates whether the prefix is advertised as on-link. |
-| 570 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Origin` | readOnly | string | Origin by which the related address or prefix was created. |
-| 571 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.ParentPrefix` | readWrite | string | Parent prefix reference for this IPv6 prefix entry. |
-| 572 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.PreferredLifetime` | readWrite | dateTime | Preferred lifetime for the related address or prefix. |
-| 573 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Prefix` | readWrite | string | IP prefix associated with the related address or prefix entry. |
-| 574 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.PrefixStatus` | readOnly | string | Current status of this IPv6 prefix. |
-| 575 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.StaticType` | readWrite | string | Static type assigned to this IPv6 prefix entry. |
-| 576 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Status` | readOnly | string | Current status of this IPv6 prefix entry. |
-| 577 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.ValidLifetime` | readWrite | dateTime | Valid lifetime for the related address or prefix. |
-| 578 | `Device.IP.Interface.{i}.IPv6PrefixNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this IP interface. |
-| 579 | `Device.IP.Interface.{i}.LastChange` | readOnly | unsignedInt | Seconds since this IP interface last changed state. |
-| 580 | `Device.IP.Interface.{i}.Loopback` | readWrite | boolean | Indicates whether this IP interface operates as loopback. |
-| 581 | `Device.IP.Interface.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this IP interface. |
-| 582 | `Device.IP.Interface.{i}.MaxMTUSize` | readWrite | unsignedInt | Maximum MTU configured for this IP interface. |
-| 583 | `Device.IP.Interface.{i}.Name` | readOnly | string | Name reported for this IP interface. |
-| 584 | `Device.IP.Interface.{i}.Reset` | readWrite | boolean | Triggers a reset action for this IP interface. |
-| 585 | `Device.IP.Interface.{i}.Router` | readWrite | string | Router reference associated with this IP interface. |
-| 586 | `Device.IP.Interface.{i}.Stats.BroadcastPacketsReceived` | readOnly | unsignedLong | Broadcast packets received on this IP interface. |
-| 587 | `Device.IP.Interface.{i}.Stats.BroadcastPacketsSent` | readOnly | unsignedLong | Broadcast packets sent on this IP interface. |
-| 588 | `Device.IP.Interface.{i}.Stats.BytesReceived` | readOnly | unsignedLong | Total bytes received on this IP interface. |
-| 589 | `Device.IP.Interface.{i}.Stats.BytesSent` | readOnly | unsignedLong | Total bytes sent on this IP interface. |
-| 590 | `Device.IP.Interface.{i}.Stats.DiscardPacketsReceived` | readOnly | unsignedInt | Received packets discarded on this IP interface. |
-| 591 | `Device.IP.Interface.{i}.Stats.DiscardPacketsSent` | readOnly | unsignedInt | Outbound packets discarded on this IP interface. |
-| 592 | `Device.IP.Interface.{i}.Stats.ErrorsReceived` | readOnly | unsignedInt | Receive errors seen on this IP interface. |
-| 593 | `Device.IP.Interface.{i}.Stats.ErrorsSent` | readOnly | unsignedInt | Transmit errors seen on this IP interface. |
-| 594 | `Device.IP.Interface.{i}.Stats.MulticastPacketsReceived` | readOnly | unsignedLong | Multicast packets received on this IP interface. |
-| 595 | `Device.IP.Interface.{i}.Stats.MulticastPacketsSent` | readOnly | unsignedLong | Multicast packets sent on this IP interface. |
-| 596 | `Device.IP.Interface.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this IP interface. |
-| 597 | `Device.IP.Interface.{i}.Stats.PacketsSent` | readOnly | unsignedLong | Total packets sent on this IP interface. |
-| 598 | `Device.IP.Interface.{i}.Stats.UnicastPacketsReceived` | readOnly | unsignedLong | Unicast packets received on this IP interface. |
-| 599 | `Device.IP.Interface.{i}.Stats.UnicastPacketsSent` | readOnly | unsignedLong | Unicast packets sent on this IP interface. |
-| 600 | `Device.IP.Interface.{i}.Stats.UnknownProtoPacketsReceived` | readOnly | unsignedInt | Packets with unknown protocol received on this IP interface. |
-| 601 | `Device.IP.Interface.{i}.Status` | readOnly | string | Current status of this IP interface. |
-| 602 | `Device.IP.Interface.{i}.Type` | readOnly | string | Type reported for the related object. |
-| 603 | `Device.IP.Interface.{i}.ULAEnable` | readWrite | boolean | Enables or disables ULA addressing on this IP interface. |
-| 604 | `Device.IP.InterfaceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 605 | `Device.IP.ULAPrefix` | readWrite | string | Current ULA prefix configured for the device. |
-| 606 | `Device.InterfaceStack.{i}.HigherLayer` | readOnly | string | Higher-layer interface reference in this stack relationship. |
-| 607 | `Device.InterfaceStack.{i}.LowerLayer` | readOnly | string | Lower-layer interface reference in this stack relationship. |
-| 608 | `Device.InterfaceStackNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 609 | `Device.ManagementServer.AliasBasedAddressing` | readOnly | boolean | Indicates whether alias-based addressing is supported. |
-| 610 | `Device.ManagementServer.AutoCreateInstances` | readWrite | boolean | Controls automatic creation of multi-instance objects. |
-| 611 | `Device.ManagementServer.CWMPRetryIntervalMultiplier` | readWrite | unsignedInt | CWMP retry timing parameter used by the management client. |
-| 612 | `Device.ManagementServer.CWMPRetryMinimumWaitInterval` | readWrite | unsignedInt | CWMP retry timing parameter used by the management client. |
-| 613 | `Device.ManagementServer.ConnectionRequestURL` | readOnly | string | URL used by the ACS to issue connection requests. |
-| 614 | `Device.ManagementServer.ConnectionRequestUsername` | readWrite | string | Username used by the management server client. |
-| 615 | `Device.ManagementServer.DefaultActiveNotificationThrottle` | readWrite | unsignedInt | Throttle interval for active notifications. |
-| 616 | `Device.ManagementServer.DownloadProgressURL` | readOnly | string | URL used to report download progress. |
-| 617 | `Device.ManagementServer.EnableCWMP` | readWrite | boolean | Enables or disables CWMP communication. |
-| 618 | `Device.ManagementServer.InstanceMode` | readWrite | string | Instance addressing mode used by the management client. |
-| 619 | `Device.ManagementServer.KickURL` | readOnly | string | Kick URL exposed by the management client. |
-| 620 | `Device.ManagementServer.NATDetected` | readOnly | boolean | Indicates whether NAT is detected for ACS communication. |
-| 621 | `Device.ManagementServer.ParameterKey` | readOnly | string | Parameter key associated with the most recent configuration change. |
-| 622 | `Device.ManagementServer.PeriodicInformEnable` | readWrite | boolean | Enables or disables periodic Inform messages. |
-| 623 | `Device.ManagementServer.PeriodicInformInterval` | readWrite | unsignedInt | Interval between periodic Inform messages, in seconds. |
-| 624 | `Device.ManagementServer.PeriodicInformTime` | readWrite | dateTime | Reference time for scheduling periodic Inform messages. |
-| 625 | `Device.ManagementServer.STUNEnable` | readWrite | boolean | Enables or disables STUN for connection requests. |
-| 626 | `Device.ManagementServer.STUNMaximumKeepAlivePeriod` | readWrite | int | STUN keepalive timing value used by the management client. |
-| 627 | `Device.ManagementServer.STUNMinimumKeepAlivePeriod` | readWrite | unsignedInt | STUN keepalive timing value used by the management client. |
-| 628 | `Device.ManagementServer.STUNPassword` | readWrite | string | Shared secret or password used by the management server client. |
-| 629 | `Device.ManagementServer.STUNServerAddress` | readWrite | string | STUN server address used by the management client. |
-| 630 | `Device.ManagementServer.STUNServerPort` | readWrite | unsignedInt | STUN server port used by the management client. |
-| 631 | `Device.ManagementServer.STUNUsername` | readWrite | string | Username used by the management server client. |
-| 632 | `Device.ManagementServer.UDPConnectionRequestAddress` | readOnly | string | UDP address used for connection requests. |
-| 633 | `Device.ManagementServer.URL` | readWrite | string | URL used by the management server client. |
-| 634 | `Device.ManagementServer.UpgradesManaged` | readWrite | boolean | Indicates whether software upgrades are managed by the ACS. |
-| 635 | `Device.ManagementServer.Username` | readWrite | string | Username used by the management server client. |
-| 636 | `Device.Services.STBService.1.Capabilities.HDMI.SupportedResolutions` | readOnly | string | Display resolutions supported by the related capability or device. |
-| 637 | `Device.Services.STBService.1.Capabilities.VideoDecoder.VideoStandards` | readOnly | string | Video standards supported by the decoder capability. |
-| 638 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Alias` | readOnly | string | User-assigned alias for this MPEG-H Part 2 profile-level entry. |
-| 639 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Level` | readOnly | string | Profile level value for this codec capability entry. |
-| 640 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.MaximumDecodingCapability` | readOnly | unsignedInt | Maximum decoding capability reported for this codec entry. |
-| 641 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Profile` | readOnly | string | Profile reported for the related entry. |
-| 642 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevelNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB video decoder capability set. |
-| 643 | `Device.Services.STBService.1.Components.AudioOutput.1.AudioFormat` | readOnly | string | Current audio format reported for this output. |
-| 644 | `Device.Services.STBService.1.Components.AudioOutput.1.AudioLevel` | readWrite | unsignedInt | Current audio level for this output. |
-| 645 | `Device.Services.STBService.1.Components.AudioOutput.1.CancelMute` | readWrite | boolean | Clears mute state for this audio output when set. |
-| 646 | `Device.Services.STBService.1.Components.AudioOutput.1.Enable` | readWrite | boolean | Enables or disables this audio output. |
-| 647 | `Device.Services.STBService.1.Components.AudioOutput.1.Name` | readOnly | string | Name reported for this audio output. |
-| 648 | `Device.Services.STBService.1.Components.AudioOutput.1.Status` | readOnly | string | Current status of this audio output. |
-| 649 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioCompression` | readWrite | string | Audio compression mode configured for this output. |
-| 650 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioDB` | readWrite | string | Audio level in dB for this output. |
-| 651 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioEncoding` | readWrite | string | Audio encoding mode configured for this output. |
-| 652 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioGain` | readWrite | string | Audio gain setting for this output. |
-| 653 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioLoopThru` | readWrite | string | Loop-through audio mode for this output. |
-| 654 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioOptimalLevel` | readWrite | string | Optimal audio level setting for this output. |
-| 655 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioStereoMode` | readWrite | string | Stereo mode configured for this output. |
-| 656 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_MaxAudioDB` | readOnly | string | Maximum supported audio level in dB for this output. |
-| 657 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_MinAudioDB` | readOnly | string | Minimum supported audio level in dB for this output. |
-| 658 | `Device.Services.STBService.1.Components.AudioOutputNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
-| 659 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.AutoLipSyncSupport` | readOnly | boolean | Indicates whether the connected display supports auto lip-sync. |
-| 660 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.CECSupport` | readOnly | boolean | Indicates whether the connected display supports CEC. |
-| 661 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.EEDID` | readOnly | string | EDID data reported by the connected HDMI display. |
-| 662 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.HDMI3DPresent` | readOnly | boolean | Indicates whether the connected display reports HDMI 3D support. |
-| 663 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.PreferredResolution` | readOnly | string | Preferred resolution reported by the connected display. |
-| 664 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.Status` | readOnly | string | Current status of the connected HDMI display. |
-| 665 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.SupportedResolutions` | readOnly | string | Display resolutions supported by the related capability or device. |
-| 666 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.VideoLatency` | readOnly | unsignedInt | Video latency reported by the connected display. |
-| 667 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.X_COMCAST-COM_EDID` | readOnly | string | EDID data reported by the connected HDMI display. |
-| 668 | `Device.Services.STBService.1.Components.HDMI.1.Enable` | readWrite | boolean | Enables or disables this HDMI output. |
-| 669 | `Device.Services.STBService.1.Components.HDMI.1.Name` | readOnly | string | Name reported for this HDMI output. |
-| 670 | `Device.Services.STBService.1.Components.HDMI.1.ResolutionMode` | readWrite | string | Resolution selection mode for this HDMI output. |
-| 671 | `Device.Services.STBService.1.Components.HDMI.1.ResolutionValue` | readWrite | string | Current resolution value for this HDMI output. |
-| 672 | `Device.Services.STBService.1.Components.HDMI.1.Status` | readOnly | string | Current status of this HDMI output. |
-| 673 | `Device.Services.STBService.1.Components.HDMINumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
-| 674 | `Device.Services.STBService.1.Components.VideoDecoder.1.ContentAspectRatio` | readOnly | string | Current content aspect ratio reported by the video decoder. |
-| 675 | `Device.Services.STBService.1.Components.VideoDecoder.1.Enable` | readWrite | boolean | Enables or disables this video decoder. |
-| 676 | `Device.Services.STBService.1.Components.VideoDecoder.1.Name` | readOnly | string | Name reported for this video decoder. |
-| 677 | `Device.Services.STBService.1.Components.VideoDecoder.1.Status` | readOnly | string | Current status of this video decoder. |
-| 678 | `Device.Services.STBService.1.Components.VideoDecoder.1.X_COMCAST-COM_Standby` | readWrite | boolean | Standby state for this video decoder. |
-| 679 | `Device.Services.STBService.1.Components.VideoDecoder.1.X_RDKCENTRAL-COM_MPEGHPart2` | readOnly | string | MPEG-H Part 2 capability string reported by the decoder. |
-| 680 | `Device.Services.STBService.1.Components.VideoDecoderNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
-| 681 | `Device.Services.STBService.1.Components.VideoOutput.1.AspectRatioBehaviour` | readWrite | string | Aspect-ratio handling mode for this video output. |
-| 682 | `Device.Services.STBService.1.Components.VideoOutput.1.DisplayFormat` | readWrite | string | Display format configured for this video output. |
-| 683 | `Device.Services.STBService.1.Components.VideoOutput.1.Enable` | readWrite | boolean | Enables or disables this video output. |
-| 684 | `Device.Services.STBService.1.Components.VideoOutput.1.HDCP` | readWrite | boolean | HDCP state configured for this video output. |
-| 685 | `Device.Services.STBService.1.Components.VideoOutput.1.Name` | readOnly | string | Name reported for this video output. |
-| 686 | `Device.Services.STBService.1.Components.VideoOutput.1.Status` | readOnly | string | Current status of this video output. |
-| 687 | `Device.Services.STBService.1.Components.VideoOutput.1.VideoFormat` | readWrite | string | Video format configured for this video output. |
-| 688 | `Device.Services.STBService.1.Components.VideoOutputNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
-| 689 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryLevelLoaded` | readOnly | unsignedInt | Battery metric reported for this RF4CE remote. |
-| 690 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryLevelUnloaded` | readOnly | unsignedInt | Battery metric reported for this RF4CE remote. |
-| 691 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryPercentage` | readOnly | unsignedInt | Battery metric reported for this RF4CE remote. |
-| 692 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryReplacement` | readOnly | boolean | Indicates whether the RF4CE remote battery should be replaced. |
-| 693 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.ImpendingDoom` | readOnly | boolean | Indicates whether the RF4CE remote reports a critical battery condition. |
-| 694 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.LinkQuality` | readOnly | unsignedInt | Link quality reported for this RF4CE remote. |
-| 695 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.MACAddress` | readOnly | string | MAC address associated with this RF4CE remote. |
-| 696 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.NetworkAddress` | readOnly | unsignedInt | Network address reported for the related RF4CE object. |
-| 697 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.RemoteId` | readOnly | unsignedInt | Remote identifier reported for this RF4CE remote. |
-| 698 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.RemoteType` | readOnly | string | Remote type reported for this RF4CE remote. |
-| 699 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.SignalStrength` | readOnly | int | Signal strength reported for the related entry. |
-| 700 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.VersionInfoHW` | readOnly | string | Version information reported for the related RF4CE object. |
-| 701 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.VersionInfoSW` | readOnly | string | Version information reported for the related RF4CE object. |
-| 702 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceActiveChannel` | readOnly | unsignedInt | RF4CE network property reported by the subsystem. |
-| 703 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceMACAddress` | readOnly | string | RF4CE network property reported by the subsystem. |
-| 704 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceNetworkAddress` | readOnly | unsignedInt | RF4CE network property reported by the subsystem. |
-| 705 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4cePANID` | readOnly | unsignedInt | RF4CE network property reported by the subsystem. |
-| 706 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4cePairedRemotesNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the RF4CE subsystem. |
-| 707 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceVersionInfo` | readOnly | string | Version information reported for the related RF4CE object. |
-| 708 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.Capacity` | readOnly | unsignedInt | Storage capacity reported for the device. |
-| 709 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.DeviceReport` | readOnly | string | Detailed health report for the storage device. |
-| 710 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.FirmwareVersion` | readOnly | string | Version string reported for the eMMC flash device. |
-| 711 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.LifeElapsedA` | readOnly | int | Wear indicator reported for the storage device. |
-| 712 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.LifeElapsedB` | readOnly | int | Wear indicator reported for the storage device. |
-| 713 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.LotID` | readOnly | string | Manufacturing lot identifier for the device. |
-| 714 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.Manufacturer` | readOnly | string | Manufacturer reported for the eMMC flash device. |
-| 715 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.Model` | readOnly | string | Model identifier reported for the eMMC flash device. |
-| 716 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.PreEOLStateEUDA` | readOnly | string | Pre-EOL health state for the named storage area. |
-| 717 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.PreEOLStateMLC` | readOnly | string | Pre-EOL health state for the named storage area. |
-| 718 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.PreEOLStateSystem` | readOnly | string | Pre-EOL health state for the named storage area. |
-| 719 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.ReadOnly` | readOnly | boolean | Indicates whether the device is operating in read-only mode. |
-| 720 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.SerialNumber` | readOnly | string | Serial number reported for the eMMC flash device. |
-| 721 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.TSBQualified` | readOnly | boolean | Indicates whether the storage device is qualified for TSB use. |
-| 722 | `Device.Services.STBService.1.Enable` | readWrite | boolean | Enables or disables the STB service. |
-| 723 | `Device.Services.STBServiceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 724 | `Device.Time.ChronyEnable` | readWrite | boolean | Enables or disables Chrony-based time synchronization. |
-| 725 | `Device.Time.CurrentLocalTime` | readWrite | string | Current local time reported by the device. |
-| 726 | `Device.Time.Enable` | readWrite | boolean | Enables or disables the system time service. |
-| 727 | `Device.Time.LocalTimeZone` | readWrite | string | Current local timezone setting reported by the device. |
-| 728 | `Device.Time.NTPMaxpoll` | readWrite | unsignedInt | Chrony NTP poll interval setting. |
-| 729 | `Device.Time.NTPMaxstep` | readWrite | string | Chrony maxstep setting used during large time corrections. |
-| 730 | `Device.Time.NTPMinpoll` | readWrite | unsignedInt | Chrony NTP poll interval setting. |
-| 731 | `Device.Time.NTPServer1` | readWrite | string | Configured NTP server address for the numbered slot. |
-| 732 | `Device.Time.NTPServer1Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
-| 733 | `Device.Time.NTPServer2` | readWrite | string | Configured NTP server address for the numbered slot. |
-| 734 | `Device.Time.NTPServer2Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
-| 735 | `Device.Time.NTPServer3` | readWrite | string | Configured NTP server address for the numbered slot. |
-| 736 | `Device.Time.NTPServer3Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
-| 737 | `Device.Time.NTPServer4` | readWrite | string | Configured NTP server address for the numbered slot. |
-| 738 | `Device.Time.NTPServer4Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
-| 739 | `Device.Time.NTPServer5` | readWrite | string | Configured NTP server address for the numbered slot. |
-| 740 | `Device.Time.NTPServer5Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
-| 741 | `Device.Time.Status` | readWrite | string | Current status of the system time service. |
-| 742 | `Device.Time.X_RDK_CurrentUTCTime` | readOnly | string | Current UTC time reported by the device. |
-| 743 | `Device.WiFi.AccessPoint.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi access point. |
-| 744 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Active` | readOnly | boolean | Indicates whether the related entry is currently active. |
-| 745 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.AuthenticationState` | readOnly | boolean | Configuration or status value for this associated Wi-Fi client. |
-| 746 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataDownlinkRate` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
-| 747 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataUplinkRate` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
-| 748 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.MACAddress` | readOnly | string | MAC address associated with this associated Wi-Fi client. |
-| 749 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Retransmissions` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
-| 750 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.SignalStrength` | readOnly | int | Signal strength reported for the related entry. |
-| 751 | `Device.WiFi.AccessPoint.{i}.AssociatedDeviceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this Wi-Fi access point. |
-| 752 | `Device.WiFi.AccessPoint.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi access point. |
-| 753 | `Device.WiFi.AccessPoint.{i}.RetryLimit` | readWrite | unsignedInt | Configuration or status value for this Wi-Fi access point. |
-| 754 | `Device.WiFi.AccessPoint.{i}.SSIDAdvertisementEnabled` | readWrite | boolean | Controls whether this access point advertises its SSID. |
-| 755 | `Device.WiFi.AccessPoint.{i}.SSIDReference` | readWrite | string | Reference to the SSID object used by this entry. |
-| 756 | `Device.WiFi.AccessPoint.{i}.Security.KeyPassphrase` | readWrite | string | Passphrase configured for the related Wi-Fi profile. |
-| 757 | `Device.WiFi.AccessPoint.{i}.Security.ModeEnabled` | readWrite | string | Security mode currently enabled for the related Wi-Fi object. |
-| 758 | `Device.WiFi.AccessPoint.{i}.Security.ModesSupported` | readOnly | string | Security modes supported by the related Wi-Fi object. |
-| 759 | `Device.WiFi.AccessPoint.{i}.Security.PreSharedKey` | readWrite | hexBinary | Pre-shared key configured for the related Wi-Fi object. |
-| 760 | `Device.WiFi.AccessPoint.{i}.Security.RadiusSecret` | readWrite | string | Shared secret or password used by this Wi-Fi access point. |
-| 761 | `Device.WiFi.AccessPoint.{i}.Security.RadiusServerIPAddr` | readWrite | string | RADIUS server IP address used by this access point. |
-| 762 | `Device.WiFi.AccessPoint.{i}.Security.RadiusServerPort` | readWrite | unsignedInt | Port value used by this Wi-Fi access point. |
-| 763 | `Device.WiFi.AccessPoint.{i}.Security.RekeyingInterval` | readWrite | unsignedInt | Key rekey interval for this Wi-Fi security profile. |
-| 764 | `Device.WiFi.AccessPoint.{i}.Security.WEPKey` | readWrite | hexBinary | WEP key configured for the related Wi-Fi object. |
-| 765 | `Device.WiFi.AccessPoint.{i}.Status` | readOnly | string | Current status of this Wi-Fi access point. |
-| 766 | `Device.WiFi.AccessPoint.{i}.UAPSDCapability` | readOnly | boolean | U-APSD capability or enable state for this access point. |
-| 767 | `Device.WiFi.AccessPoint.{i}.UAPSDEnable` | readWrite | boolean | U-APSD capability or enable state for this access point. |
-| 768 | `Device.WiFi.AccessPoint.{i}.WMMCapability` | readOnly | boolean | WMM capability or enable state for this access point. |
-| 769 | `Device.WiFi.AccessPoint.{i}.WMMEnable` | readWrite | boolean | WMM capability or enable state for this access point. |
-| 770 | `Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsEnabled` | readWrite | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 771 | `Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsSupported` | readOnly | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 772 | `Device.WiFi.AccessPoint.{i}.WPS.Enable` | readWrite | boolean | Enables or disables this Wi-Fi access point. |
-| 773 | `Device.WiFi.AccessPointNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 774 | `Device.WiFi.EndPoint.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi endpoint. |
-| 775 | `Device.WiFi.EndPoint.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint. |
-| 776 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi endpoint profile. |
-| 777 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint profile. |
-| 778 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Location` | readWrite | string | Location hint associated with this Wi-Fi endpoint profile. |
-| 779 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Priority` | readWrite | unsignedInt | Scheduling priority for this Wi-Fi endpoint profile. |
-| 780 | `Device.WiFi.EndPoint.{i}.Profile.{i}.SSID` | readWrite | string | SSID string used by the related Wi-Fi object. |
-| 781 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.KeyPassphrase` | readWrite | string | Passphrase configured for the related Wi-Fi profile. |
-| 782 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.ModeEnabled` | readWrite | string | Security mode currently enabled for the related Wi-Fi object. |
-| 783 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.PreSharedKey` | readWrite | hexBinary | Pre-shared key configured for the related Wi-Fi object. |
-| 784 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.WEPKey` | readWrite | hexBinary | WEP key configured for the related Wi-Fi object. |
-| 785 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Status` | readOnly | string | Current status of this Wi-Fi endpoint profile. |
-| 786 | `Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this Wi-Fi endpoint. |
-| 787 | `Device.WiFi.EndPoint.{i}.ProfileReference` | readWrite | string | Reference to the active Wi-Fi endpoint profile. |
-| 788 | `Device.WiFi.EndPoint.{i}.SSIDReference` | readOnly | string | Reference to the SSID object used by this entry. |
-| 789 | `Device.WiFi.EndPoint.{i}.Security.ModesEnabled` | readOnly | string | Security mode currently enabled for the related Wi-Fi object. |
-| 790 | `Device.WiFi.EndPoint.{i}.Security.ModesSupported` | readOnly | string | Security modes supported by the related Wi-Fi object. |
-| 791 | `Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate` | readOnly | unsignedInt | Most recent downlink data rate for this Wi-Fi endpoint. |
-| 792 | `Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate` | readOnly | unsignedInt | Most recent uplink data rate for this Wi-Fi endpoint. |
-| 793 | `Device.WiFi.EndPoint.{i}.Stats.Retransmissions` | readOnly | unsignedInt | Retransmission count observed for this Wi-Fi endpoint. |
-| 794 | `Device.WiFi.EndPoint.{i}.Stats.SignalStrength` | readOnly | int | Reported signal strength for this Wi-Fi endpoint. |
-| 795 | `Device.WiFi.EndPoint.{i}.Status` | readOnly | string | Current status of this Wi-Fi endpoint. |
-| 796 | `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled` | readWrite | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 797 | `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported` | readOnly | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 798 | `Device.WiFi.EndPoint.{i}.WPS.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint. |
-| 799 | `Device.WiFi.EndPointNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 800 | `Device.WiFi.Radio.{i}.OperatingChannelBandwidth` | readOnly | string | Current operating channel bandwidth of this Wi-Fi radio. |
-| 801 | `Device.WiFi.Radio.{i}.Stats.Noise` | readOnly | int | Reported noise floor for this Wi-Fi radio. |
-| 802 | `Device.WiFi.Radio.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this Wi-Fi radio. |
-| 803 | `Device.WiFi.RadioNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 804 | `Device.WiFi.SSID.{i}.Alias` | readWrite | string | User-assigned alias for this SSID interface. |
-| 805 | `Device.WiFi.SSID.{i}.BSSID` | readOnly | string | BSSID reported for this SSID interface. |
-| 806 | `Device.WiFi.SSID.{i}.Enable` | readWrite | boolean | Enables or disables this SSID interface. |
-| 807 | `Device.WiFi.SSID.{i}.LastChange` | readOnly | unsignedInt | Seconds since this SSID interface last changed state. |
-| 808 | `Device.WiFi.SSID.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this SSID interface. |
-| 809 | `Device.WiFi.SSID.{i}.MACAddress` | readOnly | string | MAC address associated with this SSID interface. |
-| 810 | `Device.WiFi.SSID.{i}.Name` | readOnly | string | Name reported for this SSID interface. |
-| 811 | `Device.WiFi.SSID.{i}.SSID` | readWrite | string | SSID string used by the related Wi-Fi object. |
-| 812 | `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived` | readOnly | unsignedLong | Broadcast packets received on this SSID interface. |
-| 813 | `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent` | readOnly | unsignedLong | Broadcast packets sent on this SSID interface. |
-| 814 | `Device.WiFi.SSID.{i}.Stats.BytesReceived` | readOnly | unsignedLong | Total bytes received on this SSID interface. |
-| 815 | `Device.WiFi.SSID.{i}.Stats.BytesSent` | readOnly | unsignedLong | Total bytes sent on this SSID interface. |
-| 816 | `Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived` | readOnly | unsignedInt | Received packets discarded on this SSID interface. |
-| 817 | `Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent` | readOnly | unsignedInt | Outbound packets discarded on this SSID interface. |
-| 818 | `Device.WiFi.SSID.{i}.Stats.ErrorsReceived` | readOnly | unsignedInt | Receive errors seen on this SSID interface. |
-| 819 | `Device.WiFi.SSID.{i}.Stats.ErrorsSent` | readOnly | unsignedInt | Transmit errors seen on this SSID interface. |
-| 820 | `Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived` | readOnly | unsignedLong | Multicast packets received on this SSID interface. |
-| 821 | `Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent` | readOnly | unsignedLong | Multicast packets sent on this SSID interface. |
-| 822 | `Device.WiFi.SSID.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this SSID interface. |
-| 823 | `Device.WiFi.SSID.{i}.Stats.PacketsSent` | readOnly | unsignedLong | Total packets sent on this SSID interface. |
-| 824 | `Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived` | readOnly | unsignedLong | Unicast packets received on this SSID interface. |
-| 825 | `Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent` | readOnly | unsignedLong | Unicast packets sent on this SSID interface. |
-| 826 | `Device.WiFi.SSID.{i}.Stats.UnknownProtoPacketsReceived` | readOnly | unsignedInt | Packets with unknown protocol received on this SSID interface. |
-| 827 | `Device.WiFi.SSID.{i}.Status` | readOnly | string | Current status of this SSID interface. |
-| 828 | `Device.WiFi.SSIDNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 829 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.80211kvrEnable` | readWrite | boolean | Enables or disables 802.11k/v/r roaming support. |
-| 830 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.Enable` | readWrite | boolean | Enables or disables the Wi-Fi client roaming policy. |
-| 831 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolBeaconsMissedTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 832 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
-| 833 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolTimeframe` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 834 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BackOffTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 835 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelConnected` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 836 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelDisconnected` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 837 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerBeaconsMissedTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 838 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
-| 839 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerTimeframe` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 840 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestDeltaLevel` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 841 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
-| 842 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.SelfSteer_OverrideEnable` | readWrite | boolean | Band-steering threshold or control used by the client roaming policy. |
-| 843 | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | readWrite | boolean | Master enable for the Wi-Fi subsystem. |
-| 844 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceId` | readOnly | string | Security system device identifier. |
-| 845 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceReg` | readOnly | dateTime | Security system device registration time. |
-| 846 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssErrorCnt` | readOnly | unsignedInt | Security system error count. |
-| 847 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssRegTs` | readOnly | boolean | Indicates whether a security system registration timestamp is available. |
-| 848 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreAppId` | readOnly | string | Application identifier for this XRE connection entry. |
-| 849 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnEstTs` | readOnly | string | Connection establishment timestamp for this XRE connection entry. |
-| 850 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnIfName` | readOnly | string | Interface name used by this XRE connection entry. |
-| 851 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnRetryAttempts` | readOnly | unsignedInt | Retry attempts recorded for this XRE connection entry. |
-| 852 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnStatus` | readOnly | string | Current status of this XRE connection entry. |
-| 853 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnURL` | readOnly | string | Connection URL used by this XRE connection entry. |
-| 854 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreAvgCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
-| 855 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreChannelMapId` | readOnly | string | Channel map identifier currently used by the XRE client. |
-| 856 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreCommandCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 857 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreControllerId` | readOnly | string | Controller identifier reported by the XRE client. |
-| 858 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable` | readWrite | boolean | Enables or disables the XRE client. |
-| 859 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreErrorCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 860 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreFlushLocalCache` | readWrite | boolean | Triggers an XRE local cache flush when set. |
-| 861 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGatewaySTBMAC` | readOnly | string | Gateway STB MAC address reported by the XRE client. |
-| 862 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGetTWPDiags` | readOnly | string | Diagnostic payload returned by XRE TWP diagnostics. |
-| 863 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastURLAccessed` | readOnly | string | Last URL accessed by the XRE client. |
-| 864 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastVideoUrl` | readOnly | string | Last video URL accessed by the XRE client. |
-| 865 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLogLevel` | readWrite | string | Logging level used by the XRE client. |
-| 866 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMaxCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
-| 867 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMinCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
-| 868 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xrePlantId` | readOnly | string | Plant identifier reported by the XRE client. |
-| 869 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreReceiverId` | readOnly | string | Receiver identifier reported by the XRE client. |
-| 870 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSession` | readWrite | boolean | Triggers XRE session refresh behavior. |
-| 871 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSessionWithRR` | readWrite | int | Controls refresh-with-RR behavior for the XRE session. |
-| 872 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionId` | readOnly | string | Active XRE session identifier reported by the client. |
-| 873 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionLastModTs` | readOnly | string | Timestamp of the last XRE session update. |
-| 874 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionUptime` | readOnly | string | Uptime of the current XRE session. |
-| 875 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreStatus` | readOnly | string | Configuration or status value for the XRE client. |
-| 876 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAnimCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 877 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAppCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 878 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFlashCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 879 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFontCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 880 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotHtmlTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 881 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 882 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotNineSliceImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 883 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotRectCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 884 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotSoundCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 885 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotStyleshtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 886 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 887 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtIpCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 888 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotVideoCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 889 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotViewCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 890 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVersion` | readOnly | string | Version string reported by the XRE client. |
-| 891 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVodId` | readOnly | string | VOD identifier reported by the XRE client. |
-| 892 | `Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow` | readWrite | string | Triggers an immediate Xconf check for the Xcalibur client. |
-| 893 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppNumAps` | readOnly | unsignedInt | Number of DevApp application entries reported by the platform. |
-| 894 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppId` | readOnly | string | Application identifier for this DevApp entry. |
-| 895 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppRestartCapability` | readOnly | string | Restart capability reported for this DevApp entry. |
-| 896 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayDeviceFriendlyName` | readOnly | string | Gateway identification value reported by TRM. |
-| 897 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAIP` | readOnly | string | Gateway identification value reported by TRM. |
-| 898 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAMAC` | readOnly | string | Gateway identification value reported by TRM. |
-| 899 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewaySTBMAC` | readOnly | string | Gateway identification value reported by TRM. |
-| 900 | `Device.X_RDKCENTRAL-COM_T2.ReportProfiles` | readWrite | string | Telemetry 2.0 report profiles payload. |
-| 901 | `Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack` | readWrite | string | Telemetry 2.0 report profiles payload. |
-| 902 | `Device.X_RDK_WebPA_DNSText.URL` | readWrite | string | Bootstrap URL used to retrieve WebPA DNS text records. |
-| 903 | `Device.X_RDK_WebPA_Server.URL` | readOnly | string | Current WebPA server URL from the bootstrap store. |
-| 904 | `Device.X_RDK_WebPA_TokenServer.URL` | readOnly | string | Current WebPA token server URL from the bootstrap store. |
+| 427 | `Device.DeviceInfo.X_RDK_FirmwareName` | readOnly | string | Firmware image name currently reported by the RDK platform. |
+| 428 | `Device.DeviceInfo.X_RDK_RDKProfileName` | readWrite | string | Active RDK profile name associated with the device configuration. |
+| 429 | `Device.Ethernet.Interface.{i}.Alias` | readWrite | string | User-assigned alias for this Ethernet interface. |
+| 430 | `Device.Ethernet.Interface.{i}.DuplexMode` | readWrite | string | Configured or reported duplex mode for the interface. |
+| 431 | `Device.Ethernet.Interface.{i}.Enable` | readWrite | boolean | Enables or disables this Ethernet interface. |
+| 432 | `Device.Ethernet.Interface.{i}.LastChange` | readOnly | unsignedInt | Seconds since this Ethernet interface last changed state. |
+| 433 | `Device.Ethernet.Interface.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this Ethernet interface. |
+| 434 | `Device.Ethernet.Interface.{i}.MACAddress` | readOnly | string | MAC address associated with this Ethernet interface. |
+| 435 | `Device.Ethernet.Interface.{i}.MaxBitRate` | readWrite | int | Configured or negotiated maximum link bit rate for this Ethernet interface. |
+| 436 | `Device.Ethernet.Interface.{i}.Name` | readOnly | string | Name reported for this Ethernet interface. |
+| 437 | `Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsReceived` | readOnly | unsignedLong | Broadcast packets received on this Ethernet interface. |
+| 438 | `Device.Ethernet.Interface.{i}.Stats.BroadcastPacketsSent` | readOnly | unsignedLong | Broadcast packets sent on this Ethernet interface. |
+| 439 | `Device.Ethernet.Interface.{i}.Stats.BytesReceived` | readOnly | unsignedLong | Total bytes received on this Ethernet interface. |
+| 440 | `Device.Ethernet.Interface.{i}.Stats.BytesSent` | readOnly | unsignedLong | Total bytes sent on this Ethernet interface. |
+| 441 | `Device.Ethernet.Interface.{i}.Stats.DiscardPacketsReceived` | readOnly | unsignedInt | Received packets discarded on this Ethernet interface. |
+| 442 | `Device.Ethernet.Interface.{i}.Stats.DiscardPacketsSent` | readOnly | unsignedInt | Outbound packets discarded on this Ethernet interface. |
+| 443 | `Device.Ethernet.Interface.{i}.Stats.ErrorsReceived` | readOnly | unsignedInt | Receive errors seen on this Ethernet interface. |
+| 444 | `Device.Ethernet.Interface.{i}.Stats.ErrorsSent` | readOnly | unsignedInt | Transmit errors seen on this Ethernet interface. |
+| 445 | `Device.Ethernet.Interface.{i}.Stats.MulticastPacketsReceived` | readOnly | unsignedLong | Multicast packets received on this Ethernet interface. |
+| 446 | `Device.Ethernet.Interface.{i}.Stats.MulticastPacketsSent` | readOnly | unsignedLong | Multicast packets sent on this Ethernet interface. |
+| 447 | `Device.Ethernet.Interface.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this Ethernet interface. |
+| 448 | `Device.Ethernet.Interface.{i}.Stats.PacketsSent` | readOnly | unsignedLong | Total packets sent on this Ethernet interface. |
+| 449 | `Device.Ethernet.Interface.{i}.Stats.UnicastPacketsReceived` | readOnly | unsignedLong | Unicast packets received on this Ethernet interface. |
+| 450 | `Device.Ethernet.Interface.{i}.Stats.UnicastPacketsSent` | readOnly | unsignedLong | Unicast packets sent on this Ethernet interface. |
+| 451 | `Device.Ethernet.Interface.{i}.Stats.UnknownProtoPacketsReceived` | readOnly | unsignedInt | Packets with unknown protocol received on this Ethernet interface. |
+| 452 | `Device.Ethernet.Interface.{i}.Status` | readOnly | string | Current status of this Ethernet interface. |
+| 453 | `Device.Ethernet.Interface.{i}.Upstream` | readOnly | boolean | Indicates whether the interface is designated as upstream. |
+| 454 | `Device.Ethernet.InterfaceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 455 | `Device.Ethernet.Link.{i}.Enable` | readWrite | boolean | Enables or disables this Ethernet link. |
+| 456 | `Device.Ethernet.Link.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this Ethernet link. |
+| 457 | `Device.Ethernet.Link.{i}.MACAddress` | readOnly | string | MAC address associated with this Ethernet link. |
+| 458 | `Device.Ethernet.Link.{i}.Name` | readOnly | string | Name reported for this Ethernet link. |
+| 459 | `Device.Ethernet.Link.{i}.Status` | readOnly | string | Current status of this Ethernet link. |
+| 460 | `Device.Ethernet.LinkNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 461 | `Device.IP.ActivePort.{i}.LocalIPAddress` | readOnly | string | IP address used by this active port entry. |
+| 462 | `Device.IP.ActivePort.{i}.LocalPort` | readOnly | unsignedInt | Port value used by this active port entry. |
+| 463 | `Device.IP.ActivePort.{i}.RemoteIPAddress` | readOnly | string | IP address used by this active port entry. |
+| 464 | `Device.IP.ActivePort.{i}.RemotePort` | readOnly | unsignedInt | Port value used by this active port entry. |
+| 465 | `Device.IP.ActivePort.{i}.Status` | readOnly | string | Current status of this active port entry. |
+| 466 | `Device.IP.ActivePortNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 467 | `Device.IP.Diagnostics.DownloadDiagnostics.BOMTime` | readOnly | dateTime | Beginning of measurement time for the diagnostic run. |
+| 468 | `Device.IP.Diagnostics.DownloadDiagnostics.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
+| 469 | `Device.IP.Diagnostics.DownloadDiagnostics.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
+| 470 | `Device.IP.Diagnostics.DownloadDiagnostics.DownloadTransports` | readOnly | string | Transfer transports supported by the diagnostic. |
+| 471 | `Device.IP.Diagnostics.DownloadDiagnostics.DownloadURL` | readWrite | string | Target URL used by the diagnostic. |
+| 472 | `Device.IP.Diagnostics.DownloadDiagnostics.EOMTime` | readOnly | dateTime | End of measurement time for the diagnostic run. |
+| 473 | `Device.IP.Diagnostics.DownloadDiagnostics.EthernetPriority` | readWrite | unsignedInt | Ethernet priority used by the diagnostic traffic. |
+| 474 | `Device.IP.Diagnostics.DownloadDiagnostics.Interface` | readWrite | string | Interface reference used by the download diagnostic. |
+| 475 | `Device.IP.Diagnostics.DownloadDiagnostics.ROMTime` | readOnly | dateTime | Request start time for the diagnostic run. |
+| 476 | `Device.IP.Diagnostics.DownloadDiagnostics.TCPOpenRequestTime` | readOnly | dateTime | Timestamp when the diagnostic opened the TCP connection request. |
+| 477 | `Device.IP.Diagnostics.DownloadDiagnostics.TCPOpenResponseTime` | readOnly | dateTime | Timestamp when the diagnostic received the TCP connection response. |
+| 478 | `Device.IP.Diagnostics.DownloadDiagnostics.TestBytesReceived` | readOnly | unsignedInt | Configured or measured test payload size for the diagnostic. |
+| 479 | `Device.IP.Diagnostics.DownloadDiagnostics.TotalBytesReceived` | readOnly | unsignedInt | Total payload bytes transferred during the diagnostic. |
+| 480 | `Device.IP.Diagnostics.IPPing.AverageResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
+| 481 | `Device.IP.Diagnostics.IPPing.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
+| 482 | `Device.IP.Diagnostics.IPPing.DataBlockSize` | readWrite | unsignedInt | Payload size used by the diagnostic packets. |
+| 483 | `Device.IP.Diagnostics.IPPing.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
+| 484 | `Device.IP.Diagnostics.IPPing.FailureCount` | readOnly | unsignedInt | Count of failed or successful attempts in the diagnostic run. |
+| 485 | `Device.IP.Diagnostics.IPPing.Host` | readWrite | string | Host name or address used by the IP ping diagnostic. |
+| 486 | `Device.IP.Diagnostics.IPPing.Interface` | readWrite | string | Interface reference used by the IP ping diagnostic. |
+| 487 | `Device.IP.Diagnostics.IPPing.MaximumResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
+| 488 | `Device.IP.Diagnostics.IPPing.MinimumResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
+| 489 | `Device.IP.Diagnostics.IPPing.NumberOfRepetitions` | readWrite | unsignedInt | Number of attempts configured for the diagnostic. |
+| 490 | `Device.IP.Diagnostics.IPPing.SuccessCount` | readOnly | unsignedInt | Count of failed or successful attempts in the diagnostic run. |
+| 491 | `Device.IP.Diagnostics.IPPing.Timeout` | readWrite | unsignedInt | Timeout value used by the diagnostic run. |
+| 492 | `Device.IP.Diagnostics.TraceRoute.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
+| 493 | `Device.IP.Diagnostics.TraceRoute.DataBlockSize` | readWrite | unsignedInt | Payload size used by the diagnostic packets. |
+| 494 | `Device.IP.Diagnostics.TraceRoute.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
+| 495 | `Device.IP.Diagnostics.TraceRoute.Host` | readWrite | string | Host name or address used by the traceroute diagnostic. |
+| 496 | `Device.IP.Diagnostics.TraceRoute.Interface` | readWrite | string | Interface reference used by the traceroute diagnostic. |
+| 497 | `Device.IP.Diagnostics.TraceRoute.MaxHopCount` | readWrite | unsignedInt | Maximum hop count allowed for the traceroute run. |
+| 498 | `Device.IP.Diagnostics.TraceRoute.NumberOfTries` | readWrite | unsignedInt | Number of attempts configured for the diagnostic. |
+| 499 | `Device.IP.Diagnostics.TraceRoute.ResponseTime` | readOnly | unsignedInt | Measured response time reported by the diagnostic. |
+| 500 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.ErrorCode` | readOnly | unsignedInt | Error code reported for this traceroute hop. |
+| 501 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.Host` | readOnly | string | Host name or address used by this traceroute hop. |
+| 502 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.HostAddress` | readOnly | string | Resolved host address for this traceroute hop. |
+| 503 | `Device.IP.Diagnostics.TraceRoute.RouteHops.{i}.RTTimes` | readOnly | string | Round-trip time samples for this traceroute hop. |
+| 504 | `Device.IP.Diagnostics.TraceRoute.RouteHopsNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the traceroute diagnostic. |
+| 505 | `Device.IP.Diagnostics.TraceRoute.Timeout` | readWrite | unsignedInt | Timeout value used by the diagnostic run. |
+| 506 | `Device.IP.Diagnostics.UDPEchoConfig.BytesReceived` | readOnly | unsignedInt | Total bytes received by the related diagnostic or service. |
+| 507 | `Device.IP.Diagnostics.UDPEchoConfig.BytesResponded` | readOnly | unsignedInt | Total bytes sent in response by the related diagnostic or service. |
+| 508 | `Device.IP.Diagnostics.UDPEchoConfig.EchoPlusEnabled` | readWrite | boolean | Echo Plus capability state for the UDP echo server. |
+| 509 | `Device.IP.Diagnostics.UDPEchoConfig.EchoPlusSupported` | readOnly | boolean | Echo Plus capability state for the UDP echo server. |
+| 510 | `Device.IP.Diagnostics.UDPEchoConfig.Enable` | readWrite | boolean | Enables or disables the UDP echo server. |
+| 511 | `Device.IP.Diagnostics.UDPEchoConfig.Interface` | readWrite | string | Interface reference used by the UDP echo server. |
+| 512 | `Device.IP.Diagnostics.UDPEchoConfig.PacketsReceived` | readOnly | unsignedInt | Packet count recorded by the UDP echo server. |
+| 513 | `Device.IP.Diagnostics.UDPEchoConfig.PacketsResponded` | readOnly | unsignedInt | Packet count recorded by the UDP echo server. |
+| 514 | `Device.IP.Diagnostics.UDPEchoConfig.SourceIPAddress` | readWrite | string | IP address used by the UDP echo server. |
+| 515 | `Device.IP.Diagnostics.UDPEchoConfig.TimeFirstPacketReceived` | readOnly | dateTime | Timestamp of the first or last packet seen by the UDP echo server. |
+| 516 | `Device.IP.Diagnostics.UDPEchoConfig.TimeLastPacketReceived` | readOnly | dateTime | Timestamp of the first or last packet seen by the UDP echo server. |
+| 517 | `Device.IP.Diagnostics.UDPEchoConfig.UDPPort` | readWrite | unsignedInt | Port value used by the UDP echo server. |
+| 518 | `Device.IP.Diagnostics.UploadDiagnostics.BOMTime` | readOnly | dateTime | Beginning of measurement time for the diagnostic run. |
+| 519 | `Device.IP.Diagnostics.UploadDiagnostics.DSCP` | readWrite | unsignedInt | DSCP value used by the diagnostic traffic. |
+| 520 | `Device.IP.Diagnostics.UploadDiagnostics.DiagnosticsState` | readWrite | string | Execution state of the diagnostic. |
+| 521 | `Device.IP.Diagnostics.UploadDiagnostics.EOMTime` | readOnly | dateTime | End of measurement time for the diagnostic run. |
+| 522 | `Device.IP.Diagnostics.UploadDiagnostics.EthernetPriority` | readWrite | unsignedInt | Ethernet priority used by the diagnostic traffic. |
+| 523 | `Device.IP.Diagnostics.UploadDiagnostics.Interface` | readWrite | string | Interface reference used by the upload diagnostic. |
+| 524 | `Device.IP.Diagnostics.UploadDiagnostics.ROMTime` | readOnly | dateTime | Request start time for the diagnostic run. |
+| 525 | `Device.IP.Diagnostics.UploadDiagnostics.TCPOpenRequestTime` | readOnly | dateTime | Timestamp when the diagnostic opened the TCP connection request. |
+| 526 | `Device.IP.Diagnostics.UploadDiagnostics.TCPOpenResponseTime` | readOnly | dateTime | Timestamp when the diagnostic received the TCP connection response. |
+| 527 | `Device.IP.Diagnostics.UploadDiagnostics.TestFileLength` | readWrite | unsignedInt | Configured or measured test payload size for the diagnostic. |
+| 528 | `Device.IP.Diagnostics.UploadDiagnostics.TotalBytesSent` | readOnly | unsignedInt | Total payload bytes transferred during the diagnostic. |
+| 529 | `Device.IP.Diagnostics.UploadDiagnostics.UploadTransports` | readOnly | string | Transfer transports supported by the diagnostic. |
+| 530 | `Device.IP.Diagnostics.UploadDiagnostics.UploadURL` | readWrite | string | Target URL used by the diagnostic. |
+| 531 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Argument` | readWrite | string | Input value used by the RDK speed test. |
+| 532 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Authentication` | readWrite | string | Input value used by the RDK speed test. |
+| 533 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.ClientType` | readWrite | unsignedInt | Client type used by the RDK speed test. |
+| 534 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Enable` | readWrite | boolean | Enables or disables the RDK speed test. |
+| 535 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Enable_Speedtest` | readWrite | boolean | Configuration or status value for the RDK speed test. |
+| 536 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Run` | readWrite | boolean | Triggers immediate execution of the related diagnostic or action. |
+| 537 | `Device.IP.Diagnostics.X_RDKCENTRAL-COM_SpeedTest.Status` | readOnly | unsignedInt | Current status of the RDK speed test. |
+| 538 | `Device.IP.IPv4Capable` | readOnly | boolean | Indicates whether the device supports IPv4. |
+| 539 | `Device.IP.IPv4Enable` | readWrite | boolean | Enables or disables IPv4 on this object. |
+| 540 | `Device.IP.IPv4Status` | readOnly | string | Current IPv4 operational status of the device. |
+| 541 | `Device.IP.Interface.{i}.Alias` | readWrite | string | User-assigned alias for this IP interface. |
+| 542 | `Device.IP.Interface.{i}.AutoIPEnable` | readWrite | boolean | Enables or disables AutoIP on this IP interface. |
+| 543 | `Device.IP.Interface.{i}.Enable` | readWrite | boolean | Enables or disables this IP interface. |
+| 544 | `Device.IP.Interface.{i}.IPv4Address.{i}.AddressingType` | readOnly | string | Addressing method used for this IPv4 address entry. |
+| 545 | `Device.IP.Interface.{i}.IPv4Address.{i}.Alias` | readWrite | string | User-assigned alias for this IPv4 address entry. |
+| 546 | `Device.IP.Interface.{i}.IPv4Address.{i}.Enable` | readWrite | boolean | Enables or disables this IPv4 address entry. |
+| 547 | `Device.IP.Interface.{i}.IPv4Address.{i}.IPAddress` | readWrite | string | IP address associated with this IPv4 address entry. |
+| 548 | `Device.IP.Interface.{i}.IPv4Address.{i}.Status` | readOnly | string | Current status of this IPv4 address entry. |
+| 549 | `Device.IP.Interface.{i}.IPv4Address.{i}.SubnetMask` | readWrite | string | Subnet mask assigned to this IPv4 address entry. |
+| 550 | `Device.IP.Interface.{i}.IPv4AddressNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this IP interface. |
+| 551 | `Device.IP.Interface.{i}.IPv4Enable` | readWrite | boolean | Enables or disables IPv4 on this IP interface. |
+| 552 | `Device.IP.Interface.{i}.IPv6Address.{i}.Alias` | readWrite | string | User-assigned alias for this IPv6 address entry. |
+| 553 | `Device.IP.Interface.{i}.IPv6Address.{i}.Anycast` | readWrite | boolean | Indicates whether this IPv6 address is anycast. |
+| 554 | `Device.IP.Interface.{i}.IPv6Address.{i}.Enable` | readWrite | boolean | Enables or disables this IPv6 address entry. |
+| 555 | `Device.IP.Interface.{i}.IPv6Address.{i}.IPAddress` | readWrite | string | IP address associated with this IPv6 address entry. |
+| 556 | `Device.IP.Interface.{i}.IPv6Address.{i}.IPAddressStatus` | readOnly | string | Current status of this IPv6 address. |
+| 557 | `Device.IP.Interface.{i}.IPv6Address.{i}.Origin` | readOnly | string | Origin by which the related address or prefix was created. |
+| 558 | `Device.IP.Interface.{i}.IPv6Address.{i}.PreferredLifetime` | readWrite | dateTime | Preferred lifetime for the related address or prefix. |
+| 559 | `Device.IP.Interface.{i}.IPv6Address.{i}.Prefix` | readWrite | string | IP prefix associated with the related address or prefix entry. |
+| 560 | `Device.IP.Interface.{i}.IPv6Address.{i}.Status` | readOnly | string | Current status of this IPv6 address entry. |
+| 561 | `Device.IP.Interface.{i}.IPv6Address.{i}.ValidLifetime` | readWrite | dateTime | Valid lifetime for the related address or prefix. |
+| 562 | `Device.IP.Interface.{i}.IPv6AddressNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this IP interface. |
+| 563 | `Device.IP.Interface.{i}.IPv6Enable` | readWrite | boolean | Enables or disables IPv6 on this IP interface. |
+| 564 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Alias` | readWrite | string | User-assigned alias for this IPv6 prefix entry. |
+| 565 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Autonomous` | readWrite | boolean | Indicates whether the prefix is used for autonomous addressing. |
+| 566 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.ChildPrefixBits` | readWrite | string | Child prefix bits delegated from this IPv6 prefix. |
+| 567 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Enable` | readWrite | boolean | Enables or disables this IPv6 prefix entry. |
+| 568 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.OnLink` | readWrite | boolean | Indicates whether the prefix is advertised as on-link. |
+| 569 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Origin` | readOnly | string | Origin by which the related address or prefix was created. |
+| 570 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.ParentPrefix` | readWrite | string | Parent prefix reference for this IPv6 prefix entry. |
+| 571 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.PreferredLifetime` | readWrite | dateTime | Preferred lifetime for the related address or prefix. |
+| 572 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Prefix` | readWrite | string | IP prefix associated with the related address or prefix entry. |
+| 573 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.PrefixStatus` | readOnly | string | Current status of this IPv6 prefix. |
+| 574 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.StaticType` | readWrite | string | Static type assigned to this IPv6 prefix entry. |
+| 575 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.Status` | readOnly | string | Current status of this IPv6 prefix entry. |
+| 576 | `Device.IP.Interface.{i}.IPv6Prefix.{i}.ValidLifetime` | readWrite | dateTime | Valid lifetime for the related address or prefix. |
+| 577 | `Device.IP.Interface.{i}.IPv6PrefixNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this IP interface. |
+| 578 | `Device.IP.Interface.{i}.LastChange` | readOnly | unsignedInt | Seconds since this IP interface last changed state. |
+| 579 | `Device.IP.Interface.{i}.Loopback` | readWrite | boolean | Indicates whether this IP interface operates as loopback. |
+| 580 | `Device.IP.Interface.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this IP interface. |
+| 581 | `Device.IP.Interface.{i}.MaxMTUSize` | readWrite | unsignedInt | Maximum MTU configured for this IP interface. |
+| 582 | `Device.IP.Interface.{i}.Name` | readOnly | string | Name reported for this IP interface. |
+| 583 | `Device.IP.Interface.{i}.Reset` | readWrite | boolean | Triggers a reset action for this IP interface. |
+| 584 | `Device.IP.Interface.{i}.Router` | readWrite | string | Router reference associated with this IP interface. |
+| 585 | `Device.IP.Interface.{i}.Stats.BroadcastPacketsReceived` | readOnly | unsignedLong | Broadcast packets received on this IP interface. |
+| 586 | `Device.IP.Interface.{i}.Stats.BroadcastPacketsSent` | readOnly | unsignedLong | Broadcast packets sent on this IP interface. |
+| 587 | `Device.IP.Interface.{i}.Stats.BytesReceived` | readOnly | unsignedLong | Total bytes received on this IP interface. |
+| 588 | `Device.IP.Interface.{i}.Stats.BytesSent` | readOnly | unsignedLong | Total bytes sent on this IP interface. |
+| 589 | `Device.IP.Interface.{i}.Stats.DiscardPacketsReceived` | readOnly | unsignedInt | Received packets discarded on this IP interface. |
+| 590 | `Device.IP.Interface.{i}.Stats.DiscardPacketsSent` | readOnly | unsignedInt | Outbound packets discarded on this IP interface. |
+| 591 | `Device.IP.Interface.{i}.Stats.ErrorsReceived` | readOnly | unsignedInt | Receive errors seen on this IP interface. |
+| 592 | `Device.IP.Interface.{i}.Stats.ErrorsSent` | readOnly | unsignedInt | Transmit errors seen on this IP interface. |
+| 593 | `Device.IP.Interface.{i}.Stats.MulticastPacketsReceived` | readOnly | unsignedLong | Multicast packets received on this IP interface. |
+| 594 | `Device.IP.Interface.{i}.Stats.MulticastPacketsSent` | readOnly | unsignedLong | Multicast packets sent on this IP interface. |
+| 595 | `Device.IP.Interface.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this IP interface. |
+| 596 | `Device.IP.Interface.{i}.Stats.PacketsSent` | readOnly | unsignedLong | Total packets sent on this IP interface. |
+| 597 | `Device.IP.Interface.{i}.Stats.UnicastPacketsReceived` | readOnly | unsignedLong | Unicast packets received on this IP interface. |
+| 598 | `Device.IP.Interface.{i}.Stats.UnicastPacketsSent` | readOnly | unsignedLong | Unicast packets sent on this IP interface. |
+| 599 | `Device.IP.Interface.{i}.Stats.UnknownProtoPacketsReceived` | readOnly | unsignedInt | Packets with unknown protocol received on this IP interface. |
+| 600 | `Device.IP.Interface.{i}.Status` | readOnly | string | Current status of this IP interface. |
+| 601 | `Device.IP.Interface.{i}.Type` | readOnly | string | Type reported for the related object. |
+| 602 | `Device.IP.Interface.{i}.ULAEnable` | readWrite | boolean | Enables or disables ULA addressing on this IP interface. |
+| 603 | `Device.IP.InterfaceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 604 | `Device.IP.ULAPrefix` | readWrite | string | Current ULA prefix configured for the device. |
+| 605 | `Device.InterfaceStack.{i}.HigherLayer` | readOnly | string | Higher-layer interface reference in this stack relationship. |
+| 606 | `Device.InterfaceStack.{i}.LowerLayer` | readOnly | string | Lower-layer interface reference in this stack relationship. |
+| 607 | `Device.InterfaceStackNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 608 | `Device.ManagementServer.AliasBasedAddressing` | readOnly | boolean | Indicates whether alias-based addressing is supported. |
+| 609 | `Device.ManagementServer.AutoCreateInstances` | readWrite | boolean | Controls automatic creation of multi-instance objects. |
+| 610 | `Device.ManagementServer.CWMPRetryIntervalMultiplier` | readWrite | unsignedInt | CWMP retry timing parameter used by the management client. |
+| 611 | `Device.ManagementServer.CWMPRetryMinimumWaitInterval` | readWrite | unsignedInt | CWMP retry timing parameter used by the management client. |
+| 612 | `Device.ManagementServer.ConnectionRequestURL` | readOnly | string | URL used by the ACS to issue connection requests. |
+| 613 | `Device.ManagementServer.ConnectionRequestUsername` | readWrite | string | Username used by the management server client. |
+| 614 | `Device.ManagementServer.DefaultActiveNotificationThrottle` | readWrite | unsignedInt | Throttle interval for active notifications. |
+| 615 | `Device.ManagementServer.DownloadProgressURL` | readOnly | string | URL used to report download progress. |
+| 616 | `Device.ManagementServer.EnableCWMP` | readWrite | boolean | Enables or disables CWMP communication. |
+| 617 | `Device.ManagementServer.InstanceMode` | readWrite | string | Instance addressing mode used by the management client. |
+| 618 | `Device.ManagementServer.KickURL` | readOnly | string | Kick URL exposed by the management client. |
+| 619 | `Device.ManagementServer.NATDetected` | readOnly | boolean | Indicates whether NAT is detected for ACS communication. |
+| 620 | `Device.ManagementServer.ParameterKey` | readOnly | string | Parameter key associated with the most recent configuration change. |
+| 621 | `Device.ManagementServer.PeriodicInformEnable` | readWrite | boolean | Enables or disables periodic Inform messages. |
+| 622 | `Device.ManagementServer.PeriodicInformInterval` | readWrite | unsignedInt | Interval between periodic Inform messages, in seconds. |
+| 623 | `Device.ManagementServer.PeriodicInformTime` | readWrite | dateTime | Reference time for scheduling periodic Inform messages. |
+| 624 | `Device.ManagementServer.STUNEnable` | readWrite | boolean | Enables or disables STUN for connection requests. |
+| 625 | `Device.ManagementServer.STUNMaximumKeepAlivePeriod` | readWrite | int | STUN keepalive timing value used by the management client. |
+| 626 | `Device.ManagementServer.STUNMinimumKeepAlivePeriod` | readWrite | unsignedInt | STUN keepalive timing value used by the management client. |
+| 627 | `Device.ManagementServer.STUNPassword` | readWrite | string | Shared secret or password used by the management server client. |
+| 628 | `Device.ManagementServer.STUNServerAddress` | readWrite | string | STUN server address used by the management client. |
+| 629 | `Device.ManagementServer.STUNServerPort` | readWrite | unsignedInt | STUN server port used by the management client. |
+| 630 | `Device.ManagementServer.STUNUsername` | readWrite | string | Username used by the management server client. |
+| 631 | `Device.ManagementServer.UDPConnectionRequestAddress` | readOnly | string | UDP address used for connection requests. |
+| 632 | `Device.ManagementServer.URL` | readWrite | string | URL used by the management server client. |
+| 633 | `Device.ManagementServer.UpgradesManaged` | readWrite | boolean | Indicates whether software upgrades are managed by the ACS. |
+| 634 | `Device.ManagementServer.Username` | readWrite | string | Username used by the management server client. |
+| 635 | `Device.Services.STBService.1.Capabilities.HDMI.SupportedResolutions` | readOnly | string | Display resolutions supported by the related capability or device. |
+| 636 | `Device.Services.STBService.1.Capabilities.VideoDecoder.VideoStandards` | readOnly | string | Video standards supported by the decoder capability. |
+| 637 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Alias` | readOnly | string | User-assigned alias for this MPEG-H Part 2 profile-level entry. |
+| 638 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Level` | readOnly | string | Profile level value for this codec capability entry. |
+| 639 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.MaximumDecodingCapability` | readOnly | unsignedInt | Maximum decoding capability reported for this codec entry. |
+| 640 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Profile` | readOnly | string | Profile reported for the related entry. |
+| 641 | `Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevelNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB video decoder capability set. |
+| 642 | `Device.Services.STBService.1.Components.AudioOutput.1.AudioFormat` | readOnly | string | Current audio format reported for this output. |
+| 643 | `Device.Services.STBService.1.Components.AudioOutput.1.AudioLevel` | readWrite | unsignedInt | Current audio level for this output. |
+| 644 | `Device.Services.STBService.1.Components.AudioOutput.1.CancelMute` | readWrite | boolean | Clears mute state for this audio output when set. |
+| 645 | `Device.Services.STBService.1.Components.AudioOutput.1.Enable` | readWrite | boolean | Enables or disables this audio output. |
+| 646 | `Device.Services.STBService.1.Components.AudioOutput.1.Name` | readOnly | string | Name reported for this audio output. |
+| 647 | `Device.Services.STBService.1.Components.AudioOutput.1.Status` | readOnly | string | Current status of this audio output. |
+| 648 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioCompression` | readWrite | string | Audio compression mode configured for this output. |
+| 649 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioDB` | readWrite | string | Audio level in dB for this output. |
+| 650 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioEncoding` | readWrite | string | Audio encoding mode configured for this output. |
+| 651 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioGain` | readWrite | string | Audio gain setting for this output. |
+| 652 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioLoopThru` | readWrite | string | Loop-through audio mode for this output. |
+| 653 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioOptimalLevel` | readWrite | string | Optimal audio level setting for this output. |
+| 654 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_AudioStereoMode` | readWrite | string | Stereo mode configured for this output. |
+| 655 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_MaxAudioDB` | readOnly | string | Maximum supported audio level in dB for this output. |
+| 656 | `Device.Services.STBService.1.Components.AudioOutput.1.X_COMCAST-COM_MinAudioDB` | readOnly | string | Minimum supported audio level in dB for this output. |
+| 657 | `Device.Services.STBService.1.Components.AudioOutputNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
+| 658 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.AutoLipSyncSupport` | readOnly | boolean | Indicates whether the connected display supports auto lip-sync. |
+| 659 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.CECSupport` | readOnly | boolean | Indicates whether the connected display supports CEC. |
+| 660 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.EEDID` | readOnly | string | EDID data reported by the connected HDMI display. |
+| 661 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.HDMI3DPresent` | readOnly | boolean | Indicates whether the connected display reports HDMI 3D support. |
+| 662 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.PreferredResolution` | readOnly | string | Preferred resolution reported by the connected display. |
+| 663 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.Status` | readOnly | string | Current status of the connected HDMI display. |
+| 664 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.SupportedResolutions` | readOnly | string | Display resolutions supported by the related capability or device. |
+| 665 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.VideoLatency` | readOnly | unsignedInt | Video latency reported by the connected display. |
+| 666 | `Device.Services.STBService.1.Components.HDMI.1.DisplayDevice.X_COMCAST-COM_EDID` | readOnly | string | EDID data reported by the connected HDMI display. |
+| 667 | `Device.Services.STBService.1.Components.HDMI.1.Enable` | readWrite | boolean | Enables or disables this HDMI output. |
+| 668 | `Device.Services.STBService.1.Components.HDMI.1.Name` | readOnly | string | Name reported for this HDMI output. |
+| 669 | `Device.Services.STBService.1.Components.HDMI.1.ResolutionMode` | readWrite | string | Resolution selection mode for this HDMI output. |
+| 670 | `Device.Services.STBService.1.Components.HDMI.1.ResolutionValue` | readWrite | string | Current resolution value for this HDMI output. |
+| 671 | `Device.Services.STBService.1.Components.HDMI.1.Status` | readOnly | string | Current status of this HDMI output. |
+| 672 | `Device.Services.STBService.1.Components.HDMINumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
+| 673 | `Device.Services.STBService.1.Components.VideoDecoder.1.ContentAspectRatio` | readOnly | string | Current content aspect ratio reported by the video decoder. |
+| 674 | `Device.Services.STBService.1.Components.VideoDecoder.1.Enable` | readWrite | boolean | Enables or disables this video decoder. |
+| 675 | `Device.Services.STBService.1.Components.VideoDecoder.1.Name` | readOnly | string | Name reported for this video decoder. |
+| 676 | `Device.Services.STBService.1.Components.VideoDecoder.1.Status` | readOnly | string | Current status of this video decoder. |
+| 677 | `Device.Services.STBService.1.Components.VideoDecoder.1.X_COMCAST-COM_Standby` | readWrite | boolean | Standby state for this video decoder. |
+| 678 | `Device.Services.STBService.1.Components.VideoDecoder.1.X_RDKCENTRAL-COM_MPEGHPart2` | readOnly | string | MPEG-H Part 2 capability string reported by the decoder. |
+| 679 | `Device.Services.STBService.1.Components.VideoDecoderNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
+| 680 | `Device.Services.STBService.1.Components.VideoOutput.1.AspectRatioBehaviour` | readWrite | string | Aspect-ratio handling mode for this video output. |
+| 681 | `Device.Services.STBService.1.Components.VideoOutput.1.DisplayFormat` | readWrite | string | Display format configured for this video output. |
+| 682 | `Device.Services.STBService.1.Components.VideoOutput.1.Enable` | readWrite | boolean | Enables or disables this video output. |
+| 683 | `Device.Services.STBService.1.Components.VideoOutput.1.HDCP` | readWrite | boolean | HDCP state configured for this video output. |
+| 684 | `Device.Services.STBService.1.Components.VideoOutput.1.Name` | readOnly | string | Name reported for this video output. |
+| 685 | `Device.Services.STBService.1.Components.VideoOutput.1.Status` | readOnly | string | Current status of this video output. |
+| 686 | `Device.Services.STBService.1.Components.VideoOutput.1.VideoFormat` | readWrite | string | Video format configured for this video output. |
+| 687 | `Device.Services.STBService.1.Components.VideoOutputNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the STB service. |
+| 688 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryLevelLoaded` | readOnly | unsignedInt | Battery metric reported for this RF4CE remote. |
+| 689 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryLevelUnloaded` | readOnly | unsignedInt | Battery metric reported for this RF4CE remote. |
+| 690 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryPercentage` | readOnly | unsignedInt | Battery metric reported for this RF4CE remote. |
+| 691 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.BatteryReplacement` | readOnly | boolean | Indicates whether the RF4CE remote battery should be replaced. |
+| 692 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.ImpendingDoom` | readOnly | boolean | Indicates whether the RF4CE remote reports a critical battery condition. |
+| 693 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.LinkQuality` | readOnly | unsignedInt | Link quality reported for this RF4CE remote. |
+| 694 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.MACAddress` | readOnly | string | MAC address associated with this RF4CE remote. |
+| 695 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.NetworkAddress` | readOnly | unsignedInt | Network address reported for the related RF4CE object. |
+| 696 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.RemoteId` | readOnly | unsignedInt | Remote identifier reported for this RF4CE remote. |
+| 697 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.RemoteType` | readOnly | string | Remote type reported for this RF4CE remote. |
+| 698 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.SignalStrength` | readOnly | int | Signal strength reported for the related entry. |
+| 699 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.VersionInfoHW` | readOnly | string | Version information reported for the related RF4CE object. |
+| 700 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.Remote.1.VersionInfoSW` | readOnly | string | Version information reported for the related RF4CE object. |
+| 701 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceActiveChannel` | readOnly | unsignedInt | RF4CE network property reported by the subsystem. |
+| 702 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceMACAddress` | readOnly | string | RF4CE network property reported by the subsystem. |
+| 703 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceNetworkAddress` | readOnly | unsignedInt | RF4CE network property reported by the subsystem. |
+| 704 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4cePANID` | readOnly | unsignedInt | RF4CE network property reported by the subsystem. |
+| 705 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4cePairedRemotesNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in the RF4CE subsystem. |
+| 706 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_RF4CE.rf4ceVersionInfo` | readOnly | string | Version information reported for the related RF4CE object. |
+| 707 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.Capacity` | readOnly | unsignedInt | Storage capacity reported for the device. |
+| 708 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.DeviceReport` | readOnly | string | Detailed health report for the storage device. |
+| 709 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.FirmwareVersion` | readOnly | string | Version string reported for the eMMC flash device. |
+| 710 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.LifeElapsedA` | readOnly | int | Wear indicator reported for the storage device. |
+| 711 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.LifeElapsedB` | readOnly | int | Wear indicator reported for the storage device. |
+| 712 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.LotID` | readOnly | string | Manufacturing lot identifier for the device. |
+| 713 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.Manufacturer` | readOnly | string | Manufacturer reported for the eMMC flash device. |
+| 714 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.Model` | readOnly | string | Model identifier reported for the eMMC flash device. |
+| 715 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.PreEOLStateEUDA` | readOnly | string | Pre-EOL health state for the named storage area. |
+| 716 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.PreEOLStateMLC` | readOnly | string | Pre-EOL health state for the named storage area. |
+| 717 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.PreEOLStateSystem` | readOnly | string | Pre-EOL health state for the named storage area. |
+| 718 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.ReadOnly` | readOnly | boolean | Indicates whether the device is operating in read-only mode. |
+| 719 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.SerialNumber` | readOnly | string | Serial number reported for the eMMC flash device. |
+| 720 | `Device.Services.STBService.1.Components.X_RDKCENTRAL-COM_eMMCFlash.TSBQualified` | readOnly | boolean | Indicates whether the storage device is qualified for TSB use. |
+| 721 | `Device.Services.STBService.1.Enable` | readWrite | boolean | Enables or disables the STB service. |
+| 722 | `Device.Services.STBServiceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 723 | `Device.Time.ChronyEnable` | readWrite | boolean | Enables or disables Chrony-based time synchronization. |
+| 724 | `Device.Time.CurrentLocalTime` | readWrite | string | Current local time reported by the device. |
+| 725 | `Device.Time.Enable` | readWrite | boolean | Enables or disables the system time service. |
+| 726 | `Device.Time.LocalTimeZone` | readWrite | string | Current local timezone setting reported by the device. |
+| 727 | `Device.Time.NTPMaxpoll` | readWrite | unsignedInt | Chrony NTP poll interval setting. |
+| 728 | `Device.Time.NTPMaxstep` | readWrite | string | Chrony maxstep setting used during large time corrections. |
+| 729 | `Device.Time.NTPMinpoll` | readWrite | unsignedInt | Chrony NTP poll interval setting. |
+| 730 | `Device.Time.NTPServer1` | readWrite | string | Configured NTP server address for the numbered slot. |
+| 731 | `Device.Time.NTPServer1Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
+| 732 | `Device.Time.NTPServer2` | readWrite | string | Configured NTP server address for the numbered slot. |
+| 733 | `Device.Time.NTPServer2Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
+| 734 | `Device.Time.NTPServer3` | readWrite | string | Configured NTP server address for the numbered slot. |
+| 735 | `Device.Time.NTPServer3Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
+| 736 | `Device.Time.NTPServer4` | readWrite | string | Configured NTP server address for the numbered slot. |
+| 737 | `Device.Time.NTPServer4Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
+| 738 | `Device.Time.NTPServer5` | readWrite | string | Configured NTP server address for the numbered slot. |
+| 739 | `Device.Time.NTPServer5Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
+| 740 | `Device.Time.Status` | readWrite | string | Current status of the system time service. |
+| 741 | `Device.Time.X_RDK_CurrentUTCTime` | readOnly | string | Current UTC time reported by the device. |
+| 742 | `Device.WiFi.AccessPoint.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi access point. |
+| 743 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Active` | readOnly | boolean | Indicates whether the related entry is currently active. |
+| 744 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.AuthenticationState` | readOnly | boolean | Configuration or status value for this associated Wi-Fi client. |
+| 745 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataDownlinkRate` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
+| 746 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataUplinkRate` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
+| 747 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.MACAddress` | readOnly | string | MAC address associated with this associated Wi-Fi client. |
+| 748 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Retransmissions` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
+| 749 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.SignalStrength` | readOnly | int | Signal strength reported for the related entry. |
+| 750 | `Device.WiFi.AccessPoint.{i}.AssociatedDeviceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this Wi-Fi access point. |
+| 751 | `Device.WiFi.AccessPoint.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi access point. |
+| 752 | `Device.WiFi.AccessPoint.{i}.RetryLimit` | readWrite | unsignedInt | Configuration or status value for this Wi-Fi access point. |
+| 753 | `Device.WiFi.AccessPoint.{i}.SSIDAdvertisementEnabled` | readWrite | boolean | Controls whether this access point advertises its SSID. |
+| 754 | `Device.WiFi.AccessPoint.{i}.SSIDReference` | readWrite | string | Reference to the SSID object used by this entry. |
+| 755 | `Device.WiFi.AccessPoint.{i}.Security.KeyPassphrase` | readWrite | string | Passphrase configured for the related Wi-Fi profile. |
+| 756 | `Device.WiFi.AccessPoint.{i}.Security.ModeEnabled` | readWrite | string | Security mode currently enabled for the related Wi-Fi object. |
+| 757 | `Device.WiFi.AccessPoint.{i}.Security.ModesSupported` | readOnly | string | Security modes supported by the related Wi-Fi object. |
+| 758 | `Device.WiFi.AccessPoint.{i}.Security.PreSharedKey` | readWrite | hexBinary | Pre-shared key configured for the related Wi-Fi object. |
+| 759 | `Device.WiFi.AccessPoint.{i}.Security.RadiusSecret` | readWrite | string | Shared secret or password used by this Wi-Fi access point. |
+| 760 | `Device.WiFi.AccessPoint.{i}.Security.RadiusServerIPAddr` | readWrite | string | RADIUS server IP address used by this access point. |
+| 761 | `Device.WiFi.AccessPoint.{i}.Security.RadiusServerPort` | readWrite | unsignedInt | Port value used by this Wi-Fi access point. |
+| 762 | `Device.WiFi.AccessPoint.{i}.Security.RekeyingInterval` | readWrite | unsignedInt | Key rekey interval for this Wi-Fi security profile. |
+| 763 | `Device.WiFi.AccessPoint.{i}.Security.WEPKey` | readWrite | hexBinary | WEP key configured for the related Wi-Fi object. |
+| 764 | `Device.WiFi.AccessPoint.{i}.Status` | readOnly | string | Current status of this Wi-Fi access point. |
+| 765 | `Device.WiFi.AccessPoint.{i}.UAPSDCapability` | readOnly | boolean | U-APSD capability or enable state for this access point. |
+| 766 | `Device.WiFi.AccessPoint.{i}.UAPSDEnable` | readWrite | boolean | U-APSD capability or enable state for this access point. |
+| 767 | `Device.WiFi.AccessPoint.{i}.WMMCapability` | readOnly | boolean | WMM capability or enable state for this access point. |
+| 768 | `Device.WiFi.AccessPoint.{i}.WMMEnable` | readWrite | boolean | WMM capability or enable state for this access point. |
+| 769 | `Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsEnabled` | readWrite | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
+| 770 | `Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsSupported` | readOnly | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
+| 771 | `Device.WiFi.AccessPoint.{i}.WPS.Enable` | readWrite | boolean | Enables or disables this Wi-Fi access point. |
+| 772 | `Device.WiFi.AccessPointNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 773 | `Device.WiFi.EndPoint.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi endpoint. |
+| 774 | `Device.WiFi.EndPoint.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint. |
+| 775 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi endpoint profile. |
+| 776 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint profile. |
+| 777 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Location` | readWrite | string | Location hint associated with this Wi-Fi endpoint profile. |
+| 778 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Priority` | readWrite | unsignedInt | Scheduling priority for this Wi-Fi endpoint profile. |
+| 779 | `Device.WiFi.EndPoint.{i}.Profile.{i}.SSID` | readWrite | string | SSID string used by the related Wi-Fi object. |
+| 780 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.KeyPassphrase` | readWrite | string | Passphrase configured for the related Wi-Fi profile. |
+| 781 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.ModeEnabled` | readWrite | string | Security mode currently enabled for the related Wi-Fi object. |
+| 782 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.PreSharedKey` | readWrite | hexBinary | Pre-shared key configured for the related Wi-Fi object. |
+| 783 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.WEPKey` | readWrite | hexBinary | WEP key configured for the related Wi-Fi object. |
+| 784 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Status` | readOnly | string | Current status of this Wi-Fi endpoint profile. |
+| 785 | `Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this Wi-Fi endpoint. |
+| 786 | `Device.WiFi.EndPoint.{i}.ProfileReference` | readWrite | string | Reference to the active Wi-Fi endpoint profile. |
+| 787 | `Device.WiFi.EndPoint.{i}.SSIDReference` | readOnly | string | Reference to the SSID object used by this entry. |
+| 788 | `Device.WiFi.EndPoint.{i}.Security.ModesEnabled` | readOnly | string | Security mode currently enabled for the related Wi-Fi object. |
+| 789 | `Device.WiFi.EndPoint.{i}.Security.ModesSupported` | readOnly | string | Security modes supported by the related Wi-Fi object. |
+| 790 | `Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate` | readOnly | unsignedInt | Most recent downlink data rate for this Wi-Fi endpoint. |
+| 791 | `Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate` | readOnly | unsignedInt | Most recent uplink data rate for this Wi-Fi endpoint. |
+| 792 | `Device.WiFi.EndPoint.{i}.Stats.Retransmissions` | readOnly | unsignedInt | Retransmission count observed for this Wi-Fi endpoint. |
+| 793 | `Device.WiFi.EndPoint.{i}.Stats.SignalStrength` | readOnly | int | Reported signal strength for this Wi-Fi endpoint. |
+| 794 | `Device.WiFi.EndPoint.{i}.Status` | readOnly | string | Current status of this Wi-Fi endpoint. |
+| 795 | `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled` | readWrite | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
+| 796 | `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported` | readOnly | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
+| 797 | `Device.WiFi.EndPoint.{i}.WPS.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint. |
+| 798 | `Device.WiFi.EndPointNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 799 | `Device.WiFi.Radio.{i}.OperatingChannelBandwidth` | readOnly | string | Current operating channel bandwidth of this Wi-Fi radio. |
+| 800 | `Device.WiFi.Radio.{i}.Stats.Noise` | readOnly | int | Reported noise floor for this Wi-Fi radio. |
+| 801 | `Device.WiFi.Radio.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this Wi-Fi radio. |
+| 802 | `Device.WiFi.RadioNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 803 | `Device.WiFi.SSID.{i}.Alias` | readWrite | string | User-assigned alias for this SSID interface. |
+| 804 | `Device.WiFi.SSID.{i}.BSSID` | readOnly | string | BSSID reported for this SSID interface. |
+| 805 | `Device.WiFi.SSID.{i}.Enable` | readWrite | boolean | Enables or disables this SSID interface. |
+| 806 | `Device.WiFi.SSID.{i}.LastChange` | readOnly | unsignedInt | Seconds since this SSID interface last changed state. |
+| 807 | `Device.WiFi.SSID.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this SSID interface. |
+| 808 | `Device.WiFi.SSID.{i}.MACAddress` | readOnly | string | MAC address associated with this SSID interface. |
+| 809 | `Device.WiFi.SSID.{i}.Name` | readOnly | string | Name reported for this SSID interface. |
+| 810 | `Device.WiFi.SSID.{i}.SSID` | readWrite | string | SSID string used by the related Wi-Fi object. |
+| 811 | `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived` | readOnly | unsignedLong | Broadcast packets received on this SSID interface. |
+| 812 | `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent` | readOnly | unsignedLong | Broadcast packets sent on this SSID interface. |
+| 813 | `Device.WiFi.SSID.{i}.Stats.BytesReceived` | readOnly | unsignedLong | Total bytes received on this SSID interface. |
+| 814 | `Device.WiFi.SSID.{i}.Stats.BytesSent` | readOnly | unsignedLong | Total bytes sent on this SSID interface. |
+| 815 | `Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived` | readOnly | unsignedInt | Received packets discarded on this SSID interface. |
+| 816 | `Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent` | readOnly | unsignedInt | Outbound packets discarded on this SSID interface. |
+| 817 | `Device.WiFi.SSID.{i}.Stats.ErrorsReceived` | readOnly | unsignedInt | Receive errors seen on this SSID interface. |
+| 818 | `Device.WiFi.SSID.{i}.Stats.ErrorsSent` | readOnly | unsignedInt | Transmit errors seen on this SSID interface. |
+| 819 | `Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived` | readOnly | unsignedLong | Multicast packets received on this SSID interface. |
+| 820 | `Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent` | readOnly | unsignedLong | Multicast packets sent on this SSID interface. |
+| 821 | `Device.WiFi.SSID.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this SSID interface. |
+| 822 | `Device.WiFi.SSID.{i}.Stats.PacketsSent` | readOnly | unsignedLong | Total packets sent on this SSID interface. |
+| 823 | `Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived` | readOnly | unsignedLong | Unicast packets received on this SSID interface. |
+| 824 | `Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent` | readOnly | unsignedLong | Unicast packets sent on this SSID interface. |
+| 825 | `Device.WiFi.SSID.{i}.Stats.UnknownProtoPacketsReceived` | readOnly | unsignedInt | Packets with unknown protocol received on this SSID interface. |
+| 826 | `Device.WiFi.SSID.{i}.Status` | readOnly | string | Current status of this SSID interface. |
+| 827 | `Device.WiFi.SSIDNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
+| 828 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.80211kvrEnable` | readWrite | boolean | Enables or disables 802.11k/v/r roaming support. |
+| 829 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.Enable` | readWrite | boolean | Enables or disables the Wi-Fi client roaming policy. |
+| 830 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolBeaconsMissedTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 831 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
+| 832 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolTimeframe` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 833 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BackOffTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 834 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelConnected` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 835 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelDisconnected` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 836 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerBeaconsMissedTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 837 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
+| 838 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerTimeframe` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 839 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestDeltaLevel` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
+| 840 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
+| 841 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.SelfSteer_OverrideEnable` | readWrite | boolean | Band-steering threshold or control used by the client roaming policy. |
+| 842 | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | readWrite | boolean | Master enable for the Wi-Fi subsystem. |
+| 843 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceId` | readOnly | string | Security system device identifier. |
+| 844 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceReg` | readOnly | dateTime | Security system device registration time. |
+| 845 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssErrorCnt` | readOnly | unsignedInt | Security system error count. |
+| 846 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssRegTs` | readOnly | boolean | Indicates whether a security system registration timestamp is available. |
+| 847 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreAppId` | readOnly | string | Application identifier for this XRE connection entry. |
+| 848 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnEstTs` | readOnly | string | Connection establishment timestamp for this XRE connection entry. |
+| 849 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnIfName` | readOnly | string | Interface name used by this XRE connection entry. |
+| 850 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnRetryAttempts` | readOnly | unsignedInt | Retry attempts recorded for this XRE connection entry. |
+| 851 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnStatus` | readOnly | string | Current status of this XRE connection entry. |
+| 852 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnURL` | readOnly | string | Connection URL used by this XRE connection entry. |
+| 853 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreAvgCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
+| 854 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreChannelMapId` | readOnly | string | Channel map identifier currently used by the XRE client. |
+| 855 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreCommandCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 856 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreControllerId` | readOnly | string | Controller identifier reported by the XRE client. |
+| 857 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable` | readWrite | boolean | Enables or disables the XRE client. |
+| 858 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreErrorCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 859 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreFlushLocalCache` | readWrite | boolean | Triggers an XRE local cache flush when set. |
+| 860 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGatewaySTBMAC` | readOnly | string | Gateway STB MAC address reported by the XRE client. |
+| 861 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGetTWPDiags` | readOnly | string | Diagnostic payload returned by XRE TWP diagnostics. |
+| 862 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastURLAccessed` | readOnly | string | Last URL accessed by the XRE client. |
+| 863 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastVideoUrl` | readOnly | string | Last video URL accessed by the XRE client. |
+| 864 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLogLevel` | readWrite | string | Logging level used by the XRE client. |
+| 865 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMaxCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
+| 866 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMinCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
+| 867 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xrePlantId` | readOnly | string | Plant identifier reported by the XRE client. |
+| 868 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreReceiverId` | readOnly | string | Receiver identifier reported by the XRE client. |
+| 869 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSession` | readWrite | boolean | Triggers XRE session refresh behavior. |
+| 870 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSessionWithRR` | readWrite | int | Controls refresh-with-RR behavior for the XRE session. |
+| 871 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionId` | readOnly | string | Active XRE session identifier reported by the client. |
+| 872 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionLastModTs` | readOnly | string | Timestamp of the last XRE session update. |
+| 873 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionUptime` | readOnly | string | Uptime of the current XRE session. |
+| 874 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreStatus` | readOnly | string | Configuration or status value for the XRE client. |
+| 875 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAnimCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 876 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAppCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 877 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFlashCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 878 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFontCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 879 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotHtmlTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 880 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 881 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotNineSliceImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 882 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotRectCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 883 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotSoundCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 884 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotStyleshtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 885 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 886 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtIpCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 887 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotVideoCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 888 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotViewCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 889 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVersion` | readOnly | string | Version string reported by the XRE client. |
+| 890 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVodId` | readOnly | string | VOD identifier reported by the XRE client. |
+| 891 | `Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow` | readWrite | string | Triggers an immediate Xconf check for the Xcalibur client. |
+| 892 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppNumAps` | readOnly | unsignedInt | Number of DevApp application entries reported by the platform. |
+| 893 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppId` | readOnly | string | Application identifier for this DevApp entry. |
+| 894 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppRestartCapability` | readOnly | string | Restart capability reported for this DevApp entry. |
+| 895 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayDeviceFriendlyName` | readOnly | string | Gateway identification value reported by TRM. |
+| 896 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAIP` | readOnly | string | Gateway identification value reported by TRM. |
+| 897 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAMAC` | readOnly | string | Gateway identification value reported by TRM. |
+| 898 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewaySTBMAC` | readOnly | string | Gateway identification value reported by TRM. |
+| 899 | `Device.X_RDKCENTRAL-COM_T2.ReportProfiles` | readWrite | string | Telemetry 2.0 report profiles payload. |
+| 900 | `Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack` | readWrite | string | Telemetry 2.0 report profiles payload. |
+| 901 | `Device.X_RDK_WebPA_DNSText.URL` | readWrite | string | Bootstrap URL used to retrieve WebPA DNS text records. |
+| 902 | `Device.X_RDK_WebPA_Server.URL` | readOnly | string | Current WebPA server URL from the bootstrap store. |
+| 903 | `Device.X_RDK_WebPA_TokenServer.URL` | readOnly | string | Current WebPA token server URL from the bootstrap store. |
