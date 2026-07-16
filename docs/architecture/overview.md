@@ -15,7 +15,6 @@ graph TB
         WEBPA[WebPA / Parodus]
         JSON[Local JSON socket]
         RBUS[RBUS clients]
-        SNMP[SNMP bridge]
     end
 
     subgraph Core[tr69hostif daemon]
@@ -51,7 +50,6 @@ graph TB
     WEBPA --> PARODUS
     JSON --> DISPATCH
     RBUS --> RBUSDML
-    SNMP --> IARM
 
     IARM --> DISPATCH
     PARODUS --> DISPATCH
@@ -96,7 +94,6 @@ sequenceDiagram
 | WebPA/Parodus | `src/hostif/parodusClient/pal/libpd.cpp` | Connects to Parodus, receives WRP requests, and sends notifications |
 | TR-181 profiles | `src/hostif/profiles/*` | Object-specific get/set logic and HAL translation |
 | Optional HTTP server | `src/hostif/httpserver/` | Legacy RFC-related local HTTP endpoint |
-| SNMP adapter | `src/hostif/snmpAdapter/` | Maps selected TR-181 parameters to SNMP OIDs |
 
 ## Configuration Sources
 

@@ -58,14 +58,8 @@ void parse_get_request(cJSON *request, req_struct **reqObj, PAYLOAD_TYPE type)
 	(*reqObj)->reqType = GET;
 	WdmpPrint("(*reqObj)->reqType : %d\n",(*reqObj)->reqType);
 
-	if(type == WDMP_SNMP)
-	{
-		paramArray = cJSON_GetObjectItem(request, "oids");
-	}
-	else
-	{
-		paramArray = cJSON_GetObjectItem(request, "names");
-	}
+	(void)type;
+	paramArray = cJSON_GetObjectItem(request, "names");
 
 	paramCount = cJSON_GetArraySize(paramArray);
 	(*reqObj)->u.getReq->paramCnt = paramCount;
@@ -104,15 +98,9 @@ void parse_set_request(cJSON *request, req_struct **reqObj, PAYLOAD_TYPE type)
 	size_t paramCount, i;
 	
 	WdmpPrint("parsing Set Request\n");
-	
-	if(type == WDMP_SNMP)
-	{
-		paramArray = cJSON_GetObjectItem(request, "oids");
-	}
-	else
-	{
-		paramArray = cJSON_GetObjectItem(request, "parameters");
-	}
+
+	(void)type;
+	paramArray = cJSON_GetObjectItem(request, "parameters");
 
 	paramCount = cJSON_GetArraySize(paramArray);
 	
@@ -131,14 +119,7 @@ void parse_set_request(cJSON *request, req_struct **reqObj, PAYLOAD_TYPE type)
 	{
 		reqParamObj = cJSON_GetArrayItem(paramArray, i);
 
-		if(type == WDMP_SNMP)
-		{
-		        (*reqObj)->u.setReq->param[i].name = strdup(cJSON_GetObjectItem(reqParamObj, "oid")->valuestring);
-		}
-		else
-		{
-		        (*reqObj)->u.setReq->param[i].name = strdup(cJSON_GetObjectItem(reqParamObj, "name")->valuestring);
-		}
+		(*reqObj)->u.setReq->param[i].name = strdup(cJSON_GetObjectItem(reqParamObj, "name")->valuestring);
 
 		WdmpPrint("(*reqObj)->u.setReq->param[%zu].name : %s\n",i,(*reqObj)->u.setReq->param[i].name);
 		

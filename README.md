@@ -5,7 +5,7 @@
 
 ## Overview
 
-`tr69hostif` is the **TR-069 Host Interface Manager** for RDK-based devices. It acts as the central broker between remote management infrastructure (ACS, WebPA/Parodus) and the TR-181 data model implemented on the device. Any component that needs to read or write TR-181 parameters — including the CWMP stack, WebPA gateway, RFC override system, and SNMP bridge — routes its requests through `tr69hostif`.
+`tr69hostif` is the **TR-069 Host Interface Manager** for RDK-based devices. It acts as the central broker between remote management infrastructure (ACS, WebPA/Parodus) and the TR-181 data model implemented on the device. Any component that needs to read or write TR-181 parameters — including the CWMP stack, WebPA gateway, and RFC override system — routes its requests through `tr69hostif`.
 
 The daemon runs as a persistent systemd service, initializes all TR-181 profile handlers at startup, and then services get/set requests over multiple IPC channels simultaneously.
 
@@ -29,7 +29,6 @@ graph TB
     subgraph Remote["Remote Callers"]
         ACS[ACS / CWMP Stack]
         WebPA[WebPA / parodus]
-        SNMP[SNMP Manager]
         RBUS[RBUS Clients]
     end
 
@@ -52,7 +51,6 @@ graph TB
             STBS[STBService\nDS Profile]
             STOR[StorageService]
             INTF[InterfaceStack]
-            SNMPA[SNMP Adapter]
         end
 
         subgraph RFC["RFC / Bootstrap"]
@@ -62,7 +60,6 @@ graph TB
     end
 
     ACS  -->|IARM RPC| IARM
-    SNMP -->|IARM RPC| IARM
     WebPA-->|msgpack/WRP| PAR
     RBUS -->|rbus API| RBUS_P
     JSON -->|HTTP JSON| MSG
@@ -141,7 +138,6 @@ sequenceDiagram
 | `hostIf_dsClient_ReqHandler` | `dsMgr` | `Device.Services.STBService.*` |
 | `hostIf_StorageSrvc_ReqHandler` | `storageSrvcMgr` | `Device.Services.StorageService.*` |
 | `hostIf_InterfaceStackClient_ReqHandler` | `intfStackMgr` | `Device.InterfaceStack.*` |
-| `hostIf_SNMPClient_ReqHandler` | `snmpAdapterMgr` | `Device.X_RDKCENTRAL-COM.*` (SNMP bridge) |
 | `hostIf_rbus_Dml_Provider` | — | Exposes all registered params over RBUS |
 | `hostIf_updateHandler` | — | Polls profiles for value changes; publishes IARM events |
 | `hostIf_NotificationHandler` | — | Queues value-change notifications to Parodus |
@@ -193,10 +189,6 @@ RFC Override (/opt/secure/RFC/) > WebPA Set > Bootstrap Default > Firmware Defau
 ### HTTP Server (`src/hostif/httpserver/`)
 
 An optional Mongoose-based HTTP server (disabled when `NEW_HTTP_SERVER_DISABLE` is defined or when the Legacy RFC feature flag is active). Provides a local REST endpoint used during RFC migration. Controlled at runtime by `/opt/RFC/.RFC_LegacyRFCEnabled.ini`.
-
-### SNMP Adapter (`src/hostif/snmpAdapter/`)
-
-Maps selected `Device.X_RDKCENTRAL-COM.*` parameters to SNMP OIDs defined in `conf/tr181_snmpOID.conf`. Enabled at build time with `--enable-snmp-adapter`.
 
 ## Threading Model
 
@@ -310,7 +302,6 @@ The `[HOSTIF_DM_PROFILE_MGR]` section defines which manager handles each TR-181 
 |----------------|--------------------|----|
 | `--enable-parodus` | `PARODUS_ENABLE` | Enable WebPA/Parodus client |
 | `--disable-new-http-server` | `NEW_HTTP_SERVER_DISABLE` | Remove internal HTTP server |
-| `--enable-snmp-adapter` | `SNMP_ADAPTER_ENABLED` | Include SNMP OID bridge |
 | `--enable-webpa-rfc` | `WEBPA_RFC_ENABLED` | Guard service on RFC flag |
 | `--enable-rbus` | *(rbus linkage)* | Enable RBUS DML provider |
 | `--enable-t2` | `T2_EVENT_ENABLED` | Telemetry 2.0 markers |
@@ -413,7 +404,6 @@ tr69hostif/
 ├── conf/                          # Runtime configuration
 │   ├── tr69hostIf.conf            # Manager-to-prefix mapping
 │   ├── mgrlist.conf               # Manager list
-│   ├── tr181_snmpOID.conf         # SNMP OID mappings
 │   └── rfcdefaults/
 │       └── tr69hostif.ini         # RFC default values
 ├── src/
@@ -425,7 +415,6 @@ tr69hostif/
 │       ├── profiles/              # TR-181 object implementations
 │       ├── parodusClient/         # WebPA / Parodus PAL
 │       ├── httpserver/            # Optional HTTP server
-│       └── snmpAdapter/           # SNMP bridge
 ├── test/
 │   └── functional-tests/          # BDD integration tests (Behave)
 └── scripts/
