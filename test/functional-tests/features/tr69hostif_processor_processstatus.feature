@@ -58,3 +58,10 @@ Feature: Processor and ProcessStatus Parameter GET via rbus
   Scenario: GET Device.DeviceInfo.ProcessStatus.ProcessNumberOfEntries
     When I GET "Device.DeviceInfo.ProcessStatus.ProcessNumberOfEntries" via rbus
     Then the rbus response should not contain an error
+
+  Scenario: GET Device.DeviceInfo.ProcessStatus.CPUUsage
+    # TR-181: System CPU usage as a percentage (0-100%)
+    When I GET "Device.DeviceInfo.ProcessStatus.CPUUsage" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain a numeric value
+    And the CPU usage value should be between 0 and 100  
