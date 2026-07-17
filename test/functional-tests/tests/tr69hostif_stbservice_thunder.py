@@ -39,10 +39,11 @@ from helper_functions import *
 
 STBSVC_BASE = "Device.Services.STBService.1"
 
-AUDIO_BASE  = STBSVC_BASE + ".Components.AudioOutput.1"
-SPDIF_BASE  = STBSVC_BASE + ".Components.SPDIF.1"
+AUDIO_BASE   = STBSVC_BASE + ".Components.AudioOutput.1"
+SPDIF_BASE   = STBSVC_BASE + ".Components.SPDIF.1"
 DISPDEV_BASE = STBSVC_BASE + ".Components.DisplayDevice.1"
 VIDDEC_BASE  = STBSVC_BASE + ".Components.VideoDecoder.1"
+VIDOUT_BASE  = STBSVC_BASE + ".Components.VideoOutput.1"
 CAPS_BASE    = STBSVC_BASE + ".Capabilities"
 
 CURL_OK_MSG = "curl response : 0 http response code: 200"
@@ -346,6 +347,331 @@ def test_STBService_VideoDecoder_Set_Status_NotHandled():
     """
     param = VIDDEC_BASE + ".Status"
     rstdout = rbus_set_data(param, "string", "Enabled")
+
+    assert RBUS_SUCCESS_STRING not in rstdout, \
+        f"Expected SET to fail for NOT_HANDLED param {param}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AudioOutput – additional GET tests (missing from first pass)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.run(order=331)
+def test_STBService_AudioOutput_Get_AudioLevel():
+    """
+    GET AudioOutput.1.AudioLevel – backed by getEnableAudioPort + getMuted,
+    returns one of Enabled / Muted / Disabled.
+    """
+    param = AUDIO_BASE + ".AudioLevel"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    valid = {"Enabled", "Muted", "Disabled"}
+    assert any(v in rstdout for v in valid), \
+        f"Unexpected AudioLevel value: {rstdout}"
+
+
+@pytest.mark.run(order=332)
+def test_STBService_AudioOutput_Get_AudioOptimalLevel():
+    """
+    GET AudioOutput.1.X_COMCAST-COM_AudioOptimalLevel – hardcoded "0.000000",
+    no Thunder call required.
+    """
+    param = AUDIO_BASE + ".X_COMCAST-COM_AudioOptimalLevel"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert "0.000000" in rstdout
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DisplayDevice – additional GET tests (missing from first pass)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.run(order=333)
+def test_STBService_DisplayDevice_Get_EEDID():
+    """
+    GET DisplayDevice.1.EEDID – backed by readEDID; empty when no display connected.
+    """
+    param = DISPDEV_BASE + ".EEDID"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+
+
+@pytest.mark.run(order=334)
+def test_STBService_DisplayDevice_Get_X_COMCAST_EDID():
+    """
+    GET DisplayDevice.1.X_COMCAST-COM_EDID – same backend as EEDID.
+    """
+    param = DISPDEV_BASE + ".X_COMCAST-COM_EDID"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VideoDecoder – additional GET tests (missing from first pass)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.run(order=335)
+def test_STBService_VideoDecoder_Get_ContentAspectRatio():
+    """
+    GET VideoDecoder.1.ContentAspectRatio – backed by getDisplayAspectRatio;
+    falls back to "16:9" if Thunder fails.
+    """
+    param = VIDDEC_BASE + ".ContentAspectRatio"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    # Aspect ratio is always returned (fallback "16:9" on failure)
+    assert rstdout.strip() != ""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VideoOutput – GET tests
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.run(order=336)
+def test_STBService_VideoOutput_Get_Status():
+    """
+    GET VideoOutput.1.Status – backed by Thunder DisplayInfo.1.connected.
+    Returns "Enabled" when display is connected, "Disabled" otherwise.
+    """
+    param = VIDOUT_BASE + ".Status"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert rstdout.strip() in ("Enabled", "Disabled"), \
+        f"Unexpected VideoOutput Status: {rstdout}"
+
+
+@pytest.mark.run(order=337)
+def test_STBService_VideoOutput_Get_Enable():
+    """
+    GET VideoOutput.1.Enable – always true (port is present in the list).
+    No Thunder call required.
+    """
+    param = VIDOUT_BASE + ".Enable"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert "true" in rstdout.lower() or "1" in rstdout
+
+
+@pytest.mark.run(order=338)
+def test_STBService_VideoOutput_Get_DisplayFormat():
+    """
+    GET VideoOutput.1.DisplayFormat – backed by getCurrentResolution.
+    Returns the current resolution string (e.g. "1080p60").
+    """
+    param = VIDOUT_BASE + ".DisplayFormat"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert rstdout.strip() != ""
+
+
+@pytest.mark.run(order=339)
+def test_STBService_VideoOutput_Get_VideoFormat():
+    """
+    GET VideoOutput.1.VideoFormat – backed by getDisplayAspectRatio;
+    falls back to "Unknown" if Thunder fails.
+    """
+    param = VIDOUT_BASE + ".VideoFormat"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    # Always returns something (fallback "Unknown")
+    assert rstdout.strip() != ""
+
+
+@pytest.mark.run(order=340)
+def test_STBService_VideoOutput_Get_AspectRatioBehaviour():
+    """
+    GET VideoOutput.1.AspectRatioBehaviour – backed by AVOutput.getZoomMode;
+    falls back to "None" if Thunder fails.
+    """
+    param = VIDOUT_BASE + ".AspectRatioBehaviour"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert rstdout.strip() != ""
+
+
+@pytest.mark.run(order=341)
+def test_STBService_VideoOutput_Get_HDCP():
+    """
+    GET VideoOutput.1.HDCP – backed by HdcpProfile.getHDCPStatus; boolean.
+    """
+    param = VIDOUT_BASE + ".HDCP"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert "true" in rstdout.lower() or "false" in rstdout.lower() \
+        or "1" in rstdout or "0" in rstdout
+
+
+@pytest.mark.run(order=342)
+def test_STBService_VideoOutput_Get_Name():
+    """
+    GET VideoOutput.1.Name – returns the port name (e.g. "HDMI0").
+    No Thunder call required.
+    """
+    param = VIDOUT_BASE + ".Name"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert rstdout.strip() != ""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VideoOutput – SET tests (NOT_HANDLED)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.run(order=343)
+def test_STBService_VideoOutput_Set_DisplayFormat_NotHandled():
+    """
+    SET VideoOutput.1.DisplayFormat must fail – all setters are NOT_HANDLED.
+    """
+    param = VIDOUT_BASE + ".DisplayFormat"
+    rstdout = rbus_set_data(param, "string", "1080p60")
+
+    assert RBUS_SUCCESS_STRING not in rstdout, \
+        f"Expected SET to fail for NOT_HANDLED param {param}"
+
+
+@pytest.mark.run(order=344)
+def test_STBService_VideoOutput_Set_HDCP_NotHandled():
+    """
+    SET VideoOutput.1.HDCP must fail – setter is NOT_HANDLED.
+    """
+    param = VIDOUT_BASE + ".HDCP"
+    rstdout = rbus_set_data(param, "boolean", "true")
+
+    assert RBUS_SUCCESS_STRING not in rstdout, \
+        f"Expected SET to fail for NOT_HANDLED param {param}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Capabilities – GET tests
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.run(order=345)
+def test_STBService_Capabilities_Get_VideoStandards():
+    """
+    GET Capabilities.VideoDecoder.VideoStandards – backed by
+    getSupportedVideoCodingFormats; returns TR-135 formatted codec strings.
+    """
+    param = CAPS_BASE + ".VideoDecoder.VideoStandards"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    # Must contain at least one known codec format
+    known = {"MPEGH-Part2", "MPEG4-Part10", "MPEG2-Part2"}
+    assert any(k in rstdout for k in known), \
+        f"Unexpected VideoStandards value: {rstdout}"
+
+
+@pytest.mark.run(order=346)
+def test_STBService_Capabilities_Get_HEVCProfileEntries():
+    """
+    GET Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevelNumberOfEntries
+    – backed by getVideoCodecInfo; returns integer count >= 1.
+    """
+    param = (CAPS_BASE +
+             ".VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevelNumberOfEntries")
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    # Value should be a positive integer
+    try:
+        assert int(rstdout.strip()) >= 1
+    except ValueError:
+        assert False, f"Expected integer, got: {rstdout}"
+
+
+@pytest.mark.run(order=347)
+def test_STBService_Capabilities_Get_HEVCProfileLevel_Profile():
+    """
+    GET Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Profile
+    – reads the first HEVC profile name from getVideoCodecInfo.
+    """
+    param = (CAPS_BASE +
+             ".VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Profile")
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert rstdout.strip() != ""
+
+
+@pytest.mark.run(order=348)
+def test_STBService_Capabilities_Get_HEVCProfileLevel_Level():
+    """
+    GET Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Level
+    – reads the first HEVC level string from getVideoCodecInfo.
+    """
+    param = (CAPS_BASE +
+             ".VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Level")
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert rstdout.strip() != ""
+
+
+@pytest.mark.run(order=349)
+def test_STBService_Capabilities_Get_HDMI_SupportedResolutions():
+    """
+    GET Capabilities.HDMI.SupportedResolutions – backed by
+    getSupportedSettopResolutions; returns comma-separated resolution codes.
+    """
+    param = CAPS_BASE + ".HDMI.SupportedResolutions"
+    rstdout = rbus_get_data(param)
+
+    assert RBUS_EXCEPTION_STRING not in rstdout, \
+        f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert rstdout.strip() != ""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Capabilities – SET test (NOT_HANDLED)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.run(order=350)
+def test_STBService_Capabilities_Set_VideoStandards_NotHandled():
+    """
+    SET Capabilities.VideoDecoder.VideoStandards must fail –
+    handleSetMsg always returns NOT_HANDLED.
+    """
+    param = CAPS_BASE + ".VideoDecoder.VideoStandards"
+    rstdout = rbus_set_data(param, "string", "MPEG4-Part10 ([ISO/IEC14496-10])")
 
     assert RBUS_SUCCESS_STRING not in rstdout, \
         f"Expected SET to fail for NOT_HANDLED param {param}"

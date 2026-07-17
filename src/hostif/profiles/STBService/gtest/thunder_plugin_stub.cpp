@@ -46,11 +46,13 @@ struct BoolResp   { bool success; bool value; };
 struct StringResp { bool success; std::string value; };
 struct IntResp    { bool success; int value; };
 struct ULongResp  { bool success; unsigned long value; };
+struct RawResp    { bool success; std::string response; };
 
 static std::map<std::string, BoolResp>   g_bool;
 static std::map<std::string, StringResp> g_string;
 static std::map<std::string, IntResp>    g_int;
 static std::map<std::string, ULongResp>  g_ulong;
+static std::map<std::string, RawResp>    g_raw;
 
 /** Set the bool result returned when the given Thunder method is invoked. */
 void setBool(const std::string& method, bool success, bool value = false)
@@ -76,6 +78,15 @@ void setULong(const std::string& method, bool success, unsigned long value = 0UL
     g_ulong[method] = {success, value};
 }
 
+/**
+ * Set a raw JSON response for methods that use invokeThunderPluginMethod directly
+ * (e.g. Capabilities getVideoStandards, getNumHEVCProfileEntries).
+ */
+void setRaw(const std::string& method, bool success, const std::string& response = "")
+{
+    g_raw[method] = {success, response};
+}
+
 /** Clear all configured responses (call from test SetUp). */
 void clear()
 {
@@ -83,6 +94,7 @@ void clear()
     g_string.clear();
     g_int.clear();
     g_ulong.clear();
+    g_raw.clear();
 }
 
 } /* namespace ThunderStub */
@@ -91,12 +103,15 @@ void clear()
 /* invokeThunderPlugin* stub implementations                           */
 /* ------------------------------------------------------------------ */
 
-bool invokeThunderPluginMethod(const std::string& /*method*/,
+bool invokeThunderPluginMethod(const std::string& method,
                                const std::string& /*paramsJson*/,
-                               std::string& /*response*/)
+                               std::string& response)
 {
-    /* Not used directly by STBService components — they call the typed helpers. */
-    return false;
+    auto it = ThunderStub::g_raw.find(method);
+    if (it == ThunderStub::g_raw.end() || !it->second.success)
+        return false;
+    response = it->second.response;
+    return true;
 }
 
 bool invokeThunderPluginMethodAndExtractBoolField(const std::string& method,
@@ -238,6 +253,43 @@ void putValue(HOSTIF_MsgData_t *stMsgData, const std::string &value)
     stMsgData->paramValue[TR69HOSTIFMGR_MAX_PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen  = static_cast<int>(value.size());
+}
+
+/* ------------------------------------------------------------------ */
+/* matchComponent stub (normally in hostIf_utils.cpp)                  */
+/* ------------------------------------------------------------------ */
+
+#include <cstdlib>
+#include <cstring>
+
+#define MAX_NUM_LEN 10
+
+bool matchComponent(const char* pParam, const char *pKey, const char **pSetting, int &instanceNo)
+{
+    if (!pParam || !pKey || !pSetting) return false;
+    int str_len = static_cast<int>(strlen(pKey));
+    bool ret = (strncasecmp(pParam, pKey, str_len) == 0);
+    if (ret)
+    {
+        const char *tmp_ptr;
+        int tmp_len;
+        if ((pParam[str_len] == '.') &&
+            (tmp_ptr = strchr(pParam + str_len + 1, '.')) &&
+            (tmp_len = static_cast<int>(tmp_ptr - (pParam + str_len + 1))) < MAX_NUM_LEN)
+        {
+            char tmp_buff[MAX_NUM_LEN];
+            memset(tmp_buff, 0, sizeof(tmp_buff));
+            strncpy(tmp_buff, pParam + str_len + 1, tmp_len);
+            instanceNo = atoi(tmp_buff);
+            *pSetting = tmp_ptr + 1;
+        }
+        else
+        {
+            instanceNo = 0;
+            *pSetting = pParam + str_len;
+        }
+    }
+    return ret;
 }
 
 /* ------------------------------------------------------------------ */

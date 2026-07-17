@@ -42,7 +42,8 @@ COMMON_LDADD = \
     -lgtest \
     -lgmock \
     -lgcov \
-    $(GLIB_LIBS)
+    $(GLIB_LIBS) \
+    -lcjson
 
 COMMON_CXXFLAGS = \
     -frtti \
@@ -55,6 +56,8 @@ stbservice_thunder_gtest_SOURCES = \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_SPDIF_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_DisplayDevice_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_VideoDecoder_Thunder.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_VideoOutput_Thunder.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Capabilities_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/gtest/thunder_plugin_stub.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/gtest/gtest_stbservice_thunder.cpp
 

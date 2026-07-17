@@ -41,12 +41,15 @@
 #include "Components_SPDIF.h"
 #include "Components_DisplayDevice.h"
 #include "Components_VideoDecoder.h"
+#include "Components_VideoOutput.h"
+#include "Capabilities.h"
 
 /* ThunderStub API (defined in thunder_plugin_stub.cpp) */
 namespace ThunderStub {
     void setBool(const std::string& method, bool success, bool value);
     void setString(const std::string& method, bool success, const std::string& value);
     void setInt(const std::string& method, bool success, int value);
+    void setRaw(const std::string& method, bool success, const std::string& response);
     void clear();
 }
 
@@ -63,9 +66,19 @@ namespace ThunderStub {
 #define THUNDER_DI_CONNECTED                  "DisplayInfo.1.connected"
 #define THUNDER_DS_GET_SUPPORTED_RESOLUTIONS  "org.rdk.DisplaySettings.getSupportedResolutions"
 #define THUNDER_DS_GET_DEFAULT_RESOLUTION     "org.rdk.DisplaySettings.getDefaultResolution"
+#define THUNDER_DS_READ_EDID                  "org.rdk.DisplaySettings.readEDID"
 
 #define THUNDER_PM_GET_POWER_STATE            "org.rdk.PowerManager.GetPowerState"
+#define THUNDER_DS_GET_DISPLAY_ASPECT_RATIO   "org.rdk.DisplaySettings.getDisplayAspectRatio"
 #define THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS "org.rdk.DisplaySettings.getSupportedVideoDisplays"
+
+#define THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS "org.rdk.DisplaySettings.getSupportedVideoCodingFormats"
+#define THUNDER_DS_GET_VIDEO_CODEC_INFO               "org.rdk.DisplaySettings.getVideoCodecInfo"
+#define THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS   "org.rdk.DisplaySettings.getSupportedSettopResolutions"
+
+#define THUNDER_DS_GET_CURRENT_RESOLUTION   "org.rdk.DisplaySettings.getCurrentResolution"
+#define THUNDER_AVO_GET_ZOOM_MODE           "org.rdk.AVOutput.getZoomMode"
+#define THUNDER_HDCP_GET_STATUS             "org.rdk.HdcpProfile.getHDCPStatus"
 
 /* Helpers */
 static HOSTIF_MsgData_t makeMsg()
@@ -573,6 +586,561 @@ TEST_F(VideoDecoderThunderTest, HandleSetMsg_NotHandled)
     HOSTIF_MsgData_t msg = makeMsg();
     EXPECT_EQ(m_iface->handleSetMsg("Enable", &msg), NOT_HANDLED);
     EXPECT_EQ(m_iface->handleSetMsg("Status", &msg), NOT_HANDLED);
+}
+
+/* getContentAspectRatio: Thunder returns "16:9" */
+TEST_F(VideoDecoderThunderTest, GetContentAspectRatio_Success)
+{
+    ThunderStub::setString(THUNDER_DS_GET_DISPLAY_ASPECT_RATIO, true, "16:9");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ContentAspectRatio", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "16:9");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getContentAspectRatio: Thunder failure → falls back to "16:9", still returns OK */
+TEST_F(VideoDecoderThunderTest, GetContentAspectRatio_ThunderFailure_FallsBackTo16_9)
+{
+    ThunderStub::setString(THUNDER_DS_GET_DISPLAY_ASPECT_RATIO, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ContentAspectRatio", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "16:9");
+}
+
+/* getX_RDKCENTRAL-COM_MPEGHPart2: returns the capabilities path string */
+TEST_F(VideoDecoderThunderTest, GetHEVC_ReturnsProfilePath)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("X_RDKCENTRAL-COM_MPEGHPart2", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+    /* Value should be the HEVC_PROFILE_PATH constant from the implementation */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("MPEGHPart2"));
+}
+
+/* ====================================================================
+ * Additional AudioOutput Tests (missing getters)
+ * ==================================================================== */
+
+/* getAudioLevel: same logic as getStatus — enabled + un-muted → "Enabled" */
+TEST_F(AudioOutputThunderTest, GetAudioLevel_Enabled)
+{
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_AUDIO_PORT, true, true);
+    ThunderStub::setBool(THUNDER_DS_GET_MUTED,             true, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("AudioLevel", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Enabled");
+}
+
+/* getAudioLevel: Thunder failure → NOK */
+TEST_F(AudioOutputThunderTest, GetAudioLevel_ThunderFailure)
+{
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_AUDIO_PORT, false, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleGetMsg("AudioLevel", &msg), NOK);
+}
+
+/* getX_COMCAST_COM_AudioOptimalLevel: hardcoded "0.000000", no Thunder call */
+TEST_F(AudioOutputThunderTest, GetAudioOptimalLevel_HardcodedZero)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("X_COMCAST-COM_AudioOptimalLevel", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "0.000000");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* ====================================================================
+ * Additional DisplayDevice Tests (missing getters)
+ * ==================================================================== */
+
+/* getSupportedResolutions: Thunder returns "720p,1080p60" → formatted CSV */
+TEST_F(DisplayDeviceThunderTest, GetSupportedResolutions_Success)
+{
+    ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_RESOLUTIONS, true, "720p,1080p60");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("SupportedResolutions", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+    /* "720p" → "1280x720p/59.94Hz", "1080p60" → "1920x1080p/59.94Hz" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("1280x720p/59.94Hz"));
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("1920x1080p/59.94Hz"));
+}
+
+/* getSupportedResolutions: Thunder failure → NOK */
+TEST_F(DisplayDeviceThunderTest, GetSupportedResolutions_ThunderFailure)
+{
+    ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_RESOLUTIONS, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleGetMsg("SupportedResolutions", &msg), NOK);
+}
+
+/* getPreferredResolution: Thunder returns "1080p60" → TR-181 format */
+TEST_F(DisplayDeviceThunderTest, GetPreferredResolution_Success)
+{
+    ThunderStub::setString(THUNDER_DS_GET_DEFAULT_RESOLUTION, true, "1080p60");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("PreferredResolution", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "1920x1080p/59.94Hz");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getPreferredResolution: Thunder failure → NOK */
+TEST_F(DisplayDeviceThunderTest, GetPreferredResolution_ThunderFailure)
+{
+    ThunderStub::setString(THUNDER_DS_GET_DEFAULT_RESOLUTION, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleGetMsg("PreferredResolution", &msg), NOK);
+}
+
+/* getX_COMCAST_COM_EDID (via "EEDID"): empty EDID → empty paramValue, returns OK */
+TEST_F(DisplayDeviceThunderTest, GetEEDID_NotConnected_EmptyValue)
+{
+    /* Stub returns empty string for EDID — display not connected */
+    ThunderStub::setString(THUNDER_DS_READ_EDID, true, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("EEDID", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramValue[0], '\0');
+}
+
+/* getX_COMCAST_COM_EDID (via "X_COMCAST-COM_EDID"): same as above */
+TEST_F(DisplayDeviceThunderTest, GetComcastEDID_NotConnected_EmptyValue)
+{
+    ThunderStub::setString(THUNDER_DS_READ_EDID, true, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("X_COMCAST-COM_EDID", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramValue[0], '\0');
+}
+
+/* ====================================================================
+ * Capabilities Tests
+ * ==================================================================== */
+
+class CapabilitiesThunderTest : public ::testing::Test
+{
+protected:
+    hostIf_STBServiceCapabilities *m_iface = nullptr;
+
+    void SetUp() override
+    {
+        ThunderStub::clear();
+        m_iface = hostIf_STBServiceCapabilities::getInstance();
+        ASSERT_NE(m_iface, nullptr);
+    }
+
+    void TearDown() override
+    {
+        hostIf_STBServiceCapabilities::closeInstance(m_iface);
+        m_iface = nullptr;
+        ThunderStub::clear();
+    }
+
+    /** Helper: build a HOSTIF_MsgData_t with paramName set to the given path. */
+    static HOSTIF_MsgData_t makeMsgWithPath(const char *paramName)
+    {
+        HOSTIF_MsgData_t m;
+        memset(&m, 0, sizeof(m));
+        strncpy(m.paramName, paramName, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+        return m;
+    }
+};
+
+/* getVideoStandards: Thunder returns JSON containing "HEVC" and "H264" */
+TEST_F(CapabilitiesThunderTest, GetVideoStandards_HEVC_and_H264)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"supportedFormats\":[\"HEVC\",\"H264\"],\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.VideoDecoder.VideoStandards");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_THAT(std::string(msg.paramValue),
+                ::testing::HasSubstr("MPEGH-Part2"));
+    EXPECT_THAT(std::string(msg.paramValue),
+                ::testing::HasSubstr("MPEG4-Part10"));
+}
+
+/* getVideoStandards: Thunder returns MPEG2 only */
+TEST_F(CapabilitiesThunderTest, GetVideoStandards_MPEG2Only)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"supportedFormats\":[\"MPEG2\"],\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.VideoDecoder.VideoStandards");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("MPEG2-Part2"));
+}
+
+/* getVideoStandards: Thunder failure → NOK */
+TEST_F(CapabilitiesThunderTest, GetVideoStandards_ThunderFailure)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.VideoDecoder.VideoStandards");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, NOK);
+}
+
+/* getNumHEVCProfileEntries: Thunder returns 1 entry */
+TEST_F(CapabilitiesThunderTest, GetNumHEVCProfileEntries_Success)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_VIDEO_CODEC_INFO, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"numberOfEntries\":1,"
+         "\"entries\":[{\"profile\":\"MAIN 10\",\"level\":5.1}],"
+         "\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities."
+        "VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevelNumberOfEntries");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_UnsignedIntType);
+    EXPECT_EQ(*reinterpret_cast<unsigned int *>(msg.paramValue), 1u);
+}
+
+/* getNumHEVCProfileEntries: Thunder failure → NOK */
+TEST_F(CapabilitiesThunderTest, GetNumHEVCProfileEntries_ThunderFailure)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_VIDEO_CODEC_INFO, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities."
+        "VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevelNumberOfEntries");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, NOK);
+}
+
+/* getHEVCProfileDetails: reads Profile name for ProfileLevel.1.Profile */
+TEST_F(CapabilitiesThunderTest, GetHEVCProfileDetails_ProfileName)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_VIDEO_CODEC_INFO, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"numberOfEntries\":1,"
+         "\"entries\":[{\"profile\":\"MAIN 10\",\"level\":5.1}],"
+         "\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities."
+        "VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Profile");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "MAIN 10");
+}
+
+/* getHEVCProfileDetails: reads Level for ProfileLevel.1.Level */
+TEST_F(CapabilitiesThunderTest, GetHEVCProfileDetails_Level)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_VIDEO_CODEC_INFO, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"numberOfEntries\":1,"
+         "\"entries\":[{\"profile\":\"MAIN 10\",\"level\":5.1}],"
+         "\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities."
+        "VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1.Level");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+    /* Level is formatted as "5.1" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("5.1"));
+}
+
+/* getSupportedResolutions (HDMI): Thunder returns comma-delimited codes */
+TEST_F(CapabilitiesThunderTest, GetSupportedResolutions_Success)
+{
+    ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS, true, "720p,1080p60");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.HDMI.SupportedResolutions");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("720p"));
+}
+
+/* getSupportedResolutions (HDMI): Thunder failure → NOK */
+TEST_F(CapabilitiesThunderTest, GetSupportedResolutions_ThunderFailure)
+{
+    ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.HDMI.SupportedResolutions");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, NOK);
+}
+
+/* handleSetMsg: always NOT_HANDLED */
+TEST_F(CapabilitiesThunderTest, HandleSetMsg_AlwaysNotHandled)
+{
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.VideoDecoder.VideoStandards");
+    EXPECT_EQ(m_iface->handleSetMsg(&msg), NOT_HANDLED);
+}
+
+/* Unknown path under Capabilities → NOK (invalid parameter name) */
+TEST_F(CapabilitiesThunderTest, HandleGetMsg_UnknownPath_NOK)
+{
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.VideoDecoder.UnknownParam");
+    int rc = m_iface->handleGetMsg(&msg);
+    EXPECT_EQ(rc, NOK);
+}
+
+/* ====================================================================
+ * VideoOutput Tests
+ * ==================================================================== */
+
+class VideoOutputThunderTest : public ::testing::Test
+{
+protected:
+    hostIf_STBServiceVideoOutput *m_iface = nullptr;
+
+    void SetUp() override
+    {
+        ThunderStub::clear();
+        hostIf_STBServiceVideoOutput::closeAllInstances();
+
+        /* buildPortNameHash() queries getSupportedVideoDisplays.
+         * Return "HDMI0" so one instance (dev_id=1, portName="HDMI0") is created. */
+        ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, true, "HDMI0");
+
+        m_iface = hostIf_STBServiceVideoOutput::getInstance(1);
+        ASSERT_NE(m_iface, nullptr) << "getInstance returned nullptr";
+    }
+
+    void TearDown() override
+    {
+        hostIf_STBServiceVideoOutput::closeAllInstances();
+        ThunderStub::clear();
+    }
+};
+
+/* getStatus: DisplayInfo reports connected → "Enabled" */
+TEST_F(VideoOutputThunderTest, GetStatus_Connected_Enabled)
+{
+    ThunderStub::setBool(THUNDER_DI_CONNECTED, true, true);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Status", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Enabled");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getStatus: DisplayInfo reports not connected → "Disabled" */
+TEST_F(VideoOutputThunderTest, GetStatus_NotConnected_Disabled)
+{
+    ThunderStub::setBool(THUNDER_DI_CONNECTED, true, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Status", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Disabled");
+}
+
+/* getStatus: Thunder failure → connected=false → "Disabled", still OK */
+TEST_F(VideoOutputThunderTest, GetStatus_ThunderFailure_Disabled)
+{
+    ThunderStub::setBool(THUNDER_DI_CONNECTED, false, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Status", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Disabled");
+}
+
+/* getEnable: always returns OK with boolean true */
+TEST_F(VideoOutputThunderTest, GetEnable_AlwaysTrue)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Enable", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_BooleanType);
+    EXPECT_EQ(msg.paramValue[0], '1');
+}
+
+/* getDisplayFormat: Thunder returns current resolution string */
+TEST_F(VideoOutputThunderTest, GetDisplayFormat_Success)
+{
+    ThunderStub::setString(THUNDER_DS_GET_CURRENT_RESOLUTION, true, "1080p60");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("DisplayFormat", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "1080p60");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getDisplayFormat: Thunder failure → NOK */
+TEST_F(VideoOutputThunderTest, GetDisplayFormat_ThunderFailure)
+{
+    ThunderStub::setString(THUNDER_DS_GET_CURRENT_RESOLUTION, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleGetMsg("DisplayFormat", &msg), NOK);
+}
+
+/* getVideoFormat: Thunder returns aspect ratio string */
+TEST_F(VideoOutputThunderTest, GetVideoFormat_Success)
+{
+    ThunderStub::setString(THUNDER_DS_GET_DISPLAY_ASPECT_RATIO, true, "16:9");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("VideoFormat", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "16:9");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getVideoFormat: Thunder failure → falls back to "Unknown", still OK */
+TEST_F(VideoOutputThunderTest, GetVideoFormat_ThunderFailure_FallsBackToUnknown)
+{
+    ThunderStub::setString(THUNDER_DS_GET_DISPLAY_ASPECT_RATIO, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("VideoFormat", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Unknown");
+}
+
+/* getAspectRatioBehaviour: Thunder returns zoom mode */
+TEST_F(VideoOutputThunderTest, GetAspectRatioBehaviour_Success)
+{
+    ThunderStub::setString(THUNDER_AVO_GET_ZOOM_MODE, true, "FULL");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("AspectRatioBehaviour", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "FULL");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getAspectRatioBehaviour: Thunder failure → falls back to "None", still OK */
+TEST_F(VideoOutputThunderTest, GetAspectRatioBehaviour_ThunderFailure_FallsBackToNone)
+{
+    ThunderStub::setString(THUNDER_AVO_GET_ZOOM_MODE, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("AspectRatioBehaviour", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "None");
+}
+
+/* getHDCP: HDCP compliant → boolean true */
+TEST_F(VideoOutputThunderTest, GetHDCP_Compliant)
+{
+    ThunderStub::setBool(THUNDER_HDCP_GET_STATUS, true, true);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("HDCP", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_BooleanType);
+    EXPECT_EQ(msg.paramValue[0], '1');
+}
+
+/* getHDCP: HDCP not compliant → boolean false */
+TEST_F(VideoOutputThunderTest, GetHDCP_NotCompliant)
+{
+    ThunderStub::setBool(THUNDER_HDCP_GET_STATUS, true, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("HDCP", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramValue[0], '0');
+}
+
+/* getHDCP: Thunder failure → defaults to not-compliant (false), still OK */
+TEST_F(VideoOutputThunderTest, GetHDCP_ThunderFailure_DefaultsToFalse)
+{
+    ThunderStub::setBool(THUNDER_HDCP_GET_STATUS, false, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("HDCP", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramValue[0], '0');
+}
+
+/* getName: returns the port name set at construction */
+TEST_F(VideoOutputThunderTest, GetName_ReturnsPortName)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Name", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "HDMI0");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* handleSetMsg: always NOT_HANDLED */
+TEST_F(VideoOutputThunderTest, HandleSetMsg_AlwaysNotHandled)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleSetMsg("Status",               &msg), NOT_HANDLED);
+    EXPECT_EQ(m_iface->handleSetMsg("Enable",               &msg), NOT_HANDLED);
+    EXPECT_EQ(m_iface->handleSetMsg("DisplayFormat",        &msg), NOT_HANDLED);
+    EXPECT_EQ(m_iface->handleSetMsg("AspectRatioBehaviour", &msg), NOT_HANDLED);
+    EXPECT_EQ(m_iface->handleSetMsg("HDCP",                 &msg), NOT_HANDLED);
+}
+
+/* handleGetMsg: unknown parameter → NOT_HANDLED */
+TEST_F(VideoOutputThunderTest, HandleGetMsg_UnknownParam_NotHandled)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleGetMsg("X_UnknownParam", &msg), NOT_HANDLED);
 }
 
 /* ====================================================================
