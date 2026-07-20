@@ -41,6 +41,7 @@
 #include <cmath>
 #include <cstring>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/sysinfo.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -3870,12 +3871,23 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
     if (enable)
     {
         /* Create flag file watched by librdk_otlp.so via inotify in all processes */
-        FILE *fp = fopen(RDK_TRACING_FLAG_FILE, "w");
-        if (fp)
+        int fd = open(RDK_TRACING_FLAG_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+        if (fd >= 0)
         {
-            fclose(fp);
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                    "[%s] Created tracing flag file %s\n", __FUNCTION__, RDK_TRACING_FLAG_FILE);
+            FILE *fp = fdopen(fd, "w");
+            if (fp)
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                        "[%s] Created tracing flag file %s\n", __FUNCTION__, RDK_TRACING_FLAG_FILE);
+            }
+            else
+            {
+                close(fd);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Failed to create tracing flag file %s: %s\n",
+                        __FUNCTION__, RDK_TRACING_FLAG_FILE, strerror(errno));
+            }
         }
         else
         {
