@@ -18,7 +18,7 @@
 ####################################################################################
 
 
-Feature: Device.IP Interface, Address, Stats and ActivePort GET Handlers
+Feature: Device.IP Interface, Address, Stats and ActivePort GET/SET Handlers
 
   Background:
     Given the tr69hostif daemon is running and initialized
@@ -32,6 +32,26 @@ Feature: Device.IP Interface, Address, Stats and ActivePort GET Handlers
       | parameter                             |
       | Device.IP.InterfaceNumberOfEntries    |
       | Device.IP.ActivePortNumberOfEntries   |
+
+  Scenario: SET and GET Device.IP.Interface.1.Enable
+    When I SET "Device.IP.Interface.1.Enable" to "true" as boolean via rbus
+    And I GET "Device.IP.Interface.1.Enable" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "true"
+
+  Scenario: SET and GET Device.IP.Interface.1.IPv4Enable
+    When I SET "Device.IP.Interface.1.IPv4Enable" to "true" as boolean via rbus
+    And I GET "Device.IP.Interface.1.IPv4Enable" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "true"
+
+  Scenario: SET Device.IP.Interface.1.IPv6Enable returns error
+    When I SET "Device.IP.Interface.1.IPv6Enable" to "true" as boolean via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.IP.Interface.1.ULAEnable returns error
+    When I SET "Device.IP.Interface.1.ULAEnable" to "true" as boolean via rbus
+    Then the rbus response should contain an error
 
   Scenario Outline: GET Device.IP.Interface.1 core parameters with expected values
     When I GET "<parameter>" via rbus
@@ -48,9 +68,41 @@ Feature: Device.IP Interface, Address, Stats and ActivePort GET Handlers
       | Device.IP.Interface.1.Type        | Loopback  |
       | Device.IP.Interface.1.Loopback    | true      |
 
+  Scenario: GET Device.IP.Interface.1.ULAEnable returns error
+    When I GET "Device.IP.Interface.1.ULAEnable" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.IP.Interface.1.Alias returns error
+    When I SET "Device.IP.Interface.1.Alias" to "ip_interface_alias" as string via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.IP.Interface.1.Alias returns error
+    When I GET "Device.IP.Interface.1.Alias" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.IP.Interface.1.LastChange returns error
+    When I GET "Device.IP.Interface.1.LastChange" via rbus
+    Then the rbus response should contain an error
+
   Scenario: GET Device.IP.Interface.1.LowerLayers
     When I GET "Device.IP.Interface.1.LowerLayers" via rbus
     Then the rbus response should not contain an error
+
+  Scenario: SET Device.IP.Interface.1.LowerLayers returns error
+    When I SET "Device.IP.Interface.1.LowerLayers" to "eth0" as string via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.IP.Interface.1.Router returns error
+    When I SET "Device.IP.Interface.1.Router" to "true" as boolean via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.IP.Interface.1.Router returns error
+    When I GET "Device.IP.Interface.1.Router" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.IP.Interface.1.Loopback returns error
+    When I SET "Device.IP.Interface.1.Loopback" to "true" as boolean via rbus
+    Then the rbus response should contain an error
 
   Scenario Outline: GET Device.IP.Interface.1.IPv4Address.1 parameters with expected values
     When I GET "<parameter>" via rbus
@@ -70,6 +122,36 @@ Feature: Device.IP Interface, Address, Stats and ActivePort GET Handlers
     When I GET "Device.IP.Interface.1.IPv4AddressNumberOfEntries" via rbus
     Then the rbus response should not contain an error
 
+  Scenario: GET Device.IP.Interface.1.IPv6AddressNumberOfEntries
+    When I GET "Device.IP.Interface.1.IPv6AddressNumberOfEntries" via rbus
+    Then the rbus response should not contain an error
+
+  Scenario: SET and GET Device.IP.Interface.1.IPv4Address.1.Enable
+    When I SET "Device.IP.Interface.1.IPv4Address.1.Enable" to "true" as boolean via rbus
+    And I GET "Device.IP.Interface.1.IPv4Address.1.Enable" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "true"
+
+  Scenario: SET Device.IP.Interface.1.IPv4Address.1.Alias returns error
+    When I SET "Device.IP.Interface.1.IPv4Address.1.Alias" to "ipv4_alias" as string via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.IP.Interface.1.IPv4Address.1.Alias returns error
+    When I GET "Device.IP.Interface.1.IPv4Address.1.Alias" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET and GET Device.IP.Interface.1.IPv4Address.1.IPAddress
+    When I SET "Device.IP.Interface.1.IPv4Address.1.IPAddress" to "127.0.0.1" as string via rbus
+    And I GET "Device.IP.Interface.1.IPv4Address.1.IPAddress" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "127.0.0.1"
+
+  Scenario: SET and GET Device.IP.Interface.1.IPv4Address.1.SubnetMask
+    When I SET "Device.IP.Interface.1.IPv4Address.1.SubnetMask" to "255.0.0.0" as string via rbus
+    And I GET "Device.IP.Interface.1.IPv4Address.1.SubnetMask" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "255.0.0.0"
+
   Scenario Outline: GET Device.IP.Interface.1.IPv6Address.1 key parameters
     When I GET "<parameter>" via rbus
     Then the rbus response should not contain an error
@@ -82,6 +164,14 @@ Feature: Device.IP Interface, Address, Stats and ActivePort GET Handlers
       | Device.IP.Interface.1.IPv6Address.1.IPAddress  | ::1        |
       | Device.IP.Interface.1.IPv6Address.1.Origin     | WellKnown  |
       | Device.IP.Interface.1.IPv6Address.1.Anycast    | false      |
+
+  Scenario: SET Device.IP.Interface.1.IPv6Address.1.Enable returns error
+    When I SET "Device.IP.Interface.1.IPv6Address.1.Enable" to "true" as boolean via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.IP.Interface.1.IPv6Address.1.IPAddress returns error
+    When I SET "Device.IP.Interface.1.IPv6Address.1.IPAddress" to "::1" as string via rbus
+    Then the rbus response should contain an error
 
   Scenario Outline: GET Device.IP.Interface.1.IPv6Address.1 additional parameters
     When I GET "<parameter>" via rbus
@@ -117,6 +207,7 @@ Feature: Device.IP Interface, Address, Stats and ActivePort GET Handlers
       | Device.IP.Interface.1.Stats.BytesSent                       |
       | Device.IP.Interface.1.Stats.BytesReceived                   |
       | Device.IP.Interface.1.Stats.PacketsSent                     |
+      | Device.IP.Interface.1.Stats.PacketsReceived                 |
       | Device.IP.Interface.1.Stats.ErrorsSent                      |
       | Device.IP.Interface.1.Stats.ErrorsReceived                  |
       | Device.IP.Interface.1.Stats.UnicastPacketsSent              |
@@ -142,4 +233,8 @@ Feature: Device.IP Interface, Address, Stats and ActivePort GET Handlers
 
   Scenario: GET Device.IP.ActivePort.1.LocalPort
     When I GET "Device.IP.ActivePort.1.LocalPort" via rbus
+    Then the rbus response should not contain an error
+
+  Scenario: GET Device.IP.ActivePort.1.Status
+    When I GET "Device.IP.ActivePort.1.Status" via rbus
     Then the rbus response should not contain an error

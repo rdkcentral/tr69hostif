@@ -91,3 +91,17 @@ def test_RDKRemoteDebugger_WebCfgData_Set_Handler():
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
     assert RBUS_SUCCESS_STRING in rstdout
 
+
+@pytest.mark.run(order=472)
+def test_X_RDK_WebPA_Server_URL_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.X_RDK_WebPA_Server.URL"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=473)
+def test_X_RDK_WebPA_TokenServer_URL_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.X_RDK_WebPA_TokenServer.URL"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+

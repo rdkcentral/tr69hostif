@@ -46,6 +46,14 @@ def test_Ethernet_InterfaceName_Get_Handler():
     assert IF_NAME in rstdout
 
 @pytest.mark.run(order=105)
+def test_Ethernet_Enable_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Enable"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+@pytest.mark.run(order=106)
 def test_Ethernet_Enable_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Enable"
@@ -55,7 +63,23 @@ def test_Ethernet_Enable_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert ENABLE_MSG in rstdout
 
-@pytest.mark.run(order=106)
+@pytest.mark.run(order=107)
+def test_Ethernet_Alias_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Alias"
+    VALUE = "eth0_alias"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=108)
+def test_Ethernet_Alias_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Alias"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=109)
 def test_Ethernet_Status_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Status"
@@ -65,14 +89,22 @@ def test_Ethernet_Status_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert STATUS_MSG in rstdout
 
-@pytest.mark.run(order=107)
+@pytest.mark.run(order=110)
 def test_Ethernet_LastChange_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.LastChange"
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING in rstdout
 
-@pytest.mark.run(order=108)
+@pytest.mark.run(order=111)
+def test_Ethernet_LowerLayers_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.LowerLayers"
+    VALUE = "eth0"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=112)
 def test_Ethernet_LowerLayers_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.LowerLayers"
@@ -80,7 +112,7 @@ def test_Ethernet_LowerLayers_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING in rstdout
 
-@pytest.mark.run(order=109)
+@pytest.mark.run(order=113)
 def test_Ethernet_Upstream_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Upstream"
@@ -90,7 +122,7 @@ def test_Ethernet_Upstream_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert STATE_MSG in rstdout
 
-@pytest.mark.run(order=110)
+@pytest.mark.run(order=114)
 def test_Ethernet_MACAddr_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.Ethernet.Interface.1.MACAddress"
@@ -98,7 +130,15 @@ def test_Ethernet_MACAddr_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=111)
+@pytest.mark.run(order=115)
+def test_Ethernet_MAXBitRate_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.MaxBitRate"
+    VALUE = "1000"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "int", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+@pytest.mark.run(order=116)
 def test_Ethernet_MAXBitRate_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.Ethernet.Interface.1.MaxBitRate"
@@ -106,7 +146,15 @@ def test_Ethernet_MAXBitRate_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=112)
+@pytest.mark.run(order=117)
+def test_Ethernet_DuplexMode_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.DuplexMode"
+    VALUE = "full"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=118)
 def test_Ethernet_DuplexMode_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.Ethernet.Interface.1.DuplexMode"
@@ -116,7 +164,7 @@ def test_Ethernet_DuplexMode_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert DUPLEX_MODE_MSG in rstdout
 
-@pytest.mark.run(order=113)
+@pytest.mark.run(order=119)
 def test_Ethernet_BytesSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.Ethernet.Interface.1.Stats.BytesSent"
@@ -124,7 +172,7 @@ def test_Ethernet_BytesSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=114)
+@pytest.mark.run(order=120)
 def test_Ethernet_BytesReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.Ethernet.Interface.1.Stats.BytesReceived"
@@ -132,7 +180,7 @@ def test_Ethernet_BytesReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=115)
+@pytest.mark.run(order=121)
 def test_Ethernet_PacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME ="Device.Ethernet.Interface.1.Stats.PacketsSent"
@@ -140,7 +188,7 @@ def test_Ethernet_PacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=116)
+@pytest.mark.run(order=122)
 def test_Ethernet_PacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.PacketsReceived"
@@ -148,7 +196,7 @@ def test_Ethernet_PacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=117)
+@pytest.mark.run(order=123)
 def test_Ethernet_ErrorsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.ErrorsSent"
@@ -156,7 +204,7 @@ def test_Ethernet_ErrorsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=118)
+@pytest.mark.run(order=124)
 def test_Ethernet_ErrorsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.ErrorsReceived"
@@ -164,7 +212,7 @@ def test_Ethernet_ErrorsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=119)
+@pytest.mark.run(order=125)
 def test_Ethernet_UnicastPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.UnicastPacketsSent"
@@ -172,7 +220,7 @@ def test_Ethernet_UnicastPacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=120)
+@pytest.mark.run(order=126)
 def test_Ethernet_UnicastPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.UnicastPacketsReceived"
@@ -180,7 +228,7 @@ def test_Ethernet_UnicastPacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=121)
+@pytest.mark.run(order=481)
 def test_Ethernet_DiscardPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.DiscardPacketsSent"
@@ -188,7 +236,7 @@ def test_Ethernet_DiscardPacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=122)
+@pytest.mark.run(order=482)
 def test_Ethernet_DiscardPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.DiscardPacketsReceived"
@@ -196,15 +244,15 @@ def test_Ethernet_DiscardPacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=123)
-def test_Etherne_MulticastPacketsSent_Get_Handler():
+@pytest.mark.run(order=483)
+def test_Ethernet_MulticastPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.MulticastPacketsSent"
     # Force reload config fetch from xconf
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=124)
+@pytest.mark.run(order=484)
 def test_Ethernet_MulticastPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.MulticastPacketsReceived"
@@ -212,7 +260,7 @@ def test_Ethernet_MulticastPacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=125)
+@pytest.mark.run(order=485)
 def test_Ethernet_BroadcastPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.BroadcastPacketsSent"
@@ -220,7 +268,7 @@ def test_Ethernet_BroadcastPacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=126)
+@pytest.mark.run(order=486)
 def test_Ethernet_BroadcastPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Ethernet.Interface.1.Stats.BroadcastPacketsReceived"

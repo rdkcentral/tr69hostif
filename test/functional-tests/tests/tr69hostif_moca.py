@@ -396,3 +396,73 @@ def test_MoCA_Interface_LowerLayers_Set_Handler():
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", "lower")
     assert RBUS_SET_EXCEPTION_STRING in rstdout
 
+
+@pytest.mark.run(order=513)
+def test_MoCA_Interface_PreferredNC_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.PreferredNC"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", "true")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=514)
+def test_MoCA_Interface_PrivacyEnabledSetting_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.PrivacyEnabledSetting"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", "true")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=515)
+def test_MoCA_Interface_FreqCurrentMaskSetting_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.FreqCurrentMaskSetting"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", "0")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=516)
+def test_MoCA_Interface_PowerCntlPhyTarget_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.PowerCntlPhyTarget"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "int32", "0")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=517)
+def test_MoCA_Interface_KeyPassphrase_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.KeyPassphrase"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=518)
+def test_MoCA_Interface_TxPowerLimit_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.TxPowerLimit"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=519)
+def test_MoCA_Interface_BeaconPowerLimit_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.BeaconPowerLimit"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=520)
+def test_MoCA_Interface_KeyPassphrase_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.KeyPassphrase"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", "123456")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=521)
+def test_MoCA_Interface_TxPowerLimit_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.TxPowerLimit"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "int32", "0")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=522)
+def test_MoCA_Interface_BeaconPowerLimit_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.MoCA.Interface.1.BeaconPowerLimit"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "int32", "0")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+

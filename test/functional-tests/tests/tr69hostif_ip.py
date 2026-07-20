@@ -25,7 +25,7 @@ from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=142)
+@pytest.mark.run(order=487)
 def test_IP_InterfaceNumberOfEntries_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.InterfaceNumberOfEntries"
@@ -33,7 +33,7 @@ def test_IP_InterfaceNumberOfEntries_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=143)
+@pytest.mark.run(order=488)
 def test_IP_ActivePortNumberOfEntries_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.ActivePortNumberOfEntries"
@@ -41,7 +41,15 @@ def test_IP_ActivePortNumberOfEntries_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=144)
+@pytest.mark.run(order=489)
+def test_IP_Enable_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.Enable"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+@pytest.mark.run(order=490)
 def test_IP_Enable_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Enable"
@@ -51,7 +59,15 @@ def test_IP_Enable_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=145)
+@pytest.mark.run(order=146)
+def test_IP_IPv4Enable_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Enable"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+@pytest.mark.run(order=147)
 def test_IP_IPv4Enable_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Enable"
@@ -62,7 +78,15 @@ def test_IP_IPv4Enable_Get_Handler():
     assert VALUE in rstdout
 
 
-@pytest.mark.run(order=146)
+@pytest.mark.run(order=148)
+def test_IP_IPv6Enable_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Enable"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=149)
 def test_IP_IPv6Enable_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Enable"
@@ -72,16 +96,40 @@ def test_IP_IPv6Enable_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=147)
+@pytest.mark.run(order=150)
+def test_IP_ULAEnable_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.ULAEnable"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=151)
 def test_IP_ULAEnable_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.ULAEnable"
     VALUE = "true"
     # Force reload config fetch from xconf
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
-    assert RBUS_EXCEPTION_STRING in rstdout    
+    assert RBUS_EXCEPTION_STRING in rstdout
   
-@pytest.mark.run(order=148)
+@pytest.mark.run(order=152)
+def test_IP_Alias_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.Alias"
+    VALUE = "ip_interface_alias"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=153)
+def test_IP_Alias_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.Alias"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=154)
 def test_IP_Status_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Status"
@@ -91,7 +139,7 @@ def test_IP_Status_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=149)
+@pytest.mark.run(order=155)
 def test_IP_Name_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Name"
@@ -101,7 +149,23 @@ def test_IP_Name_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=150)
+@pytest.mark.run(order=156)
+def test_IP_LastChange_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.LastChange"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=157)
+def test_IP_LowerLayers_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.LowerLayers"
+    VALUE = "eth0"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=158)
 def test_IP_LowerLayers_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.LowerLayers"
@@ -109,7 +173,7 @@ def test_IP_LowerLayers_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=151)
+@pytest.mark.run(order=159)
 def test_IP_Type_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Type"
@@ -120,7 +184,33 @@ def test_IP_Type_Get_Handler():
     assert VALUE in rstdout
 
 
-@pytest.mark.run(order=152)
+@pytest.mark.run(order=160)
+def test_IP_Router_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.Router"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=161)
+def test_IP_Router_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.Router"
+    VALUE = "true"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=162)
+def test_IP_Loopback_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.Loopback"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=163)
 def test_IP_Loopback_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Loopback"
@@ -130,7 +220,7 @@ def test_IP_Loopback_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=153)
+@pytest.mark.run(order=164)
 def test_IP_IPv4AddressNumberOfEntries_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4AddressNumberOfEntries"
@@ -138,7 +228,23 @@ def test_IP_IPv4AddressNumberOfEntries_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=154)
+@pytest.mark.run(order=165)
+def test_IP_IPv6AddressNumberOfEntries_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6AddressNumberOfEntries"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+
+@pytest.mark.run(order=166)
+def test_IP_IPv4Address_Enable_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.Enable"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+@pytest.mark.run(order=167)
 def test_IP_IPv4Address_Enable_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.Enable"
@@ -148,7 +254,7 @@ def test_IP_IPv4Address_Enable_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=155)
+@pytest.mark.run(order=168)
 def test_IP_IPv4Address_Status_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.Status"
@@ -158,7 +264,31 @@ def test_IP_IPv4Address_Status_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
     
-@pytest.mark.run(order=156)
+@pytest.mark.run(order=169)
+def test_IP_IPv4Address_Alias_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.Alias"
+    VALUE = "ipv4_alias"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=170)
+def test_IP_IPv4Address_Alias_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.Alias"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=171)
+def test_IP_IPv4Address_IPAddress_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.IPAddress"
+    VALUE = "127.0.0.1"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+@pytest.mark.run(order=172)
 def test_IP_IPv4Address_IPAddress_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.IPAddress"
@@ -169,7 +299,15 @@ def test_IP_IPv4Address_IPAddress_Get_Handler():
     assert VALUE in rstdout
 
 
-@pytest.mark.run(order=157)
+@pytest.mark.run(order=173)
+def test_IP_IPv4Address_SubnetMask_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.SubnetMask"
+    VALUE = "255.0.0.0"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+@pytest.mark.run(order=174)
 def test_IP_IPAddress_SubnetMask_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.SubnetMask"
@@ -180,7 +318,7 @@ def test_IP_IPAddress_SubnetMask_Get_Handler():
     assert VALUE in rstdout
 
 
-@pytest.mark.run(order=158)
+@pytest.mark.run(order=175)
 def test_IP_IPAddress_AddressingType_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv4Address.1.AddressingType"
@@ -190,7 +328,15 @@ def test_IP_IPAddress_AddressingType_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=159)
+@pytest.mark.run(order=176)
+def test_IP_IPv6Address_Enable_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.Enable"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=177)
 def test_IP_IPv6Address_Enable_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.Enable"
@@ -200,7 +346,7 @@ def test_IP_IPv6Address_Enable_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=160)
+@pytest.mark.run(order=178)
 def test_IP_IPv6Address_Status_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.Status"
@@ -210,7 +356,15 @@ def test_IP_IPv6Address_Status_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=161)
+@pytest.mark.run(order=179)
+def test_IP_IPv6Address_IPv6Address_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.IPAddress"
+    VALUE = "::1"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=180)
 def test_IP_IPv6Address_IPv6Address_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.IPAddress"
@@ -220,7 +374,7 @@ def test_IP_IPv6Address_IPv6Address_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=162)
+@pytest.mark.run(order=181)
 def test_IP_IPv6Address_Prefix_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.Prefix"
@@ -228,7 +382,7 @@ def test_IP_IPv6Address_Prefix_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=163)
+@pytest.mark.run(order=182)
 def test_IP_IPv6Address_Origin_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.Origin"
@@ -238,7 +392,7 @@ def test_IP_IPv6Address_Origin_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=164)
+@pytest.mark.run(order=183)
 def test_IP_IPv6Address_Anycast_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.Anycast"
@@ -249,7 +403,7 @@ def test_IP_IPv6Address_Anycast_Get_Handler():
     assert VALUE in rstdout
 
 
-@pytest.mark.run(order=165)
+@pytest.mark.run(order=184)
 def test_IP_IPv6Address_PreferredLifetime_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.PreferredLifetime"
@@ -257,7 +411,7 @@ def test_IP_IPv6Address_PreferredLifetime_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=166)
+@pytest.mark.run(order=185)
 def test_IP_IPv6Address_ValidLifetime_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Address.1.ValidLifetime"
@@ -266,7 +420,7 @@ def test_IP_IPv6Address_ValidLifetime_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
 
 
-@pytest.mark.run(order=167)
+@pytest.mark.run(order=186)
 def test_IP_IPv6Prefix_Autonomous_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Prefix.1.Autonomous"
@@ -276,7 +430,7 @@ def test_IP_IPv6Prefix_Autonomous_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=168)
+@pytest.mark.run(order=187)
 def test_IP_IPv6Prefix_StaticType_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Prefix.1.StaticType"
@@ -286,7 +440,7 @@ def test_IP_IPv6Prefix_StaticType_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=169)
+@pytest.mark.run(order=188)
 def test_IP_IPv6Prefix_PrefixStatus_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Prefix.1.PrefixStatus"
@@ -296,7 +450,7 @@ def test_IP_IPv6Prefix_PrefixStatus_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
  
-@pytest.mark.run(order=170)
+@pytest.mark.run(order=189)
 def test_IP_IPv6Prefix_ValidLifetime_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.IPv6Prefix.1.ValidLifetime"
@@ -304,7 +458,7 @@ def test_IP_IPv6Prefix_ValidLifetime_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=171)
+@pytest.mark.run(order=190)
 def test_IP_Stats_BytesSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.BytesSent"
@@ -313,7 +467,7 @@ def test_IP_Stats_BytesSent_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
 
 
-@pytest.mark.run(order=172)
+@pytest.mark.run(order=191)
 def test_IP_Stats_BytesReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.BytesReceived"
@@ -321,7 +475,7 @@ def test_IP_Stats_BytesReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=173)
+@pytest.mark.run(order=192)
 def test_IP_Stats_PacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.PacketsSent"
@@ -329,7 +483,15 @@ def test_IP_Stats_PacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=174)
+@pytest.mark.run(order=193)
+def test_IP_Stats_PacketsReceived_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.PacketsReceived"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+
+@pytest.mark.run(order=194)
 def test_IP_Stats_ErrorsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.ErrorsSent"
@@ -337,7 +499,7 @@ def test_IP_Stats_ErrorsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
     
-@pytest.mark.run(order=175)
+@pytest.mark.run(order=195)
 def test_IP_Stats_ErrorsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.ErrorsReceived"
@@ -345,7 +507,7 @@ def test_IP_Stats_ErrorsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=176)
+@pytest.mark.run(order=196)
 def test_IP_Stats_UnicastPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.UnicastPacketsSent"
@@ -353,7 +515,7 @@ def test_IP_Stats_UnicastPacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=177)
+@pytest.mark.run(order=197)
 def test_IP_Stats_UnicastPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.UnicastPacketsReceived"
@@ -361,7 +523,7 @@ def test_IP_Stats_UnicastPacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=178)
+@pytest.mark.run(order=198)
 def test_IP_Stats_DiscardPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.DiscardPacketsSent"
@@ -370,7 +532,7 @@ def test_IP_Stats_DiscardPacketsSent_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     
 
-@pytest.mark.run(order=179)
+@pytest.mark.run(order=199)
 def test_IP_Stats_DiscardPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.DiscardPacketsReceived"
@@ -378,7 +540,7 @@ def test_IP_Stats_DiscardPacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=180)
+@pytest.mark.run(order=200)
 def test_IP_Stats_MulticastPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.MulticastPacketsSent"
@@ -386,7 +548,7 @@ def test_IP_Stats_MulticastPacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=181)
+@pytest.mark.run(order=201)
 def test_IP_Stats_MulticastPacketsReceived_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.MulticastPacketsReceived"
@@ -394,7 +556,7 @@ def test_IP_Stats_MulticastPacketsReceived_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=182)
+@pytest.mark.run(order=202)
 def test_IP_Stats_BroadcastPacketsSent_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.BroadcastPacketsSent"
@@ -402,7 +564,7 @@ def test_IP_Stats_BroadcastPacketsSent_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=183)
+@pytest.mark.run(order=203)
 def test_IP_Stats_BroadcastPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.BroadcastPacketsReceived"
@@ -410,7 +572,7 @@ def test_IP_Stats_BroadcastPacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
  
-@pytest.mark.run(order=184)
+@pytest.mark.run(order=204)
 def test_IP_Stats_UnknownProtoPacketsReceived_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.Interface.1.Stats.UnknownProtoPacketsReceived"
@@ -418,7 +580,7 @@ def test_IP_Stats_UnknownProtoPacketsReceived_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=185)
+@pytest.mark.run(order=205)
 def test_IP_ActivePort_LocalIPAddress_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.ActivePort.1.LocalIPAddress"
@@ -428,7 +590,7 @@ def test_IP_ActivePort_LocalIPAddress_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=186)
+@pytest.mark.run(order=206)
 def test_IP_ActivePort_LocalPort_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.ActivePort.1.LocalPort"
@@ -437,7 +599,7 @@ def test_IP_ActivePort_LocalPort_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
 
 
-@pytest.mark.run(order=187)
+@pytest.mark.run(order=207)
 def test_IP_ActivePort_RemoteIPAddress_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.ActivePort.1.RemoteIPAddress"
@@ -447,7 +609,7 @@ def test_IP_ActivePort_RemoteIPAddress_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=188)
+@pytest.mark.run(order=208)
 def test_IP_ActivePort_RemotePort_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.IP.ActivePort.1.RemotePort"
@@ -456,6 +618,14 @@ def test_IP_ActivePort_RemotePort_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
+
+@pytest.mark.run(order=209)
+def test_IP_ActivePort_Status_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.IP.ActivePort.1.Status"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
     
 
  

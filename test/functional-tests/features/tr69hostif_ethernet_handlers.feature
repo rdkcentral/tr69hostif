@@ -20,7 +20,7 @@
 # Source: ../tests/tr69hostif_ethernet_handlers.py
 # Feature: tr69hostif_ethernet_handlers.feature
 
-Feature: Ethernet Interface and Stats GET Handler Validation
+Feature: Ethernet Interface and Stats GET/SET Handler Validation
 
   Background:
     Given the tr69hostif daemon is running and initialized
@@ -36,10 +36,22 @@ Feature: Ethernet Interface and Stats GET Handler Validation
     Then the rbus response should not contain an error
     And the rbus response should contain "eth0"
 
+  Scenario: SET Device.Ethernet.Interface.1.Enable
+    When I SET "Device.Ethernet.Interface.1.Enable" to "true" as boolean via rbus
+    Then the rbus response should not contain an error
+
   Scenario: GET Device.Ethernet.Interface.1.Enable
     When I GET "Device.Ethernet.Interface.1.Enable" via rbus
     Then the rbus response should not contain an error
     And the rbus response should contain "true"
+
+  Scenario: SET Device.Ethernet.Interface.1.Alias returns error
+    When I SET "Device.Ethernet.Interface.1.Alias" to "eth0_alias" as string via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.Ethernet.Interface.1.Alias returns error
+    When I GET "Device.Ethernet.Interface.1.Alias" via rbus
+    Then the rbus response should contain an error
 
   Scenario: GET Device.Ethernet.Interface.1.Status
     When I GET "Device.Ethernet.Interface.1.Status" via rbus
@@ -48,6 +60,10 @@ Feature: Ethernet Interface and Stats GET Handler Validation
 
   Scenario: GET Device.Ethernet.Interface.1.LastChange returns error
     When I GET "Device.Ethernet.Interface.1.LastChange" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.Ethernet.Interface.1.LowerLayers returns error
+    When I SET "Device.Ethernet.Interface.1.LowerLayers" to "eth0" as string via rbus
     Then the rbus response should contain an error
 
   Scenario: GET Device.Ethernet.Interface.1.LowerLayers returns error
@@ -63,9 +79,17 @@ Feature: Ethernet Interface and Stats GET Handler Validation
     When I GET "Device.Ethernet.Interface.1.MACAddress" via rbus
     Then the rbus response should not contain an error
 
+  Scenario: SET Device.Ethernet.Interface.1.MaxBitRate
+    When I SET "Device.Ethernet.Interface.1.MaxBitRate" to "1000" as int via rbus
+    Then the rbus response should not contain an error
+
   Scenario: GET Device.Ethernet.Interface.1.MaxBitRate
     When I GET "Device.Ethernet.Interface.1.MaxBitRate" via rbus
     Then the rbus response should not contain an error
+
+  Scenario: SET Device.Ethernet.Interface.1.DuplexMode returns error
+    When I SET "Device.Ethernet.Interface.1.DuplexMode" to "full" as string via rbus
+    Then the rbus response should contain an error
 
   Scenario: GET Device.Ethernet.Interface.1.DuplexMode
     When I GET "Device.Ethernet.Interface.1.DuplexMode" via rbus
