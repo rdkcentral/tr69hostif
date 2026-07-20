@@ -3797,6 +3797,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComNewNtpEnable(stMsgData);
     }
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_ENABLE))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
+    }
     return ret;
 }
 
@@ -3842,6 +3846,67 @@ int hostIf_DeviceInfo::set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *stMsgDat
     {
         RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
     }
+    return ret;
+}
+
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    bool enable = false;
+    LOG_ENTRY_EXIT;
+
+    if (stMsgData->paramtype != hostIf_BooleanType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Wrong type for %s, expected boolean.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+        return NOK;
+    }
+
+    enable = get_boolean(stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] DistributedTracing RFC: %s\n", __FUNCTION__, enable ? "ENABLE" : "DISABLE");
+
+    if (enable)
+    {
+        /* Create flag file watched by librdk_otlp.so via inotify in all processes */
+        FILE *fp = fopen(RDK_TRACING_FLAG_FILE, "w");
+        if (fp)
+        {
+            fclose(fp);
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                    "[%s] Created tracing flag file %s\n", __FUNCTION__, RDK_TRACING_FLAG_FILE);
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to create tracing flag file %s: %s\n",
+                    __FUNCTION__, RDK_TRACING_FLAG_FILE, strerror(errno));
+        }
+        v_secure_system("systemctl start rdk-otel-collector.service");
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s] Started rdk-otel-collector.service\n", __FUNCTION__);
+    }
+    else
+    {
+        v_secure_system("systemctl stop rdk-otel-collector.service");
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s] Stopped rdk-otel-collector.service\n", __FUNCTION__);
+        /* Remove flag file - inotify IN_DELETE fires in all processes */
+        if (remove(RDK_TRACING_FLAG_FILE) != 0 && errno != ENOENT)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to remove tracing flag file %s: %s\n",
+                    __FUNCTION__, RDK_TRACING_FLAG_FILE, strerror(errno));
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                    "[%s] Removed tracing flag file %s\n", __FUNCTION__, RDK_TRACING_FLAG_FILE);
+        }
+    }
+
+    ret = OK;
     return ret;
 }
 
