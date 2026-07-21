@@ -6,7 +6,7 @@ This document provides the detailed L2 coverage view for the functional test sui
 It restores the richer format with summary, layout, infrastructure notes, current
 coverage detail, heat map, pending gaps to reach 100%, and parameter count analysis.
 
-Last analyzed: June 29, 2026.
+Last analyzed: July 20, 2026.
 
 ---
 
@@ -15,21 +15,21 @@ Last analyzed: June 29, 2026.
 | Metric | Value |
 |---|---:|
 | Total source functions (approx baseline) | ~761 |
-| Functions with direct L2 coverage | ~313 |
-| Functions with no current L2 coverage (estimated) | ~448 |
-| Active L2 test functions | 313 |
+| Functions with direct L2 coverage | ~416 |
+| Functions with no current L2 coverage (estimated) | ~345 |
+| Active L2 test functions | 416 |
 | Disabled test functions via skip/xfail decorators | 0 |
 | Runtime skip paths detected | 1 |
-| Active feature scenarios | 355 |
-| Test files active | 25 |
-| Feature files active | 29 |
-| Estimated current L2 coverage | ~41.1% |
+| Active feature scenarios | 427 |
+| Test files active | 31 |
+| Feature files active | 35 |
+| Estimated current L2 coverage | ~54.7% |
 | Target L2 coverage | 100% |
 
 Coverage calculation:
 
-- `313 / 761 = 41.1%`
-- Remaining estimated gap: `761 - 313 = 448`
+- `416 / 761 = 54.7%`
+- Remaining estimated gap: `761 - 416 = 345`
 
 ---
 
@@ -39,27 +39,39 @@ Coverage calculation:
 test/functional-tests/
 ├── features/                                   # BDD feature specs
 │   ├── tr69hostif_bootup_sequence.feature
+│   ├── tr69hostif_bluetooth.feature             # NEW
+│   ├── tr69hostif_device_info.feature           # NEW
 │   ├── tr69hostif_handlers_communications.feature
 │   ├── tr69hostif_deviceip.feature
+│   ├── tr69hostif_interfacestack.feature        # NEW
 │   ├── tr69hostif_webpa.feature
 │   ├── tr69hostif_http_server.feature
 │   ├── tr69hostif_ethernet_handlers.feature
 │   ├── tr69hostif_moca.feature
+│   ├── tr69hostif_opsdevicemgmt_logging.feature # NEW
+│   ├── tr69hostif_opsdevicemgmt_rpc.feature     # NEW
 │   ├── tr69hostif_rfc_store.feature
+│   ├── tr69hostif_storageservice.feature        # NEW
 │   ├── tr69hostif_thunder_negative_edge_cases.feature
-│   └── ... (total 29 feature files)
+│   └── ... (total 35 feature files)
 └── tests/                                      # Runnable pytest tests
     ├── test_bootup_sequence.py
     ├── test_handlers_communications.py
+    ├── tr69hostif_bluetooth.py                  # NEW
+    ├── tr69hostif_device_info.py                # NEW
     ├── tr69hostif_deviceip.py
+    ├── tr69hostif_interfacestack.py             # NEW
     ├── tr69hostif_ip.py
     ├── tr69hostif_webpa.py
     ├── tr69hostif_http_server.py
     ├── tr69hostif_ethernet_handlers.py
     ├── tr69hostif_moca.py
+    ├── tr69hostif_opsdevicemgmt_logging.py      # NEW
+    ├── tr69hostif_opsdevicemgmt_rpc.py          # NEW
     ├── tr69hostif_rfc_store.py
+    ├── tr69hostif_storageservice.py             # NEW
     ├── tr69hostif_thunder_negative_edge_cases.py
-    └── ... (total 25 runnable test files)
+    └── ... (total 31 runnable test files)
 ```
 
 Test runner: pytest with `@pytest.mark.run(order=N)` sequencing.
@@ -80,7 +92,7 @@ Interfaces exercised:
 |---|---|---|
 | Test fixture orchestration | Partial | No global rollback fixture baseline documented in this file |
 | BDD execution wiring | Mixed | Features are present; tests run as pytest modules |
-| Order tagging | Needs cleanup | 313 tags, 306 unique values, 7 duplicates |
+| Order tagging | Needs cleanup | 416 tags, 409 unique values, 7 duplicates |
 | Static skip/xfail decorators | None found | No `@pytest.mark.skip` or `@pytest.mark.xfail` decorators |
 | Runtime skip behavior | Present | 1 runtime skip path in Thunder negative tests when port bind fails |
 | Test/feature map consistency | Partial | 25 mapped test files, 4 documentation-only feature files |
@@ -111,28 +123,34 @@ Runtime skip signal:
 | test_handlers_communications.py | 10 |
 | tr69hostif_account_thunder_plugin.py | 2 |
 | tr69hostif_authservice_thunder_plugin.py | 3 |
+| tr69hostif_bluetooth.py | 35 |
 | tr69hostif_custom.py | 34 |
+| tr69hostif_device_info.py | 33 |
 | tr69hostif_deviceip.py | 4 |
 | tr69hostif_devicetime.py | 15 |
 | tr69hostif_dhcpv4.py | 4 |
 | tr69hostif_ethernet_handlers.py | 24 |
 | tr69hostif_http_server.py | 8 |
+| tr69hostif_interfacestack.py | 3 |
 | tr69hostif_ip.py | 47 |
 | tr69hostif_ipremotesupport.py | 5 |
 | tr69hostif_moca.py | 53 |
 | tr69hostif_negative_edge_cases.py | 4 |
 | tr69hostif_networkmanager_endpoint_thunder_plugin.py | 7 |
 | tr69hostif_networkmanager_ssid_thunder_plugin.py | 7 |
+| tr69hostif_opsdevicemgmt_logging.py | 7 |
+| tr69hostif_opsdevicemgmt_rpc.py | 10 |
 | tr69hostif_processor_processstatus.py | 8 |
 | tr69hostif_rfc_store_params.py | 12 |
 | tr69hostif_rfc_store.py | 4 |
 | tr69hostif_std_params.py | 9 |
+| tr69hostif_storageservice.py | 15 |
 | tr69hostif_system_thunder_plugin.py | 2 |
 | tr69hostif_thunder_negative_edge_cases.py | 3 |
 | tr69hostif_webpa_negative_edge_cases.py | 6 |
 | tr69hostif_webpa_rdkdlmgr.py | 7 |
 | tr69hostif_webpa.py | 17 |
-| Total | 313 |
+| Total | 416 |
 
 ### Per-Feature-File Detail
 
@@ -140,8 +158,10 @@ Runtime skip signal:
 |---|---:|
 | tr69hostif_account_thunder_plugin.feature | 2 |
 | tr69hostif_authservice_thunder_plugin.feature | 3 |
+| tr69hostif_bluetooth.feature | 7 |
 | tr69hostif_bootup_sequence.feature | 18 |
 | tr69hostif_custom.feature | 5 |
+| tr69hostif_device_info.feature | 30 |
 | tr69hostif_deviceip.feature | 9 |
 | tr69hostif_devicetime.feature | 10 |
 | tr69hostif_dhcpv4.feature | 4 |
@@ -149,6 +169,7 @@ Runtime skip signal:
 | tr69hostif_ethernet.feature | 13 |
 | tr69hostif_handlers_communications.feature | 20 |
 | tr69hostif_http_server.feature | 14 |
+| tr69hostif_interfacestack.feature | 3 |
 | tr69hostif_ip.feature | 12 |
 | tr69hostif_ipremotesupport.feature | 5 |
 | tr69hostif_moca.feature | 53 |
@@ -156,10 +177,13 @@ Runtime skip signal:
 | tr69hostif_negative_tests.feature | 28 |
 | tr69hostif_networkmanager_endpoint_thunder_plugin.feature | 7 |
 | tr69hostif_networkmanager_ssid_thunder_plugin.feature | 8 |
+| tr69hostif_opsdevicemgmt_logging.feature | 7 |
+| tr69hostif_opsdevicemgmt_rpc.feature | 10 |
 | tr69hostif_processor_processstatus.feature | 8 |
 | tr69hostif_rfc_store_params.feature | 12 |
 | tr69hostif_rfc_store.feature | 4 |
 | tr69hostif_std_params.feature | 9 |
+| tr69hostif_storageservice.feature | 15 |
 | tr69hostif_system_thunder_plugin.feature | 1 |
 | tr69hostif_thunder_negative_edge_cases.feature | 3 |
 | tr69hostif_thunder_plugins.feature | 21 |
@@ -167,7 +191,7 @@ Runtime skip signal:
 | tr69hostif_webpa_negative_edge_cases.feature | 6 |
 | tr69hostif_webpa_rdkdlmgr.feature | 7 |
 | tr69hostif_webpa.feature | 16 |
-| Total | 355 |
+| Total | 427 |
 
 ### Bootup Sequence (orders 1–18)
 
@@ -253,18 +277,24 @@ Via mock parodus binary with JSON payloads. Validation reads `/opt/logs/parodus.
 |---|---:|
 | Device/IP Core | 56 |
 | MoCA | 53 |
+| Bluetooth | 35 |
 | Custom/DeviceInfo | 43 |
+| DeviceInfo Extended | 33 |
 | WebPA/Parodus | 30 |
 | Ethernet | 24 |
 | Thunder Plugins | 24 |
+| StorageService | 15 |
 | Bootup/Lifecycle | 18 |
 | RFC/Bootstrap Store | 16 |
 | Time/Chrony | 15 |
+| OpsDeviceMgmt RPC | 10 |
 | Handler Communications | 10 |
 | HTTP Server | 8 |
 | Processor/ProcessStatus | 8 |
+| OpsDeviceMgmt Logging | 7 |
 | DHCPv4 | 4 |
 | Negative/Edge Cases | 4 |
+| InterfaceStack | 3 |
 
 ---
 
@@ -282,6 +312,11 @@ graph TD
     A --> I[MoCA]
     A --> J[DHCPv4]
     A --> K[Negative Cases]
+    A --> L[Bluetooth]
+    A --> M[DeviceInfo Extended]
+    A --> N[StorageService]
+    A --> O[InterfaceStack]
+    A --> P[OpsDeviceMgmt]
 
     style B fill:#2d7a2d,color:#fff
     style C fill:#2d7a2d,color:#fff
@@ -293,6 +328,11 @@ graph TD
     style I fill:#d4a017,color:#000
     style J fill:#c0392b,color:#fff
     style K fill:#c0392b,color:#fff
+    style L fill:#2d7a2d,color:#fff
+    style M fill:#2d7a2d,color:#fff
+    style N fill:#2d7a2d,color:#fff
+    style O fill:#2d7a2d,color:#fff
+    style P fill:#2d7a2d,color:#fff
 ```
 
 Legend:
@@ -316,39 +356,25 @@ Estimated remaining gap: **~448 items** against the ~761 baseline.
 
 Source: `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.h`
 
-Handlers with no test (confirmed absent from test files):
+Handlers with no test (confirmed absent from test files).
+Items covered by `tr69hostif_device_info.py` (July 2026) have been removed from this table.
 
 | TR-181 Parameter | Handler Function | Dir |
 |---|---|---|
-| `Device.DeviceInfo.Manufacturer` | `get_Device_DeviceInfo_Manufacturer` | GET |
-| `Device.DeviceInfo.ManufacturerOUI` | `get_Device_DeviceInfo_ManufacturerOUI` | GET |
 | `Device.DeviceInfo.Description` | `get_Device_DeviceInfo_Description` | GET |
 | `Device.DeviceInfo.ProductClass` | `get_Device_DeviceInfo_ProductClass` | GET |
-| `Device.DeviceInfo.SerialNumber` | `get_Device_DeviceInfo_SerialNumber` | GET |
-| `Device.DeviceInfo.HardwareVersion` | `get_Device_DeviceInfo_HardwareVersion` | GET |
-| `Device.DeviceInfo.AdditionalHardwareVersion` | `get_Device_DeviceInfo_AdditionalHardwareVersion` | GET |
-| `Device.DeviceInfo.AdditionalSoftwareVersion` | `get_Device_DeviceInfo_AdditionalSoftwareVersion` | GET |
-| `Device.DeviceInfo.ProvisioningCode` | `get_Device_DeviceInfo_ProvisioningCode` | GET |
 | `Device.DeviceInfo.UpTime` | `get_Device_DeviceInfo_UpTime` | GET |
-| `Device.DeviceInfo.FirstUseDate` | `get_Device_DeviceInfo_FirstUseDate` | GET |
 | `Device.DeviceInfo.MemoryStatus.Total` | `get_Device_DeviceInfo_MemoryStatus_Total` | GET |
 | `Device.DeviceInfo.MemoryStatus.Free` | `get_Device_DeviceInfo_MemoryStatus_Free` | GET |
-| `Device.DeviceInfo.VendorConfigFileNumberOfEntries` | `get_Device_DeviceInfo_VendorConfigFileNumberOfEntries` | GET |
-| `Device.DeviceInfo.SupportedDataModelNumberOfEntries` | `get_Device_DeviceInfo_SupportedDataModelNumberOfEntries` | GET |
 | `Device.DeviceInfo.ProcessorNumberOfEntries` | `get_Device_DeviceInfo_ProcessorNumberOfEntries` | GET |
-| `Device.DeviceInfo.VendorLogFileNumberOfEntries` | `get_Device_DeviceInfo_VendorLogFileNumberOfEntries` | GET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | GET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | SET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.IpAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpaddress` | GET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.MACAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMACaddress` | GET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.RPC.XRPollingAction` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_XRPollingAction` | GET+SET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.IssueType` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType` | SET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.WebCfgData` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData` | SET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_Canary.WakeUpStart` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart` | SET |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_Canary.WakeUpEnd` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd` | SET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_MemInsight.Trigger` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger` | SET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_MemInsight.Enable` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Enable` | SET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RebootStopEnable` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RebootStopEnable` | SET |
 
 ---
 
@@ -377,41 +403,45 @@ Handlers still missing:
 
 ---
 
-### Gap 4 — Device.InterfaceStack (zero coverage)
+### Gap 4 — Device.InterfaceStack ✔ RESOLVED (July 2026)
 
 Source: `src/hostif/profiles/InterfaceStack/Device_InterfaceStack.h`
 
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.InterfaceStackNumberOfEntries` | `get_Device_InterfaceStackNumberOfEntries` | GET |
-| `Device.InterfaceStack.{i}.HigherLayer` | `get_Device_InterfaceStack_HigherLayer` | GET |
-| `Device.InterfaceStack.{i}.LowerLayer` | `get_Device_InterfaceStack_LowerLayer` | GET |
+All three handlers are now covered by `tr69hostif_interfacestack.py` (orders 523–525).
+
+| TR-181 Parameter | Handler Function | Dir | Status |
+|---|---|---|---|
+| `Device.InterfaceStackNumberOfEntries` | `get_Device_InterfaceStackNumberOfEntries` | GET | ✔ Covered |
+| `Device.InterfaceStack.{i}.HigherLayer` | `get_Device_InterfaceStack_HigherLayer` | GET | ✔ Covered |
+| `Device.InterfaceStack.{i}.LowerLayer` | `get_Device_InterfaceStack_LowerLayer` | GET | ✔ Covered |
 
 ---
 
-### Gap 5 — Device.StorageService (zero coverage)
+### Gap 5 — Device.StorageService ✔ RESOLVED (July 2026)
 
 Source: `src/hostif/profiles/StorageService/Service_Storage.h`, `Service_Storage_PhyMedium.h`
 
 Build flag: `WITH_STORAGESERVICE_PROFILE`
 
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.StorageService.{i}.ClientNumberOfEntries` | `get_Device_StorageSrvc_ClientNumberOfEntries` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Alias` | `get_Device_Service_StorageMedium_Alias` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Name` | `get_Device_Service_StorageMedium_Name` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Vendor` | `get_Device_Service_StorageMedium_Vendor` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Model` | `get_Device_Service_StorageMedium_Model` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.SerialNumber` | `get_Device_Service_StorageMedium_SerialNumber` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.FirmwareVersion` | `get_Device_Service_StorageMedium_FirmwareVersion` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.ConnectionType` | `get_Device_Service_StorageMedium_ConnectionType` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Removable` | `get_Device_Service_StorageMedium_Removable` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Status` | `get_Device_Service_StorageMedium_Status` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Uptime` | `get_Device_Service_StorageMedium_Uptime` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.SMARTCapable` | `get_Device_Service_StorageMedium_SMARTCapable` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.Health` | `get_Device_Service_StorageMedium_Health` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.{i}.HotSwappable` | `get_Device_Service_StorageMedium_HotSwappable` | GET |
-| `Device.StorageService.{i}.PhysicalMedium.NumberOfEntries` | `get_Device_Service_StorageMedium_ClientNumberOfEntries` | GET |
+All 15 handlers are now covered by `tr69hostif_storageservice.py` (orders 344–358).
+
+| TR-181 Parameter | Handler Function | Dir | Status |
+|---|---|---|---|
+| `Device.StorageService.{i}.ClientNumberOfEntries` | `get_Device_StorageSrvc_ClientNumberOfEntries` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Alias` | `get_Device_Service_StorageMedium_Alias` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Name` | `get_Device_Service_StorageMedium_Name` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Vendor` | `get_Device_Service_StorageMedium_Vendor` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Model` | `get_Device_Service_StorageMedium_Model` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.SerialNumber` | `get_Device_Service_StorageMedium_SerialNumber` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.FirmwareVersion` | `get_Device_Service_StorageMedium_FirmwareVersion` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.ConnectionType` | `get_Device_Service_StorageMedium_ConnectionType` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Removable` | `get_Device_Service_StorageMedium_Removable` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Status` | `get_Device_Service_StorageMedium_Status` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Uptime` | `get_Device_Service_StorageMedium_Uptime` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.SMARTCapable` | `get_Device_Service_StorageMedium_SMARTCapable` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.Health` | `get_Device_Service_StorageMedium_Health` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.{i}.HotSwappable` | `get_Device_Service_StorageMedium_HotSwappable` | GET | ✔ Covered |
+| `Device.StorageService.{i}.PhysicalMedium.NumberOfEntries` | `get_Device_Service_StorageMedium_ClientNumberOfEntries` | GET | ✔ Covered |
 
 ---
 
@@ -611,11 +641,11 @@ These feature files have no matching runnable test file:
 
 | Gap | Area | Handler/Parameter Count | Priority |
 |---|---|---:|---|
-| 1 | DeviceInfo uncovered handlers | ~29 | High |
+| 1 | DeviceInfo uncovered handlers | ~14 | High |
 | 2 | ProcessStatus.CPUUsage | 1 | Medium |
 | 3 | Time SET-side | 2 | Low |
-| 4 | InterfaceStack | 3 | Low |
-| 5 | StorageService | 15 | Medium |
+| 4 | InterfaceStack | 0 (**resolved**) | — |
+| 5 | StorageService | 0 (**resolved**) | — |
 | 6 | WiFi (entire subtree) | ~153 | High |
 | 7 | Time SET gap | 2 | Low |
 | 8 | Negative/edge cases | ~12 | High |
@@ -638,9 +668,9 @@ These feature files have no matching runnable test file:
 | Category | Count |
 |---|---:|
 | Baseline module surface (approx) | 761 |
-| Implemented runnable tests | 313 |
-| Remaining estimated items | 448 |
-| Coverage percentage | 41.1% |
+| Implemented runnable tests | 416 |
+| Remaining estimated items | 345 |
+| Coverage percentage | 54.7% |
 
 ---
 
@@ -651,18 +681,18 @@ runnable test functions to known handler surfaces.
 
 | # | Profile Area | TR-181 Namespace | GET | SET | Tests Needed | Covered (est.) | Gap | Coverage |
 |---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| 1 | **DeviceInfo** | `Device.DeviceInfo.*` | 111 | 61 | **172** | ~67 | ~105 | ~39% |
+| 1 | **DeviceInfo** | `Device.DeviceInfo.*` | 111 | 61 | **172** | ~151 | ~21 | ~88% |
 | 2 | **Ethernet** | `Device.Ethernet.*` | 25 | 5 | **30** | 24 | 6 | ~80% |
 | 3 | **IP** | `Device.IP.*` | 73 | 33 | **106** | ~51 | ~55 | ~48% |
 | 4 | **DHCPv4** | `Device.DHCPv4.*` | 4 | 0 | **4** | 4 | 0 | 100% |
-| 5 | **InterfaceStack** | `Device.InterfaceStack.*` | 2 | 0 | **2** | 0 | 2 | 0% |
+| 5 | **InterfaceStack** | `Device.InterfaceStack.*` | 3 | 0 | **3** | 3 | 0 | 100% |
 | 6 | **MoCA** | `Device.MoCA.*` | 89 | 10 | **99** | 53 | 46 | ~54% |
 | 7 | **STBService** | `Device.Services.STBService.*` | 71 | 14 | **85** | ~1 | ~84 | ~1% |
-| 8 | **StorageService** | `Device.StorageService.*` | 15 | 0 | **15** | 0 | 15 | 0% |
+| 8 | **StorageService** | `Device.StorageService.*` | 15 | 0 | **15** | 15 | 0 | 100% |
 | 9 | **Time** | `Device.Time.*` | 20 | 17 | **37** | ~20 | ~17 | ~54% |
 | 10 | **WiFi** | `Device.WiFi.*` | 132 | 21 | **153** | ~14 | ~139 | ~9% |
 | 11 | **Device** | `Device.*` (misc) | 3 | 1 | **4** | 0 | 4 | 0% |
-| | **Parameter subtotal** | | **545** | **163** | **707** | **~234** | **~473** | **~33%** |
+| | **Parameter subtotal** | | **545** | **163** | **707** | **~336** | **~371** | **~48%** |
 
 ---
 
@@ -670,15 +700,15 @@ runnable test functions to known handler surfaces.
 
 DeviceInfo is the largest single profile area.
 
-| Source File | GET | SET | Tests Needed | June 2026 Covered | Notes |
+| Source File | GET | SET | Tests Needed | July 2026 Covered | Notes |
 |---|:---:|:---:|:---:|:---:|---|
-| `Device_DeviceInfo.cpp` | 70 | 59 | 129 | ~50 | tr69hostif_custom.py + std_params + thunder plugins cover majority |
+| `Device_DeviceInfo.cpp` | 70 | 59 | 129 | ~83 | tr69hostif_custom.py + std_params + thunder plugins + device_info.py + opsdevicemgmt_*.py cover majority |
 | `Device_DeviceInfo_Processor.cpp` | 1 | 0 | 1 | 1 | `Processor.Architecture` covered in processor_processstatus |
 | `Device_DeviceInfo_ProcessStatus.cpp` | 1 | 0 | 1 | 0 | `CPUUsage` not yet tested |
 | `Device_DeviceInfo_ProcessStatus_Process.cpp` | 6 | 0 | 6 | 7 | PID, Command, Size, Priority, CPUTime, State, ProcessNumberOfEntries |
-| `XrdkBlueTooth.cpp` | 32 | 2 | 34 | 0 | `BLE_TILE_PROFILE` compile guard — no tests |
+| `XrdkBlueTooth.cpp` | 32 | 2 | 34 | ~34 | Covered via `tr69hostif_bluetooth.py` (orders 437–471) |
 | `XrdkCentralComRFC.cpp` | 1 | 0 | 1 | 1 | `XRFCStorage::getValue` via rfc_store tests |
-| **DeviceInfo TOTAL** | **111** | **61** | **172** | **~59** | |
+| **DeviceInfo TOTAL** | **111** | **61** | **172** | **~126** | |
 
 ---
 
@@ -698,12 +728,12 @@ DeviceInfo is the largest single profile area.
 
 ### Progress Delta (from earlier state)
 
-| Metric | Earlier | Current | Delta |
-|---|---:|---:|---:|
-| Runnable tests | 47 | 313 | +266 |
-| Feature scenarios | 73 | 355 | +282 |
-| Runnable test files | 4 | 25 | +21 |
-| Feature files | 4 | 29 | +25 |
+| Metric | Earlier | June 2026 | July 2026 | Delta (Jun→Jul) |
+|---|---:|---:|---:|---:|
+| Runnable tests | 47 | 313 | 416 | +103 |
+| Feature scenarios | 73 | 355 | 427 | +72 |
+| Runnable test files | 4 | 25 | 31 | +6 |
+| Feature files | 4 | 29 | 35 | +6 |
 
 ---
 
@@ -717,14 +747,14 @@ planning baseline. Values remain approximate and are used for gap planning again
 
 | Profile Area | GET | SET | Tests Needed (Baseline) | Current Status |
 |---|---:|---:|---:|---|
-| DeviceInfo | 111 | 61 | 172 | Partial coverage |
+| DeviceInfo | 111 | 61 | 172 | Strongly improved (~88%) |
 | Ethernet | 25 | 5 | 30 | Improved but not complete |
 | IP | 73 | 33 | 106 | Strongly improved |
 | DHCPv4 | 4 | 0 | 4 | Limited |
-| InterfaceStack | 2 | 0 | 2 | Limited |
+| InterfaceStack | 3 | 0 | 3 | **Fully covered** |
 | MoCA | 89 | 10 | 99 | Strongly improved but not closed |
 | STBService | 71 | 14 | 85 | Partial |
-| StorageService | 15 | 0 | 15 | Limited |
+| StorageService | 15 | 0 | 15 | **Fully covered** |
 | Time | 20 | 17 | 37 | Improved |
 | WiFi | 132 | 21 | 153 | Improved, still large surface |
 | Device (misc) | 3 | 1 | 4 | Partial |
@@ -734,10 +764,10 @@ planning baseline. Values remain approximate and are used for gap planning again
 
 | Category | Tests Needed | Covered (Estimated) | Remaining |
 |---|---:|---:|---:|
-| Parameter handlers (all profiles) | 707 | 313-equivalent partial mix | Pending |
+| Parameter handlers (all profiles) | 707 | 416-equivalent partial mix | Pending |
 | Behavioral scenarios | 38 | Partial |
 | Negative and edge cases | ~16 | Partial |
-| Total baseline | ~761 | 313 | ~448 |
+| Total baseline | ~761 | 416 | ~345 |
 
 ---
 
@@ -749,13 +779,13 @@ Quick-reference table showing how much of each profile is still untested.
 |---|:---:|:---:|:---:|---|
 | `Device.WiFi.*` | 153 | ~14 | **~139** | Radio (27 params), SSID (9), SSID.Stats (15), EndPoint (13), ClientRoaming (13), AccessPoint (~20) |
 | `Device.MoCA.*` | 99 | 53 | **46** | AssociatedDevice (17), QoS (10), MeshTable (4), remaining interface params |
-| `Device.DeviceInfo.*` | 172 | ~59 | **~113** | BT/Tile (34), RDKRemoteDebugger, Canary, MemInsight, standard read-only params |
+| `Device.DeviceInfo.*` | 172 | ~151 | **~21** | RDKRemoteDebugger, Canary, MemoryStatus, UpTime, Description, ProductClass, ProcessorNumberOfEntries |
 | `Device.IP.*` | 106 | ~51 | **~55** | IPv4 SETs (6), IPv6Address/Prefix non-tested params, Interface.Stats SETs |
 | `Device.Services.STBService.*` | 85 | ~1 | **~84** | AudioOutput SET/GET (25), eMMC (14), SPDIF (11), SDCard (10), Security (9) |
 | `Device.Ethernet.*` | 30 | 24 | **6** | LowerLayers, LastChange, Enable SET, DuplexMode SET |
 | `Device.Time.*` | 37 | ~20 | **~17** | `set_Device_Time_Enable`, `set_Device_Time_LocalTimeZone`, remaining SET handlers |
-| `Device.StorageService.*` | 15 | 0 | **15** | All PhysicalMedium GET handlers |
-| `Device.InterfaceStack.*` | 2 | 0 | **2** | `HigherLayer`, `LowerLayer` |
+| `Device.StorageService.*` | 15 | 15 | **0** | **Fully covered** |
+| `Device.InterfaceStack.*` | 3 | 3 | **0** | **Fully covered** |
 | `Device.DHCPv4.*` | 4 | 4 | **0** | Fully covered |
 | Negative / edge cases | ~16 | ~12 | **~4** | Type-mismatch SET, out-of-range value, additional WebPA errors |
 
@@ -766,23 +796,20 @@ Quick-reference table showing how much of each profile is still untested.
 ```mermaid
 flowchart TD
     P1[P1: WiFi Profile Tests\n~139 remaining handlers] --> P2
-    P2[P2: DeviceInfo Uncovered\nBT, Canary, MemInsight, standard read-only] --> P3
-    P3[P3: STBService Profile Tests\n~84 remaining handlers] --> P4
-    P4[P4: MoCA Remaining Tests\n~46 remaining handlers] --> P5
-    P5[P5: StorageService Tests\n15 GET-only handlers] --> P6
-    P6[P6: Negative Edge Cases\n~4 remaining scenarios]
+    P2[P2: STBService Profile Tests\n~84 remaining handlers] --> P3
+    P3[P3: MoCA Remaining Tests\n~46 remaining handlers] --> P4
+    P4[P4: DeviceInfo Remaining\nRDKRemoteDebugger, Canary, MemoryStatus (~21)] --> P5
+    P5[P5: Negative Edge Cases\n~4 remaining scenarios]
 ```
 
 | Priority | Area | Remaining Tests | Blocking? |
 |---|---|:---:|---|
 | P1 | WiFi full profile | ~139 | Yes — 9% coverage on large surface |
-| P2 | DeviceInfo uncovered handlers | ~113 | Yes — standard info params unverified |
-| P3 | STBService profile | ~84 | Yes — 1% coverage |
-| P4 | MoCA remaining | ~46 | No — 54% base exists |
-| P5 | StorageService profile | 15 | No — conditional build |
-| P6 | Negative/edge cases | ~4 | No — partial coverage exists |
-| P7 | InterfaceStack | 2 | No — conditional build |
-| P8 | Time SET-side | 2 | No — GET side complete |
+| P2 | STBService profile | ~84 | Yes — 1% coverage |
+| P3 | MoCA remaining | ~46 | No — 54% base exists |
+| P4 | DeviceInfo remaining handlers | ~21 | No — 88% base now exists |
+| P5 | Negative/edge cases | ~4 | No — partial coverage exists |
+| P6 | Time SET-side | 2 | No — GET side complete |
 
 ---
 
