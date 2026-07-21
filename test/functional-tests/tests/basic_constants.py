@@ -44,6 +44,9 @@ RBUS_EXCEPTION_STRING = "Failed to get the data"
 RBUS_SUCCESS_STRING = "setvalues succeeded.."
 RBUS_SET_EXCEPTION_STRING = "setvalues failed"
 
+BT_ROOT = "Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth."
+BT_ENABLE = BT_ROOT + "enable"
+
 LOG_FILE = "/opt/logs/tr69hostif.log.0"
 
 PARODUS_LOG_FILE = "/opt/logs/parodus.log"
