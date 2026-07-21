@@ -629,23 +629,23 @@ TEST_F(VideoDecoderThunderTest, GetHEVC_ReturnsProfilePath)
  * Additional AudioOutput Tests (missing getters)
  * ==================================================================== */
 
-/* getAudioLevel: same logic as getStatus — enabled + un-muted → "Enabled" */
-TEST_F(AudioOutputThunderTest, GetAudioLevel_Enabled)
+/* getAudioLevel: calls getVolumeLevel → returns numeric level as UnsignedInt */
+TEST_F(AudioOutputThunderTest, GetAudioLevel_Success)
 {
-    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_AUDIO_PORT, true, true);
-    ThunderStub::setBool(THUNDER_DS_GET_MUTED,             true, false);
+    ThunderStub::setInt(THUNDER_DS_GET_VOLUME_LEVEL, true, 75);
 
     HOSTIF_MsgData_t msg = makeMsg();
     int rc = m_iface->handleGetMsg("AudioLevel", &msg);
 
     EXPECT_EQ(rc, OK);
-    EXPECT_STREQ(msg.paramValue, "Enabled");
+    EXPECT_EQ(msg.paramtype, hostIf_UnsignedIntType);
+    EXPECT_EQ(get_uint(msg.paramValue), 75u);
 }
 
 /* getAudioLevel: Thunder failure → NOK */
 TEST_F(AudioOutputThunderTest, GetAudioLevel_ThunderFailure)
 {
-    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_AUDIO_PORT, false, false);
+    ThunderStub::setInt(THUNDER_DS_GET_VOLUME_LEVEL, false, 0);
 
     HOSTIF_MsgData_t msg = makeMsg();
     EXPECT_EQ(m_iface->handleGetMsg("AudioLevel", &msg), NOK);

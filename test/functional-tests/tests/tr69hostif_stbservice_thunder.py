@@ -49,6 +49,17 @@ CAPS_BASE    = STBSVC_BASE + ".Capabilities"
 CURL_OK_MSG = "curl response : 0 http response code: 200"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Per-test fixture: clear the tr69hostif log before every test so that
+# grep_tr69hostiflogs() assertions only match entries produced by the
+# current test and are not satisfied by log lines from previous tests.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.fixture(autouse=True)
+def clear_log_before_test():
+    clear_tr69hostiflogs()
+    yield
+
+# ─────────────────────────────────────────────────────────────────────────────
 # AudioOutput – GET tests
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -368,9 +379,9 @@ def test_STBService_AudioOutput_Get_AudioLevel():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
-    valid = {"Enabled", "Muted", "Disabled"}
-    assert any(v in rstdout for v in valid), \
-        f"Unexpected AudioLevel value: {rstdout}"
+    # AudioLevel is a numeric volume level (0-100)
+    assert rstdout.strip().isdigit() or rstdout.strip().lstrip('-').isdigit(), \
+        f"Expected numeric AudioLevel, got: {rstdout}"
 
 
 @pytest.mark.run(order=332)

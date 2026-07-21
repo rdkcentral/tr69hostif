@@ -337,33 +337,21 @@ int hostIf_STBServiceAudioInterface::getCancelMute(HOSTIF_MsgData_t *stMsgData, 
 
 int hostIf_STBServiceAudioInterface::getAudioLevel(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
-    bool enabled = false;
-    if (!invokeThunderPluginMethodAndExtractBoolField(
-            THUNDER_DS_GET_ENABLE_AUDIO_PORT, portParam(m_portName), "enable", enabled))
+    int volumeLevel = 0;
+    if (!invokeThunderPluginMethodAndExtractNumberField(
+            THUNDER_DS_GET_VOLUME_LEVEL, portParam(m_portName), "volumeLevel", volumeLevel))
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getEnableAudioPort failed for %s\n",
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getVolumeLevel failed for %s\n",
                 __FUNCTION__, m_portName.c_str());
         return NOK;
     }
-
-    const char *status = "Disabled";
-    if (enabled)
-    {
-        bool muted = false;
-        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted);
-        status = muted ? "Muted" : "Enabled";
-    }
-
-    strncpy(stMsgData->paramValue, status, PARAM_LEN);
-    stMsgData->paramValue[PARAM_LEN - 1] = '\0';
-    stMsgData->paramtype = hostIf_StringType;
-    stMsgData->paramLen = strlen(status);
-
-    if (bCalledStatus && pChanged && strcmp(backupStatus, stMsgData->paramValue))
+    put_int(stMsgData->paramValue, volumeLevel);
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+    if (bCalledAudioLevel && pChanged && (backupAudioLevel != (unsigned)volumeLevel))
         *pChanged = true;
-    bCalledStatus = true;
-    strncpy(backupStatus, stMsgData->paramValue, sizeof(backupStatus) - 1);
-    backupStatus[sizeof(backupStatus) - 1] = '\0';
+    bCalledAudioLevel = true;
+    backupAudioLevel = (unsigned)volumeLevel;
     return OK;
 }
 

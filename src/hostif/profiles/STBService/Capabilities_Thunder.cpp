@@ -135,7 +135,6 @@ int hostIf_STBServiceCapabilities::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
 
 int hostIf_STBServiceCapabilities::getVideoStandards(HOSTIF_MsgData_t *stMsgData)
 {
-    int bytes_written = 0;
     try {
         // Thunder response: { "supportedFormats": ["HEVC", "H264", "MPEG2"], "success": true }
         // The field is a string array — use raw response + strstr per codec.
@@ -155,27 +154,24 @@ int hostIf_STBServiceCapabilities::getVideoStandards(HOSTIF_MsgData_t *stMsgData
         //   dsVIDEO_CODEC_MPEGHPART2  → "HEVC"
         //   dsVIDEO_CODEC_MPEG4PART10 → "H264"
         //   dsVIDEO_CODEC_MPEG2       → "MPEG2"
+        std::string out;
         if (strstr(resp, "\"HEVC\""))
-        {
-            bytes_written += snprintf(&(stMsgData->paramValue[bytes_written]), (TR69HOSTIFMGR_MAX_PARAM_LEN - bytes_written), "%s,", "MPEGH-Part2 ([ISO/IEC23008-1]])");
-        }
+            out += "MPEGH-Part2 ([ISO/IEC23008-1]),";
         if (strstr(resp, "\"MPEG2\""))
-        {
-            bytes_written += snprintf(&(stMsgData->paramValue[bytes_written]), (TR69HOSTIFMGR_MAX_PARAM_LEN - bytes_written), "%s,", "MPEG2-Part2 ([ISO/IEC13818-1])");
-        }
+            out += "MPEG2-Part2 ([ISO/IEC13818-1]),";
         if (strstr(resp, "\"H264\""))
-        {
-            bytes_written += snprintf(&(stMsgData->paramValue[bytes_written]), (TR69HOSTIFMGR_MAX_PARAM_LEN - bytes_written), "%s,", "MPEG4-Part10 ([ISO/IEC14496-10])");
-        }
+            out += "MPEG4-Part10 ([ISO/IEC14496-10]),";
 
-        if (bytes_written <= 0)
+        if (out.empty())
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Thunder returned no supported video standards\n",__FUNCTION__);
             stMsgData->faultCode = fcInternalError;
             return NOK;
         }
 
-        stMsgData->paramValue[bytes_written -1] = '\0'; //substitute string terminator for the final comma.
+        out.pop_back(); /* remove trailing comma */
+        strncpy(stMsgData->paramValue, out.c_str(), TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+        stMsgData->paramValue[TR69HOSTIFMGR_MAX_PARAM_LEN - 1] = '\0';
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] : Value: %s \n",__FUNCTION__, stMsgData->paramValue);
         stMsgData->paramtype = hostIf_StringType;
         stMsgData->paramLen = strlen(stMsgData->paramValue);
@@ -338,7 +334,7 @@ int hostIf_STBServiceCapabilities::getHEVCProfileDetails(HOSTIF_MsgData_t * stMs
             return NOK;
         }
 
-        if((0 == numEntries) || (index > numEntries))
+        if((0 == numEntries) || (0 == index) || (index > numEntries))
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Could not find profiles matching index %d.\n",__FUNCTION__, index);
             stMsgData->faultCode = ((0 == numEntries) ? fcInternalError : fcInvalidParameterName);
