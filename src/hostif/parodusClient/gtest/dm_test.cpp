@@ -281,6 +281,11 @@ TEST(datamodelTest, isParamEndsWithInstance) {
     EXPECT_EQ(instance, 0);
 }
 
+TEST(datamodelTest, isParamEndsWithInstance_NonInstanceSuffix) {
+    int instance = isParamEndsWithInstance("Device.IP.Interface.1.");
+    EXPECT_NE(instance, 0);
+}
+
 TEST(datamodelTest, isParamEndsWithInstance_NullInput) {
     int instance = isParamEndsWithInstance(NULL);
     EXPECT_EQ(instance, 1);
@@ -386,6 +391,15 @@ TEST(datamodelTest, checkMatchingParameter_NoMatch) {
     EXPECT_EQ(ret, 0);
 }
 
+TEST(datamodelTest, checkMatchingParameter_TwoDigitInstance) {
+    const char* attrValue = "Device.WiFi.SSID.{i}.";
+    char* paramName = (char*)"Device.WiFi.SSID.12.";
+    int ret = 0;
+    int retValue = checkMatchingParameter(attrValue, paramName, &ret);
+    EXPECT_EQ(retValue, 1);
+    EXPECT_EQ(ret, 12);
+}
+
 TEST(datamodelTest, getParamInfoFromDataModel_NullDbHandle) {
     DataModelParam dmParam = {0};
     int match = getParamInfoFromDataModel(NULL, "Device.DeviceInfo.ModelName", &dmParam);
@@ -401,6 +415,12 @@ TEST(datamodelTest, freeDataModelParam_AllFields) {
     dmParam.defaultValue = strdup("NA");
     dmParam.bsUpdate = strdup("none");
 
+    freeDataModelParam(dmParam);
+    EXPECT_EQ(0, 0);
+}
+
+TEST(datamodelTest, freeDataModelParam_EmptyStruct) {
+    DataModelParam dmParam = {0};
     freeDataModelParam(dmParam);
     EXPECT_EQ(0, 0);
 }
@@ -429,12 +449,25 @@ TEST(startParodusTest, get_PartnerId) {
     EXPECT_EQ(partnerId, "*,sky");
 }
 
+TEST(startParodusTest, get_PartnerId_NewlineTrimmed) {
+    write_on_file("/opt/www/authService/partnerId3.dat", "sky\n");
+    std::string partnerId = get_PartnerId();
+    EXPECT_EQ(partnerId, "*,sky");
+}
+
 TEST(startParodusTest, get_PartnerId_Unknown) {
     std::remove("/opt/www/authService/partnerId3.dat");	
     write_on_file("/opt/www/authService/partnerId3.dat", "unknown");
     std::string partnerId = get_PartnerId();
     EXPECT_EQ(partnerId, "unknown");
     std::remove("/opt/www/authService/partnerId3.dat");
+}
+
+TEST(startParodusTest, get_RebootReason_NoReasonField) {
+    std::string jsonData = "{\"timestamp\": 1688914800}";
+    write_on_file("/opt/secure/reboot/previousreboot.info", jsonData);
+    std::string reboot_reason = get_RebootReason();
+    EXPECT_EQ(reboot_reason, "");
 }
 
 TEST(startParodusTest, get_PartnerId_MissingFile_FallbackPrefixOnly) {
@@ -480,6 +513,13 @@ TEST(palTest, macToLower) {
     macConverted[0] = '\0';
     macToLowerFunc()(macValue, macConverted);
     EXPECT_STREQ(macConverted, "a84a6388e9b5");
+}
+
+
+TEST(startParodusTest, get_FwName_MissingFile) {
+    std::remove("/version.txt");
+    std::string fw_name = get_FwName();
+    EXPECT_EQ(fw_name, "");
 }
 
 TEST(palTest, getnotifyparamList_Empty) {
@@ -1338,6 +1378,34 @@ TEST(palTest, converttoWalType) {
     EXPECT_EQ(walType, WAL_DATETIME);
 }
 
+TEST(palTest, timeValDiff_NegativeDelta) {
+    struct timespec starttime = {
+        .tv_sec = 20,
+        .tv_nsec = 0
+    };
+
+    struct timespec endtime = {
+        .tv_sec = 19,
+        .tv_nsec = 500000000
+    };
+
+    long msec = timeValDiffFunc()(&starttime, &endtime);
+    EXPECT_EQ(msec, -500);
+}
+
+TEST(palTest, setRebootReason_NonRebootParam_NoCrash) {
+    param_t param;
+    param.name = strdup("Device.DeviceInfo.ModelName");
+    param.value = strdup("X1");
+    param.type = WDMP_STRING;
+
+    setRebootReasonFunc()(param, WEBPA_SET);
+    EXPECT_EQ(0, 0);
+
+    free(param.name);
+    free(param.value);
+}
+
 TEST(palTest, rbusSetParamInfo) {
     ParamVal param;
     param.name = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.FWUpdate.Enable";
@@ -1556,6 +1624,46 @@ TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_State) {
         EXPECT_EQ(ret, -1);
     }
 }
+
+TEST(webpaAdapterTest, validate_parameter_MultipleParams_AllValid) {
+    param_t params[2];
+    memset(params, 0, sizeof(params));
+
+    params[0].name = strdup("Device.DeviceInfo.ModelName");
+    params[0].value = strdup("TestModel");
+    params[0].type = WDMP_STRING;
+
+    params[1].name = strdup("Device.DeviceInfo.SerialNumber");
+    params[1].value = strdup("SN123");
+    params[1].type = WDMP_STRING;
+
+    WDMP_STATUS status = validate_parameterFunc()(params, 2);
+    EXPECT_EQ(status, WDMP_SUCCESS);
+
+    free(params[0].name);
+    free(params[0].value);
+    free(params[1].name);
+    free(params[1].value);
+}
+
+TEST(webpaAdapterTest, validate_parameter_SecondParamNull) {
+    param_t params[2];
+    memset(params, 0, sizeof(params));
+
+    params[0].name = strdup("Device.DeviceInfo.ModelName");
+    params[0].value = strdup("TestModel");
+
+    params[1].name = strdup("Device.DeviceInfo.SerialNumber");
+    params[1].value = nullptr;
+
+    WDMP_STATUS status = validate_parameterFunc()(params, 2);
+    EXPECT_EQ(status, WDMP_ERR_VALUE_IS_NULL);
+
+    free(params[0].name);
+    free(params[0].value);
+    free(params[1].name);
+}
+
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
