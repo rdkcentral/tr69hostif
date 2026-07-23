@@ -211,6 +211,7 @@ int hostIf_STBServiceAudioInterface::handleSetMsg(const char *pSetting, HOSTIF_M
 int hostIf_STBServiceAudioInterface::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOT_HANDLED;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Getting AudioOutput param: %s\n", __FUNCTION__, paramName);
     if (strcasecmp(paramName, STATUS_STRING) == 0)
         ret = getStatus(stMsgData);
     else if (strcasecmp(paramName, ENABLE_STRING) == 0)
@@ -271,7 +272,6 @@ static std::string portParam(const std::string& portName)
 int hostIf_STBServiceAudioInterface::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool enabled = false;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_ENABLE_AUDIO_PORT);
     if (!invokeThunderPluginMethodAndExtractBoolField(
             THUNDER_DS_GET_ENABLE_AUDIO_PORT, portParam(m_portName), "enable", enabled))
     {
@@ -284,7 +284,6 @@ int hostIf_STBServiceAudioInterface::getStatus(HOSTIF_MsgData_t *stMsgData, bool
     if (enabled)
     {
         bool muted = false;
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_MUTED);
         invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted);
         status = muted ? "Muted" : "Enabled";
     }
@@ -321,7 +320,6 @@ int hostIf_STBServiceAudioInterface::getName(HOSTIF_MsgData_t *stMsgData)
 int hostIf_STBServiceAudioInterface::getCancelMute(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool muted = false;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_MUTED);
     if (!invokeThunderPluginMethodAndExtractBoolField(
             THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted))
     {
@@ -342,7 +340,6 @@ int hostIf_STBServiceAudioInterface::getCancelMute(HOSTIF_MsgData_t *stMsgData, 
 int hostIf_STBServiceAudioInterface::getAudioLevel(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     int volumeLevel = 0;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_VOLUME_LEVEL);
     if (!invokeThunderPluginMethodAndExtractNumberField(
             THUNDER_DS_GET_VOLUME_LEVEL, portParam(m_portName), "volumeLevel", volumeLevel))
     {
@@ -363,7 +360,6 @@ int hostIf_STBServiceAudioInterface::getAudioLevel(HOSTIF_MsgData_t *stMsgData, 
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioEncoding(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string encoding;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_AUDIO_ENCODING);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_AUDIO_ENCODING, portParam(m_portName), "encoding", encoding))
     {
@@ -396,7 +392,6 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioEncoding(HOSTIF_MsgDa
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioFormat(HOSTIF_MsgData_t *stMsgData)
 {
     std::string encoding;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_AUDIO_ENCODING);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_AUDIO_ENCODING, portParam(m_portName), "encoding", encoding))
     {
@@ -428,7 +423,6 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioFormat(HOSTIF_MsgData
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioStereoMode(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_SOUND_MODE);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_SOUND_MODE, portParam(m_portName), "soundMode", mode))
     {
@@ -451,7 +445,6 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioStereoMode(HOSTIF_Msg
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioCompression(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     int compression = 0;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_MS12_AUDIO_COMPRESSION);
     if (!invokeThunderPluginMethodAndExtractNumberField(
             THUNDER_DS_GET_MS12_AUDIO_COMPRESSION, portParam(m_portName), "compressionlevel", compression))
     {

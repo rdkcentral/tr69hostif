@@ -146,6 +146,7 @@ int hostIf_STBServiceHDMI::handleSetMsg(const char *paramName, HOSTIF_MsgData_t 
 
 int hostIf_STBServiceHDMI::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Getting HDMI param: %s\n", __FUNCTION__, paramName);
     if (strcasecmp(paramName, ENABLE_STRING) == 0)
         return getEnable(stMsgData);
     if (strcasecmp(paramName, STATUS_STRING) == 0)
@@ -198,7 +199,6 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
     std::string rawResponse;
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_CURRENT_RESOLUTION);
     if (!invokeThunderPluginMethod(THUNDER_DS_GET_CURRENT_RESOLUTION, params, rawResponse))
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
@@ -233,7 +233,6 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
      *            response (e.g. "2160p60" -> 60, "1080i50" -> 50). */
     double frameRateD = 0.0;
     std::string framerateStr;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DI_FRAMERATE);
     if (invokeThunderPluginMethodAndExtractScalarStringResult(THUNDER_DI_FRAMERATE, "{}", framerateStr))
     {
         /* Parse "FramerateXXXX" -> XXXX / 100.0 */
@@ -321,7 +320,6 @@ int hostIf_STBServiceHDMI::getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged
     bool isEnabled = false;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_ENABLE_VIDEO_PORT);
     if (!invokeThunderPluginMethodAndExtractBoolField(
             THUNDER_DS_GET_ENABLE_VIDEO_PORT, params, "enable", isEnabled))
     {

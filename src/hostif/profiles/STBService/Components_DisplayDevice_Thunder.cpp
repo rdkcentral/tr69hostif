@@ -54,6 +54,7 @@ int hostIf_STBServiceDisplayDevice::handleSetMsg(const char *paramName, HOSTIF_M
 
 int hostIf_STBServiceDisplayDevice::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Getting DisplayDevice param: %s\n", __FUNCTION__, paramName);
     if (strcasecmp(paramName, STATUS_STRING) == 0)
         return getStatus(stMsgData);
     if (strcasecmp(paramName, SUPPORTED_RES_STRING) == 0)
@@ -85,7 +86,6 @@ void hostIf_STBServiceDisplayDevice::doUpdates(const char *baseName, updateCallb
 int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool connected = false;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DI_CONNECTED);
     if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", connected))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed\n", __FUNCTION__);
@@ -145,7 +145,6 @@ int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *st
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
     std::string resolutionsCsv;
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_SUPPORTED_RESOLUTIONS);
     if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
             THUNDER_DS_GET_SUPPORTED_RESOLUTIONS,
             params, "supportedResolutions", ",", resolutionsCsv))
@@ -189,7 +188,6 @@ int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stM
 {
     std::string resolution;
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_DEFAULT_RESOLUTION);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_DEFAULT_RESOLUTION,
             "{}", "defaultResolution", resolution))
@@ -227,7 +225,6 @@ int hostIf_STBServiceDisplayDevice::getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMs
     /* readEDID returns "EDID":""  when display is not connected — treat empty
      * EDID as not-connected, matching the original libds isDisplayConnected() check. */
     std::string edidBase64;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_READ_EDID);
     invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_READ_EDID, "{}", "EDID", edidBase64);
 
     if (edidBase64.empty()) {

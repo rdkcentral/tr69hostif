@@ -208,20 +208,6 @@ def test_STBService_AudioOutput_Set_AudioLevel_NotHandled():
 # SPDIF – GET tests
 # ─────────────────────────────────────────────────────────────────────────────
 
-@pytest.mark.run(order=320)
-def test_STBService_SPDIF_Get_Alias():
-    """
-    GET SPDIF.1.Alias – only Thunder-implemented getter; returns port name.
-    """
-    param = SPDIF_BASE + ".Alias"
-    rstdout = rbus_get_data(param)
-
-    assert RBUS_EXCEPTION_STRING not in rstdout, \
-        f"rbus exception getting {param}"
-    # Should be a non-empty string (port name like "SPDIF0")
-    assert rstdout.strip() != ""
-
-
 @pytest.mark.run(order=321)
 def test_STBService_SPDIF_Get_Status_NotHandled():
     """

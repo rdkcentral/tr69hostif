@@ -128,6 +128,7 @@ int hostIf_STBServiceVideoDecoder::handleSetMsg(const char *pSetting, HOSTIF_Msg
 
 int hostIf_STBServiceVideoDecoder::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Getting VideoDecoder param: %s\n", __FUNCTION__, paramName);
     if (strcasecmp(paramName, ENABLE_STRING) == 0) {
         put_boolean(stMsgData->paramValue, true);
         stMsgData->paramtype = hostIf_BooleanType;
@@ -180,7 +181,6 @@ void hostIf_STBServiceVideoDecoder::doUpdates(updateCallback mUpdateCallback)
 int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string currentState;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_PM_GET_POWER_STATE);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_PM_GET_POWER_STATE, "{}", "currentState", currentState))
     {
@@ -214,7 +214,6 @@ int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData, bool *
 int hostIf_STBServiceVideoDecoder::getContentAspectRatio(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string aspectRatio;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_DISPLAY_ASPECT_RATIO);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_DISPLAY_ASPECT_RATIO,
             std::string("{\"videoDisplay\":\"") + m_portName + "\"}", "aspectRatio", aspectRatio))

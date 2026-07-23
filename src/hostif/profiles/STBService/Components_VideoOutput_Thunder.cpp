@@ -130,6 +130,7 @@ int hostIf_STBServiceVideoOutput::handleSetMsg(const char *paramName, HOSTIF_Msg
 int hostIf_STBServiceVideoOutput::handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOT_HANDLED;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Getting VideoOutput param: %s\n", __FUNCTION__, paramName);
     if (strcasecmp(paramName, STATUS_STRING) == 0)
     {
         ret = getStatus(stMsgData);
@@ -186,7 +187,6 @@ int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *p
 {
     bool isConnected = false;
 
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DI_CONNECTED);
     if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed\n", __FUNCTION__);
@@ -209,7 +209,6 @@ int hostIf_STBServiceVideoOutput::getDisplayFormat(HOSTIF_MsgData_t *stMsgData, 
 {
     std::string res;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_CURRENT_RESOLUTION);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_CURRENT_RESOLUTION, params, "resolution", res))
     {
@@ -249,7 +248,6 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 {
     std::string fmt;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_DISPLAY_ASPECT_RATIO);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_DISPLAY_ASPECT_RATIO, params, "aspectRatio", fmt))
         fmt = "Unknown";
@@ -268,7 +266,6 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_AVO_GET_ZOOM_MODE);
     if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_AVO_GET_ZOOM_MODE, "{}", "zoomSetting", mode))
         mode = "None";
     strncpy(stMsgData->paramValue, mode.c_str(), PARAM_LEN);
@@ -286,7 +283,6 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
 int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool hdcpEnabled = false;
-    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_HDCP_GET_STATUS);
     invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled);
     put_boolean(stMsgData->paramValue, hdcpEnabled);
     stMsgData->paramtype = hostIf_BooleanType;
