@@ -281,7 +281,8 @@ TEST_F(AudioOutputThunderTest, GetAudioEncoding_AC3)
 /* getX_COMCAST_COM_AudioFormat: maps audioFormat string through */
 TEST_F(AudioOutputThunderTest, GetAudioFormat)
 {
-    ThunderStub::setString(THUNDER_DS_GET_AUDIO_FORMAT, true, "PCM");
+    /* getX_COMCAST_COM_AudioFormat calls THUNDER_DS_GET_AUDIO_ENCODING internally */
+    ThunderStub::setString(THUNDER_DS_GET_AUDIO_ENCODING, true, "PCM");
 
     HOSTIF_MsgData_t msg = makeMsg();
     int rc = m_iface->handleGetMsg("AudioFormat", &msg);
@@ -888,7 +889,9 @@ TEST_F(CapabilitiesThunderTest, GetHEVCProfileDetails_Level)
 /* getSupportedResolutions (HDMI): Thunder returns comma-delimited codes */
 TEST_F(CapabilitiesThunderTest, GetSupportedResolutions_Success)
 {
-    ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS, true, "720p,1080p60");
+    /* getSupportedResolutions uses invokeThunderPluginMethod (raw JSON path) */
+    ThunderStub::setRaw(THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS, true,
+        "{\"supportedSettopResolutions\":[\"720p\",\"1080p60\"],\"success\":true}");
 
     HOSTIF_MsgData_t msg = makeMsgWithPath(
         "Device.Services.STBService.1.Capabilities.HDMI.SupportedResolutions");
@@ -896,13 +899,15 @@ TEST_F(CapabilitiesThunderTest, GetSupportedResolutions_Success)
 
     EXPECT_EQ(rc, OK);
     EXPECT_EQ(msg.paramtype, hostIf_StringType);
-    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("720p"));
+    /* getTR181ResolutionString converts "720p"→"1280x720p/59.94Hz", "1080p60"→"1920x1080p/59.94Hz" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("1280x720p/59.94Hz"));
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("1920x1080p/59.94Hz"));
 }
 
 /* getSupportedResolutions (HDMI): Thunder failure → NOK */
 TEST_F(CapabilitiesThunderTest, GetSupportedResolutions_ThunderFailure)
 {
-    ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS, false, "");
+    ThunderStub::setRaw(THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS, false, "");
 
     HOSTIF_MsgData_t msg = makeMsgWithPath(
         "Device.Services.STBService.1.Capabilities.HDMI.SupportedResolutions");

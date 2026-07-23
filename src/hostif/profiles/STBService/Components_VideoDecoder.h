@@ -50,6 +50,7 @@
 #ifndef DEVSET_COMP_VIDEODECODER_HPP_
 #define DEVSET_COMP_VIDEODECODER_HPP_
 
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "videoResolution.hpp"
 #include "dsTypes.h"
@@ -60,6 +61,7 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include <exception>
 #include <string.h>
 #include "stdlib.h"

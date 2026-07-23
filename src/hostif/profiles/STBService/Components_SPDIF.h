@@ -51,6 +51,7 @@
 #define DEVSET_COMP_SPDIF_HPP__
 
 #include <iostream>
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "videoDevice.hpp"
 #include "videoDFC.hpp"
@@ -58,6 +59,7 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include <exception>
 #include <string.h>
 #include <stdlib.h>
@@ -65,7 +67,9 @@
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_updateHandler.h"
 #include "hostIf_main.h"
+#ifndef USE_THUNDER_CLIENT
 #include "audioOutputPort.hpp"
+#endif /* USE_THUNDER_CLIENT */
 
 #ifndef PARAM_LEN
 #define PARAM_LEN TR69HOSTIFMGR_MAX_PARAM_LEN
