@@ -1,7 +1,21 @@
 /*
- * Copyright 2016 RDK Management — Apache-2.0
- * Components_VideoOutput_Thunder.cpp: Thunder-backed VideoOutput implementation.
- */
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2016 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 #include <sstream>
 #include "Components_VideoOutput.h"
 
@@ -36,6 +50,7 @@ void hostIf_STBServiceVideoOutput::buildPortNameHash()
     ifHash = g_hash_table_new(NULL, NULL);
 
     std::string delimitedPorts;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS);
     if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
             THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, "{}", "supportedVideoDisplays", ",", delimitedPorts))
     {
@@ -170,7 +185,13 @@ void hostIf_STBServiceVideoOutput::doUpdates(updateCallback mUpdateCallback)
 int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool isConnected = false;
-    invokeThunderPluginMethodAndExtractScalarBoolResult(THUNDER_DI_CONNECTED, "{}", isConnected);
+
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DI_CONNECTED);
+    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed\n", __FUNCTION__);
+        return NOK;
+    }
     const char *status = isConnected ? ENABLED_STRING : DISABLED_STRING;
     strncpy(stMsgData->paramValue, status, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
@@ -188,6 +209,7 @@ int hostIf_STBServiceVideoOutput::getDisplayFormat(HOSTIF_MsgData_t *stMsgData, 
 {
     std::string res;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_CURRENT_RESOLUTION);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_CURRENT_RESOLUTION, params, "resolution", res))
     {
@@ -227,6 +249,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 {
     std::string fmt;
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_DISPLAY_ASPECT_RATIO);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_DISPLAY_ASPECT_RATIO, params, "aspectRatio", fmt))
         fmt = "Unknown";
@@ -245,6 +268,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_AVO_GET_ZOOM_MODE);
     if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_AVO_GET_ZOOM_MODE, "{}", "zoomSetting", mode))
         mode = "None";
     strncpy(stMsgData->paramValue, mode.c_str(), PARAM_LEN);
@@ -262,6 +286,7 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
 int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool hdcpEnabled = false;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_HDCP_GET_STATUS);
     invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled);
     put_boolean(stMsgData->paramValue, hdcpEnabled);
     stMsgData->paramtype = hostIf_BooleanType;

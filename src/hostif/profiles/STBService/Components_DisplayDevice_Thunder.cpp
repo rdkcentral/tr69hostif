@@ -1,7 +1,21 @@
 /*
- * Copyright 2016 RDK Management — Apache-2.0
- * Components_DisplayDevice_Thunder.cpp: Thunder-backed DisplayDevice implementation.
- */
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2016 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 #include <sstream>
 #include "Components_DisplayDevice.h"
 
@@ -71,6 +85,7 @@ void hostIf_STBServiceDisplayDevice::doUpdates(const char *baseName, updateCallb
 int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool connected = false;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DI_CONNECTED);
     if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", connected))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed\n", __FUNCTION__);
@@ -130,6 +145,7 @@ int hostIf_STBServiceDisplayDevice::getSupportedResolutions(HOSTIF_MsgData_t *st
     const std::string params = std::string("{\"videoDisplay\":\"") + m_portName + "\"}";
     std::string resolutionsCsv;
 
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_SUPPORTED_RESOLUTIONS);
     if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
             THUNDER_DS_GET_SUPPORTED_RESOLUTIONS,
             params, "supportedResolutions", ",", resolutionsCsv))
@@ -173,6 +189,7 @@ int hostIf_STBServiceDisplayDevice::getPreferredResolution(HOSTIF_MsgData_t *stM
 {
     std::string resolution;
 
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_DEFAULT_RESOLUTION);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_DEFAULT_RESOLUTION,
             "{}", "defaultResolution", resolution))
@@ -210,6 +227,7 @@ int hostIf_STBServiceDisplayDevice::getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMs
     /* readEDID returns "EDID":""  when display is not connected — treat empty
      * EDID as not-connected, matching the original libds isDisplayConnected() check. */
     std::string edidBase64;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_READ_EDID);
     invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_READ_EDID, "{}", "EDID", edidBase64);
 
     if (edidBase64.empty()) {

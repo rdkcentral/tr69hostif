@@ -90,7 +90,8 @@ AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	-lIARMBus -lrdkloggers -lrbus
 endif
 
-if !WITH_THUNDER_CLIENT
+if WITH_THUNDER_CLIENT
+else
 AM_LDFLAGS += -lds -ldshalcli
 endif
 

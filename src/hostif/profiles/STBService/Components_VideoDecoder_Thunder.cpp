@@ -1,7 +1,21 @@
 /*
- * Copyright 2016 RDK Management — Apache-2.0
- * Components_VideoDecoder_Thunder.cpp: Thunder-backed VideoDecoder implementation.
- */
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2016 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 #include <sstream>
 #include "Components_VideoDecoder.h"
 
@@ -34,6 +48,7 @@ void hostIf_STBServiceVideoDecoder::buildPortNameHash()
     ifHash = g_hash_table_new(NULL, NULL);
 
     std::string delimitedPorts;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS);
     if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
             THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, "{}", "supportedVideoDisplays", ",", delimitedPorts))
     {
@@ -165,6 +180,7 @@ void hostIf_STBServiceVideoDecoder::doUpdates(updateCallback mUpdateCallback)
 int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string currentState;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_PM_GET_POWER_STATE);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_PM_GET_POWER_STATE, "{}", "currentState", currentState))
     {
@@ -198,6 +214,7 @@ int hostIf_STBServiceVideoDecoder::getStatus(HOSTIF_MsgData_t *stMsgData, bool *
 int hostIf_STBServiceVideoDecoder::getContentAspectRatio(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string aspectRatio;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_DISPLAY_ASPECT_RATIO);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_DISPLAY_ASPECT_RATIO,
             std::string("{\"videoDisplay\":\"") + m_portName + "\"}", "aspectRatio", aspectRatio))

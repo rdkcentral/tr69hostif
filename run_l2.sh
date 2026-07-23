@@ -94,6 +94,7 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom.json test/functional-tests/tests/tr69hostif_custom.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 
 pkill -f thunder-mock-server.js
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py

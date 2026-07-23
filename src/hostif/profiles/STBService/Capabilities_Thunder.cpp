@@ -99,6 +99,7 @@ int hostIf_STBServiceCapabilities::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
 
         tmp_ptr++;
         paramName = tmp_ptr; //Now points to STBService.1.Capabilities.*
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Getting Capabilities param: %s\n", __FUNCTION__, stMsgData->paramName);
         if (strcasecmp(paramName, VIDEO_STANDARDS_STRING) == 0)
         {
             ret = getVideoStandards(stMsgData);

@@ -69,6 +69,7 @@ void hostIf_STBServiceAudioInterface::buildPortNameHash()
     ifHash = g_hash_table_new(NULL, NULL);
 
     std::string delimitedPorts;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_SUPPORTED_AUDIO_PORTS);
     if (!invokeThunderPluginMethodAndExtractDelimitedStringArrayField(
             THUNDER_DS_GET_SUPPORTED_AUDIO_PORTS, "{}", "supportedAudioPorts", ",", delimitedPorts))
     {
@@ -270,6 +271,7 @@ static std::string portParam(const std::string& portName)
 int hostIf_STBServiceAudioInterface::getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool enabled = false;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_ENABLE_AUDIO_PORT);
     if (!invokeThunderPluginMethodAndExtractBoolField(
             THUNDER_DS_GET_ENABLE_AUDIO_PORT, portParam(m_portName), "enable", enabled))
     {
@@ -282,6 +284,7 @@ int hostIf_STBServiceAudioInterface::getStatus(HOSTIF_MsgData_t *stMsgData, bool
     if (enabled)
     {
         bool muted = false;
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_MUTED);
         invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted);
         status = muted ? "Muted" : "Enabled";
     }
@@ -318,6 +321,7 @@ int hostIf_STBServiceAudioInterface::getName(HOSTIF_MsgData_t *stMsgData)
 int hostIf_STBServiceAudioInterface::getCancelMute(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool muted = false;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_MUTED);
     if (!invokeThunderPluginMethodAndExtractBoolField(
             THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted))
     {
@@ -338,6 +342,7 @@ int hostIf_STBServiceAudioInterface::getCancelMute(HOSTIF_MsgData_t *stMsgData, 
 int hostIf_STBServiceAudioInterface::getAudioLevel(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     int volumeLevel = 0;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_VOLUME_LEVEL);
     if (!invokeThunderPluginMethodAndExtractNumberField(
             THUNDER_DS_GET_VOLUME_LEVEL, portParam(m_portName), "volumeLevel", volumeLevel))
     {
@@ -358,6 +363,7 @@ int hostIf_STBServiceAudioInterface::getAudioLevel(HOSTIF_MsgData_t *stMsgData, 
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioEncoding(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string encoding;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_AUDIO_ENCODING);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_AUDIO_ENCODING, portParam(m_portName), "encoding", encoding))
     {
@@ -365,14 +371,17 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioEncoding(HOSTIF_MsgDa
                 __FUNCTION__, m_portName.c_str());
         return NOK;
     }
-    /* Normalize Thunder UPPERCASE encoding to Title case (e.g. "DISPLAY" -> "Display") */
-    if (!encoding.empty())
-    {
-        encoding[0] = (char)toupper((unsigned char)encoding[0]);
-        for (size_t i = 1; i < encoding.size(); i++)
-            encoding[i] = (char)tolower((unsigned char)encoding[i]);
-    }
-    strncpy(stMsgData->paramValue, encoding.c_str(), PARAM_LEN);
+    /* Map Thunder UPPERCASE encoding to exact TR-135 legacy strings.
+     * Legacy dsAUDIO_ENC_* values: NONE->"None", DISPLAY->"Display",
+     * PCM->"PCM", AC3->"AC3", EAC3->"EAC3". Title-case normalization
+     * is wrong for multi-char acronyms (AC3 -> Ac3, PCM -> Pcm). */
+    const char *mapped = encoding.c_str();  /* default: pass through unknown values */
+    if      (encoding == "NONE")    mapped = "None";
+    else if (encoding == "DISPLAY") mapped = "Display";
+    else if (encoding == "PCM")     mapped = "PCM";
+    else if (encoding == "AC3")     mapped = "AC3";
+    else if (encoding == "EAC3")    mapped = "EAC3";
+    strncpy(stMsgData->paramValue, mapped, PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stMsgData->paramValue);
@@ -387,6 +396,7 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioEncoding(HOSTIF_MsgDa
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioFormat(HOSTIF_MsgData_t *stMsgData)
 {
     std::string encoding;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_AUDIO_ENCODING);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_AUDIO_ENCODING, portParam(m_portName), "encoding", encoding))
     {
@@ -418,6 +428,7 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioFormat(HOSTIF_MsgData
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioStereoMode(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_SOUND_MODE);
     if (!invokeThunderPluginMethodAndExtractStringField(
             THUNDER_DS_GET_SOUND_MODE, portParam(m_portName), "soundMode", mode))
     {
@@ -440,6 +451,7 @@ int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioStereoMode(HOSTIF_Msg
 int hostIf_STBServiceAudioInterface::getX_COMCAST_COM_AudioCompression(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     int compression = 0;
+    RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] Calling Thunder API: %s\n", __FUNCTION__, THUNDER_DS_GET_MS12_AUDIO_COMPRESSION);
     if (!invokeThunderPluginMethodAndExtractNumberField(
             THUNDER_DS_GET_MS12_AUDIO_COMPRESSION, portParam(m_portName), "compressionlevel", compression))
     {
