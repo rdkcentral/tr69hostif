@@ -25,7 +25,7 @@ from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=194)
+@pytest.mark.run(order=526)
 def test_Processor_Architecture_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.Processor.1.Architecture"
@@ -35,7 +35,7 @@ def test_Processor_Architecture_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=195)
+@pytest.mark.run(order=527)
 def test_ProcessStatus_PID_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.Process.1.PID"
@@ -43,7 +43,7 @@ def test_ProcessStatus_PID_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=196)
+@pytest.mark.run(order=528)
 def test_ProcessStatus_Command_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.Process.1.Command"
@@ -51,7 +51,7 @@ def test_ProcessStatus_Command_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=197)
+@pytest.mark.run(order=529)
 def test_ProcessStatus_Size_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.Process.1.Size"
@@ -59,7 +59,7 @@ def test_ProcessStatus_Size_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
     
-@pytest.mark.run(order=198)
+@pytest.mark.run(order=530)
 def test_ProcessStatus_Priority_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.Process.1.Priority"
@@ -67,7 +67,7 @@ def test_ProcessStatus_Priority_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
-@pytest.mark.run(order=199)
+@pytest.mark.run(order=531)
 def test_ProcessStatus_CPUTime_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.Process.1.CPUTime"
@@ -76,7 +76,7 @@ def test_ProcessStatus_CPUTime_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
 
 
-@pytest.mark.run(order=200)
+@pytest.mark.run(order=532)
 def test_ProcessStatus_State_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.Process.1.State"
@@ -84,10 +84,18 @@ def test_ProcessStatus_State_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
     
-@pytest.mark.run(order=201)
+@pytest.mark.run(order=533)
 def test_ProcessStatus_NumberOfEntries_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.ProcessNumberOfEntries"
+    # Force reload config fetch from xconf
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+
+@pytest.mark.run(order=534)
+def test_ProcessStatus_CPUUsage_Get_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.ProcessStatus.CPUUsage"
     # Force reload config fetch from xconf
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout

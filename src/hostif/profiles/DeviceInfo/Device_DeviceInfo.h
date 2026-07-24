@@ -193,6 +193,10 @@
 #define RDK_REMOTE_DEBUGGER_WEBCFGDATA                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData"
 #endif
 
+/* Profile: X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing */
+#define DISTRIBUTED_TRACING_RFC_ENABLE              "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Enable"
+#define RDK_TRACING_FLAG_FILE                       "/tmp/rdk_distributed_tracing_enabled"
+
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.RebootStop */
 #define RDK_REBOOTSTOP_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable"
 
@@ -306,6 +310,7 @@ class hostIf_DeviceInfo {
     int ScheduleAutoReboot(bool);
 
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
+    int set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *);
 
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);

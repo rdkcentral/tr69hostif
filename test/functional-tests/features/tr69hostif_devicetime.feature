@@ -74,6 +74,23 @@ Feature: Device.Time Parameter GET/SET via rbus
     Then the rbus response should not contain an error
     And the rbus response should contain "UTC"
 
+  Scenario: SET Device.Time.LocalTimeZone returns error
+    When I SET "Device.Time.LocalTimeZone" to "UTC" as string via rbus
+    Then the rbus response should contain an error
+
   Scenario: GET Device.Time.X_RDK_CurrentUTCTime
     When I GET "Device.Time.X_RDK_CurrentUTCTime" via rbus
     Then the rbus response should not contain an error
+
+  Scenario: SET Device.Time.Enable to true returns error
+    When I SET "Device.Time.Enable" to "true" as boolean via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.Time.Enable remains false
+    When I GET "Device.Time.Enable" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "false"
+
+  Scenario: SET Device.Time.Enable to false returns error
+    When I SET "Device.Time.Enable" to "false" as boolean via rbus
+    Then the rbus response should contain an error

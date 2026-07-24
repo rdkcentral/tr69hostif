@@ -26,7 +26,7 @@ from time import sleep
 from helper_functions import *
 
 @pytest.mark.run(order=81)
-def test_RFC_ClearDB_Get_Handler():
+def test_RFC_ClearDB_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDB"
     VALUE = "true"
@@ -35,7 +35,7 @@ def test_RFC_ClearDB_Get_Handler():
     assert RBUS_SUCCESS_STRING in rstdout
 
 @pytest.mark.run(order=82)
-def test_RFC_ClearDBEnd_Get_Handler():
+def test_RFC_ClearDBEnd_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDBEnd"
     VALUE = "true"
@@ -55,7 +55,7 @@ def test_RFC_RetrieveNow_Set_Handler():
 
 
 @pytest.mark.run(order=84)
-def test_RFC_RoamTrigger_Get_Handler():
+def test_RFC_RoamTrigger_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RoamTrigger"
     VALUE = "triggered"
@@ -65,7 +65,7 @@ def test_RFC_RoamTrigger_Get_Handler():
 
 
 @pytest.mark.run(order=85)
-def test_RFC_DAPv2_Get_Handler():
+def test_RFC_DAPv2_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DAPv2_Enable"
     VALUE = "true"
@@ -75,7 +75,7 @@ def test_RFC_DAPv2_Get_Handler():
 
 
 @pytest.mark.run(order=86)
-def test_RFC_MS12_DE_Get_Handler():
+def test_RFC_MS12_DE_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DE_Enable"
     VALUE = "true"
@@ -84,7 +84,7 @@ def test_RFC_MS12_DE_Get_Handler():
     assert RBUS_SUCCESS_STRING in rstdout
 
 @pytest.mark.run(order=87)
-def test_RFC_LoudnessEquivalence_Get_Handler():
+def test_RFC_LoudnessEquivalence_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LoudnessEquivalence.Enable"
     VALUE = "true"
@@ -93,7 +93,7 @@ def test_RFC_LoudnessEquivalence_Get_Handler():
     assert RBUS_SUCCESS_STRING in rstdout
 
 @pytest.mark.run(order=88)
-def test_RFC_DAB_Get_Handler():
+def test_RFC_DAB_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable"
     VALUE = "true"
@@ -102,7 +102,7 @@ def test_RFC_DAB_Get_Handler():
     assert RBUS_SUCCESS_STRING in rstdout
 
 @pytest.mark.run(order=89)
-def test_RFC_AutoReboot_Get_Handler():
+def test_RFC_AutoReboot_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
     VALUE = "true"
@@ -112,7 +112,7 @@ def test_RFC_AutoReboot_Get_Handler():
 
 
 @pytest.mark.run(order=90)
-def test_RFC_RebootStop_Get_Handler():
+def test_RFC_RebootStop_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable"
     VALUE = "true"
@@ -121,7 +121,7 @@ def test_RFC_RebootStop_Get_Handler():
     assert RBUS_SUCCESS_STRING in rstdout
 
 @pytest.mark.run(order=91)
-def test_RFC_wakeUpStart_Get_Handler():
+def test_RFC_wakeUpStart_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart"
     VALUE = "100"
@@ -131,7 +131,7 @@ def test_RFC_wakeUpStart_Get_Handler():
 
 
 @pytest.mark.run(order=92)
-def test_RFC_wakeUpEnd_Get_Handler():
+def test_RFC_wakeUpEnd_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd"
     VALUE = "100"

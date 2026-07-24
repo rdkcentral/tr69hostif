@@ -25,7 +25,7 @@ from time import sleep
 
 from helper_functions import *
 
-@pytest.mark.run(order=189)
+@pytest.mark.run(order=491)
 def test_IPRemoteSupport_Set_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.Enable"
@@ -34,7 +34,7 @@ def test_IPRemoteSupport_Set_Handler():
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
     assert RBUS_SUCCESS_STRING in rstdout
 
-@pytest.mark.run(order=190)
+@pytest.mark.run(order=492)
 def test_IPRemoteSupport_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.Enable"
@@ -44,7 +44,7 @@ def test_IPRemoteSupport_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=191)
+@pytest.mark.run(order=493)
 def test_IPRemoteSupport_IPAddr_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.IPAddr"
@@ -54,7 +54,7 @@ def test_IPRemoteSupport_IPAddr_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
 
-@pytest.mark.run(order=192)
+@pytest.mark.run(order=494)
 def test_IPRemoteSupport_MACAddr_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.MACAddr"
@@ -64,7 +64,7 @@ def test_IPRemoteSupport_MACAddr_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert VALUE in rstdout
     
-@pytest.mark.run(order=193)
+@pytest.mark.run(order=495)
 def test_PartnerId_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId"

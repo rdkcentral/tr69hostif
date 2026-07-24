@@ -44,6 +44,7 @@ echo "Status|Download In Progress" >> /opt/fwdnldstatus.txt
 echo "DnldFile|TESTIMAGE_DEV.bin" >> /opt/fwdnldstatus.txt
 echo "DnldURL|https://mockserver.tv/Images" >> /opt/fwdnldstatus.txt
 echo "FwUpdateState|Download complete" >> /opt/fwdnldstatus.txt
+echo "uploaded" > /opt/loguploadstatus.txt
 
 cp ./src/integrationtest/conf/mgrlist.conf /etc/
 
@@ -96,6 +97,12 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_logging.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_logging.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_rpc.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_rpc.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/storageservice.json test/functional-tests/tests/tr69hostif_storageservice.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bluetooth.json test/functional-tests/tests/tr69hostif_bluetooth.py
 pkill -f thunder-mock-server.js
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
 
