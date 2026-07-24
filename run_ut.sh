@@ -171,12 +171,19 @@ make
 ./devieInfo_gtest
 echo "********************"
 
+echo "**** Compiling STBService Thunder gtest ****"
+cd $TOP_DIR/src/hostif/profiles/STBService/gtest
+rm -f stbservice_thunder_gtest
+make
+./stbservice_thunder_gtest
+echo "********************"
+
 cd $TOP_DIR
 
 if [ "$ENABLE_COV" = true ]; then
     lcov --capture --directory . --output-file coverage.info
     lcov --remove coverage.info '/usr/*' '*/gtest/*' '*/mocks/*' --output-file filtered.info
-    lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' --output-file tr69hostif_coverage.info
+    lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' '*/src/hostif/profiles/STBService/*' --output-file tr69hostif_coverage.info
     lcov --list tr69hostif_coverage.info
 fi
  

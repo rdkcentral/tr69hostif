@@ -85,6 +85,7 @@
 #define DEVSET_COMP_AUDIOOUTPUT_HPP__
 
 #include <iostream>
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "videoDevice.hpp"
 #include "videoDFC.hpp"
@@ -92,6 +93,7 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include <exception>
 #include <string.h>
 #include <stdlib.h>
@@ -99,7 +101,9 @@
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_updateHandler.h"
 #include "hostIf_main.h"
+#ifndef USE_THUNDER_CLIENT
 #include "audioOutputPort.hpp"
+#endif /* USE_THUNDER_CLIENT */
 
 #ifndef PARAM_LEN
 #define PARAM_LEN TR69HOSTIFMGR_MAX_PARAM_LEN
@@ -111,12 +115,22 @@
  */
 class hostIf_STBServiceAudioInterface
 {
+#ifdef USE_THUNDER_CLIENT
+    static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceAudioInterface* */
+    hostIf_STBServiceAudioInterface(int dev_id, const std::string& portName);
+#else
     static GHashTable *ifHash;
     hostIf_STBServiceAudioInterface(int dev_id, device::AudioOutputPort& port);
+#endif
     ~hostIf_STBServiceAudioInterface() {};
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
+    std::string m_portName;
+    static void buildPortNameHash();
+#else
     device::AudioOutputPort& aPort;
+#endif
 
     char backupStatus[_BUF_LEN_16];
     bool backupCancelMute;

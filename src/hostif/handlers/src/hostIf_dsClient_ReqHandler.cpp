@@ -47,9 +47,11 @@
 #include "Components_VideoOutput.h"
 #include "Components_VideoDecoder.h"
 #include "hostIf_utils.h"
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "manager.hpp"
 #include "dsError.h"
+#endif /* USE_THUNDER_CLIENT */
 #include "libIBus.h"
 
 #define CAPABILTIES_OBJ "Device.Services.STBService.1.Capabilities."
@@ -79,6 +81,12 @@ bool DSClientReqHandler::init()
 {
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s()] Device manager Initializing\n", __FUNCTION__);
+#ifdef USE_THUNDER_CLIENT
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] STBService interface: Thunder (WPEFramework)\n", __FUNCTION__);
+#else
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] STBService interface: IARM/libds\n", __FUNCTION__);
+#endif
+#ifndef USE_THUNDER_CLIENT
     while(true)
     {
        try
@@ -94,6 +102,7 @@ bool DSClientReqHandler::init()
        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s()] Device manager Initialized success break loop \n", __FUNCTION__);
        break;
     }
+#endif /* USE_THUNDER_CLIENT */
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return true;
 }
@@ -118,7 +127,9 @@ bool DSClientReqHandler::unInit()
 	hostIf_STBServiceVideoDecoder::closeAllInstances();
     hostIf_STBServiceAudioInterface::closeAllInstances();
 	hostIf_STBServiceSPDIF::closeAllInstances();
+#ifndef USE_THUNDER_CLIENT
     device::Manager::DeInitialize();
+#endif /* USE_THUNDER_CLIENT */
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return true;
 }

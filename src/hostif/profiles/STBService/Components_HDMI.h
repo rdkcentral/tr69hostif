@@ -53,6 +53,7 @@
 #ifndef DEVSET_COMP_HDMI_HPP_
 #define DEVSET_COMP_HDMI_HPP_
 
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "videoResolution.hpp"
 #include "dsTypes.h"
@@ -63,6 +64,7 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include <exception>
 #include <string.h>
 #include "stdlib.h"
@@ -71,7 +73,9 @@
 #include "hostIf_utils.h"
 
 #include "Components_DisplayDevice.h"
+#ifndef USE_THUNDER_CLIENT
 #include "videoOutputPort.hpp"
+#endif /* USE_THUNDER_CLIENT */
 
 #define HDMI_RESOLUTION_MODE_AUTO       "Auto"
 #define HDMI_RESOLUTION_MODE_MANUAL     "Manual"
@@ -87,12 +91,22 @@
  */
 class  hostIf_STBServiceHDMI
 {
+#ifdef USE_THUNDER_CLIENT
+    static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceHDMI* */
+    hostIf_STBServiceHDMI(int devid, const std::string& portName);
+#else
     static GHashTable *ifHash;
     hostIf_STBServiceHDMI(int devid, device::VideoOutputPort& port);
+#endif
     ~hostIf_STBServiceHDMI();
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
+    std::string m_portName;
+    static void buildPortNameHash();
+#else
     device::VideoOutputPort& vPort;
+#endif
     hostIf_STBServiceDisplayDevice *displayDevice;
 
     static char dsHDMIResolutionMode[10];
