@@ -34,8 +34,6 @@
 #include "hostIf_main.h"
 #include "hostIf_DeviceClient_ReqHandler.h"
 #include "hostIf_utils.h"
-#include "host.hpp"
-#include "dsError.h"
 #include "libIBus.h"
 #include "Device_DeviceInfo.h"
 #include "Device_DeviceInfo_Processor.h"
@@ -107,7 +105,6 @@ bool DeviceClientReqHandler::unInit()
 //    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return true;
 }
-
 
 /**
  * @brief This function is used to set the Device reset, FirmwareDownload and FirmwareDownload Status.
