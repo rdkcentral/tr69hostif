@@ -34,7 +34,7 @@
           <string/>
         </syntax>
       </parameter>
-      <parameter base="ModelName" access="readOnly" notification="0" maxNotification="2" >
+      <parameter base="ModelName" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
