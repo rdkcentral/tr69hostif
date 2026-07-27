@@ -283,7 +283,10 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
 int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     bool hdcpEnabled = false;
-    invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled);
+    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getHDCPStatus failed, assuming not compliant\n", __FUNCTION__);
+    }
     put_boolean(stMsgData->paramValue, hdcpEnabled);
     stMsgData->paramtype = hostIf_BooleanType;
     stMsgData->paramLen = sizeof(bool);

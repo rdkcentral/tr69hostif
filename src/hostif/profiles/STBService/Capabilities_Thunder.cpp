@@ -248,7 +248,7 @@ static bool getThunderVideoCodecInfo(unsigned int& numEntries, std::vector<Thund
         ThunderHEVCEntry entry;
         entry.profile = profileObj->valuestring;
         entry.level = (float)levelObj->valuedouble;
-        entries.push_back(entry);
+        entries.push_back(std::move(entry));
     }
 
     cJSON_Delete(root);

@@ -284,7 +284,11 @@ int hostIf_STBServiceAudioInterface::getStatus(HOSTIF_MsgData_t *stMsgData, bool
     if (enabled)
     {
         bool muted = false;
-        invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted);
+        if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DS_GET_MUTED, portParam(m_portName), "muted", muted))
+        {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getMuted failed for %s, assuming not muted\n",
+                    __FUNCTION__, m_portName.c_str());
+        }
         status = muted ? "Muted" : "Enabled";
     }
 

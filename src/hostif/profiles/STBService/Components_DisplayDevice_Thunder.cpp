@@ -225,7 +225,10 @@ int hostIf_STBServiceDisplayDevice::getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMs
     /* readEDID returns "EDID":""  when display is not connected — treat empty
      * EDID as not-connected, matching the original libds isDisplayConnected() check. */
     std::string edidBase64;
-    invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_READ_EDID, "{}", "EDID", edidBase64);
+    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_READ_EDID, "{}", "EDID", edidBase64))
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder readEDID failed, treating as not connected\n", __FUNCTION__);
+    }
 
     if (edidBase64.empty()) {
         memset(stMsgData->paramValue, '\0', sizeof(stMsgData->paramValue));
