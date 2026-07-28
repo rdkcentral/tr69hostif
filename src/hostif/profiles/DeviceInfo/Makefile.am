@@ -34,6 +34,7 @@ $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLA
 -I=/usr/include/rbus/
 
 AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lcurl -lrfcapi -lrbus -luploadstblogs
+tr69hostif_LDADD += -luploadstblogs
 
 if IS_YOCTO_ENABLED
 AM_LDFLAGS += -lsecure_wrapper
