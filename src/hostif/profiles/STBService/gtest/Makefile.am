@@ -33,10 +33,20 @@ COMMON_CPPFLAGS = \
     -I$(TOP_DIR)/src/hostif/profiles/STBService \
     -I$(TOP_DIR)/src/hostif/handlers/include \
     -I$(TOP_DIR)/src/unittest/stubs \
-    -I$(TOP_DIR)/src/unittest/stubs/ds
+    -I$(TOP_DIR)/src/unittest/stubs/ds \
+    -I/usr/local/include
+
+LIBDS_ONLY_CPPFLAGS = \
+    -I/usr/rdk-halif-device_settings/include \
+    -I/usr/rdkvhal-devicesettings-raspberrypi4 \
+    -I/usr/devicesettings/ds \
+    -I/usr/devicesettings/ds/include \
+    -I/usr/devicesettings/rpc/include \
+    -I/usr/devicesettings/rpc/cli \
+    -I/usr/devicesettings/rpc/srv
 
 THUNDER_CPPFLAGS = $(COMMON_CPPFLAGS) -DUSE_THUNDER_CLIENT
-LIBDS_CPPFLAGS = $(COMMON_CPPFLAGS)
+LIBDS_CPPFLAGS = $(COMMON_CPPFLAGS) $(LIBDS_ONLY_CPPFLAGS)
 
 COMMON_LDADD = \
     -lgtest \
@@ -44,6 +54,11 @@ COMMON_LDADD = \
     -lgcov \
     $(GLIB_LIBS) \
     -lcjson
+
+LIBDS_ONLY_LDADD = \
+    -lds \
+    -ldshalcli \
+    -ldshalsrv
 
 COMMON_CXXFLAGS = \
     -frtti \
@@ -78,5 +93,5 @@ stbservice_thunder_gtest_LDADD    = $(COMMON_LDADD)
 stbservice_thunder_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 
 stbservice_libds_gtest_CPPFLAGS = $(LIBDS_CPPFLAGS)
-stbservice_libds_gtest_LDADD    = $(COMMON_LDADD)
+stbservice_libds_gtest_LDADD    = $(COMMON_LDADD) $(LIBDS_ONLY_LDADD)
 stbservice_libds_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
