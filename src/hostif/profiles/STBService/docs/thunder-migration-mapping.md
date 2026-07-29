@@ -24,11 +24,9 @@ Source review performed against:
 
 ## libds Usage Inventory Notes
 
-- Port-reference fields still present in headers:
-  - `device::AudioOutputPort& aPort` in AudioOutput and SPDIF
-  - `device::VideoOutputPort& vPort` in HDMI, DisplayDevice, and VideoOutput
-- Runtime instance creation still uses libds host lookups in component constructors/getInstance flows.
-- No `Components_*_Thunder.cpp` files currently exist under `src/hostif/profiles/STBService`.
+- Port-reference fields in headers have been replaced with Thunder-compatible instance state (`m_portName`) for migrated components.
+- Runtime instance creation for migrated components enumerates ports via Thunder (for example `getSupportedAudioPorts` / `getSupportedVideoDisplays`).
+- Thunder-backed implementations now live in `Components_*_Thunder.cpp` under `src/hostif/profiles/STBService`.
 
 ## No Direct Thunder Equivalent (Current Gaps)
 
