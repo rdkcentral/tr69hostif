@@ -19,8 +19,6 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 bin_PROGRAMS = stbservice_thunder_gtest stbservice_libds_gtest
 
-TOP_DIR = $(top_srcdir)
-
 # -DUSE_THUNDER_CLIENT  : compile the Thunder-backed implementations
 # -DUNIT_TEST           : suppress any production-only #ifdefs
 # -DGTEST_ENABLE        : enable gtest-specific code paths
