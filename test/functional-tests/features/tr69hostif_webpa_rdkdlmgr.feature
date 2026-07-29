@@ -54,3 +54,11 @@ Feature: WebPA DNSText and RDK Download Manager/Remote Debugger Parameters SET/G
   Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData
     When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData" to "testcfgdata" as string via rbus
     Then the rbus response should indicate success
+
+  Scenario: GET Device.X_RDK_WebPA_Server.URL
+    When I GET "Device.X_RDK_WebPA_Server.URL" via rbus
+    Then the rbus response should not contain an error
+
+  Scenario: GET Device.X_RDK_WebPA_TokenServer.URL
+    When I GET "Device.X_RDK_WebPA_TokenServer.URL" via rbus
+    Then the rbus response should not contain an error

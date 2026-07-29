@@ -41,8 +41,6 @@ Feature: Comcast/RDK Custom Parameter GET and SET via rbus
       | Device.DeviceInfo.X_RDKCENTRAL-COM.CPUTemp                                                              |
       | Device.DeviceInfo.X_RDKCENTRAL-COM_Experience                                                           |
       | Device.DeviceInfo.X_RDK_FirmwareName                                                                    |
-      | Device.DeviceInfo.X_RDKCENTRAL-COM_MigrationPreparer.MigrationReady                                     |
-      | Device.DeviceInfo.X_RDKCENTRAL-COM_Migration.MigrationStatus                                            |
 
   Scenario Outline: SET then GET writable custom parameter
     When I SET "<parameter>" to "<value>" as <type> via rbus
@@ -52,14 +50,59 @@ Feature: Comcast/RDK Custom Parameter GET and SET via rbus
     Examples:
       | parameter                                                | type    | value                  |
       | Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareToDownload   | string  | fw_image.bin           |
-      | Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus| string  | IDLE                   |
       | Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol | string  | https                  |
       | Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL      | string  | https://example.com/fw.bin |
-      | Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig | boolean | true               |
       | Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadDeferReboot | boolean | true              |
       | Device.DeviceInfo.X_RDKCENTRAL-COM_PreferredGatewayType  | string  | DOCSIS                |
       | Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version           | string  | 1.0.0                 |
       | Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion       | string  | 1.0.0                 |
+
+  Scenario: GET Device.DeviceInfo.X_COMCAST-COM_STB_MAC returns error
+    When I GET "Device.DeviceInfo.X_COMCAST-COM_STB_MAC" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus returns error
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus" to "IDLE" as string via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus" via rbus
+    Then the rbus response should not contain an error
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig" to "true" as boolean via rbus
+    Then the rbus response should indicate success
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig returns error
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadUseCodebig" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadPercent returns error
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadPercent" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_LastRebootReason returns error
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_LastRebootReason" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_MigrationPreparer.MigrationReady returns error
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_MigrationPreparer.MigrationReady" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_Migration.MigrationStatus returns error
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_Migration.MigrationStatus" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET and GET FirmwareDownloadProtocol COMCAST alias value
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol" to "http" as string via rbus
+    And I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "http"
+
+  Scenario: SET and GET FirmwareDownloadURL COMCAST alias value
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL" to "https://example.com/fw-comcast.bin" as string via rbus
+    And I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL" via rbus
+    Then the rbus response should not contain an error
 
   Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_Reset
     When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_Reset" to "Factory" as string via rbus

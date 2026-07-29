@@ -70,6 +70,14 @@ def test_DeviceInfo_FirmwareToDownload_Set_Handler():
     assert RBUS_SUCCESS_STRING in rstdout
 
 
+@pytest.mark.run(order=224)
+def test_DeviceInfo_FirmwareDownloadStatus_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus"
+    VALUE = "IDLE"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+
 @pytest.mark.run(order=225)
 def test_DeviceInfo_FirmwareDownloadStatus_Get_Handler():
     DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadStatus"
@@ -293,3 +301,57 @@ def test_DeviceInfo_IUI_AppsVersion_Set_Handler():
     VALUE = "1.0.0"
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
     assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=431)
+def test_DeviceInfo_FirmwareDownloadProtocol_Get_Handler_COMCAST_Alias():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol"
+    VALUE  = "http"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+    assert VALUE in rstdout
+
+
+@pytest.mark.run(order=430)
+def test_DeviceInfo_FirmwareDownloadProtocol_Set_Handler_COMCAST_Alias():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadProtocol"
+    VALUE = "http"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=432)
+def test_DeviceInfo_FirmwareDownloadURL_Get_Handler_COMCAST_Alias():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+
+
+@pytest.mark.run(order=433)
+def test_DeviceInfo_FirmwareDownloadURL_Set_Handler_COMCAST_Alias():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadURL"
+    VALUE = "https://example.com/fw-comcast.bin"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=434)
+def test_DeviceInfo_FirmwareDownloadPercent_Get_Handler_COMCAST_Alias():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_FirmwareDownloadPercent"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING in rstdout
+
+
+@pytest.mark.run(order=435)
+def test_DeviceInfo_BootStatus_Get_Handler_Underscore_Alias():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM.BootStatus"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+
+
+@pytest.mark.run(order=436)
+def test_DeviceInfo_CPUTemp_Get_Handler_Underscore_Alias():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM.CPUTemp"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+

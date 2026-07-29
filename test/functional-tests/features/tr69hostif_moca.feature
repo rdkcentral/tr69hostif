@@ -238,3 +238,27 @@ Feature: MoCA Interface Parameter Handler Validation
     When I SET "Device.MoCA.Interface.1.LowerLayers" to "" as string via rbus
     Then the rbus set response should contain "setvalues failed"
 
+  Scenario: GET Device.MoCA.Interface.1.KeyPassphrase
+    When I GET "Device.MoCA.Interface.1.KeyPassphrase" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.MoCA.Interface.1.TxPowerLimit
+    When I GET "Device.MoCA.Interface.1.TxPowerLimit" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: GET Device.MoCA.Interface.1.BeaconPowerLimit
+    When I GET "Device.MoCA.Interface.1.BeaconPowerLimit" via rbus
+    Then the rbus response should contain an error
+
+  Scenario: SET Device.MoCA.Interface.1.KeyPassphrase
+    When I SET "Device.MoCA.Interface.1.KeyPassphrase" to "123456" as string via rbus
+    Then the rbus set response should contain "setvalues failed"
+
+  Scenario: SET Device.MoCA.Interface.1.TxPowerLimit
+    When I SET "Device.MoCA.Interface.1.TxPowerLimit" to "0" as int via rbus
+    Then the rbus set response should contain "setvalues failed"
+
+  Scenario: SET Device.MoCA.Interface.1.BeaconPowerLimit
+    When I SET "Device.MoCA.Interface.1.BeaconPowerLimit" to "0" as int via rbus
+    Then the rbus set response should contain "setvalues failed"
+

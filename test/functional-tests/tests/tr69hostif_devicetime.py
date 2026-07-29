@@ -160,6 +160,14 @@ def test_DeviceTime_TimeZone_Get_Handler():
     assert TIMEZONE in rstdout
 
 @pytest.mark.run(order=141)
+def test_DeviceTime_TimeZone_Set_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Time.LocalTimeZone"
+    VALUE = "UTC"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=142)
 def test_DeviceTime_UTCTIME_Get_Handler():
     #clear_tr69hostiflogs()
     DATA_ELEMENT_NAME = "Device.Time.X_RDK_CurrentUTCTime"
@@ -167,3 +175,25 @@ def test_DeviceTime_UTCTIME_Get_Handler():
     rstdout = rbus_get_data(DATA_ELEMENT_NAME)
     assert RBUS_EXCEPTION_STRING not in rstdout
 
+@pytest.mark.run(order=143)
+def test_DeviceTime_Enable_SetTrue_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Time.Enable"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", "true")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+
+@pytest.mark.run(order=144)
+def test_DeviceTime_Enable_GetFalse_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Time.Enable"
+    STATUS_MSG = "false"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+    assert STATUS_MSG in rstdout
+
+@pytest.mark.run(order=145)
+def test_DeviceTime_Enable_SetFalse_Handler():
+    #clear_tr69hostiflogs()
+    DATA_ELEMENT_NAME = "Device.Time.Enable"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", "false")
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
