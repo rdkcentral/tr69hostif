@@ -4,6 +4,22 @@ export INSTALL_DIR=${ROOT}/local
 mkdir -p $INSTALL_DIR
 apt-get update && apt-get install -y libsoup-3.0
 
+TEST_MODE=${TEST_MODE:-thunder}
+if [ "$TEST_MODE" != "libds" ] && [ "$TEST_MODE" != "thunder" ]; then
+    echo "Invalid TEST_MODE '$TEST_MODE'. Supported: libds, thunder"
+    exit 1
+fi
+
+if [ "$TEST_MODE" = "thunder" ]; then
+    CONFIGURE_THUNDER_OPT="--enable-thunder=yes"
+    THUNDER_CXXFLAG="-DUSE_THUNDER_CLIENT"
+    MODE_LDFLAGS=""
+else
+    CONFIGURE_THUNDER_OPT="--enable-thunder=no"
+    THUNDER_CXXFLAG=""
+    MODE_LDFLAGS="-lds -ldshalcli -ldshalsrv"
+fi
+
 #Build rfc
 cd $ROOT
 rm -rf rfc
@@ -92,10 +108,10 @@ cd $WORKDIR
 sed -i '/PKG_CHECK_MODULES(\[PROCPS\], \[libproc >= 3.2.8\])/s/^/#/' ./configure.ac
 
 autoreconf -i
-./configure  --enable-IPv6=yes --enable-wifi=yes --enable-thunder=yes
+./configure  --enable-IPv6=yes --enable-wifi=yes $CONFIGURE_THUNDER_OPT
 
 make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I/usr/include/cjson -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/handlers/include -I$WORKDIR/src/hostif/parodusClient/waldb -I$WORKDIR/src/hostif/profiles/DeviceInfo -I/usr/include/cjson -I$WORKDIR/src/hostif/profiles/Time -I$WORKDIR/src/hostif/profiles/Device -I/usr/include/libsoup-3.0 -I/usr/include/yajl -I$WORKDIR/src/hostif/profiles/STBService -I$WORKDIR/src/unittest/stubs/ds -I/usr/devicesettings/ds -I/usr/local/include -I$WORKDIR/src/hostif/profiles/IP -I$WORKDIR/src/hostif/profiles/Ethernet -I$WORKDIR/src/hostif/profiles/wifi -I/usr/local/include/rbus -I$WORKDIR/src/hostif/parodusClient/pal -I/usr/rdk-halif-device_settings/include -I/usr/local/include/libparodus -I/usr/local/include -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/local/include/ -I/usr/include/yajl -I/usr/tinyxml2 -I/usr/devicesettings/ds -I/$WORKDIR/src/hostif/httpserver/include -I/usr/remote_debugger/src/ -DIPV6_SUPPORT -DUSE_WIFI_PROFILE -DMEDIA_CLIENT -DPRIVACYMODES_CONTROL" \
-AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus -lglib-2.0 -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER -DUSE_THUNDER_CLIENT" \
+AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus -lglib-2.0 -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2 $MODE_LDFLAGS"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER $THUNDER_CXXFLAG" \
     install
 
 cd ./src/hostif/parodusClient/pal/mock-parodus/

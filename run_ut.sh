@@ -33,13 +33,41 @@ git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 cd $WORKDIR
 ls -l /usr/local/include/libparodus/
 ENABLE_COV=false
+TEST_MODE=libds
 
-if [ "x$1" = "x--enable-cov" ]; then
-      echo "Enabling coverage options"
-      export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-      export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-      export LDFLAGS="-lgcov --coverage"
-      ENABLE_COV=true
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --enable-cov)
+            echo "Enabling coverage options"
+            export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+            export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+            export LDFLAGS="-lgcov --coverage"
+            ENABLE_COV=true
+            ;;
+        --mode)
+            TEST_MODE="$2"
+            shift
+            ;;
+        --mode=*)
+            TEST_MODE="${1#*=}"
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ "$TEST_MODE" != "libds" ] && [ "$TEST_MODE" != "thunder" ]; then
+    echo "Invalid mode '$TEST_MODE'. Supported: libds, thunder"
+    exit 1
+fi
+
+if [ "$TEST_MODE" = "thunder" ]; then
+      CONFIGURE_THUNDER_OPT="--enable-thunder=yes"
+else
+      CONFIGURE_THUNDER_OPT="--enable-thunder=no"
 fi
 
 apt-get update
@@ -91,7 +119,7 @@ cd ./src/
 automake --add-missing
 autoreconf --install
 
-./configure --enable-libsoup3
+./configure --enable-libsoup3 $CONFIGURE_THUNDER_OPT
 
 make clean
 
@@ -171,12 +199,22 @@ make
 ./devieInfo_gtest
 echo "********************"
 
-echo "**** Compiling STBService Thunder gtest ****"
-cd $TOP_DIR/src/hostif/profiles/STBService/gtest
-rm -f stbservice_thunder_gtest
-make
-./stbservice_thunder_gtest
-echo "********************"
+if [ "$TEST_MODE" = "thunder" ]; then
+    echo "**** Compiling STBService Thunder gtest ****"
+    cd $TOP_DIR/src/hostif/profiles/STBService/gtest
+    rm -f stbservice_thunder_gtest
+    make
+    ./stbservice_thunder_gtest
+    echo "********************"
+else
+    echo "**** Compiling STBService libds gtest ****"
+    cd $TOP_DIR/src/hostif/profiles/STBService/gtest
+    rm -f stbservice_libds_gtest
+    make clean
+    make stbservice_libds_gtest
+    ./stbservice_libds_gtest
+    echo "********************"
+fi
 
 cd $TOP_DIR
 

@@ -17,7 +17,7 @@
 
 AUTOMAKE_OPTIONS = subdir-objects
 
-bin_PROGRAMS = stbservice_thunder_gtest
+bin_PROGRAMS = stbservice_thunder_gtest stbservice_libds_gtest
 
 TOP_DIR = $(top_srcdir)
 
@@ -28,7 +28,6 @@ COMMON_CPPFLAGS = \
     -std=c++11 \
     -DGTEST_ENABLE \
     -DUNIT_TEST \
-    -DUSE_THUNDER_CLIENT \
     -I/usr/include \
     -I/usr/include/glib-2.0 \
     -I/usr/lib/x86_64-linux-gnu/glib-2.0/include \
@@ -37,6 +36,9 @@ COMMON_CPPFLAGS = \
     -I$(TOP_DIR)/src/hostif/handlers/include \
     -I$(TOP_DIR)/src/unittest/stubs \
     -I$(TOP_DIR)/src/unittest/stubs/ds
+
+THUNDER_CPPFLAGS = $(COMMON_CPPFLAGS) -DUSE_THUNDER_CLIENT
+LIBDS_CPPFLAGS = $(COMMON_CPPFLAGS)
 
 COMMON_LDADD = \
     -lgtest \
@@ -62,6 +64,21 @@ stbservice_thunder_gtest_SOURCES = \
     $(TOP_DIR)/src/hostif/profiles/STBService/gtest/thunder_plugin_stub.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/gtest/gtest_stbservice_thunder.cpp
 
-stbservice_thunder_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+stbservice_libds_gtest_SOURCES = \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_AudioOutput.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_SPDIF.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_DisplayDevice.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_HDMI.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_VideoDecoder.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_VideoOutput.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Capabilities.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/gtest/thunder_plugin_stub.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/gtest/gtest_stbservice_libds.cpp
+
+stbservice_thunder_gtest_CPPFLAGS = $(THUNDER_CPPFLAGS)
 stbservice_thunder_gtest_LDADD    = $(COMMON_LDADD)
 stbservice_thunder_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+stbservice_libds_gtest_CPPFLAGS = $(LIBDS_CPPFLAGS)
+stbservice_libds_gtest_LDADD    = $(COMMON_LDADD)
+stbservice_libds_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
