@@ -64,7 +64,7 @@ GMutex hostIf_STBServiceAudioInterface::m_mutex;
 void hostIf_STBServiceAudioInterface::buildPortNameHash()
 {
     if (ifHash)
-        g_hash_table_destroy(ifHash);
+        closeAllInstances();
 
     ifHash = g_hash_table_new(NULL, NULL);
 

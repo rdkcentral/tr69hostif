@@ -68,7 +68,7 @@ hostIf_STBServiceSPDIF* hostIf_STBServiceSPDIF::getInstance(int dev_id)
 void hostIf_STBServiceSPDIF::buildPortNameHash()
 {
     if (ifHash)
-        g_hash_table_destroy(ifHash);
+        closeAllInstances();
 
     ifHash = g_hash_table_new(NULL, NULL);
 

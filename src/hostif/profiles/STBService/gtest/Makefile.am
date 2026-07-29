@@ -55,6 +55,7 @@ stbservice_thunder_gtest_SOURCES = \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_AudioOutput_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_SPDIF_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_DisplayDevice_Thunder.cpp \
+    $(TOP_DIR)/src/hostif/profiles/STBService/Components_HDMI_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_VideoDecoder_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_VideoOutput_Thunder.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Capabilities_Thunder.cpp \

@@ -42,7 +42,7 @@ GMutex hostIf_STBServiceHDMI::m_mutex;
 
 void hostIf_STBServiceHDMI::buildPortNameHash()
 {
-    if (ifHash) g_hash_table_destroy(ifHash);
+    if (ifHash) closeAllInstances();
     ifHash = g_hash_table_new(NULL, NULL);
 
     std::string delimitedPorts;

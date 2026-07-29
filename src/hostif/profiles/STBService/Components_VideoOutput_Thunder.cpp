@@ -46,7 +46,7 @@ GMutex hostIf_STBServiceVideoOutput::m_mutex;
 
 void hostIf_STBServiceVideoOutput::buildPortNameHash()
 {
-    if (ifHash) g_hash_table_destroy(ifHash);
+    if (ifHash) closeAllInstances();
     ifHash = g_hash_table_new(NULL, NULL);
 
     std::string delimitedPorts;
