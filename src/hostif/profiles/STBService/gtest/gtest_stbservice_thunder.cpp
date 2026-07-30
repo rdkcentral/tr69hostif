@@ -79,8 +79,10 @@ namespace ThunderStub {
 #define THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS   "org.rdk.DisplaySettings.getSupportedSettopResolutions"
 
 #define THUNDER_DS_GET_CURRENT_RESOLUTION   "org.rdk.DisplaySettings.getCurrentResolution"
+#define THUNDER_DS_GET_ENABLE_VIDEO_PORT    "org.rdk.DisplaySettings.getEnableVideoPort"
 #define THUNDER_AVO_GET_ZOOM_MODE           "org.rdk.AVOutput.getZoomMode"
 #define THUNDER_HDCP_GET_STATUS             "org.rdk.HdcpProfile.getHDCPStatus"
+#define THUNDER_DI_FRAMERATE                "DisplayInfo.1.framerate"
 
 /* Helpers */
 static HOSTIF_MsgData_t makeMsg()
