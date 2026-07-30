@@ -27,6 +27,7 @@ COMMON_CPPFLAGS = \
     -DGTEST_ENABLE \
     -DUNIT_TEST \
     -I/usr/include \
+    -I/usr/include/cjson \
     -I/usr/include/glib-2.0 \
     -I/usr/lib/x86_64-linux-gnu/glib-2.0/include \
     -I$(TOP_DIR)/src/hostif/include \
