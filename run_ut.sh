@@ -33,7 +33,7 @@ git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 cd $WORKDIR
 ls -l /usr/local/include/libparodus/
 ENABLE_COV=false
-TEST_MODE=libds
+TEST_MODE=thunder
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -64,11 +64,8 @@ if [ "$TEST_MODE" != "libds" ] && [ "$TEST_MODE" != "thunder" ]; then
     exit 1
 fi
 
-if [ "$TEST_MODE" = "thunder" ]; then
-      CONFIGURE_THUNDER_OPT="--enable-thunder=yes"
-else
-      CONFIGURE_THUNDER_OPT="--enable-thunder=no"
-fi
+# Force Thunder mode for production builds
+CONFIGURE_THUNDER_OPT="--enable-thunder=yes"
 
 apt-get update
 apt-get -y install libtinyxml2-dev
