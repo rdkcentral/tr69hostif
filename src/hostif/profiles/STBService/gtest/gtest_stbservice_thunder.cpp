@@ -43,6 +43,7 @@
 #include "Components_DisplayDevice.h"
 #include "Components_VideoDecoder.h"
 #include "Components_VideoOutput.h"
+#include "Components_HDMI.h"
 #include "Capabilities.h"
 
 /* ThunderStub API (defined in thunder_plugin_stub.cpp) */
@@ -1147,6 +1148,218 @@ TEST_F(VideoOutputThunderTest, HandleGetMsg_UnknownParam_NotHandled)
 {
     HOSTIF_MsgData_t msg = makeMsg();
     EXPECT_EQ(m_iface->handleGetMsg("X_UnknownParam", &msg), NOT_HANDLED);
+}
+
+/* ====================================================================
+ * HDMI Tests
+ * ==================================================================== */
+
+class HDMIThunderTest : public ::testing::Test
+{
+protected:
+    hostIf_STBServiceHDMI *m_iface = nullptr;
+
+    void SetUp() override
+    {
+        ThunderStub::clear();
+        hostIf_STBServiceHDMI::closeAllInstances();
+
+        /* buildPortNameHash() queries getSupportedVideoDisplays.
+         * Return "HDMI0" so one instance (dev_id=1, portName="HDMI0") is created. */
+        ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, true, "HDMI0");
+
+        m_iface = hostIf_STBServiceHDMI::getInstance(1);
+        ASSERT_NE(m_iface, nullptr) << "getInstance returned nullptr";
+    }
+
+    void TearDown() override
+    {
+        hostIf_STBServiceHDMI::closeAllInstances();
+        ThunderStub::clear();
+    }
+};
+
+/* getEnable: port enabled → boolean true */
+TEST_F(HDMIThunderTest, GetEnable_Enabled)
+{
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, true);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Enable", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_BooleanType);
+    EXPECT_EQ(msg.paramValue[0], '1');
+}
+
+/* getEnable: port disabled → boolean false */
+TEST_F(HDMIThunderTest, GetEnable_Disabled)
+{
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Enable", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_BooleanType);
+    EXPECT_EQ(msg.paramValue[0], '0');
+}
+
+/* getEnable: Thunder failure → NOK */
+TEST_F(HDMIThunderTest, GetEnable_ThunderFailure)
+{
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, false, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Enable", &msg);
+
+    EXPECT_EQ(rc, NOK);
+}
+
+/* getStatus: port enabled → "Enabled" */
+TEST_F(HDMIThunderTest, GetStatus_Enabled)
+{
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, true);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Status", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Enabled");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getStatus: port disabled → "Disabled" */
+TEST_F(HDMIThunderTest, GetStatus_Disabled)
+{
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, false);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Status", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Disabled");
+}
+
+/* getName: returns the port name */
+TEST_F(HDMIThunderTest, GetName_ReturnsPortName)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("Name", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "HDMI0");
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
+/* getResolutionValue: Thunder returns resolution details */
+TEST_F(HDMIThunderTest, GetResolutionValue_Success)
+{
+    /* Mock getCurrentResolution to return full JSON with w, h, progressive */
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"1080p60\",\"w\":1920,\"h\":1080,\"progressive\":true,\"success\":true}");
+    
+    /* Mock framerate query to return "Framerate6000" (60.00 Hz) */
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, true, "Framerate6000");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+    /* Expected format: "1920x1080p/60Hz" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("1920x1080p"));
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("60Hz"));
+}
+
+/* getResolutionValue: non-integer framerate (59.94) */
+TEST_F(HDMIThunderTest, GetResolutionValue_DecimalFramerate)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"1080p\",\"w\":1920,\"h\":1080,\"progressive\":true,\"success\":true}");
+    
+    /* Mock framerate "Framerate5994" → 59.94 Hz */
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, true, "Framerate5994");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg);
+
+    EXPECT_EQ(rc, OK);
+    /* Expected format: "1920x1080p/59.94Hz" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("59.94Hz"));
+}
+
+/* getResolutionValue: interlaced format */
+TEST_F(HDMIThunderTest, GetResolutionValue_Interlaced)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"1080i50\",\"w\":1920,\"h\":1080,\"progressive\":false,\"success\":true}");
+    
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, true, "Framerate5000");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg);
+
+    EXPECT_EQ(rc, OK);
+    /* Expected format: "1920x1080i/50Hz" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("1920x1080i"));
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("50Hz"));
+}
+
+/* getResolutionValue: Thunder failure → NOK */
+TEST_F(HDMIThunderTest, GetResolutionValue_ThunderFailure)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg);
+
+    EXPECT_EQ(rc, NOK);
+}
+
+/* getHDMIResolutionMode: returns static member value */
+TEST_F(HDMIThunderTest, GetResolutionMode_ReturnsStaticValue)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionMode", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+    /* Default is "manual" defined in Components_HDMI_Thunder.cpp */
+    EXPECT_STREQ(msg.paramValue, "manual");
+}
+
+/* handleSetMsg: all setters return NOT_HANDLED in Thunder build */
+TEST_F(HDMIThunderTest, HandleSetMsg_AllReturnsNotHandled)
+{
+    const char *setParams[] = {
+        "ResolutionMode", "ResolutionValue", "Enable"
+    };
+    HOSTIF_MsgData_t msg = makeMsg();
+    for (const char *p : setParams)
+    {
+        int rc = m_iface->handleSetMsg(p, &msg);
+        EXPECT_EQ(rc, NOT_HANDLED) << "Expected NOT_HANDLED for setter: " << p;
+    }
+}
+
+/* handleGetMsg: unknown parameter → NOT_HANDLED */
+TEST_F(HDMIThunderTest, HandleGetMsg_UnknownParam_NotHandled)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleGetMsg("X_UnknownParam", &msg), NOT_HANDLED);
+}
+
+/* DisplayDevice sub-object: forwards to DisplayDevice handler */
+TEST_F(HDMIThunderTest, GetDisplayDevice_Status_ForwardedToSubObject)
+{
+    ThunderStub::setBool(THUNDER_DI_CONNECTED, true, true);
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("DisplayDevice.Status", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "Present");
 }
 
 /* ====================================================================
