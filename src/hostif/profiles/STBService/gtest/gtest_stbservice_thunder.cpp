@@ -320,6 +320,74 @@ TEST_F(AudioOutputThunderTest, HandleGetMsg_UnknownParam_NotHandled)
     EXPECT_EQ(rc, NOT_HANDLED);
 }
 
+/* getStatus with pChanged: detects change */
+TEST_F(AudioOutputThunderTest, GetStatus_WithChangeDetection)
+{
+    /* First call: Enabled */
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_AUDIO_PORT, true, true);
+    ThunderStub::setBool(THUNDER_DS_GET_MUTED, true, false);
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("Status", &msg1);
+
+    /* Second call: Muted (changed) */
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_AUDIO_PORT, true, true);
+    ThunderStub::setBool(THUNDER_DS_GET_MUTED, true, true);
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("Status", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg2.paramValue, "Muted");
+}
+
+/* getName with pChanged: no change */
+TEST_F(AudioOutputThunderTest, GetName_NoChange)
+{
+    /* First call */
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("Name", &msg1);
+
+    /* Second call: name doesn't change */
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("Name", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg2.paramValue, "AudioOutputPortHDMI01");
+}
+
+/* getAudioLevel with pChanged: detects change */
+TEST_F(AudioOutputThunderTest, GetAudioLevel_WithChangeDetection)
+{
+    /* First call: level 75 */
+    ThunderStub::setInt(THUNDER_DS_GET_VOLUME_LEVEL, true, 75);
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("AudioLevel", &msg1);
+
+    /* Second call: level 50 (changed) */
+    ThunderStub::setInt(THUNDER_DS_GET_VOLUME_LEVEL, true, 50);
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("AudioLevel", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(get_uint(msg2.paramValue), 50u);
+}
+
+/* getX_COMCAST_COM_AudioEncoding with pChanged: detects change */
+TEST_F(AudioOutputThunderTest, GetAudioEncoding_WithChangeDetection)
+{
+    /* First call: AC3 */
+    ThunderStub::setString(THUNDER_DS_GET_AUDIO_ENCODING, true, "AC3");
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("X_COMCAST-COM_AudioEncoding", &msg1);
+
+    /* Second call: PCM (changed) */
+    ThunderStub::setString(THUNDER_DS_GET_AUDIO_ENCODING, true, "PCM");
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("X_COMCAST-COM_AudioEncoding", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg2.paramValue, "PCM");
+}
+
 /* ====================================================================
  * SPDIF Tests
  * ==================================================================== */
@@ -387,6 +455,70 @@ TEST_F(SPDIFThunderTest, HandleSetMsg_AllReturnsNotHandled)
     EXPECT_EQ(m_iface->handleSetMsg("Enable", &msg),  NOT_HANDLED);
     EXPECT_EQ(m_iface->handleSetMsg("Alias",  &msg),  NOT_HANDLED);
     EXPECT_EQ(m_iface->handleSetMsg("ForcePCM",&msg), NOT_HANDLED);
+}
+
+/* handleGetMsg: unknown parameter → NOT_HANDLED */
+TEST_F(SPDIFThunderTest, HandleGetMsg_UnknownParam_NotHandled)
+{
+    HOSTIF_MsgData_t msg = makeMsg();
+    EXPECT_EQ(m_iface->handleGetMsg("X_UnknownParam", &msg), NOT_HANDLED);
+}
+
+/* getAlias with pChanged: detects no change */
+TEST_F(SPDIFThunderTest, GetAlias_NoChange)
+{
+    /* First call */
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("Alias", &msg1);
+
+    /* Second call: alias doesn't change */
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("Alias", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg2.paramValue, "SPDIF0");
+}
+
+/* Test getInstance with multiple ports */
+TEST_F(SPDIFThunderTest, GetInstance_MultipleDevices)
+{
+    /* Close existing instances first */
+    hostIf_STBServiceSPDIF::closeAllInstances();
+
+    /* Return two SPDIF ports */
+    ThunderStub::setString(THUNDER_DS_GET_SUPPORTED_AUDIO_PORTS, true, "SPDIF0,SPDIF1");
+
+    /* Get first instance */
+    hostIf_STBServiceSPDIF *inst1 = hostIf_STBServiceSPDIF::getInstance(1);
+    ASSERT_NE(inst1, nullptr);
+
+    /* Get second instance */
+    hostIf_STBServiceSPDIF *inst2 = hostIf_STBServiceSPDIF::getInstance(2);
+    ASSERT_NE(inst2, nullptr);
+
+    /* Verify they're different instances */
+    EXPECT_NE(inst1, inst2);
+
+    hostIf_STBServiceSPDIF::closeAllInstances();
+}
+
+/* Test getInstance with invalid dev_id */
+TEST_F(SPDIFThunderTest, GetInstance_InvalidDevId_ReturnsNull)
+{
+    hostIf_STBServiceSPDIF *inst = hostIf_STBServiceSPDIF::getInstance(999);
+    EXPECT_EQ(inst, nullptr);
+}
+
+/* Test getAllInstances */
+TEST_F(SPDIFThunderTest, GetAllInstances_ReturnsKeys)
+{
+    GList *list = hostIf_STBServiceSPDIF::getAllInstances();
+    ASSERT_NE(list, nullptr);
+    
+    /* Should have at least one entry (dev_id=1 from setup) */
+    EXPECT_GE(g_list_length(list), 1u);
+    
+    g_list_free(list);
 }
 
 /* ====================================================================
@@ -937,6 +1069,80 @@ TEST_F(CapabilitiesThunderTest, HandleGetMsg_UnknownPath_NOK)
     EXPECT_EQ(rc, NOK);
 }
 
+/* getVideoStandards: multiple formats */
+TEST_F(CapabilitiesThunderTest, GetVideoStandards_MultipleFormats)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_SUPPORTED_VIDEO_CODING_FORMATS, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"supportedFormats\":[\"HEVC\",\"H264\",\"MPEG2\",\"VP9\"],\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.VideoDecoder.VideoStandards");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    /* Should contain all mapped formats */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("MPEGH-Part2"));
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("MPEG4-Part10"));
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("MPEG2-Part2"));
+}
+
+/* getNumHEVCProfileEntries: multiple entries */
+TEST_F(CapabilitiesThunderTest, GetNumHEVCProfileEntries_MultipleEntries)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_VIDEO_CODEC_INFO, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"numberOfEntries\":3,"
+         "\"entries\":["
+         "{\"profile\":\"MAIN\",\"level\":4.0},"
+         "{\"profile\":\"MAIN 10\",\"level\":5.0},"
+         "{\"profile\":\"MAIN 10\",\"level\":5.1}"
+         "],\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities."
+        "VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevelNumberOfEntries");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(*reinterpret_cast<unsigned int *>(msg.paramValue), 3u);
+}
+
+/* getHEVCProfileDetails: access second entry */
+TEST_F(CapabilitiesThunderTest, GetHEVCProfileDetails_SecondEntry)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_VIDEO_CODEC_INFO, true,
+        "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":"
+        "{\"numberOfEntries\":2,"
+         "\"entries\":["
+         "{\"profile\":\"MAIN\",\"level\":4.0},"
+         "{\"profile\":\"MAIN 10\",\"level\":5.1}"
+         "],\"success\":true}}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities."
+        "VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.2.Profile");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg.paramValue, "MAIN 10");
+}
+
+/* getSupportedResolutions: empty list */
+TEST_F(CapabilitiesThunderTest, GetSupportedResolutions_EmptyList)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_SUPPORTED_SETTOP_RESOLUTIONS, true,
+        "{\"supportedSettopResolutions\":[],\"success\":true}");
+
+    HOSTIF_MsgData_t msg = makeMsgWithPath(
+        "Device.Services.STBService.1.Capabilities.HDMI.SupportedResolutions");
+    int rc = m_iface->handleGetMsg(&msg);
+
+    EXPECT_EQ(rc, OK);
+    /* Should return empty or minimal string */
+    EXPECT_EQ(msg.paramtype, hostIf_StringType);
+}
+
 /* ====================================================================
  * VideoOutput Tests
  * ==================================================================== */
@@ -1362,6 +1568,126 @@ TEST_F(HDMIThunderTest, GetDisplayDevice_Status_ForwardedToSubObject)
 
     EXPECT_EQ(rc, OK);
     EXPECT_STREQ(msg.paramValue, "Present");
+}
+
+/* getResolutionValue: framerate fallback to parsing resolution string */
+TEST_F(HDMIThunderTest, GetResolutionValue_FramerateFallback)
+{
+    /* DisplayInfo.framerate fails, fall back to parsing resolution string */
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"1080p60\",\"w\":1920,\"h\":1080,\"progressive\":true,\"success\":true}");
+    
+    /* DisplayInfo.framerate fails */
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg);
+
+    EXPECT_EQ(rc, OK);
+    /* Should parse "60" from "1080p60" → "1920x1080p/60Hz" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("60Hz"));
+}
+
+/* getResolutionValue: no framerate data available */
+TEST_F(HDMIThunderTest, GetResolutionValue_NoFramerateData)
+{
+    /* Resolution without framerate indicator */
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"720p\",\"w\":1280,\"h\":720,\"progressive\":true,\"success\":true}");
+    
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, false, "");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg);
+
+    EXPECT_EQ(rc, OK);
+    /* Should return resolution without framerate: "1280x720p" */
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::StartsWith("1280x720p"));
+}
+
+/* getResolutionValue: 4K resolution */
+TEST_F(HDMIThunderTest, GetResolutionValue_4K)
+{
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"2160p60\",\"w\":3840,\"h\":2160,\"progressive\":true,\"success\":true}");
+    
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, true, "Framerate6000");
+
+    HOSTIF_MsgData_t msg = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_THAT(std::string(msg.paramValue), ::testing::HasSubstr("3840x2160p/60Hz"));
+}
+
+/* getEnable with pChanged: detects change */
+TEST_F(HDMIThunderTest, GetEnable_WithChangeDetection)
+{
+    /* First call: enabled=true */
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, true);
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("Enable", &msg1);
+
+    /* Second call: enabled=false (changed) */
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, false);
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("Enable", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_EQ(msg2.paramValue[0], '0');
+}
+
+/* getStatus with pChanged: detects change */
+TEST_F(HDMIThunderTest, GetStatus_WithChangeDetection)
+{
+    /* First call: Enabled */
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, true);
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("Status", &msg1);
+
+    /* Second call: Disabled (changed) */
+    ThunderStub::setBool(THUNDER_DS_GET_ENABLE_VIDEO_PORT, true, false);
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("Status", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg2.paramValue, "Disabled");
+}
+
+/* getName with pChanged: detects no change */
+TEST_F(HDMIThunderTest, GetName_NoChange)
+{
+    /* First call */
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("Name", &msg1);
+
+    /* Second call: name doesn't change */
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("Name", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_STREQ(msg2.paramValue, "HDMI0");
+}
+
+/* getResolutionValue with pChanged: detects change */
+TEST_F(HDMIThunderTest, GetResolutionValue_WithChangeDetection)
+{
+    /* First call: 1080p60 */
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"1080p60\",\"w\":1920,\"h\":1080,\"progressive\":true,\"success\":true}");
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, true, "Framerate6000");
+    HOSTIF_MsgData_t msg1 = makeMsg();
+    m_iface->handleGetMsg("ResolutionValue", &msg1);
+
+    /* Second call: 720p (changed) */
+    ThunderStub::setRaw(THUNDER_DS_GET_CURRENT_RESOLUTION, true,
+        "{\"resolution\":\"720p\",\"w\":1280,\"h\":720,\"progressive\":true,\"success\":true}");
+    ThunderStub::setString(THUNDER_DI_FRAMERATE, true, "Framerate5994");
+    HOSTIF_MsgData_t msg2 = makeMsg();
+    int rc = m_iface->handleGetMsg("ResolutionValue", &msg2);
+
+    EXPECT_EQ(rc, OK);
+    EXPECT_THAT(std::string(msg2.paramValue), ::testing::HasSubstr("1280x720p"));
 }
 
 /* ====================================================================
