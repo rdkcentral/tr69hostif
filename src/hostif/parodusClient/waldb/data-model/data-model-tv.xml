@@ -414,12 +414,6 @@
      </object>
 
     <object base="Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2." access="readOnly" minEntries="1" maxEntries="1" >
-      <parameter base="AudioStandards" access="readOnly"  notification="0" maxNotification="2" >
-        <syntax>
-          <list/>
-          <string/>
-        </syntax>
-      </parameter>
       <parameter base="ProfileLevelNumberOfEntries" access="readOnly"  notification="0" maxNotification="2" >
         <syntax>
           <unsignedInt/>

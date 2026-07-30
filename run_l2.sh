@@ -23,6 +23,10 @@ export top_srcdir=`pwd`
 RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
 
+# TEST_MODE parameter kept for compatibility with other components
+# STBService now uses Thunder exclusively regardless of TEST_MODE
+TEST_MODE=${TEST_MODE:-thunder}
+
 apt-get update && apt-get install -y iproute2
 
 
@@ -79,6 +83,7 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/authse
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/account_thunder_plugin.json test/functional-tests/tests/tr69hostif_account_thunder_plugin.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/system_thunder_plugin.json test/functional-tests/tests/tr69hostif_system_thunder_plugin.py
 
+
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/http_server.json test/functional-tests/tests/tr69hostif_http_server.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/rfc_store.json test/functional-tests/tests/tr69hostif_rfc_store.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/rfc_store_params.json test/functional-tests/tests/tr69hostif_rfc_store_params.py
@@ -95,6 +100,7 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom.json test/functional-tests/tests/tr69hostif_custom.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py

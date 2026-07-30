@@ -387,6 +387,19 @@ AC_ARG_ENABLE([libsoup3],
 esac],[libsoup3=false])
 AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
 
+# Enable Thunder-backed STBService implementation
+AC_ARG_ENABLE([thunder],
+    AS_HELP_STRING([--enable-thunder],[enable Thunder-backed STBService implementation (default is no)]),
+    [
+      case "${enableval}" in
+       yes) THUNDER_CLIENT_ENABLE=true ;;
+       no)  THUNDER_CLIENT_ENABLE=false ;;
+      *) AC_MSG_ERROR([bad value ${enableval} for --enable-thunder]) ;;
+       esac
+       ],
+     [THUNDER_CLIENT_ENABLE=false; echo "Thunder STBService client is disabled"])
+AM_CONDITIONAL([WITH_THUNDER_CLIENT], [test x$THUNDER_CLIENT_ENABLE = xtrue])
+
 AM_CONDITIONAL([WITH_MOCA_PROFILE], [test "x$enable_moca" = "xyes"])
 AM_CONDITIONAL([WITH_MOCA20], [test "x$enable_moca2" = "xyes"])
 AM_CONDITIONAL([WITH_WIFI_PROFILE], [test x$WIFI_PROFILE_ENABLE = xtrue])
@@ -461,16 +474,26 @@ AC_SUBST(PARODUS_ENABLE_FLAG)
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([src/hostif/handlers/Makefile])
+AC_CONFIG_FILES([src/hostif/handlers/src/gtest/Makefile])
 AC_CONFIG_FILES([src/hostif/profiles/Makefile ])
 AC_CONFIG_FILES([src/hostif/profiles/STBService/Makefile])
+AC_CONFIG_FILES([src/hostif/profiles/STBService/gtest/Makefile])
 AC_CONFIG_FILES([src/hostif/profiles/Device/Makefile])
+AC_CONFIG_FILES([src/hostif/profiles/Device/gtest/Makefile])
 AC_CONFIG_FILES([src/hostif/profiles/DeviceInfo/Makefile])
+AC_CONFIG_FILES([src/hostif/profiles/DeviceInfo/gtest/Makefile])
 AC_CONFIG_FILES([src/hostif/profiles/Ethernet/Makefile])
+AC_CONFIG_FILES([src/hostif/profiles/Ethernet/gtest/Makefile])
 AC_CONFIG_FILES([src/hostif/profiles/IP/Makefile])
 AC_CONFIG_FILES([src/hostif/profiles/Time/Makefile])
+AC_CONFIG_FILES([src/hostif/profiles/Time/gtest/Makefile])
+AC_CONFIG_FILES([src/hostif/profiles/DHCPv4/gtest/Makefile])
 AC_CONFIG_FILES([src/hostif/httpserver/Makefile])
+AC_CONFIG_FILES([src/hostif/httpserver/src/gtest/Makefile])
+AC_CONFIG_FILES([src/hostif/src/gtest/Makefile])
 
 AC_CONFIG_FILES([src/hostif/parodusClient/Makefile])
+AC_CONFIG_FILES([src/hostif/parodusClient/gtest/Makefile])
 AC_CONFIG_FILES([src/hostif/parodusClient/pal/Makefile])
 AC_CONFIG_FILES([src/hostif/parodusClient/waldb/Makefile])
 AC_CONFIG_FILES([src/hostif/parodusClient/startParodus/Makefile])

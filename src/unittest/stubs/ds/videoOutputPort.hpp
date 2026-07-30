@@ -207,7 +207,11 @@ public:
             return port;	    
 	}
  	static VideoOutputPort & getInstance(const std::string &name);
- 	VideoOutputPort(const int type, const int index, const int id, int audioPortId, const std::string &resolution);
+ 	VideoOutputPort(const int type, const int index, const int id, int audioPortId, const std::string &resolution)
+	    : _type(type), _index(index), _id(id), _aPortId(audioPortId), 
+	      _resolution(resolution), _defaultResolution(resolution),
+	      _enabled(true), _contentProtected(false), _displayConnected(true),
+	      _handle(0), _name("HDMI0") {}
 	virtual ~VideoOutputPort() {}
 
 	const VideoOutputPortType &getType() const

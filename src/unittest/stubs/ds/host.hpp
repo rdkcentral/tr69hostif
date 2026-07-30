@@ -76,10 +76,25 @@ public:
     void addDisplayConnectionListener(DisplayConnectionChangeListener *l);
     void removeDisplayConnectionListener(DisplayConnectionChangeListener *l);
 
-    static Host& getInstance(void){};
+    static Host& getInstance(void)
+    {
+        static Host instance;
+        return instance;
+    }
 
-    List<VideoOutputPort> getVideoOutputPorts();
-    List<AudioOutputPort> getAudioOutputPorts(){};
+    List<VideoOutputPort> getVideoOutputPorts()
+    {
+        List<VideoOutputPort> ports;
+        ports.push_back(VideoOutputPort("HDMI0"));
+        return ports;
+    }
+    List<AudioOutputPort> getAudioOutputPorts()
+    {
+        List<AudioOutputPort> ports;
+        ports.push_back(AudioOutputPort::getInstance(0));
+        ports.push_back(AudioOutputPort::getInstance(1));
+        return ports;
+    }
     List<VideoDevice> getVideoDevices()
     {
          List<VideoDevice> devices;
@@ -93,8 +108,15 @@ public:
          return vPort; 	 
     }
     VideoOutputPort &getVideoOutputPort(int id);
-    AudioOutputPort &getAudioOutputPort(const std::string &name){};
-    AudioOutputPort &getAudioOutputPort(int id){};
+    AudioOutputPort &getAudioOutputPort(const std::string &name)
+    {
+        static AudioOutputPort aPort(0);
+        return aPort;
+    }
+    AudioOutputPort &getAudioOutputPort(int id)
+    {
+        return AudioOutputPort::getInstance(id);
+    }
     void notifyPowerChange(const  int mode);
     float getCPUTemperature() { return 42.5f; };
     uint32_t  getVersion(void);
@@ -117,8 +139,8 @@ public:
     void getCurrentAudioFormat(dsAudioFormat_t &audioFormat);
     void getMS12ConfigDetails(std::string &configType);
 private:
-	Host();
-	virtual ~Host();
+    Host() {}
+    virtual ~Host() {}
     //To Make the instance as thread-safe, using = delete, the result is, automatically generated methods (constructor, for example) from the compiler will not be created and, therefore, can not be called
     Host (const Host&)= delete;
     Host& operator=(const Host&)= delete;

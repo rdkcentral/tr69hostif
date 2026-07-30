@@ -33,14 +33,39 @@ git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 cd $WORKDIR
 ls -l /usr/local/include/libparodus/
 ENABLE_COV=false
+TEST_MODE=thunder
 
-if [ "x$1" = "x--enable-cov" ]; then
-      echo "Enabling coverage options"
-      export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-      export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-      export LDFLAGS="-lgcov --coverage"
-      ENABLE_COV=true
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --enable-cov)
+            echo "Enabling coverage options"
+            export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+            export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+            export LDFLAGS="-lgcov --coverage"
+            ENABLE_COV=true
+            ;;
+        --mode)
+            TEST_MODE="$2"
+            shift
+            ;;
+        --mode=*)
+            TEST_MODE="${1#*=}"
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ "$TEST_MODE" != "libds" ] && [ "$TEST_MODE" != "thunder" ]; then
+    echo "Invalid mode '$TEST_MODE'. Supported: libds, thunder"
+    exit 1
 fi
+
+# Force Thunder mode for production builds
+CONFIGURE_THUNDER_OPT="--enable-thunder=yes"
 
 apt-get update
 apt-get -y install libtinyxml2-dev
@@ -91,7 +116,7 @@ cd ./src/
 automake --add-missing
 autoreconf --install
 
-./configure --enable-libsoup3
+./configure --enable-libsoup3 $CONFIGURE_THUNDER_OPT
 
 make clean
 
@@ -171,12 +196,34 @@ make
 ./devieInfo_gtest
 echo "********************"
 
+echo "**** Compiling STBService Thunder gtest ****"
+cd $TOP_DIR/src/hostif/profiles/STBService/gtest
+rm -f stbservice_thunder_gtest
+make || { echo "ERROR: build failed for stbservice_thunder_gtest"; exit 1; }
+if [ ! -x ./stbservice_thunder_gtest ]; then
+    echo "ERROR: stbservice_thunder_gtest binary not found"
+    exit 1
+fi
+./stbservice_thunder_gtest || { echo "ERROR: stbservice_thunder_gtest execution failed"; exit 1; }
+echo "********************"
+
 cd $TOP_DIR
 
 if [ "$ENABLE_COV" = true ]; then
     lcov --capture --directory . --output-file coverage.info
     lcov --remove coverage.info '/usr/*' '*/gtest/*' '*/mocks/*' --output-file filtered.info
-    lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' --output-file tr69hostif_coverage.info
+    lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' '*/src/hostif/profiles/STBService/*' --output-file tr69hostif_coverage_temp.info
+    # Remove non-Thunder STBService files (libds versions no longer used)
+    lcov --remove tr69hostif_coverage_temp.info \
+        '*/STBService/Components_AudioOutput.cpp' \
+        '*/STBService/Components_DisplayDevice.cpp' \
+        '*/STBService/Components_HDMI.cpp' \
+        '*/STBService/Components_SPDIF.cpp' \
+        '*/STBService/Components_VideoDecoder.cpp' \
+        '*/STBService/Components_VideoOutput.cpp' \
+        '*/STBService/Capabilities.cpp' \
+        --output-file tr69hostif_coverage.info
+    rm -f tr69hostif_coverage_temp.info
     lcov --list tr69hostif_coverage.info
 fi
  
