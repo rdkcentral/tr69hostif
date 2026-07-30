@@ -51,7 +51,9 @@ LIBDS_CPPFLAGS = $(COMMON_CPPFLAGS) $(LIBDS_ONLY_CPPFLAGS)
 
 COMMON_LDADD = \
     -lgtest \
+    -lgtest_main \
     -lgmock \
+    -lgmock_main \
     -lgcov \
     $(GLIB_LIBS) \
     -lcjson
@@ -77,6 +79,7 @@ stbservice_thunder_gtest_SOURCES = \
     $(TOP_DIR)/src/hostif/profiles/STBService/gtest/gtest_stbservice_thunder.cpp
 
 stbservice_libds_gtest_SOURCES = \
+    $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_AudioOutput.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_SPDIF.cpp \
     $(TOP_DIR)/src/hostif/profiles/STBService/Components_DisplayDevice.cpp \
