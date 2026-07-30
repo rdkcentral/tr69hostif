@@ -199,30 +199,16 @@ make
 ./devieInfo_gtest
 echo "********************"
 
-if [ "$TEST_MODE" = "thunder" ]; then
-    echo "**** Compiling STBService Thunder gtest ****"
-    cd $TOP_DIR/src/hostif/profiles/STBService/gtest
-    rm -f stbservice_thunder_gtest
-    make || { echo "ERROR: build failed for stbservice_thunder_gtest"; exit 1; }
-    if [ ! -x ./stbservice_thunder_gtest ]; then
-        echo "ERROR: stbservice_thunder_gtest binary not found"
-        exit 1
-    fi
-    ./stbservice_thunder_gtest || { echo "ERROR: stbservice_thunder_gtest execution failed"; exit 1; }
-    echo "********************"
-else
-    echo "**** Compiling STBService libds gtest ****"
-    cd $TOP_DIR/src/hostif/profiles/STBService/gtest
-    rm -f stbservice_libds_gtest
-    make clean
-    make stbservice_libds_gtest || { echo "ERROR: build failed for stbservice_libds_gtest"; exit 1; }
-    if [ ! -x ./stbservice_libds_gtest ]; then
-        echo "ERROR: stbservice_libds_gtest binary not found"
-        exit 1
-    fi
-    ./stbservice_libds_gtest || { echo "ERROR: stbservice_libds_gtest execution failed"; exit 1; }
-    echo "********************"
+echo "**** Compiling STBService Thunder gtest ****"
+cd $TOP_DIR/src/hostif/profiles/STBService/gtest
+rm -f stbservice_thunder_gtest
+make || { echo "ERROR: build failed for stbservice_thunder_gtest"; exit 1; }
+if [ ! -x ./stbservice_thunder_gtest ]; then
+    echo "ERROR: stbservice_thunder_gtest binary not found"
+    exit 1
 fi
+./stbservice_thunder_gtest || { echo "ERROR: stbservice_thunder_gtest execution failed"; exit 1; }
+echo "********************"
 
 cd $TOP_DIR
 

@@ -23,11 +23,9 @@ export top_srcdir=`pwd`
 RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
 
+# TEST_MODE parameter kept for compatibility with other components
+# STBService now uses Thunder exclusively regardless of TEST_MODE
 TEST_MODE=${TEST_MODE:-thunder}
-if [ "$TEST_MODE" != "libds" ] && [ "$TEST_MODE" != "thunder" ]; then
-    echo "Invalid TEST_MODE '$TEST_MODE'. Supported: libds, thunder"
-    exit 1
-fi
 
 apt-get update && apt-get install -y iproute2
 
@@ -102,11 +100,7 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom.json test/functional-tests/tests/tr69hostif_custom.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
-if [ "$TEST_MODE" = "thunder" ]; then
-    pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
-else
-    pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_libds.json test/functional-tests/tests/tr69hostif_stbservice_libds.py
-fi
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
