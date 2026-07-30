@@ -1327,8 +1327,8 @@ TEST_F(HDMIThunderTest, GetResolutionMode_ReturnsStaticValue)
 
     EXPECT_EQ(rc, OK);
     EXPECT_EQ(msg.paramtype, hostIf_StringType);
-    /* Default is "manual" defined in Components_HDMI_Thunder.cpp */
-    EXPECT_STREQ(msg.paramValue, "manual");
+    /* Default is "Manual" defined in Components_HDMI.h (HDMI_RESOLUTION_MODE_MANUAL) */
+    EXPECT_STREQ(msg.paramValue, "Manual");
 }
 
 /* handleSetMsg: all setters return NOT_HANDLED in Thunder build */
