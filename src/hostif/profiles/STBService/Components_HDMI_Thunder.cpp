@@ -132,15 +132,9 @@ void hostIf_STBServiceHDMI::checkForUpdates(updateCallback) {}
 
 int hostIf_STBServiceHDMI::handleSetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData)
 {
-    if (strcasecmp(paramName, RES_MODE_STRING) == 0)
-        return setHDMIResolutionMode(stMsgData->paramValue);
-    if (strcasecmp(paramName, RES_VAL_STRING) == 0) {
-        if (0 == strcasecmp(getHDMIResolutionMode(), HDMI_RESOLUTION_MODE_MANUAL))
-            return setResolution(stMsgData);
-        return OK;
-    }
-    if (strcasecmp(paramName, ENABLE_STRING) == 0)
-        return setEnableVideoPort(stMsgData);
+    // All setters are NOT_HANDLED in Thunder build
+    (void)paramName;
+    (void)stMsgData;
     return NOT_HANDLED;
 }
 
@@ -186,12 +180,6 @@ void hostIf_STBServiceHDMI::doUpdates(updateCallback mUpdateCallback)
 }
 
 /* ---- private ---- */
-
-int hostIf_STBServiceHDMI::setResolution(const HOSTIF_MsgData_t *stMsgData)
-{
-    (void)stMsgData;
-    return NOT_HANDLED;
-}
 
 int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
@@ -295,12 +283,6 @@ int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData, bool 
     return OK;
 }
 
-int hostIf_STBServiceHDMI::setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData)
-{
-    (void)stMsgData;
-    return NOT_HANDLED;
-}
-
 /************************************************************
  * Description  : Get HDMI port Enable state  [MIGRATED to Thunder]
  * Thunder API  : org.rdk.DisplaySettings.getEnableVideoPort
@@ -387,12 +369,6 @@ int hostIf_STBServiceHDMI::getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
     strncpy(backupName, stMsgData->paramValue, _BUF_LEN_256 - 1);
     backupName[_BUF_LEN_256 - 1] = '\0';
     return OK;
-}
-
-int hostIf_STBServiceHDMI::setHDMIResolutionMode(const char* value)
-{
-    (void)value;
-    return NOT_HANDLED;
 }
 
 const char* hostIf_STBServiceHDMI::getHDMIResolutionMode()

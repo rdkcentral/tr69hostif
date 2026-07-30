@@ -121,13 +121,19 @@ class  hostIf_STBServiceHDMI
     bool bCalledName;
 
 private:
+#ifndef USE_THUNDER_CLIENT
     int setResolution(const HOSTIF_MsgData_t *stMsgData);
+#endif
     int getResolutionValue(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#ifndef USE_THUNDER_CLIENT
     int setEnableVideoPort(const HOSTIF_MsgData_t *stMsgData);
+#endif
     int getEnable(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getName(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#ifndef USE_THUNDER_CLIENT
     int setHDMIResolutionMode(const char* value);
+#endif
     static const char* getHDMIResolutionMode();
 
 public:

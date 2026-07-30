@@ -192,7 +192,6 @@ if [ "$ENABLE_COV" = true ]; then
         '*/STBService/Components_AudioOutput.cpp' \
         '*/STBService/Components_DisplayDevice.cpp' \
         '*/STBService/Components_HDMI.cpp' \
-        '*/STBService/Components_HDMI_Thunder.cpp' \
         '*/STBService/Components_SPDIF.cpp' \
         '*/STBService/Components_VideoDecoder.cpp' \
         '*/STBService/Components_VideoOutput.cpp' \
