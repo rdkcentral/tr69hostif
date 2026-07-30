@@ -189,8 +189,9 @@ int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *p
 
     if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected))
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed\n", __FUNCTION__);
-        return NOK;
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed, returning Disabled\n", __FUNCTION__);
+        // On failure, default to Disabled
+        isConnected = false;
     }
     const char *status = isConnected ? ENABLED_STRING : DISABLED_STRING;
     strncpy(stMsgData->paramValue, status, PARAM_LEN);

@@ -32,6 +32,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <cstring>
 #include <string>
 

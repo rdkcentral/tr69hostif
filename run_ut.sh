@@ -42,6 +42,9 @@ if [ "x$1" = "x--enable-cov" ]; then
       ENABLE_COV=true
 fi
 
+# Force Thunder mode for production builds
+CONFIGURE_THUNDER_OPT="--enable-thunder=yes"
+
 apt-get update
 apt-get -y install libtinyxml2-dev
 apt-get -y install libsoup-3.0-dev
@@ -183,7 +186,18 @@ cd $TOP_DIR
 if [ "$ENABLE_COV" = true ]; then
     lcov --capture --directory . --output-file coverage.info
     lcov --remove coverage.info '/usr/*' '*/gtest/*' '*/mocks/*' --output-file filtered.info
-    lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' '*/src/hostif/profiles/STBService/*' --output-file tr69hostif_coverage.info
+    lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' '*/src/hostif/profiles/STBService/*' --output-file tr69hostif_coverage_temp.info
+    # Remove non-Thunder STBService files (libds versions no longer used)
+    lcov --remove tr69hostif_coverage_temp.info \
+        '*/STBService/Components_AudioOutput.cpp' \
+        '*/STBService/Components_DisplayDevice.cpp' \
+        '*/STBService/Components_HDMI.cpp' \
+        '*/STBService/Components_SPDIF.cpp' \
+        '*/STBService/Components_VideoDecoder.cpp' \
+        '*/STBService/Components_VideoOutput.cpp' \
+        '*/STBService/Capabilities.cpp' \
+        --output-file tr69hostif_coverage.info
+    rm -f tr69hostif_coverage_temp.info
     lcov --list tr69hostif_coverage.info
 fi
  

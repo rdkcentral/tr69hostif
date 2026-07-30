@@ -88,8 +88,9 @@ int hostIf_STBServiceDisplayDevice::getStatus(HOSTIF_MsgData_t *stMsgData, bool 
     bool connected = false;
     if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", connected))
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed\n", __FUNCTION__);
-        return NOK;
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed, returning Absent\n", __FUNCTION__);
+        // On failure, default to Absent
+        connected = false;
     }
     const char *status = connected ? "Present" : "Absent";
     strncpy(stMsgData->paramValue, status, PARAM_LEN);
