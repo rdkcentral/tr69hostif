@@ -187,11 +187,12 @@ if [ "$ENABLE_COV" = true ]; then
     lcov --capture --directory . --output-file coverage.info
     lcov --remove coverage.info '/usr/*' '*/gtest/*' '*/mocks/*' --output-file filtered.info
     lcov --extract filtered.info '*/src/hostif/httpserver/*' '*/src/hostif/parodusClient/*' '*/src/hostif/src/*' '*/src/hostif/profiles/DHCPv4/*' '*/src/hostif/profiles/Device/*' '*/src/hostif/profiles/DeviceInfo/*' '*/src/hostif/profiles/Ethernet/*' '*/src/hostif/profiles/Time/*' '*/src/hostif/profiles/STBService/*' --output-file tr69hostif_coverage_temp.info
-    # Remove non-Thunder STBService files (libds versions no longer used)
+    # Remove non-Thunder STBService files (libds versions no longer used) and untested Thunder files
     lcov --remove tr69hostif_coverage_temp.info \
         '*/STBService/Components_AudioOutput.cpp' \
         '*/STBService/Components_DisplayDevice.cpp' \
         '*/STBService/Components_HDMI.cpp' \
+        '*/STBService/Components_HDMI_Thunder.cpp' \
         '*/STBService/Components_SPDIF.cpp' \
         '*/STBService/Components_VideoDecoder.cpp' \
         '*/STBService/Components_VideoOutput.cpp' \
