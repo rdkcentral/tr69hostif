@@ -56,10 +56,8 @@ COMMON_LDADD = \
     $(GLIB_LIBS) \
     -lcjson
 
-LIBDS_ONLY_LDADD = \
-    -lds \
-    -ldshalcli \
-    -ldshalsrv
+# No additional libraries needed for libds mode - using header-only stubs
+LIBDS_ONLY_LDADD =
 
 COMMON_CXXFLAGS = \
     -frtti \
