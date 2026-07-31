@@ -58,6 +58,7 @@
 #ifndef DEVSET_COMP_DISPLAYDEVICE_HPP_
 #define DEVSET_COMP_DISPLAYDEVICE_HPP_
 
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "dsTypes.h"
 #include "videoOutputPortType.hpp"
@@ -67,13 +68,16 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include <exception>
 #include <string.h>
 #include "stdlib.h"
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_updateHandler.h"
 #include "hostIf_utils.h"
+#ifndef USE_THUNDER_CLIENT
 #include "videoOutputPort.hpp"
+#endif /* USE_THUNDER_CLIENT */
 
 #ifndef PARAM_LEN
 #define PARAM_LEN TR69HOSTIFMGR_MAX_PARAM_LEN
@@ -90,7 +94,11 @@ class  hostIf_STBServiceDisplayDevice
 {
 
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
+    std::string m_portName;
+#else
     device::VideoOutputPort& vPort;
+#endif
 
     char backupDisplayDeviceStatus[_BUF_LEN_16];
     char backupEDID[_BUF_LEN_256];
@@ -105,13 +113,19 @@ class  hostIf_STBServiceDisplayDevice
     bool bCalledPreferredResolution;
 
     int getStatus(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#ifndef USE_THUNDER_CLIENT
     int getEDID_BYTES(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
+#endif
     int getX_COMCAST_COM_EDID(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getSupportedResolutions(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
     int getPreferredResolution(HOSTIF_MsgData_t *stMsgData,bool *pChanged = NULL);
 
 public:
+#ifdef USE_THUNDER_CLIENT
+    hostIf_STBServiceDisplayDevice(int devId, const std::string& portName);
+#else
     hostIf_STBServiceDisplayDevice(int devId, device::VideoOutputPort& port);
+#endif
     void doUpdates(const char *baseName, updateCallback mUpdateCallback);
     int handleSetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);
     int handleGetMsg(const char *paramName, HOSTIF_MsgData_t *stMsgData);

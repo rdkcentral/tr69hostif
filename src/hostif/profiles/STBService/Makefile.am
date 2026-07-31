@@ -21,9 +21,13 @@ SUBDIRS =
 DIST_SUBDIRS = 
 
 
-AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include -I$(top_srcdir)/src/hostif/handlers/include -I./include $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) \
--I=/usr/include/rdk/ds-hal/ \
--I=/usr/include/rdk/ds/
+AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include -I$(top_srcdir)/src/hostif/handlers/include -I./include $(GLIB_CFLAGS) $(G_THREAD_CFLAGS)
+
+if WITH_THUNDER_CLIENT
+else
+AM_CXXFLAGS += -I=/usr/include/rdk/ds-hal/ \
+               -I=/usr/include/rdk/ds/
+endif
 
 if WITH_XRDK_SDCARD_PROFILE
 AM_CXXFLAGS += $(XRDK_SDCARD_PROFILE_FLAG)
@@ -34,6 +38,17 @@ AM_CXXFLAGS += $(XRDK_EMMC_PROFILE_FLAG)
 endif
 
 noinst_LTLIBRARIES = libstbservice.la
+
+if WITH_THUNDER_CLIENT
+AM_CXXFLAGS += -DUSE_THUNDER_CLIENT
+libstbservice_la_SOURCES =	Components_AudioOutput_Thunder.cpp \
+				Components_SPDIF_Thunder.cpp \
+				Components_HDMI_Thunder.cpp \
+				Components_DisplayDevice_Thunder.cpp \
+				Components_VideoOutput_Thunder.cpp \
+				Components_VideoDecoder_Thunder.cpp \
+				Capabilities_Thunder.cpp
+else
 libstbservice_la_SOURCES =	Components_AudioOutput.cpp \
 				Components_SPDIF.cpp \
 				Components_HDMI.cpp \
@@ -41,6 +56,7 @@ libstbservice_la_SOURCES =	Components_AudioOutput.cpp \
 				Components_VideoOutput.cpp \
 				Components_VideoDecoder.cpp \
 				Capabilities.cpp
+endif
 if WITH_XRDK_SDCARD_PROFILE
 libstbservice_la_SOURCES += Components_XrdkSDCard.cpp
 endif
