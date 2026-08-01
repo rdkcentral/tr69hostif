@@ -41,10 +41,6 @@
 #include "hostIf_updateHandler.h"
 #include "XrdkCentralComBSStore.h"
 
-#if defined(USE_WIFI_PROFILE)
-#include "Device_WiFi.h"
-#endif
-
 #include "libpd.h"
 #include <semaphore.h>
 #include <errno.h>
@@ -368,10 +364,6 @@ int main(int argc, char *argv[])
         } 
     #endif
 
-        #if defined(USE_WIFI_PROFILE)
-            /* Perform the necessary operations to initialise the WiFi device */
-            (void)WiFiDevice::init();
-        #endif
         //    g_get_current_time(&timeval);
         //    char* logoutfile = (char *)LOG_FILE;
         #if 0
@@ -599,10 +591,6 @@ void exit_gracefully (int sig_received)
             isShutdownTriggered = 1;
 #ifdef T2_EVENT_ENABLED
             t2_uninit();
-#endif
-#if defined(USE_WIFI_PROFILE)
-            /* Perform the necessary operations to shut down the WiFi device */
-            WiFiDevice::shutdown();
 #endif
 
 #if defined(PARODUS_ENABLE)

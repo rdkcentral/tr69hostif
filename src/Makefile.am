@@ -52,12 +52,6 @@ else
 NEXUS_LIB =
 endif
 
-
-
-if WITH_WIFI_PROFILE
-AM_CXXFLAGS += -DUSE_WIFI_PROFILE
-AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/wifi
-endif
 if WITH_DHCP_PROFILE
 AM_CXXFLAGS += -DUSE_DHCPv4_PROFILE
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/DHCPv4
@@ -151,10 +145,6 @@ endif
 
 if XRELIB_FLAG
 tr69hostif_LDADD += -ltr69ProfileXcaliber
-endif
-
-if WITH_WIFI_PROFILE
-tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/wifi/libhostIfWiFi.la
 endif
 
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/parodusClient/pal 
