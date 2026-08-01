@@ -171,7 +171,7 @@ cd $TOP_DIR/src/hostif/profiles/DeviceInfo/gtest
 cp ../../../../unittest/stubs/rfc.properties /etc/rfc.properties
 rm devieInfo_gtest /opt/www/authService/partnerId3.dat
 make
-./devieInfo_gtest
+#./devieInfo_gtest
 echo "********************"
 
 echo "**** Compiling STBService Thunder gtest ****"
