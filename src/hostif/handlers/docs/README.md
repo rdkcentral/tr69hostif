@@ -17,7 +17,7 @@ This layer does not implement the full device logic for every TR-181 object. Its
 | `src/hostif/handlers/src/hostIf_rbus_Dml_Provider.cpp` | RBUS-facing DML provider integration |
 | `src/hostif/handlers/src/hostIf_updateHandler.cpp` | Periodic polling for value-change events |
 | `src/hostif/handlers/src/hostIf_NotificationHandler.cpp` | Parodus/WebPA notification enqueue and delivery support |
-| `src/hostif/handlers/src/hostIf_*ReqHandler.cpp` | Concrete manager classes for Device, DS, Ethernet, IP, WiFi, DHCPv4, and other profiles |
+| `src/hostif/handlers/src/hostIf_*ReqHandler.cpp` | Concrete manager classes for Device, DS, Ethernet, IP, DHCPv4, and other profiles |
 
 ## Architecture
 
@@ -52,7 +52,6 @@ graph TB
         DS[DSClientReqHandler]
         ETH[EthernetClientReqHandler]
         IP[IPClientReqHandler]
-        WIFI[WiFiReqHandler]
         TIME[TimeClientReqHandler]
         DHCP[DHCPv4ClientReqHandler]
         IFS[InterfaceStackClientReqHandler]
@@ -210,7 +209,6 @@ The handlers library is assembled in `src/hostif/handlers/Makefile.am` as `libMs
 
 Common feature gates include:
 
-- `WITH_WIFI_PROFILE` for WiFi handler support
 - `WITH_MOCA_PROFILE` for MoCA manager support
 - `WITH_DHCP_PROFILE` for DHCPv4 support
 - `WITH_INTFSTACK_PROFILE` for InterfaceStack support

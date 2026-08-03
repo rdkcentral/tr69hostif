@@ -11,7 +11,6 @@ Local JSON request -+--> HOSTIF request envelope --> Match parameter prefix
 RBUS DML provider --+
 
 Match parameter prefix --> deviceMgr ----------+
-Match parameter prefix --> wifiMgr ------------+
 Match parameter prefix --> ipMgr --------------+--> Profile get/set handler
 Match parameter prefix --> ethernetMgr --------+
 Match parameter prefix --> timeMgr ------------+

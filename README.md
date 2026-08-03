@@ -332,7 +332,6 @@ autoreconf -iv
 ./configure \
     --enable-parodus \
     --enable-rbus \
-    --enable-wifi \
     --enable-moca \
     --enable-t2
 
