@@ -286,11 +286,6 @@ TEST(datamodelTest, isParamEndsWithInstance_NullInput) {
     EXPECT_EQ(instance, 1);
 }
 
-TEST(datamodelTest, getNumberOfDigitsInInstanceNumber) {
-    int instance = getNumberOfDigitsInInstanceNumber("Device.WiFi.SSID.123.Name", 17);
-    EXPECT_EQ(instance, 3);
-}
-
 TEST(datamodelTest, getNumberOfDigitsInInstanceNumber_NullInput) {
     int instance = getNumberOfDigitsInInstanceNumber(NULL, 0);
     EXPECT_EQ(instance, 0);
@@ -1125,16 +1120,6 @@ TEST(palTest, set_AttribValues_tr69hostIf) {
     EXPECT_EQ(status, WAL_SUCCESS);
 }
 
-TEST(palTest, getParamAttributes) {
-
-    const char *paramName = "Device.WiFi.SSID.1.SSID";
-    AttrVal **attributes = NULL;
-    int totalParams = 0;
-
-    WAL_STATUS status = getParamAttributesFunc()(paramName, &attributes, &totalParams);
-    EXPECT_EQ(status, WAL_ERR_INVALID_PARAM);
-}
-
 TEST(palTest, getParamAttributes_NullInputs) {
     AttrVal **attributes = NULL;
     int totalParams = 0;
@@ -1142,15 +1127,6 @@ TEST(palTest, getParamAttributes_NullInputs) {
     EXPECT_EQ(getParamAttributesFunc()(NULL, &attributes, &totalParams), WAL_ERR_INVALID_PARAM);
     EXPECT_EQ(getParamAttributesFunc()("Device.DeviceInfo.ModelName", NULL, &totalParams), WAL_ERR_INVALID_PARAM);
     EXPECT_EQ(getParamAttributesFunc()("Device.DeviceInfo.ModelName", &attributes, NULL), WAL_ERR_INVALID_PARAM);
-}
-
-TEST(palTest, setParamAttributes) {
-
-    const char *paramName = "Device.WiFi.SSID.1.SSID";	
-    AttrVal attr;
-
-    WAL_STATUS status = setParamAttributesFunc()(paramName, &attr);
-    EXPECT_EQ(status, WAL_SUCCESS);
 }
 
 TEST(palTest, setParamAttributes_notifyList) {
@@ -1304,14 +1280,6 @@ TEST(palTest, replaceWithInstanceNumber) {
     int instanceNumber = 3;
     replaceWithInstanceNumber(paramName, instanceNumber);
     EXPECT_STREQ(paramName, "Device.DeviceInfo.XXXX.{i}");
-}
-
-TEST(palTest, appendNextObject) {
-    char currentParam[100] = "Device.WiFi.{i}.SSID.";
-    const char* pAttparam = "Device.WiFi.{i}.SSID.Enable";
-    appendNextObject(currentParam, pAttparam);
-
-    EXPECT_STREQ(currentParam, "Device.WiFi.{i}.SSID.Enable");
 }
 
 TEST(palTest, test_get_complete_param_list) {

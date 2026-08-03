@@ -84,7 +84,7 @@ At runtime, the dispatcher builds a prefix-to-manager map from the configured ho
 - `hostIf_initalize_ConfigManger()` parses a whitespace-delimited mapping file.
 - `hostIf_ConfigProperties_Init()` parses grouped key/value configuration using GLib `GKeyFile`.
 
-Both paths populate `paramMgrhash`, which maps parameter prefixes such as `Device.DeviceInfo.` or `Device.WiFi.` to a `HostIf_ParamMgr_t` enum. `HostIf_GetMgr()` then scans the configured prefixes and returns the singleton manager that owns the requested subtree.
+Both paths populate `paramMgrhash`, which maps parameter prefixes such as `Device.DeviceInfo.` to a `HostIf_ParamMgr_t` enum. `HostIf_GetMgr()` then scans the configured prefixes and returns the singleton manager that owns the requested subtree.
 
 ### Request Flow
 
@@ -190,7 +190,6 @@ These classes own specific TR-181 areas or integration namespaces and are the ob
 | `EthernetClientReqHandler` | `Device.Ethernet.Interface.*` and `Device.Ethernet.Interface.{i}.Stats.*` | Handles Ethernet interface state, alias, lower-layer relationships, bitrate, duplex mode, and per-interface statistics; also tracks interface count changes for event reporting |
 | `IPClientReqHandler` | `Device.IP.*`, `Device.IP.Interface.*`, `IPv4Address`, optional `IPv6Address`, `ActivePort`, and diagnostics | Dispatches IP stack, interface, address, and active-port reads; when built with optional flags it also covers IPv6 and speed-test related objects; maintains cached entry counts for update detection |
 | `TimeClientReqHandler` | `Device.Time.*` | Handles time enablement, Chrony/NTP settings, NTP directive parameters, and bootstrap-sensitive time parameters through `hostIf_Time` |
-| `WiFiReqHandler` | `Device.WiFi.*` including Radio, SSID, AccessPoint, EndPoint, WPS, Security, Stats, and optional client roaming | Manages the broad WiFi subtree, supports WiFi global enable and roaming-related SETs, closes all WiFi object instances on shutdown, and tracks object counts for radios, SSIDs, and endpoints |
 | `MoCAClientReqHandler` | `Device.MoCA.Interface.*`, QoS, associated devices, stats, and mesh-table related objects | Handles MoCA interface configuration such as enable, alias, privacy, keying, power limits, QoS-related objects, and mesh-entry tracking when the MoCA profile is enabled |
 | `DHCPv4ClientReqHandler` | `Device.DHCPv4.Client.*` | Read-only handler in practice for the current code path; returns client interface references, routers, and DNS servers, and reports the client entry count |
 | `InterfaceStackClientReqHandler` | `Device.InterfaceStack.*` | Read-only handler that exposes higher-layer and lower-layer relationships between interfaces and reports `InterfaceStackNumberOfEntries` |

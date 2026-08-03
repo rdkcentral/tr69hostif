@@ -206,21 +206,6 @@ string getJsonRPCData(std::string postData);
 |------------------|-----|-----------------|----------------|----------------|
 | `Device.DeviceInfo.X_COMCAST-COM_STB_IP` | GET | `get_Device_DeviceInfo_X_COMCAST_COM_STB_IP()` | `GetPrimaryInterface` → `GetIPSettings` | `result.interface` → `result.ipaddress` |
 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshArgs` | SET | `set_xOpsReverseSshArgs()` | `GetPrimaryInterface` → `GetIPSettings` | `result.ipaddress` |
-| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | GET | `get_Device_WiFi_EnableWiFi()` | `GetAvailableInterfaces` | `interfaces[WIFI].enabled` |
-| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | SET | `set_Device_WiFi_EnableWiFi()` | `EnableInterface` / `DisableInterface` | `result.success` |
-| `Device.WiFi.SSID.{i}.BSSID` | GET | `get_Device_WiFi_SSID_BSSID()` | `GetConnectedSSID` | `result.bssid` |
-| `Device.WiFi.SSID.{i}.SSID` | GET | `get_Device_WiFi_SSID_SSID()` | `GetConnectedSSID` | `result.ssid` |
-| `Device.WiFi.SSID.{i}.Name` | GET | `get_Device_WiFi_SSID_Name()` | `GetConnectedSSID` | `result.ssid` |
-| `Device.WiFi.SSID.{i}.Enable` | GET | `get_Device_WiFi_SSID_Enable()` | `GetAvailableInterfaces` | `interfaces[WIFI].enabled` |
-| `Device.WiFi.SSID.{i}.MACAddress` | GET | `get_Device_WiFi_SSID_MACAddress()` | `GetAvailableInterfaces` | `interfaces[WIFI].mac` |
-| `Device.WiFi.SSID.{i}.Status` | GET | `get_Device_WiFi_SSID_Status()` | `GetWifiState` | `result.state` (mapped to string) |
-| `Device.WiFi.Endpoint.{i}.Enable` | GET | `get_Device_WiFi_EndPoint_Enable()` | `GetAvailableInterfaces` ¹ | `interfaces[WIFI].enabled` |
-| `Device.WiFi.Endpoint.{i}.Status` | GET | `get_Device_WiFi_EndPoint_Status()` | `GetAvailableInterfaces` ¹ | derived from `enabled` |
-| `Device.WiFi.Endpoint.{i}.SSIDReference` | GET | `get_Device_WiFi_EndPoint_SSIDReference()` | `GetConnectedSSID` | `result.ssid` |
-| `Device.WiFi.Endpoint.{i}.Stats.SignalStrength` | GET | `get_Device_WiFi_EndPoint_Stats_SignalStrength()` | `GetConnectedSSID` | `result.strength` |
-| `Device.WiFi.Endpoint.{i}.Security.ModesEnabled` | GET | `get_hostIf_WiFi_EndPoint_Security_ModesEnabled()` | `GetConnectedSSID` | `result.securityMode` |
-
-> ¹ `Device_WiFi_EndPoint.cpp` calls the versioned form `org.rdk.NetworkManager.1.GetAvailableInterfaces`.
 
 #### GetPrimaryInterface
 
@@ -260,104 +245,6 @@ Returns IP configuration for a named interface.
 **TR-181 use:**
 - `Device.DeviceInfo.X_COMCAST-COM_STB_IP` GET
 - `Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshArgs` SET (IP lookup)
-
----
-
-#### GetAvailableInterfaces
-
-Returns all network interfaces with type, MAC, and enabled state.
-
-**Request:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "42",
-  "method": "org.rdk.NetworkManager.GetAvailableInterfaces"
-}
-```
-
-**Response fields used (WIFI array element):**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `type` | string | Interface type — match on `"WIFI"` |
-| `mac` | string | MAC address |
-| `enabled` | bool/int | Whether the interface is active |
-
-**TR-181 use:**
-- `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` GET
-- `Device.WiFi.SSID.{i}.Enable`, `Device.WiFi.SSID.{i}.MACAddress`
-- `Device.WiFi.Endpoint.{i}.Enable`, `Device.WiFi.Endpoint.{i}.Status`
-
----
-
-#### GetConnectedSSID
-
-Returns details of the currently associated Wi-Fi network.
-
-**Request:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "42",
-  "method": "org.rdk.NetworkManager.GetConnectedSSID"
-}
-```
-
-**Response fields used:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `ssid` | string | Connected SSID name |
-| `bssid` | string | Access point BSSID |
-| `strength` | number | Signal strength |
-| `securityMode` | string | Security mode (e.g. `"WPA2"`) |
-
-**TR-181 use:**
-- `Device.WiFi.SSID.{i}.SSID`, `Device.WiFi.SSID.{i}.BSSID`, `Device.WiFi.SSID.{i}.Name`
-- `Device.WiFi.Endpoint.{i}.SSIDReference`, `Device.WiFi.Endpoint.{i}.Stats.SignalStrength`
-- `Device.WiFi.Endpoint.{i}.Security.ModesEnabled`
-
----
-
-#### GetWifiState
-
-Returns an integer state code for the Wi-Fi subsystem.
-
-**Request:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "42",
-  "method": "org.rdk.NetworkManager.GetWifiState"
-}
-```
-
-**Response fields used:** `result.state` (number — mapped to string status)
-
-**TR-181 use:** `Device.WiFi.SSID.{i}.Status`
-
----
-
-#### EnableInterface / DisableInterface
-
-Enables or disables the Wi-Fi interface.
-
-**Request (enable):**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "42",
-  "method": "org.rdk.NetworkManager.EnableInterface",
-  "params": { "type": "WIFI" }
-}
-```
-
-**Request (disable):** same with `"DisableInterface"`.
-
-**Response fields used:** `result.success` (bool)
-
-**TR-181 use:** `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` SET handler.
 
 ---
 
@@ -584,11 +471,6 @@ sequenceDiagram
 |--------|--------|---------------------|-----|
 | `org.rdk.NetworkManager` | `GetPrimaryInterface` | `Device.DeviceInfo.X_COMCAST-COM_STB_IP` *(intermediate)* | GET |
 | `org.rdk.NetworkManager` | `GetIPSettings` | `Device.DeviceInfo.X_COMCAST-COM_STB_IP`<br>`…xOpsReverseSshArgs` | GET |
-| `org.rdk.NetworkManager` | `GetAvailableInterfaces` | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable`<br>`Device.WiFi.SSID.{i}.Enable`<br>`Device.WiFi.SSID.{i}.MACAddress`<br>`Device.WiFi.Endpoint.{i}.Enable`<br>`Device.WiFi.Endpoint.{i}.Status` | GET |
-| `org.rdk.NetworkManager` | `GetConnectedSSID` | `Device.WiFi.SSID.{i}.SSID`<br>`Device.WiFi.SSID.{i}.BSSID`<br>`Device.WiFi.SSID.{i}.Name`<br>`Device.WiFi.Endpoint.{i}.SSIDReference`<br>`Device.WiFi.Endpoint.{i}.Stats.SignalStrength`<br>`Device.WiFi.Endpoint.{i}.Security.ModesEnabled` | GET |
-| `org.rdk.NetworkManager` | `GetWifiState` | `Device.WiFi.SSID.{i}.Status` | GET |
-| `org.rdk.NetworkManager` | `EnableInterface` | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | SET |
-| `org.rdk.NetworkManager` | `DisableInterface` | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | SET |
 | `org.rdk.AuthService` | `setPartnerId` | `Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId` | SET |
 | `org.rdk.AuthService` | `getServiceAccountId` | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID` | GET |
 | `org.rdk.AuthService` | `getExperience` | `Device.DeviceInfo.X_RDKCENTRAL-COM_Experience` | GET |
@@ -609,18 +491,6 @@ sequenceDiagram
 | 7 | `Device.DeviceInfo.MigrationPreparer.MigrationReady` | MigrationPreparer | getComponentReadiness | GET | — |
 | 8 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.LastResetTime` | Account | getLastCheckoutResetTime | GET | — |
 | 9 | `Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.Status` | Account | getLastCheckoutResetTime | GET | — |
-| 10 | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | NetworkManager | GetAvailableInterfaces / Enable\|DisableInterface | GET+SET | `!RDKV_NM` |
-| 11 | `Device.WiFi.SSID.{i}.BSSID` | NetworkManager | GetConnectedSSID | GET | `!RDKV_NM` |
-| 12 | `Device.WiFi.SSID.{i}.SSID` | NetworkManager | GetConnectedSSID | GET | `!RDKV_NM` |
-| 13 | `Device.WiFi.SSID.{i}.Name` | NetworkManager | GetConnectedSSID | GET | `!RDKV_NM` |
-| 14 | `Device.WiFi.SSID.{i}.Enable` | NetworkManager | GetAvailableInterfaces | GET | `!RDKV_NM` |
-| 15 | `Device.WiFi.SSID.{i}.MACAddress` | NetworkManager | GetAvailableInterfaces | GET | `!RDKV_NM` |
-| 16 | `Device.WiFi.SSID.{i}.Status` | NetworkManager | GetWifiState | GET | `!RDKV_NM` |
-| 17 | `Device.WiFi.Endpoint.{i}.Enable` | NetworkManager | GetAvailableInterfaces ¹ | GET | `!RDKV_NM` |
-| 18 | `Device.WiFi.Endpoint.{i}.Status` | NetworkManager | GetAvailableInterfaces ¹ | GET | `!RDKV_NM` |
-| 19 | `Device.WiFi.Endpoint.{i}.SSIDReference` | NetworkManager | GetConnectedSSID | GET | `!RDKV_NM` |
-| 20 | `Device.WiFi.Endpoint.{i}.Stats.SignalStrength` | NetworkManager | GetConnectedSSID | GET | `!RDKV_NM` |
-| 21 | `Device.WiFi.Endpoint.{i}.Security.ModesEnabled` | NetworkManager | GetConnectedSSID | GET | `!RDKV_NM` |
 
 > ¹ Uses versioned method `org.rdk.NetworkManager.1.GetAvailableInterfaces`.
 

@@ -129,7 +129,6 @@ sequenceDiagram
 | Handler | IARM Bus Manager Token | TR-181 Subtree |
 |---------|----------------------|----------------|
 | `hostIf_DeviceClient_ReqHandler` | `deviceMgr` | `Device.DeviceInfo.*` |
-| `hostIf_WiFi_ReqHandler` | `wifiMgr` | `Device.WiFi.*` |
 | `hostIf_EthernetClient_ReqHandler` | `ethernetMgr` | `Device.Ethernet.*` |
 | `hostIf_IPClient_ReqHandler` | `ipMgr` | `Device.IP.*` |
 | `hostIf_MoCAClient_ReqHandler` | `mocaMgr` | `Device.MoCA.*` |
@@ -151,7 +150,6 @@ Each subdirectory implements one or more TR-181 objects. Profiles contain the bu
 | Profile Directory | TR-181 Object | Key Dependencies |
 |-------------------|---------------|-----------------|
 | `DeviceInfo/` | `Device.DeviceInfo` | IARM, rfcapi, rfcdefaults, partners\_defaults.json |
-| `wifi/` | `Device.WiFi` | wifihal (libwifi) |
 | `Ethernet/` | `Device.Ethernet` | sysfs, IARM |
 | `IP/` | `Device.IP` | netlink / sysfs |
 | `moca/` | `Device.MoCA` | IARM mocaMgr |
@@ -274,7 +272,6 @@ Device.MoCA=mocaMgr
 Device.Ethernet=ethernetMgr
 Device.IP=ipMgr
 Device.Time=timeMgr
-Device.WiFi=wifiMgr
 
 [HOSTIF_JSON_CONFIG]
 PORT=10999

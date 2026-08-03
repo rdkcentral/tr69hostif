@@ -32,7 +32,6 @@ The manager map is configured in `conf/tr69hostIf.conf` and test environments co
 | `Device.Ethernet` | `ethernetMgr` |
 | `Device.IP` | `ipMgr` |
 | `Device.Time` | `timeMgr` |
-| `Device.WiFi` | `wifiMgr` |
 
 If no manager owns the parameter path, the request fails through the normal fault-code path and the caller sees an invalid-parameter-style result.
 
