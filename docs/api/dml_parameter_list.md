@@ -4,9 +4,9 @@
 
 | Access | Count | Test Action |
 |--------|-------|-------------|
-| readOnly  | 356 | GET only - assert non-empty or expected value |
-| readWrite | 548 | GET + SET - verify set/get round-trip |
-| **Total** | **904** | |
+| readOnly  | 254 | GET only - assert non-empty or expected value |
+| readWrite | 493 | GET + SET - verify set/get round-trip |
+| **Total** | **747** | |
 
 ---
 
@@ -753,165 +753,9 @@
 | 739 | `Device.Time.NTPServer5Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
 | 740 | `Device.Time.Status` | readWrite | string | Current status of the system time service. |
 | 741 | `Device.Time.X_RDK_CurrentUTCTime` | readOnly | string | Current UTC time reported by the device. |
-| 742 | `Device.WiFi.AccessPoint.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi access point. |
-| 743 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Active` | readOnly | boolean | Indicates whether the related entry is currently active. |
-| 744 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.AuthenticationState` | readOnly | boolean | Configuration or status value for this associated Wi-Fi client. |
-| 745 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataDownlinkRate` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
-| 746 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.LastDataUplinkRate` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
-| 747 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.MACAddress` | readOnly | string | MAC address associated with this associated Wi-Fi client. |
-| 748 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Retransmissions` | readOnly | unsignedInt | Configuration or status value for this associated Wi-Fi client. |
-| 749 | `Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.SignalStrength` | readOnly | int | Signal strength reported for the related entry. |
-| 750 | `Device.WiFi.AccessPoint.{i}.AssociatedDeviceNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this Wi-Fi access point. |
-| 751 | `Device.WiFi.AccessPoint.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi access point. |
-| 752 | `Device.WiFi.AccessPoint.{i}.RetryLimit` | readWrite | unsignedInt | Configuration or status value for this Wi-Fi access point. |
-| 753 | `Device.WiFi.AccessPoint.{i}.SSIDAdvertisementEnabled` | readWrite | boolean | Controls whether this access point advertises its SSID. |
-| 754 | `Device.WiFi.AccessPoint.{i}.SSIDReference` | readWrite | string | Reference to the SSID object used by this entry. |
-| 755 | `Device.WiFi.AccessPoint.{i}.Security.KeyPassphrase` | readWrite | string | Passphrase configured for the related Wi-Fi profile. |
-| 756 | `Device.WiFi.AccessPoint.{i}.Security.ModeEnabled` | readWrite | string | Security mode currently enabled for the related Wi-Fi object. |
-| 757 | `Device.WiFi.AccessPoint.{i}.Security.ModesSupported` | readOnly | string | Security modes supported by the related Wi-Fi object. |
-| 758 | `Device.WiFi.AccessPoint.{i}.Security.PreSharedKey` | readWrite | hexBinary | Pre-shared key configured for the related Wi-Fi object. |
-| 759 | `Device.WiFi.AccessPoint.{i}.Security.RadiusSecret` | readWrite | string | Shared secret or password used by this Wi-Fi access point. |
-| 760 | `Device.WiFi.AccessPoint.{i}.Security.RadiusServerIPAddr` | readWrite | string | RADIUS server IP address used by this access point. |
-| 761 | `Device.WiFi.AccessPoint.{i}.Security.RadiusServerPort` | readWrite | unsignedInt | Port value used by this Wi-Fi access point. |
-| 762 | `Device.WiFi.AccessPoint.{i}.Security.RekeyingInterval` | readWrite | unsignedInt | Key rekey interval for this Wi-Fi security profile. |
-| 763 | `Device.WiFi.AccessPoint.{i}.Security.WEPKey` | readWrite | hexBinary | WEP key configured for the related Wi-Fi object. |
-| 764 | `Device.WiFi.AccessPoint.{i}.Status` | readOnly | string | Current status of this Wi-Fi access point. |
-| 765 | `Device.WiFi.AccessPoint.{i}.UAPSDCapability` | readOnly | boolean | U-APSD capability or enable state for this access point. |
-| 766 | `Device.WiFi.AccessPoint.{i}.UAPSDEnable` | readWrite | boolean | U-APSD capability or enable state for this access point. |
-| 767 | `Device.WiFi.AccessPoint.{i}.WMMCapability` | readOnly | boolean | WMM capability or enable state for this access point. |
-| 768 | `Device.WiFi.AccessPoint.{i}.WMMEnable` | readWrite | boolean | WMM capability or enable state for this access point. |
-| 769 | `Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsEnabled` | readWrite | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 770 | `Device.WiFi.AccessPoint.{i}.WPS.ConfigMethodsSupported` | readOnly | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 771 | `Device.WiFi.AccessPoint.{i}.WPS.Enable` | readWrite | boolean | Enables or disables this Wi-Fi access point. |
-| 772 | `Device.WiFi.AccessPointNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 773 | `Device.WiFi.EndPoint.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi endpoint. |
-| 774 | `Device.WiFi.EndPoint.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint. |
-| 775 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Alias` | readWrite | string | User-assigned alias for this Wi-Fi endpoint profile. |
-| 776 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint profile. |
-| 777 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Location` | readWrite | string | Location hint associated with this Wi-Fi endpoint profile. |
-| 778 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Priority` | readWrite | unsignedInt | Scheduling priority for this Wi-Fi endpoint profile. |
-| 779 | `Device.WiFi.EndPoint.{i}.Profile.{i}.SSID` | readWrite | string | SSID string used by the related Wi-Fi object. |
-| 780 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.KeyPassphrase` | readWrite | string | Passphrase configured for the related Wi-Fi profile. |
-| 781 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.ModeEnabled` | readWrite | string | Security mode currently enabled for the related Wi-Fi object. |
-| 782 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.PreSharedKey` | readWrite | hexBinary | Pre-shared key configured for the related Wi-Fi object. |
-| 783 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Security.WEPKey` | readWrite | hexBinary | WEP key configured for the related Wi-Fi object. |
-| 784 | `Device.WiFi.EndPoint.{i}.Profile.{i}.Status` | readOnly | string | Current status of this Wi-Fi endpoint profile. |
-| 785 | `Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this Wi-Fi endpoint. |
-| 786 | `Device.WiFi.EndPoint.{i}.ProfileReference` | readWrite | string | Reference to the active Wi-Fi endpoint profile. |
-| 787 | `Device.WiFi.EndPoint.{i}.SSIDReference` | readOnly | string | Reference to the SSID object used by this entry. |
-| 788 | `Device.WiFi.EndPoint.{i}.Security.ModesEnabled` | readOnly | string | Security mode currently enabled for the related Wi-Fi object. |
-| 789 | `Device.WiFi.EndPoint.{i}.Security.ModesSupported` | readOnly | string | Security modes supported by the related Wi-Fi object. |
-| 790 | `Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate` | readOnly | unsignedInt | Most recent downlink data rate for this Wi-Fi endpoint. |
-| 791 | `Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate` | readOnly | unsignedInt | Most recent uplink data rate for this Wi-Fi endpoint. |
-| 792 | `Device.WiFi.EndPoint.{i}.Stats.Retransmissions` | readOnly | unsignedInt | Retransmission count observed for this Wi-Fi endpoint. |
-| 793 | `Device.WiFi.EndPoint.{i}.Stats.SignalStrength` | readOnly | int | Reported signal strength for this Wi-Fi endpoint. |
-| 794 | `Device.WiFi.EndPoint.{i}.Status` | readOnly | string | Current status of this Wi-Fi endpoint. |
-| 795 | `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled` | readWrite | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 796 | `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported` | readOnly | string | WPS configuration methods enabled or supported for the related Wi-Fi object. |
-| 797 | `Device.WiFi.EndPoint.{i}.WPS.Enable` | readWrite | boolean | Enables or disables this Wi-Fi endpoint. |
-| 798 | `Device.WiFi.EndPointNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 799 | `Device.WiFi.Radio.{i}.OperatingChannelBandwidth` | readOnly | string | Current operating channel bandwidth of this Wi-Fi radio. |
-| 800 | `Device.WiFi.Radio.{i}.Stats.Noise` | readOnly | int | Reported noise floor for this Wi-Fi radio. |
-| 801 | `Device.WiFi.Radio.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this Wi-Fi radio. |
-| 802 | `Device.WiFi.RadioNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 803 | `Device.WiFi.SSID.{i}.Alias` | readWrite | string | User-assigned alias for this SSID interface. |
-| 804 | `Device.WiFi.SSID.{i}.BSSID` | readOnly | string | BSSID reported for this SSID interface. |
-| 805 | `Device.WiFi.SSID.{i}.Enable` | readWrite | boolean | Enables or disables this SSID interface. |
-| 806 | `Device.WiFi.SSID.{i}.LastChange` | readOnly | unsignedInt | Seconds since this SSID interface last changed state. |
-| 807 | `Device.WiFi.SSID.{i}.LowerLayers` | readWrite | string | Lower-layer interface references for this SSID interface. |
-| 808 | `Device.WiFi.SSID.{i}.MACAddress` | readOnly | string | MAC address associated with this SSID interface. |
-| 809 | `Device.WiFi.SSID.{i}.Name` | readOnly | string | Name reported for this SSID interface. |
-| 810 | `Device.WiFi.SSID.{i}.SSID` | readWrite | string | SSID string used by the related Wi-Fi object. |
-| 811 | `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived` | readOnly | unsignedLong | Broadcast packets received on this SSID interface. |
-| 812 | `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent` | readOnly | unsignedLong | Broadcast packets sent on this SSID interface. |
-| 813 | `Device.WiFi.SSID.{i}.Stats.BytesReceived` | readOnly | unsignedLong | Total bytes received on this SSID interface. |
-| 814 | `Device.WiFi.SSID.{i}.Stats.BytesSent` | readOnly | unsignedLong | Total bytes sent on this SSID interface. |
-| 815 | `Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived` | readOnly | unsignedInt | Received packets discarded on this SSID interface. |
-| 816 | `Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent` | readOnly | unsignedInt | Outbound packets discarded on this SSID interface. |
-| 817 | `Device.WiFi.SSID.{i}.Stats.ErrorsReceived` | readOnly | unsignedInt | Receive errors seen on this SSID interface. |
-| 818 | `Device.WiFi.SSID.{i}.Stats.ErrorsSent` | readOnly | unsignedInt | Transmit errors seen on this SSID interface. |
-| 819 | `Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived` | readOnly | unsignedLong | Multicast packets received on this SSID interface. |
-| 820 | `Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent` | readOnly | unsignedLong | Multicast packets sent on this SSID interface. |
-| 821 | `Device.WiFi.SSID.{i}.Stats.PacketsReceived` | readOnly | unsignedLong | Total packets received on this SSID interface. |
-| 822 | `Device.WiFi.SSID.{i}.Stats.PacketsSent` | readOnly | unsignedLong | Total packets sent on this SSID interface. |
-| 823 | `Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived` | readOnly | unsignedLong | Unicast packets received on this SSID interface. |
-| 824 | `Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent` | readOnly | unsignedLong | Unicast packets sent on this SSID interface. |
-| 825 | `Device.WiFi.SSID.{i}.Stats.UnknownProtoPacketsReceived` | readOnly | unsignedInt | Packets with unknown protocol received on this SSID interface. |
-| 826 | `Device.WiFi.SSID.{i}.Status` | readOnly | string | Current status of this SSID interface. |
-| 827 | `Device.WiFi.SSIDNumberOfEntries` | readOnly | unsignedInt | Reports the number of entries in this object. |
-| 828 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.80211kvrEnable` | readWrite | boolean | Enables or disables 802.11k/v/r roaming support. |
-| 829 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.Enable` | readWrite | boolean | Enables or disables the Wi-Fi client roaming policy. |
-| 830 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolBeaconsMissedTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 831 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
-| 832 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_APcontrolTimeframe` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 833 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BackOffTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 834 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelConnected` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 835 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_BestDeltaLevelDisconnected` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 836 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerBeaconsMissedTime` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 837 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
-| 838 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PostAssn_SelfSteerTimeframe` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 839 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestDeltaLevel` | readWrite | unsignedInt | Band-steering threshold or control used by the client roaming policy. |
-| 840 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.PreAssn_BestThresholdLevel` | readWrite | int | Band-steering threshold or control used by the client roaming policy. |
-| 841 | `Device.WiFi.X_RDKCENTRAL-COM_ClientRoaming.SelfSteer_OverrideEnable` | readWrite | boolean | Band-steering threshold or control used by the client roaming policy. |
-| 842 | `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | readWrite | boolean | Master enable for the Wi-Fi subsystem. |
-| 843 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceId` | readOnly | string | Security system device identifier. |
-| 844 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceReg` | readOnly | dateTime | Security system device registration time. |
-| 845 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssErrorCnt` | readOnly | unsignedInt | Security system error count. |
-| 846 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssRegTs` | readOnly | boolean | Indicates whether a security system registration timestamp is available. |
-| 847 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreAppId` | readOnly | string | Application identifier for this XRE connection entry. |
-| 848 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnEstTs` | readOnly | string | Connection establishment timestamp for this XRE connection entry. |
-| 849 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnIfName` | readOnly | string | Interface name used by this XRE connection entry. |
-| 850 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnRetryAttempts` | readOnly | unsignedInt | Retry attempts recorded for this XRE connection entry. |
-| 851 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnStatus` | readOnly | string | Current status of this XRE connection entry. |
-| 852 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnURL` | readOnly | string | Connection URL used by this XRE connection entry. |
-| 853 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreAvgCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
-| 854 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreChannelMapId` | readOnly | string | Channel map identifier currently used by the XRE client. |
-| 855 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreCommandCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 856 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreControllerId` | readOnly | string | Controller identifier reported by the XRE client. |
-| 857 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable` | readWrite | boolean | Enables or disables the XRE client. |
-| 858 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreErrorCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 859 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreFlushLocalCache` | readWrite | boolean | Triggers an XRE local cache flush when set. |
-| 860 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGatewaySTBMAC` | readOnly | string | Gateway STB MAC address reported by the XRE client. |
-| 861 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGetTWPDiags` | readOnly | string | Diagnostic payload returned by XRE TWP diagnostics. |
-| 862 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastURLAccessed` | readOnly | string | Last URL accessed by the XRE client. |
-| 863 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastVideoUrl` | readOnly | string | Last video URL accessed by the XRE client. |
-| 864 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLogLevel` | readWrite | string | Logging level used by the XRE client. |
-| 865 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMaxCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
-| 866 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMinCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
-| 867 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xrePlantId` | readOnly | string | Plant identifier reported by the XRE client. |
-| 868 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreReceiverId` | readOnly | string | Receiver identifier reported by the XRE client. |
-| 869 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSession` | readWrite | boolean | Triggers XRE session refresh behavior. |
-| 870 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSessionWithRR` | readWrite | int | Controls refresh-with-RR behavior for the XRE session. |
-| 871 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionId` | readOnly | string | Active XRE session identifier reported by the client. |
-| 872 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionLastModTs` | readOnly | string | Timestamp of the last XRE session update. |
-| 873 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionUptime` | readOnly | string | Uptime of the current XRE session. |
-| 874 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreStatus` | readOnly | string | Configuration or status value for the XRE client. |
-| 875 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAnimCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 876 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAppCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 877 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFlashCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 878 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFontCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 879 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotHtmlTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 880 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 881 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotNineSliceImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 882 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotRectCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 883 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotSoundCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 884 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotStyleshtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 885 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 886 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtIpCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 887 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotVideoCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 888 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotViewCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
-| 889 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVersion` | readOnly | string | Version string reported by the XRE client. |
-| 890 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVodId` | readOnly | string | VOD identifier reported by the XRE client. |
-| 891 | `Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow` | readWrite | string | Triggers an immediate Xconf check for the Xcalibur client. |
-| 892 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppNumAps` | readOnly | unsignedInt | Number of DevApp application entries reported by the platform. |
-| 893 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppId` | readOnly | string | Application identifier for this DevApp entry. |
-| 894 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppRestartCapability` | readOnly | string | Restart capability reported for this DevApp entry. |
-| 895 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayDeviceFriendlyName` | readOnly | string | Gateway identification value reported by TRM. |
-| 896 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAIP` | readOnly | string | Gateway identification value reported by TRM. |
-| 897 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAMAC` | readOnly | string | Gateway identification value reported by TRM. |
-| 898 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewaySTBMAC` | readOnly | string | Gateway identification value reported by TRM. |
-| 899 | `Device.X_RDKCENTRAL-COM_T2.ReportProfiles` | readWrite | string | Telemetry 2.0 report profiles payload. |
-| 900 | `Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack` | readWrite | string | Telemetry 2.0 report profiles payload. |
-| 901 | `Device.X_RDK_WebPA_DNSText.URL` | readWrite | string | Bootstrap URL used to retrieve WebPA DNS text records. |
-| 902 | `Device.X_RDK_WebPA_Server.URL` | readOnly | string | Current WebPA server URL from the bootstrap store. |
-| 903 | `Device.X_RDK_WebPA_TokenServer.URL` | readOnly | string | Current WebPA token server URL from the bootstrap store. |
+| 742 | `Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow` | readWrite | string | Triggers an immediate Xconf check for the Xcalibur client. |
+| 743 | `Device.X_RDKCENTRAL-COM_T2.ReportProfiles` | readWrite | string | Telemetry 2.0 report profiles payload. |
+| 744 | `Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack` | readWrite | string | Telemetry 2.0 report profiles payload. |
+| 745 | `Device.X_RDK_WebPA_DNSText.URL` | readWrite | string | Bootstrap URL used to retrieve WebPA DNS text records. |
+| 746 | `Device.X_RDK_WebPA_Server.URL` | readOnly | string | Current WebPA server URL from the bootstrap store. |
+| 747 | `Device.X_RDK_WebPA_TokenServer.URL` | readOnly | string | Current WebPA token server URL from the bootstrap store. |

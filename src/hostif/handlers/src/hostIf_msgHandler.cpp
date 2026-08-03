@@ -39,11 +39,9 @@
 #include "hostIf_dsClient_ReqHandler.h"
 #include "hostIf_DeviceClient_ReqHandler.h"
 #include "hostIf_XrdkCentralT2_ReqHandler.h"
+#include "hostIf_XREClient_ReqHandler.h"
 #include "safec_lib.h"
 
-#ifdef USE_XRESRC
-#include "hostIf_XREClient_ReqHandler.h"
-#endif /* USE_XRESRC */
 #ifdef USE_MoCA_PROFILE
 #include "hostIf_MoCAClient_ReqHandler.h"
 #endif /* USE_MoCA_PROFILE */
@@ -430,12 +428,10 @@ bool hostIf_initalize_ConfigManger()
                 mgrName = HOSTIF_MoCAMgr;
             }
 #endif /* USE_MoCA_PROFILE*/
-#ifdef USE_XRESRC
             else if(strcasecmp(mgr, "xreMgr") == 0)
             {
                 mgrName = HOSTIF_XREMgr;
             }
-#endif /* USE_XRESRC*/
             else if(strcasecmp(mgr, "ethernetMgr") == 0)
             {
                 mgrName = HOSTIF_EthernetMgr;
@@ -530,11 +526,9 @@ msgHandler* HostIf_GetMgr(HOSTIF_MsgData_t *stMsgHandlerData)
                 case HOSTIF_DSMgr:
                     pRet = DSClientReqHandler::getInstance();
                     break;
-#ifdef USE_XRESRC
                 case HOSTIF_XREMgr:
                     pRet = XREClientReqHandler::getInstance();
                     break;
-#endif /*USE_XRESRC*/
                 case HOSTIF_DeviceMgr:
                     pRet = DeviceClientReqHandler::getInstance();
                     break;
@@ -657,12 +651,10 @@ bool hostIf_ConfigProperties_Init()
                             mgrName = HOSTIF_MoCAMgr;
                         }
 #endif /* USE_MoCA_PROFILE*/
-#ifdef USE_XRESRC
                         else if(strcasecmp(value, "xreMgr") == 0)
                         {
                             mgrName = HOSTIF_XREMgr;
                         }
-#endif /* USE_XRESRC*/
                         else if(strcasecmp(value, "ethernetMgr") == 0)
                         {
                             mgrName = HOSTIF_EthernetMgr;

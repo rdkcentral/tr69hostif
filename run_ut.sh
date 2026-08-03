@@ -81,7 +81,7 @@ touch /tmp/timeReceivedNTP
 touch /tmp/webpa/start_time 
 touch /opt/persistent/firstNtpTime
 touch /etc/rfcdefaults/rfcdefaults.ini
-touch /opt/XRE_container_enable /opt/dab-enable
+touch /opt/dab-enable
 touch /opt/.ntpEnabled
 touch /var/tmp/rssh.pid
 cat /version.txt

@@ -22,7 +22,6 @@ DIST_SUBDIRS =
 
 AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 	-I$(top_srcdir)/src/hostif/profiles/STBService \
-	-I$(top_srcdir)/src/hostif/profiles/X_COMCAST-COM/X_COMCAST-COM_Xcalibur/include \
 	-I$(top_srcdir)/src/hostif/profiles/moca \
 	-I$(top_srcdir)/src/hostif/profiles/Ethernet \
 	-I$(top_srcdir)/src/hostif/profiles/Device \
@@ -34,11 +33,9 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 	-I$(top_srcdir)/src/hostif/profiles/InterfaceStack \
 	-I$(top_srcdir)/src/hostif/profiles/StorageService \
 	-I$(PKG_CONFIG_SYSROOT_DIR)$(includedir)/rdk/iarmmgrs/sysmgr \
-	-I$(top_srcdir)/src/hostif/profiles/moca \
-	-I$(top_srcdir)/src/hostif/profiles/wifi \
 	-I./include $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) \
-	$(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(SOUP_CFLAGS) $(MOCA2_FLAG) \
-	$(WIFI_PROFILE_FLAG) $(XRDK_SDCARD_PROFILE_FLAG) $(XRDK_EMMC_PROFILE_FLAG) \
+	$(MOCAMGR_FLAGS) $(SOUP_CFLAGS) $(MOCA2_FLAG) \
+	$(XRDK_SDCARD_PROFILE_FLAG) $(XRDK_EMMC_PROFILE_FLAG) \
         -I=/usr/include/rdk/iarmbus/ \
         -I=/usr/include/rdk/iarmmgrs/sysmgr/ \
         -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/ \
@@ -109,10 +106,6 @@ libMsgHandlers_la_SOURCES =	src/hostIf_IARM_ReqHandler.cpp \
 
 if WITH_MOCA_PROFILE
 libMsgHandlers_la_SOURCES +=    src/hostIf_MoCAClient_ReqHandler.cpp
-endif
-
-if WITH_WIFI_PROFILE
-libMsgHandlers_la_SOURCES +=    src/hostIf_WiFi_ReqHandler.cpp
 endif
 
 if WITH_DHCP_PROFILE
