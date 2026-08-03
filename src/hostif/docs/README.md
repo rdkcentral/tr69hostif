@@ -349,7 +349,6 @@ The daemon's compiled feature set is controlled by a set of build-time macros. T
 | `WEB_CONFIG_ENABLED` | Enables WebConfig multipart task (`initWebConfigMultipartTask`) |
 | `WEBCONFIG_LITE_ENABLE` | Enables lightweight WebConfig thread (`initWebConfigTask`) |
 | `T2_EVENT_ENABLED` | Enables Telemetry 2 via `t2_event_d` / `t2_event_s` |
-| `USE_WIFI_PROFILE` | Compiles in WiFi profile; calls `WiFiDevice::init/shutdown` |
 | `IS_YOCTO_ENABLED` | Links `libsecure_wrapper` explicitly |
 | `RDK_DEVICE_EMU` | Selects `eth0` instead of `eth1` as the Ethernet interface |
 

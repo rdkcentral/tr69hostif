@@ -60,10 +60,6 @@ Representative handlers follow the same pattern:
 This pattern is present in multiple places, including:
 
 - [src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp)
-- [src/hostif/profiles/wifi/Device_WiFi.cpp](../../src/hostif/profiles/wifi/Device_WiFi.cpp)
-- [src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp)
-- [src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp)
-- [src/hostif/profiles/wifi/Device_WiFi_SSID.cpp](../../src/hostif/profiles/wifi/Device_WiFi_SSID.cpp)
 
 ### Review of Current Implementation
 
@@ -192,10 +188,6 @@ string getJsonRPCData(std::string postData);
 ### org.rdk.NetworkManager
 
 **Used in:** [Device_DeviceInfo.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp),
-[Device_WiFi.cpp](../../src/hostif/profiles/wifi/Device_WiFi.cpp),
-[Device_WiFi_EndPoint.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp),
-[Device_WiFi_EndPoint_Security.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp),
-[Device_WiFi_SSID.cpp](../../src/hostif/profiles/wifi/Device_WiFi_SSID.cpp)
 
 > **Build flags:** WiFi Thunder paths are active only when `RDKV_NM` is **not** defined.
 > The DeviceInfo IP path requires `MEDIA_CLIENT` defined and `RDKV_TR69` **not** defined.
@@ -512,9 +504,5 @@ sequenceDiagram
 - [hostIf_utils.h](../../src/hostif/include/hostIf_utils.h) — `getJsonRPCData()` and `JSONRPC_URL`
 - [hostIf_utils.cpp](../../src/hostif/src/hostIf_utils.cpp) — curl implementation
 - [Device_DeviceInfo.cpp](../../src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp) — DeviceInfo profile handlers
-- [Device_WiFi.cpp](../../src/hostif/profiles/wifi/Device_WiFi.cpp) — WiFi enable/disable
-- [Device_WiFi_SSID.cpp](../../src/hostif/profiles/wifi/Device_WiFi_SSID.cpp) — SSID profile
-- [Device_WiFi_EndPoint.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp) — EndPoint profile
-- [Device_WiFi_EndPoint_Security.cpp](../../src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp) — Security profile
 - [public-api.md](public-api.md) — Overall public API reference
 - [data-flow.md](../architecture/data-flow.md) — System-level data flow

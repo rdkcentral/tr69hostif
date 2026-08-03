@@ -1091,7 +1091,7 @@ void test_get_complete_param_list()
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"======================================================================\n");
     DataModelParam dmParam = {0};
 
-    const char *pParameterName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Enable";
+    const char *pParameterName = "Device.WiFi.EndPoint.1.Profile.1.Status";
 
     if (getParamInfoFromDataModel(g_dbhandle, pParameterName, &dmParam))
     {

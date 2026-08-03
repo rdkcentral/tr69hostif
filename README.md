@@ -304,7 +304,6 @@ The `[HOSTIF_DM_PROFILE_MGR]` section defines which manager handles each TR-181 
 | `--enable-t2` | `T2_EVENT_ENABLED` | Telemetry 2.0 markers |
 | `--enable-webconfig` | `WEB_CONFIG_ENABLED` | WebConfig multipart support |
 | `--enable-webconfig-lite` | `WEBCONFIG_LITE_ENABLE` | WebConfig Lite |
-| `--enable-wifi` | `USE_WIFI_PROFILE` | WiFi profile handlers |
 | `--enable-moca` | *(moca linkage)* | MoCA profile handlers |
 
 ## Build & Install
