@@ -63,6 +63,7 @@
 #ifndef DEVSET_COMP_VIDEOOUTPUT_HPP_
 #define DEVSET_COMP_VIDEOOUTPUT_HPP_
 
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "videoResolution.hpp"
 #include "dsTypes.h"
@@ -73,6 +74,7 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include <exception>
 #include <string.h>
 #include "stdlib.h"
@@ -90,12 +92,22 @@
  */
 class  hostIf_STBServiceVideoOutput
 {
+#ifdef USE_THUNDER_CLIENT
+    static GHashTable *ifHash;        /* dev_id -> hostIf_STBServiceVideoOutput* */
+    hostIf_STBServiceVideoOutput(int devid, const std::string& portName);
+#else
     static GHashTable *ifHash;
     hostIf_STBServiceVideoOutput(int devid, device::VideoOutputPort& port);
+#endif
     ~hostIf_STBServiceVideoOutput() {};
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
+    std::string m_portName;
+    static void buildPortNameHash();
+#else
     device::VideoOutputPort& vPort;
+#endif
 
     char backupAspectRatioBehaviour[_BUF_LEN_16];
     char backupDisplayFormat[_BUF_LEN_16];

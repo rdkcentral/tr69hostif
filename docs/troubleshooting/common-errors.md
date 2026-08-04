@@ -94,6 +94,38 @@ The update handler uses a polling loop and sleeps for 60 seconds between passes.
 - verify the affected profile participates in `registerUpdateCallback()` and `checkForUpdates()`
 - account for the poll interval when interpreting latency
 
+## STBService Thunder Method Not Found
+
+### Symptom
+
+STBService GET/SET requests begin returning backend failures after migration to Thunder-backed handlers.
+
+### Why it happens
+
+The selected plugin method name or request key does not match the Thunder plugin interface (for example wrong callsign, wrong field name, or wrong port argument key).
+
+### What to check
+
+- verify the method string includes the full callsign and method name (for example `org.rdk.DisplaySettings.getVolumeLevel`)
+- verify request keys match plugin expectations (`audioPort`, `videoDisplay`, or no port key for singleton domains)
+- verify response field extraction uses the correct typed field name
+
+## STBService Instance Count Drift After Thunder Migration
+
+### Symptom
+
+Component table instance counts differ from previous behavior (for example AudioOutput/SPDIF/HDMI instance numbers change).
+
+### Why it happens
+
+Port-based components now derive instances from Thunder port discovery, and plugin-reported port lists can differ from legacy DS HAL ordering or naming.
+
+### What to check
+
+- verify port enumeration result from Thunder (`getSupportedAudioPorts` or `getSupportedVideoDisplays`)
+- verify component-level filtering rules (for example SPDIF-only filtering) are applied consistently
+- verify invalid instance handling returns an explicit invalid-parameter style fault
+
 ## See Also
 
 - [Threading Model](../architecture/threading-model.md)
