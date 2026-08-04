@@ -2012,11 +2012,6 @@
     </object>
     <object base="Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel." access="readOnly"  minEntries="1" maxEntries="unbounded" />
     <object base="Device.Services.STBService.1.Capabilities.VideoDecoder.X_RDKCENTRAL-COM_MPEGHPart2.ProfileLevel.1." access="readOnly" numEntriesParameter="ProfileLevelNumberOfEntries" minEntries="0" maxEntries="unbounded" >
-      <parameter base="Alias" access="readOnly" activeNotify="canDeny" notification="0"  maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
       <parameter base="Profile" access="readOnly"  notification="0" maxNotification="2" >
         <syntax>
           <string/>
@@ -2076,11 +2071,6 @@
           <boolean/>
         </syntax>
       </parameter>
-      <parameter base="X_COMCAST-COM_Standby" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
       <parameter base="Status" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
@@ -2112,11 +2102,6 @@
           <boolean/>
         </syntax>
     </parameter>
-	<parameter base="Status" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
       <parameter base="Name" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
@@ -2126,11 +2111,6 @@
       <parameter base="AudioFormat" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>          
-        </syntax>
-      </parameter>
-      <parameter base="AudioLevel" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>          
         </syntax>
       </parameter>
       <parameter base="X_COMCAST-COM_AudioOptimalLevel" access="readWrite" notification="0" maxNotification="2" >
@@ -2149,27 +2129,7 @@
           <string/>          
         </syntax>
       </parameter>
-      <parameter base="X_COMCAST-COM_MinAudioDB" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>
-      <parameter base="X_COMCAST-COM_MaxAudioDB" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>
-      <parameter base="X_COMCAST-COM_AudioDB" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>
       <parameter base="X_COMCAST-COM_AudioEncoding" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>
-      <parameter base="X_COMCAST-COM_AudioGain" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <string/>          
         </syntax>
@@ -2179,11 +2139,6 @@
           <string/>          
         </syntax>
       </parameter>
-      <parameter base="X_COMCAST-COM_AudioLoopThru" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>          
-        </syntax>
-      </parameter>	  
     </object>		
     <object base="Device.Services.STBService.1.Components.VideoOutput." access="readOnly" minEntries="1" maxEntries="unbounded"/>
     <object base="Device.Services.STBService.1.Components.VideoOutput.1." access="readOnly" minEntries="1" maxEntries="unbounded">
@@ -2230,7 +2185,7 @@
           <boolean/>
         </syntax>
       </parameter>
-	  <parameter base="Status" access="readOnly" notification="0" maxNotification="2" >
+      <parameter base="Status" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
@@ -2275,26 +2230,6 @@
       <parameter base="PreferredResolution" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
-        </syntax>
-      </parameter>
-      <parameter base="VideoLatency" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="CECSupport" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
-      <parameter base="AutoLipSyncSupport" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
-      <parameter base="HDMI3DPresent" access="readOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
         </syntax>
       </parameter>
     </object>

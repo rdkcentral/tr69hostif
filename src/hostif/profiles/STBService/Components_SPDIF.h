@@ -51,6 +51,7 @@
 #define DEVSET_COMP_SPDIF_HPP__
 
 #include <iostream>
+#ifndef USE_THUNDER_CLIENT
 #include "host.hpp"
 #include "videoDevice.hpp"
 #include "videoDFC.hpp"
@@ -58,6 +59,7 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "list.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include <exception>
 #include <string.h>
 #include <stdlib.h>
@@ -65,7 +67,9 @@
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_updateHandler.h"
 #include "hostIf_main.h"
+#ifndef USE_THUNDER_CLIENT
 #include "audioOutputPort.hpp"
+#endif /* USE_THUNDER_CLIENT */
 
 #ifndef PARAM_LEN
 #define PARAM_LEN TR69HOSTIFMGR_MAX_PARAM_LEN
@@ -79,11 +83,20 @@
 class hostIf_STBServiceSPDIF
 {
     static GHashTable *ifHash;
+#ifdef USE_THUNDER_CLIENT
+    hostIf_STBServiceSPDIF(int dev_id, const std::string& portName);
+#else
     hostIf_STBServiceSPDIF(int dev_id, device::AudioOutputPort& port);
+#endif
     ~hostIf_STBServiceSPDIF() {};
     static GMutex m_mutex;
     int dev_id;
+#ifdef USE_THUNDER_CLIENT
+    std::string m_portName;
+    static void buildPortNameHash();
+#else
     device::AudioOutputPort& aPort;
+#endif
 
     bool backupEnable;
     char backupStatus[_BUF_LEN_16];
@@ -100,17 +113,21 @@ class hostIf_STBServiceSPDIF
     bool bCalledAudioDelay;
 
 private:
+#ifndef USE_THUNDER_CLIENT
     int setEnable(HOSTIF_MsgData_t *stMsgData);
     int setAlias(HOSTIF_MsgData_t *stMsgData);
     int setForcePCM(HOSTIF_MsgData_t *stMsgData);
 
     int getEnable(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getStatus(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+#endif
     int getAlias(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+#ifndef USE_THUNDER_CLIENT
     int getName(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getForcePCM(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getPassthrough(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
     int getAudioDelay(HOSTIF_MsgData_t *stMsgData, bool *pChanged = NULL);
+#endif
 
 public:
     static hostIf_STBServiceSPDIF *getInstance(int devid);

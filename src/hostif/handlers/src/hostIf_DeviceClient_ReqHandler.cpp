@@ -34,8 +34,6 @@
 #include "hostIf_main.h"
 #include "hostIf_DeviceClient_ReqHandler.h"
 #include "hostIf_utils.h"
-#include "host.hpp"
-#include "dsError.h"
 #include "libIBus.h"
 #include "Device_DeviceInfo.h"
 #include "Device_DeviceInfo_Processor.h"
