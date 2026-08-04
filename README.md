@@ -129,7 +129,6 @@ sequenceDiagram
 | Handler | IARM Bus Manager Token | TR-181 Subtree |
 |---------|----------------------|----------------|
 | `hostIf_DeviceClient_ReqHandler` | `deviceMgr` | `Device.DeviceInfo.*` |
-| `hostIf_WiFi_ReqHandler` | `wifiMgr` | `Device.WiFi.*` |
 | `hostIf_EthernetClient_ReqHandler` | `ethernetMgr` | `Device.Ethernet.*` |
 | `hostIf_IPClient_ReqHandler` | `ipMgr` | `Device.IP.*` |
 | `hostIf_MoCAClient_ReqHandler` | `mocaMgr` | `Device.MoCA.*` |
@@ -151,7 +150,6 @@ Each subdirectory implements one or more TR-181 objects. Profiles contain the bu
 | Profile Directory | TR-181 Object | Key Dependencies |
 |-------------------|---------------|-----------------|
 | `DeviceInfo/` | `Device.DeviceInfo` | IARM, rfcapi, rfcdefaults, partners\_defaults.json |
-| `wifi/` | `Device.WiFi` | wifihal (libwifi) |
 | `Ethernet/` | `Device.Ethernet` | sysfs, IARM |
 | `IP/` | `Device.IP` | netlink / sysfs |
 | `moca/` | `Device.MoCA` | IARM mocaMgr |
@@ -274,7 +272,6 @@ Device.MoCA=mocaMgr
 Device.Ethernet=ethernetMgr
 Device.IP=ipMgr
 Device.Time=timeMgr
-Device.WiFi=wifiMgr
 
 [HOSTIF_JSON_CONFIG]
 PORT=10999
@@ -307,7 +304,6 @@ The `[HOSTIF_DM_PROFILE_MGR]` section defines which manager handles each TR-181 
 | `--enable-t2` | `T2_EVENT_ENABLED` | Telemetry 2.0 markers |
 | `--enable-webconfig` | `WEB_CONFIG_ENABLED` | WebConfig multipart support |
 | `--enable-webconfig-lite` | `WEBCONFIG_LITE_ENABLE` | WebConfig Lite |
-| `--enable-wifi` | `USE_WIFI_PROFILE` | WiFi profile handlers |
 | `--enable-moca` | *(moca linkage)* | MoCA profile handlers |
 
 ## Build & Install
@@ -336,7 +332,6 @@ autoreconf -iv
 ./configure \
     --enable-parodus \
     --enable-rbus \
-    --enable-wifi \
     --enable-moca \
     --enable-t2
 

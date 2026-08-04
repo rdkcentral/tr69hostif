@@ -69,7 +69,6 @@ typedef enum _HostIf_ParamMgr
     HOSTIF_EthernetMgr,
     HOSTIF_IPMgr,
     HOSTIF_TimeMgr,
-    HOSTIF_WiFiMgr,
     HOSTIF_DHCPv4,
     HOSTIF_InterfaceStack,
     HOSTIF_TelemetryMgr,

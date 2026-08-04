@@ -87,10 +87,10 @@ rtRoutingTree:
             rbus_getExt is called with parameter = "Device.".   This is a partial path query.
             rbus_resolveWildcardDestinations ("Device.") is called which leads to rtrouted calling 
             rtree_get_uniquely_resolvable_endpoints_for_expression("Device.")
-            Assume Component A has Device.WiFi and a bunch of stuff under it.
+            Assume Component A has Device.IP and a bunch of stuff under it.
             Assume Component B has Device.Moca and a bunch of stuff under it.
             rbus_resolveWildcardDestinations should return 2 topic names.  
-            One topic name for Component A, which could be Device.WiFi or any topic name under Device.WiFi (e.g. Device.WiFi.A.B.C) as it 
+            One topic name for Component A, which could be Device.IP or any topic name under Device.IP (e.g. Device.IP.A.B.C) as it 
             doesn't matter.  And a second topic for component B being Device.Moca or something inside that.
             Lets call these returned topics, destinationTopics.
 
