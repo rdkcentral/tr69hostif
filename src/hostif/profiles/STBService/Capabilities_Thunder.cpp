@@ -17,6 +17,10 @@
  * limitations under the License.
 */
 
+/**
+ * @file Capabilities_Thunder.cpp
+ * @brief Thunder-backed implementation of TR069 STBService Capabilities.
+ */
 
 #include <string>
 #include <vector>
