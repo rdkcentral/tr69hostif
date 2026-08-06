@@ -41,6 +41,8 @@ git clone https://github.com/rdkcentral/rdk-halif-device_settings.git
 git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 git clone https://github.com/rdkcentral/iarmbus.git
 git clone https://github.com/rdkcentral/remote_debugger.git
+git clone https://github.com/rdkcentral/dcm-agent.git
+
 
 cp $WORKDIR/src/unittest/stubs/telemetry_busmessage_sender.h /usr/local/include/
 cp $WORKDIR/src/unittest/stubs/dsVideoResolutionSettings.h /usr/rdk-halif-device_settings/include/dsVideoResolutionSettings.h
@@ -74,6 +76,17 @@ make \
     libdshalsrv_la_CPPFLAGS="-I/usr/iarmbus/core/include -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/srv -I/usr/rdk-halif-device_settings/include -I$WORKDIR/src/unittest/stubs -isystem $WORKDIR/src/unittest/stubs -DDSMGR_LOGGER_ENABLED=ON -DRDK_DSHAL_NAME='\"libdshal.so\"'" \
     CFLAGS="-fpermissive" \
     install
+
+
+cd $WORKDIR
+cd dcm-agent
+autoreconf -i
+./configure
+cd uploadstblogs/src
+make
+make install
+
+cd $WORKDIR
 
 # Build and deploy stubs for IARMBus
 echo "Building IARMBus stubs"
