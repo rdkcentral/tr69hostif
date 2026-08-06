@@ -1126,6 +1126,35 @@ bool invokeThunderPluginMethodAndExtractScalarStringResult(const std::string& me
     return ok;
 }
 
+bool invokeThunderPluginMethodAndExtractScalarBoolResult(const std::string& method,
+    const std::string& paramsJson, bool& value)
+{
+    value = false;
+
+    std::string response;
+    if (!invokeThunderPluginMethod(method, paramsJson, response)) {
+        return false;
+    }
+
+    cJSON* root = cJSON_Parse(response.c_str());
+    if (root == NULL) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: json parse error for method %s\n", __FUNCTION__, method.c_str());
+        return false;
+    }
+
+    cJSON* resultObj = cJSON_GetObjectItem(root, "result");
+    bool ok = false;
+    if (cJSON_IsBool(resultObj)) {
+        value = cJSON_IsTrue(resultObj);
+        ok = true;
+    } else {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Missing/invalid scalar bool result for method %s\n", __FUNCTION__, method.c_str());
+    }
+
+    cJSON_Delete(root);
+    return ok;
+}
+
 #ifdef GTEST_ENABLE
 size_t (*getWriteCurlResponse(void))(void *ptr, size_t size, size_t nmemb, std::string stream) {
     return &writeCurlResponse;

@@ -72,11 +72,13 @@
 #include "rbus.h"
 #include <curl/curl.h>
 
+#ifndef USE_THUNDER_CLIENT
 #include "dsTypes.h"
 #include "host.hpp"
 #include "manager.hpp"
 #include "dsError.h"
 #include "audioOutputPort.hpp"
+#endif /* USE_THUNDER_CLIENT */
 #include "sysMgr.h"
 
 #ifdef RDKV_NM
@@ -2097,13 +2099,30 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_BootStatus (HOSTIF
  */
 int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_CPUTemp(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
+    /* hostIf framework has no float param type; temperature is rounded to the nearest
+     * integer degree Celsius (matching the original non-Thunder DS path). */
     int cpuTemp = 0;
+#ifdef USE_THUNDER_CLIENT
+    std::string temperatureStr;
+    if (invokeThunderPluginMethodAndExtractStringField("org.rdk.PowerManager.getThermalState", "", "currentTemperature", temperatureStr))
+    {
+        float dsCpuTemp = 0.0f;
+        try { dsCpuTemp = std::stof(temperatureStr); } catch (...) {}
+        cpuTemp = (int)round(dsCpuTemp);
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Current CPU temperature is: %+7.2fC and roundoff CPUTemp : [%d] \n",
+                __FILE__, __FUNCTION__, dsCpuTemp, cpuTemp);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] getThermalState Thunder call failed\n",__FUNCTION__);
+        return NOK;
+    }
+#else
     float dsCpuTemp = device::Host::getInstance().getCPUTemperature();
     cpuTemp = (int)round(dsCpuTemp);
-
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Current CPU temperature  is: %+7.2fC and roundoff CPUTemp : [%d] \n",
             __FILE__, __FUNCTION__, dsCpuTemp, cpuTemp);
-
+#endif /* USE_THUNDER_CLIENT */
     put_int(stMsgData->paramValue, cpuTemp);
     stMsgData->paramtype = hostIf_IntegerType;
     return OK;
@@ -3738,6 +3757,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         bool enable = get_boolean(stMsgData->paramValue);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] MS12->DAPV2 RFC status:%d\n",__FUNCTION__, enable);
+#ifdef USE_THUNDER_CLIENT
+        bool success = false;
+        std::string paramsJson = std::string("{\"dolbyVolumeMode\":") + (enable ? "true" : "false") + "}";
+        if (!invokeThunderPluginMethodAndExtractBoolField("org.rdk.DisplaySettings.setDolbyVolumeMode", paramsJson, "success", success) || !success)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] setDolbyVolumeMode (DAPV2) Thunder call failed\n",__FUNCTION__);
+        }
+#else
         if(enable)
         {
             device::Host::getInstance().getAudioOutputPort("HDMI0").enableMS12Config(dsMS12FEATURE_DAPV2,1);
@@ -3746,11 +3773,20 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         {
             device::Host::getInstance().getAudioOutputPort("HDMI0").enableMS12Config(dsMS12FEATURE_DAPV2,0);
         }
+#endif
     }
     else if (strcasecmp(stMsgData->paramName,MS12_DE_RFC_ENABLE) == 0)
     {
         bool enable = get_boolean(stMsgData->paramValue);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] MS12->DE RFC status:%d\n",__FUNCTION__, enable);
+#ifdef USE_THUNDER_CLIENT
+        bool success = false;
+        std::string paramsJson = std::string("{\"dolbyVolumeMode\":") + (enable ? "true" : "false") + "}";
+        if (!invokeThunderPluginMethodAndExtractBoolField("org.rdk.DisplaySettings.setDolbyVolumeMode", paramsJson, "success", success) || !success)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] setDolbyVolumeMode (DE) Thunder call failed\n",__FUNCTION__);
+        }
+#else
         if(enable)
         {
             device::Host::getInstance().getAudioOutputPort("HDMI0").enableMS12Config(dsMS12FEATURE_DE,1);
@@ -3759,6 +3795,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         {
             device::Host::getInstance().getAudioOutputPort("HDMI0").enableMS12Config(dsMS12FEATURE_DE,0);
         }
+#endif
     }
     else if (strcasecmp(stMsgData->paramName,LE_RFC_ENABLE) == 0)
     {
@@ -4398,12 +4435,17 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCRoamTrigger(HOSTIF_MsgData_t *stMsgD
 int hostIf_DeviceInfo::set_xRDKCentralComRFCLoudnessEquivalenceEnable(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
-    bool enable = false;
-    dsError_t status = dsERR_GENERAL;
 
     if(stMsgData->paramtype == hostIf_BooleanType)
     {
-        enable = get_boolean(stMsgData->paramValue);
+#ifdef USE_THUNDER_CLIENT
+        /* enableLEConfig is not supported on RDKe with Thunder client */
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] enableLEConfig not supported with Thunder client\n",__FUNCTION__);
+        ret = NOK;
+        stMsgData->faultCode = fcInternalError;
+#else
+        bool enable = get_boolean(stMsgData->paramValue);
+		dsError_t status = dsERR_GENERAL;
         try
         {
             //set the value TRUE/FALSE.
@@ -4424,6 +4466,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCLoudnessEquivalenceEnable(HOSTIF_Msg
         {
             ret = OK;
         }
+#endif
     }
     else
     {

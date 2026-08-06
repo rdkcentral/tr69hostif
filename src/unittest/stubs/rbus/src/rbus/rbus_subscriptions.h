@@ -35,17 +35,15 @@ typedef struct _rbusSubscriptions *rbusSubscriptions_t;
 typedef struct _rbusSubscription
 {
     char* listener;             /* the subscriber's address to publish to*/
-    char* eventName;            /* the event name subscribed to e.g. Device.WiFi.AccessPoint.1.AssociatedDevice.*.SignalStrength */
+    char* eventName;            /* the event name subscribed */
     int32_t componentId;     /* the id known by the subscriber and unique per listener/process */
     rbusFilter_t filter;        /* optional filter */
     int32_t interval;           /* optional interval */
     int32_t duration;           /* optional duration */
     bool autoPublish;           /* auto publishing */
     TokenChain* tokens;         /* tokenized eventName for pattern matching */
-    elementNode* element;       /* the registation element e.g. Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.SignalStrength */
-    rtList instances;           /* the instance elements e.g.   Device.WiFi.AccessPoint.1.AssociatedDevice.1.SignalStrength
-                                                                Device.WiFi.AccessPoint.1.AssociatedDevice.2.SignalStrength
-                                                                Device.WiFi.AccessPoint.2.AssociatedDevice.1.SignalStrength */
+    elementNode* element;       /* the registation element */
+    rtList instances;           /* the instance elements */
 } rbusSubscription_t;
 
 /*create a new subscriptions registry for an rbus handle*/

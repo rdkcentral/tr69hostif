@@ -35,14 +35,11 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 	-I$(top_srcdir)/src/hostif/profiles/StorageService \
 	-I$(PKG_CONFIG_SYSROOT_DIR)$(includedir)/rdk/iarmmgrs/sysmgr \
 	-I$(top_srcdir)/src/hostif/profiles/moca \
-	-I$(top_srcdir)/src/hostif/profiles/wifi \
 	-I./include $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) \
 	$(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(SOUP_CFLAGS) $(MOCA2_FLAG) \
-	$(WIFI_PROFILE_FLAG) $(XRDK_SDCARD_PROFILE_FLAG) $(XRDK_EMMC_PROFILE_FLAG) \
+	$(XRDK_SDCARD_PROFILE_FLAG) $(XRDK_EMMC_PROFILE_FLAG) \
         -I=/usr/include/rdk/iarmbus/ \
         -I=/usr/include/rdk/iarmmgrs/sysmgr/ \
-        -I=/usr/include/rdk/ds/ \
-        -I=/usr/include/rdk/ds-hal/ \
         -I$(PKG_CONFIG_SYSROOT_DIR)/usr/include/rbus/ \
 		-I=/usr/include/libsoup-3.0/
 
@@ -74,7 +71,16 @@ AM_CXXFLAGS += -DBTMGR_ENABLE_IARM_INTERFACE
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/DeviceInfo
 endif
 
-AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus -lyajl -lds -ldshalcli -ldbus-1 -lsoup-3.0 -lgobject-2.0 -lsecure_wrapper
+AM_LDFLAGS = $(GLIB_LIBS) $(G_THREAD_LIBS) $(SOUP_LIBS) $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lsoup-3.0 -lgobject-2.0 -lsecure_wrapper
+
+if !WITH_THUNDER_CLIENT
+AM_CXXFLAGS += -I=/usr/include/rdk/ds/ \
+               -I=/usr/include/rdk/ds-hal/
+AM_LDFLAGS += -lds -ldshalcli
+endif
+if WITH_THUNDER_CLIENT
+AM_CXXFLAGS += -DUSE_THUNDER_CLIENT
+endif
 if WIFI_CLIENT_ROAMING
 AM_CXXFLAGS += -DWIFI_CLIENT_ROAMING
 endif
@@ -102,10 +108,6 @@ libMsgHandlers_la_SOURCES =	src/hostIf_IARM_ReqHandler.cpp \
 
 if WITH_MOCA_PROFILE
 libMsgHandlers_la_SOURCES +=    src/hostIf_MoCAClient_ReqHandler.cpp
-endif
-
-if WITH_WIFI_PROFILE
-libMsgHandlers_la_SOURCES +=    src/hostIf_WiFi_ReqHandler.cpp
 endif
 
 if WITH_DHCP_PROFILE

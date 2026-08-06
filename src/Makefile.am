@@ -52,12 +52,6 @@ else
 NEXUS_LIB =
 endif
 
-
-
-if WITH_WIFI_PROFILE
-AM_CXXFLAGS += -DUSE_WIFI_PROFILE
-AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/wifi
-endif
 if WITH_DHCP_PROFILE
 AM_CXXFLAGS += -DUSE_DHCPv4_PROFILE
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/profiles/DHCPv4
@@ -81,14 +75,18 @@ if XRELIB_FLAG
 AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	$(G_THREAD_LIBS) -lyajl $(SOUP_LIBS) \
 	$(NEXUS_LIB) -ldbus-1 \
-	-lIARMBus -lrdkloggers\
-	-lds -ldshalcli -ltr69ProfileXcaliber -lrbus
+	-lIARMBus -lrdkloggers \
+	-ltr69ProfileXcaliber -lrbus
 else
 AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	$(G_THREAD_LIBS) -lyajl $(SOUP_LIBS) \
 	$(NEXUS_LIB) -ldbus-1 \
-	-lIARMBus -lrdkloggers\ -lrbus
-	-lds -ldshalcli
+	-lIARMBus -lrdkloggers -lrbus
+endif
+
+if WITH_THUNDER_CLIENT
+else
+AM_LDFLAGS += -lds -ldshalcli
 endif
 
 if POWERCONTROLLER_ENABLE
@@ -147,10 +145,6 @@ endif
 
 if XRELIB_FLAG
 tr69hostif_LDADD += -ltr69ProfileXcaliber
-endif
-
-if WITH_WIFI_PROFILE
-tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/wifi/libhostIfWiFi.la
 endif
 
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/parodusClient/pal 

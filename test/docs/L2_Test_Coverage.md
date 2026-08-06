@@ -445,139 +445,6 @@ All 15 handlers are now covered by `tr69hostif_storageservice.py` (orders 344–
 
 ---
 
-### Gap 6 — Device.WiFi (zero coverage — build flag `WITH_WIFI_PROFILE`)
-
-Source: `src/hostif/profiles/wifi/Device_WiFi*.h`
-
-#### Device.WiFi top-level
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.RadioNumberOfEntries` | `get_Device_WiFi_RadioNumberOfEntries` | GET |
-| `Device.WiFi.SSIDNumberOfEntries` | `get_Device_WiFi_SSIDNumberOfEntries` | GET |
-| `Device.WiFi.AccessPointNumberOfEntries` | `get_Device_WiFi_AccessPointNumberOfEntries` | GET |
-| `Device.WiFi.EndPointNumberOfEntries` | `get_Device_WiFi_EndPointNumberOfEntries` | GET |
-| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | `get_Device_WiFi_EnableWiFi` | GET |
-| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | `set_Device_WiFi_EnableWiFi` | SET |
-
-#### Device.WiFi.Radio.{i}
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.Radio.{i}.Enable` | `get_Device_WiFi_Radio_Enable` / `set_Device_WiFi_Radio_Enable` | GET+SET |
-| `Device.WiFi.Radio.{i}.Status` | `get_Device_WiFi_Radio_Status` | GET |
-| `Device.WiFi.Radio.{i}.Alias` | `get_Device_WiFi_Radio_Alias` / `set_Device_WiFi_Radio_Alias` | GET+SET |
-| `Device.WiFi.Radio.{i}.Name` | `get_Device_WiFi_Radio_Name` | GET |
-| `Device.WiFi.Radio.{i}.LastChange` | `get_Device_WiFi_Radio_LastChange` | GET |
-| `Device.WiFi.Radio.{i}.LowerLayers` | `get_Device_WiFi_Radio_LowerLayers` / `set_Device_WiFi_Radio_LowerLayers` | GET+SET |
-| `Device.WiFi.Radio.{i}.Upstream` | `get_Device_WiFi_Radio_Upstream` | GET |
-| `Device.WiFi.Radio.{i}.MaxBitRate` | `get_Device_WiFi_Radio_MaxBitRate` | GET |
-| `Device.WiFi.Radio.{i}.SupportedFrequencyBands` | `get_Device_WiFi_Radio_SupportedFrequencyBands` | GET |
-| `Device.WiFi.Radio.{i}.OperatingFrequencyBand` | `get_Device_WiFi_Radio_OperatingFrequencyBand` / `set_Device_WiFi_Radio_OperatingFrequencyBand` | GET+SET |
-| `Device.WiFi.Radio.{i}.SupportedStandards` | `get_Device_WiFi_Radio_SupportedStandards` | GET |
-| `Device.WiFi.Radio.{i}.OperatingStandards` | `get_Device_WiFi_Radio_OperatingStandards` / `set_Device_WiFi_Radio_OperatingStandards` | GET+SET |
-| `Device.WiFi.Radio.{i}.PossibleChannels` | `get_Device_WiFi_Radio_PossibleChannels` | GET |
-| `Device.WiFi.Radio.{i}.ChannelsInUse` | `get_Device_WiFi_Radio_ChannelsInUse` | GET |
-| `Device.WiFi.Radio.{i}.Channel` | `get_Device_WiFi_Radio_Channel` / `set_Device_WiFi_Radio_Channel` | GET+SET |
-| `Device.WiFi.Radio.{i}.AutoChannelSupported` | `get_Device_WiFi_Radio_AutoChannelSupported` | GET |
-| `Device.WiFi.Radio.{i}.AutoChannelEnable` | `get_Device_WiFi_Radio_AutoChannelEnable` / `set_Device_WiFi_Radio_AutoChannelEnable` | GET+SET |
-| `Device.WiFi.Radio.{i}.AutoChannelRefreshPeriod` | `get_Device_WiFi_Radio_AutoChannelRefreshPeriod` / `set_Device_WiFi_Radio_AutoChannelRefreshPeriod` | GET+SET |
-| `Device.WiFi.Radio.{i}.OperatingChannelBandwidth` | `get_Device_WiFi_Radio_OperatingChannelBandwidth` / `set_Device_WiFi_Radio_OperatingChannelBandwidth` | GET+SET |
-| `Device.WiFi.Radio.{i}.ExtensionChannel` | `get_Device_WiFi_Radio_ExtensionChannel` / `set_Device_WiFi_Radio_ExtensionChannel` | GET+SET |
-| `Device.WiFi.Radio.{i}.GuardInterval` | `get_Device_WiFi_Radio_GuardInterval` / `set_Device_WiFi_Radio_GuardInterval` | GET+SET |
-| `Device.WiFi.Radio.{i}.MCS` | `get_Device_WiFi_Radio_MCS` / `set_Device_WiFi_Radio_MCS` | GET+SET |
-| `Device.WiFi.Radio.{i}.TransmitPowerSupported` | `get_Device_WiFi_Radio_TransmitPowerSupported` | GET |
-| `Device.WiFi.Radio.{i}.TransmitPower` | `get_Device_WiFi_Radio_TransmitPower` / `set_Device_WiFi_Radio_TransmitPower` | GET+SET |
-| `Device.WiFi.Radio.{i}.IEEE80211hSupported` | `get_Device_WiFi_Radio_IEEE80211hSupported` | GET |
-| `Device.WiFi.Radio.{i}.IEEE80211hEnabled` | `get_Device_WiFi_Radio_IEEE80211hEnabled` / `set_Device_WiFi_Radio_IEEE80211hEnabled` | GET+SET |
-| `Device.WiFi.Radio.{i}.RegulatoryDomain` | `get_Device_WiFi_Radio_RegulatoryDomain` / `set_Device_WiFi_Radio_RegulatoryDomain` | GET+SET |
-
-#### Device.WiFi.Radio.{i}.Stats
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.Radio.{i}.Stats.BytesSent` | `get_Device_WiFi_Radio_Stats_BytesSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.BytesReceived` | `get_Device_WiFi_Radio_Stats_BytesReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.PacketsSent` | `get_Device_WiFi_Radio_Stats_PacketsSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.PacketsReceived` | `get_Device_WiFi_Radio_Stats_PacketsReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.ErrorsSent` | `get_Device_WiFi_Radio_Stats_ErrorsSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.ErrorsReceived` | `get_Device_WiFi_Radio_Stats_ErrorsReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsSent` | `get_Device_WiFi_Radio_Stats_DiscardPacketsSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsReceived` | `get_Device_WiFi_Radio_Stats_DiscardPacketsReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.NoiseFloor` | `get_Device_WiFi_Radio_Stats_NoiseFloor` | GET |
-
-#### Device.WiFi.SSID.{i}
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.SSID.{i}.Enable` | `get_Device_WiFi_SSID_Enable` / `set_Device_WiFi_SSID_Enable` | GET+SET |
-| `Device.WiFi.SSID.{i}.Status` | `get_Device_WiFi_SSID_Status` | GET |
-| `Device.WiFi.SSID.{i}.Alias` | `get_Device_WiFi_SSID_Alias` / `set_Device_WiFi_SSID_Alias` | GET+SET |
-| `Device.WiFi.SSID.{i}.Name` | `get_Device_WiFi_SSID_Name` | GET |
-| `Device.WiFi.SSID.{i}.LastChange` | `get_Device_WiFi_SSID_LastChange` | GET |
-| `Device.WiFi.SSID.{i}.LowerLayers` | `get_Device_WiFi_SSID_LowerLayers` / `set_Device_WiFi_SSID_LowerLayers` | GET+SET |
-| `Device.WiFi.SSID.{i}.BSSID` | `get_Device_WiFi_SSID_BSSID` | GET |
-| `Device.WiFi.SSID.{i}.MACAddress` | `get_Device_WiFi_SSID_MACAddress` | GET |
-| `Device.WiFi.SSID.{i}.SSID` | `get_Device_WiFi_SSID_SSID` / `set_Device_WiFi_SSID_SSID` | GET+SET |
-
-#### Device.WiFi.SSID.{i}.Stats
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.SSID.{i}.Stats.BytesSent` | `get_Device_WiFi_SSID_Stats_BytesSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.BytesReceived` | `get_Device_WiFi_SSID_Stats_BytesReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.PacketsSent` | `get_Device_WiFi_SSID_Stats_PacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.PacketsReceived` | `get_Device_WiFi_SSID_Stats_PacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.ErrorsSent` | `get_Device_WiFi_SSID_Stats_ErrorsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.ErrorsReceived` | `get_Device_WiFi_SSID_Stats_ErrorsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent` | `get_Device_WiFi_SSID_Stats_UnicastPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived` | `get_Device_WiFi_SSID_Stats_UnicastPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent` | `get_Device_WiFi_SSID_Stats_DiscardPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived` | `get_Device_WiFi_SSID_Stats_DiscardPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent` | `get_Device_WiFi_SSID_Stats_MulticastPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived` | `get_Device_WiFi_SSID_Stats_MulticastPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent` | `get_Device_WiFi_SSID_Stats_BroadcastPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived` | `get_Device_WiFi_SSID_Stats_BroadcastPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.UnknownProtoPacketsReceived` | `get_Device_WiFi_SSID_Stats_UnknownProtoPacketsReceived` | GET |
-
-#### Device.WiFi.EndPoint.{i}
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.EndPoint.{i}.Enable` | `get_Device_WiFi_EndPoint_Enable` / `set_Device_WiFi_EndPoint_Enable` | GET+SET |
-| `Device.WiFi.EndPoint.{i}.Status` | `get_Device_WiFi_EndPoint_Status` | GET |
-| `Device.WiFi.EndPoint.{i}.Alias` | `get_Device_WiFi_EndPoint_Alias` / `set_Device_WiFi_EndPoint_Alias` | GET+SET |
-| `Device.WiFi.EndPoint.{i}.ProfileReference` | `get_Device_WiFi_EndPoint_ProfileReference` / `set_Device_WiFi_EndPoint_ProfileReference` | GET+SET |
-| `Device.WiFi.EndPoint.{i}.SSIDReference` | `get_Device_WiFi_EndPoint_SSIDReference` | GET |
-| `Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries` | `get_Device_WiFi_EndPoint_ProfileNumberOfEntries` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate` | `get_Device_WiFi_EndPoint_Stats_LastDataDownlinkRate` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate` | `get_Device_WiFi_EndPoint_Stats_LastDataUplinkRate` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.SignalStrength` | `get_Device_WiFi_EndPoint_Stats_SignalStrength` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.Retransmissions` | `get_Device_WiFi_EndPoint_Stats_Retransmissions` | GET |
-| `Device.WiFi.EndPoint.{i}.WPS.Enable` | `get_Device_WiFi_EndPoint_WPS_Enable` | GET |
-| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported` | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsSupported` | GET |
-| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled` | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsEnabled` | GET |
-
-#### Device.WiFi.X_RDKCENTRAL-COM.ClientRoaming
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `...ClientRoaming.Enable` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_Enable` | GET+SET |
-| `...PreAssn.ProbeRetryCnt` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_ProbeRetryCnt` | GET+SET |
-| `...PreAssn.BestThresholdLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_BestThresholdLevel` | GET+SET |
-| `...PreAssn.BestDeltaLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_BestDeltaLevel` | GET+SET |
-| `...SelfSteerOverride` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_SelfSteerOverride` | GET+SET |
-| `...PostAssn.BestDeltaLevelConnected` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_BestDeltaLevelConnected` | GET+SET |
-| `...PostAssn.BestDeltaLevelDisconnected` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_BestDeltaLevelDisconnected` | GET+SET |
-| `...PostAssn.SelfSteerThreshold` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_SelfSteerThreshold` | GET+SET |
-| `...PostAssn.SelfSteerTimeframe` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_SelfSteerTimeframe` | GET+SET |
-| `...PostAssn.APcontrolThresholdLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_APcontrolThresholdLevel` | GET+SET |
-| `...PostAssn.APcontrolTimeframe` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_APcontrolTimeframe` | GET+SET |
-| `...postAssnBackOffTime` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_postAssnBackOffTime` | GET+SET |
-| `...80211kvrEnable` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_80211kvrEnable` | GET+SET |
-
----
-
 ### Gap 7 — Device.Time (SET-side gaps)
 
 Source: `src/hostif/profiles/Time/Device_Time.h`
@@ -690,8 +557,7 @@ runnable test functions to known handler surfaces.
 | 7 | **STBService** | `Device.Services.STBService.*` | 71 | 14 | **85** | ~1 | ~84 | ~1% |
 | 8 | **StorageService** | `Device.StorageService.*` | 15 | 0 | **15** | 15 | 0 | 100% |
 | 9 | **Time** | `Device.Time.*` | 20 | 17 | **37** | ~20 | ~17 | ~54% |
-| 10 | **WiFi** | `Device.WiFi.*` | 132 | 21 | **153** | ~14 | ~139 | ~9% |
-| 11 | **Device** | `Device.*` (misc) | 3 | 1 | **4** | 0 | 4 | 0% |
+| 10 | **Device** | `Device.*` (misc) | 3 | 1 | **4** | 0 | 4 | 0% |
 | | **Parameter subtotal** | | **545** | **163** | **707** | **~336** | **~371** | **~48%** |
 
 ---
@@ -756,7 +622,6 @@ planning baseline. Values remain approximate and are used for gap planning again
 | STBService | 71 | 14 | 85 | Partial |
 | StorageService | 15 | 0 | 15 | **Fully covered** |
 | Time | 20 | 17 | 37 | Improved |
-| WiFi | 132 | 21 | 153 | Improved, still large surface |
 | Device (misc) | 3 | 1 | 4 | Partial |
 | Parameter subtotal | 545 | 163 | 707 | Planning baseline |
 
@@ -777,7 +642,6 @@ Quick-reference table showing how much of each profile is still untested.
 
 | Profile | Tests Needed | Have | Missing | Primary Gap Areas |
 |---|:---:|:---:|:---:|---|
-| `Device.WiFi.*` | 153 | ~14 | **~139** | Radio (27 params), SSID (9), SSID.Stats (15), EndPoint (13), ClientRoaming (13), AccessPoint (~20) |
 | `Device.MoCA.*` | 99 | 53 | **46** | AssociatedDevice (17), QoS (10), MeshTable (4), remaining interface params |
 | `Device.DeviceInfo.*` | 172 | ~151 | **~21** | RDKRemoteDebugger, Canary, MemoryStatus, UpTime, Description, ProductClass, ProcessorNumberOfEntries |
 | `Device.IP.*` | 106 | ~51 | **~55** | IPv4 SETs (6), IPv6Address/Prefix non-tested params, Interface.Stats SETs |

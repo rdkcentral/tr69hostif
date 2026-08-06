@@ -38,10 +38,6 @@
 #include "hostIf_NotificationHandler.h"
 #include <mutex>
 
-#ifdef USE_WIFI_PROFILE
-#include "hostIf_WiFi_ReqHandler.h"
-#endif
-
 #ifdef USE_DHCPv4_PROFILE
 #include "hostIf_DHCPv4Client_ReqHandler.h"
 #endif /* WITH_DHCP_PROFILE*/
@@ -80,10 +76,6 @@ void updateHandler::Init()
     DeviceClientReqHandler::registerUpdateCallback(notifyCallback);
     /*TimeClientReqHandler::registerUpdateCallback(notifyCallback);*/
 
-#ifdef USE_WIFI_PROFILE
-    WiFiReqHandler::registerUpdateCallback(notifyCallback);
-#endif
-
 #ifdef USE_DHCPv4_PROFILE
     DHCPv4ClientReqHandler::registerUpdateCallback(notifyCallback);
 #endif /* USE_DHCPv4_PROFILE*/	
@@ -117,9 +109,6 @@ void updateHandler::reset()
     EthernetClientReqHandler::reset();
     IPClientReqHandler::reset();
     DeviceClientReqHandler::reset();
-#ifdef USE_WIFI_PROFILE
-    WiFiReqHandler::reset();
-#endif
 
 #ifdef USE_INTFSTACK_PROFILE
     InterfaceStackClientReqHandler::reset();
@@ -151,9 +140,7 @@ gpointer updateHandler::run(gpointer ptr)
         EthernetClientReqHandler::checkForUpdates();
         IPClientReqHandler::checkForUpdates();
         DeviceClientReqHandler::checkForUpdates();
-#ifdef USE_WIFI_PROFILE
-        WiFiReqHandler::checkForUpdates();
-#endif
+
 #ifdef USE_DHCPv4_PROFILE
         DHCPv4ClientReqHandler::checkForUpdates();
 #endif /* USE_DHCPv4_PROFILE*/	

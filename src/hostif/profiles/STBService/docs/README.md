@@ -2,7 +2,14 @@
 
 ## Overview
 
-The STBService profile implements the TR-135 (Set-top Box Service) object tree `Device.Services.STBService.1.*`. It exposes the AV capabilities, output port state, and hardware health metrics of an RDK set-top box to TR-069 ACS and WebPA. All hardware access goes through the RDK Device Settings (DS) HAL layer (`libdshal`) using C++ wrapper objects from `device::Host`, `device::VideoOutputPort`, `device::AudioOutputPort`, and related classes. SD card and eMMC health data additionally use the `rdkStorageMgr` HAL.
+The STBService profile implements the TR-135 (Set-top Box Service) object tree `Device.Services.STBService.1.*`. It exposes AV capabilities, output port state, and hardware health metrics of an RDK set-top box to TR-069 ACS and WebPA.
+
+Current state is mixed:
+- Most component handlers still access hardware through the RDK Device Settings (DS) HAL (`libdshal`) using `device::Host`, `device::VideoOutputPort`, `device::AudioOutputPort`, and related classes.
+- Migration target is Thunder JSON-RPC plugin integration for STBService component reads and writes while preserving TR-69 request/response semantics.
+- SD card and eMMC health data continue to use `rdkStorageMgr` HAL and are out of scope for Thunder migration in this contract change.
+
+See `thunder-migration-mapping.md` for component-to-plugin mapping, method candidates, and known no-equivalent gaps.
 
 ---
 
@@ -61,6 +68,25 @@ graph TB
     EMMC --> STORHAL["rdkStorageMgr HAL<br/>STRM_GetEMMCFlashStatus"]
     SDCARD --> STORHAL2["rdkStorageMgr HAL<br/>STRM_GetSDCardStatus"]
 ```
+
+---
+
+## Thunder Migration Contract Notes
+
+The STBService contract migration aligns component domains to Thunder plugin ownership:
+
+- `org.rdk.DisplaySettings`: AudioOutput, SPDIF, HDMI, and port-oriented VideoOutput operations
+- `org.rdk.AVOutput`: TV-wide picture/display mode operations where parameters are not port-scoped
+- `org.rdk.DisplayInfo`: Display connection and resolution state (`connected`, `width`, `height`, HDR/HDCP-related display info)
+- `org.rdk.HdcpProfile`: HDCP status and version/compliance state
+- `org.rdk.PowerManager`: Power state controls and status for decoder/power-related behavior
+
+Instance lifecycle expectations:
+
+- Port-based components (for example AudioOutput, SPDIF, HDMI/VideoOutput) should enumerate ports from Thunder and create one instance per discovered port.
+- Non-port domains should expose a single logical instance.
+
+For unresolved parameter mappings, handlers must return explicit fault outcomes rather than silently falling back to stale values.
 
 ---
 

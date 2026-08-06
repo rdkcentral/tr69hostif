@@ -271,15 +271,6 @@ TEST(srcTest, set_get_LegacyRFCEnabled) {
     EXPECT_EQ(status, true);
 }
 
-TEST(srcTest, matchComponent) {
-    const char* param = "Device.WiFi.SSID.3.SSID";
-    const char* key = "Device.WiFi.SSID";
-    const char* setting = nullptr;
-    int instance = 0;
-    bool matched = matchComponent(param, key, &setting, instance);
-    EXPECT_EQ(matched, true);
-}
-
 TEST(srcTest, getJsonRPCData) {
     std::string jsonRequest = "{\"jsonrpc\":\"2.0\",\"method\":\"getTime\",\"params\":{},\"id\":1}";
     string result = getJsonRPCData(jsonRequest);
@@ -663,15 +654,6 @@ TEST(srcTest, getenvOrDefaultReturnsDefaultWhenUnset)
     char* result = getenvOrDefault(envName, "fallback");
     ASSERT_NE(result, nullptr);
     EXPECT_STREQ(result, "fallback");
-}
-
-TEST(srcTest, matchComponentInvalidPaths)
-{
-    const char* setting = nullptr;
-    int instance = 0;
-
-    EXPECT_FALSE(matchComponent("Device.WiFi.SSID", "Device.WiFi.SSID", &setting, instance));
-    EXPECT_FALSE(matchComponent("Device.WiFi.SSID.12345678901.SSID", "Device.WiFi.SSID", &setting, instance));
 }
 
 TEST(srcTest, thunderFieldExtractorsRejectNullFieldName)

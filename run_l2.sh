@@ -95,6 +95,7 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom.json test/functional-tests/tests/tr69hostif_custom.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py

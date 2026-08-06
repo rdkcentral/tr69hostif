@@ -33,9 +33,7 @@ LT_INIT
 XREMGR_FLAGS=" "
 MOCAMGR_FLAGS=" "
 SUBDIRS_MOCA=" "
-SUBDIRS_WIFI=" "
 MOCA2_FLAG=" "
-WIFI_PROFILE_FLAGS=" "
 XRDK_SDCARD_PROFILE_FLAG=" "
 XRDK_EMMC_PROFILE_FLAG=" "
 SUBDIRS_STORAGESERVICE=" "
@@ -109,21 +107,6 @@ AC_ARG_ENABLE([morty],
 m4_syscmd([test -d src/hostif/profiles/moca])
 m4_if(m4_sysval,[0],[AC_CONFIG_FILES([src/hostif/profiles/moca/Makefile])])
 m4_if(m4_sysval,[0],[SUBDIRS_MOCA="src/hostif/profiles/moca"])
-
-AC_ARG_ENABLE([wifi],
-        AS_HELP_STRING([--enable-wifi],[enable WiFi profile (default is no)]),
-        [
-          case "${enableval}" in
-           yes) WIFI_PROFILE_ENABLE=true 
-                WIFI_PROFILE_FLAG="-DUSE_WIFI_PROFILE"
-		m4_syscmd([test -d src/hostif/profiles/wifi])
-		m4_if(m4_sysval,[0],[AC_CONFIG_FILES([src/hostif/profiles/wifi/Makefile])])
-		m4_if(m4_sysval,[0],[SUBDIRS_WIFI="src/hostif/profiles/wifi"])  ;;
-           no) WIFI_PROFILE_ENABLE=false AC_MSG_ERROR([wifi profile is disabled]) ;;
-          *) AC_MSG_ERROR([bad value ${enableval} for --enable-wifi ]) ;;
-           esac
-           ],
-         [echo "WiFi profile is disabled"])
 
 AC_ARG_ENABLE([sdcard],
         AS_HELP_STRING([--enable-sdcard],[enable X_RDKCENTRAL_COM SDcard profile (default is no)]),
@@ -387,9 +370,21 @@ AC_ARG_ENABLE([libsoup3],
 esac],[libsoup3=false])
 AM_CONDITIONAL([LIBSOUP3_ENABLE], [test x$libsoup3 = xtrue])
 
+# Enable Thunder-backed STBService implementation
+AC_ARG_ENABLE([thunder],
+    AS_HELP_STRING([--enable-thunder],[enable Thunder-backed STBService implementation (default is no)]),
+    [
+      case "${enableval}" in
+       yes) THUNDER_CLIENT_ENABLE=true ;;
+       no)  THUNDER_CLIENT_ENABLE=false ;;
+      *) AC_MSG_ERROR([bad value ${enableval} for --enable-thunder]) ;;
+       esac
+       ],
+     [THUNDER_CLIENT_ENABLE=false; echo "Thunder STBService client is disabled"])
+AM_CONDITIONAL([WITH_THUNDER_CLIENT], [test x$THUNDER_CLIENT_ENABLE = xtrue])
+
 AM_CONDITIONAL([WITH_MOCA_PROFILE], [test "x$enable_moca" = "xyes"])
 AM_CONDITIONAL([WITH_MOCA20], [test "x$enable_moca2" = "xyes"])
-AM_CONDITIONAL([WITH_WIFI_PROFILE], [test x$WIFI_PROFILE_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_XRDK_SDCARD_PROFILE], [test x$XRDK_SDCARD_PROFILE_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_XRDK_EMMC_PROFILE], [test x$XRDK_EMMC_PROFILE_ENABLE = xtrue])
 AM_CONDITIONAL([WITH_DHCP_PROFILE], [test x$DHCPv4_PROFILE_ENABLE = xtrue])
@@ -432,13 +427,10 @@ AC_SUBST(PROFILE_SRC)
 AC_SUBST(XREMGR_FLAGS)
 AC_SUBST(MOCAMGR_FLAGS)
 AC_SUBST(SUBDIRS_MOCA)
-AC_SUBST(SUBDIRS_WIFI)
 AC_SUBST(SUBDIRS_STORAGESERVICE)
 AC_SUBST(SUBDIRS_DHCPv4)
 AC_SUBST(SUBDIRS_INTFSTACK)
 AC_SUBST(MOCA2_FLAG)
-AC_SUBST(WIFI_PROFILE_ENABLE)
-AC_SUBST(WIFI_PROFILE_FLAG)
 AC_SUBST(XRDK_SDCARD_PROFILE_FLAG)
 AC_SUBST(XRDK_EMMC_PROFILE_FLAG)
 AC_SUBST(DHCPv4_PROFILE_FLAG)

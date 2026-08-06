@@ -49,8 +49,7 @@ extern "C"
 #include "hostIf_msgHandler.h"
 #include "waldb.h"
 //#include "rbus.h"
-#include "exception.hpp"
-#include "illegalArgumentException.hpp"
+
 
 
 #define MAX_NUM_PARAMETERS 2048
