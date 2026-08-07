@@ -193,7 +193,7 @@ int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *p
 {
     bool isConnected = false;
 
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected))
+    if (!invokeThunderPluginMethodAndExtractScalarBoolResult(THUNDER_DI_CONNECTED, "{}", isConnected))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed, returning Disabled\n", __FUNCTION__);
         // On failure, default to Disabled
