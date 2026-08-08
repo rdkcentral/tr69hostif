@@ -78,6 +78,12 @@ make \
     install
     
 cd ${ROOT}
+rm -rf iarmmgrs
+git clone https://github.com/rdkcentral/iarmmgrs.git
+cp iarmmgrs/sysmgr/include/sysMgr.h /usr/local/include
+cp iarmmgrs/maintenance/include/maintenanceMGR.h /usr/local/include
+
+cd ${ROOT}
 rm -rf telemetry
 git clone https://github.com/rdkcentral/telemetry.git
 cd telemetry
