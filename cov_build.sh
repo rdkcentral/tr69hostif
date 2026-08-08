@@ -94,6 +94,7 @@ cd $ROOT
 cd dcm-agent
 autoreconf -i
 ./configure
+cp uploadstblogs/include/*.h /usr/local/include
 cd uploadstblogs/src
 make
 make install
