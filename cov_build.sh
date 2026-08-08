@@ -78,13 +78,14 @@ make \
     install
 
 
-cd $WORKDIR
+cd $ROOT
 cd dcm-agent
-autoreconf -i
-./configure
-cd uploadstblogs/src
-make
-make install
+sh cov_build.sh
+#autoreconf -i
+#./configure
+#cd uploadstblogs/src
+#make
+#make install
 
 cd $WORKDIR
 
