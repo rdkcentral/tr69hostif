@@ -76,16 +76,21 @@ make \
     libdshalsrv_la_CPPFLAGS="-I/usr/iarmbus/core/include -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/srv -I/usr/rdk-halif-device_settings/include -I$WORKDIR/src/unittest/stubs -isystem $WORKDIR/src/unittest/stubs -DDSMGR_LOGGER_ENABLED=ON -DRDK_DSHAL_NAME='\"libdshal.so\"'" \
     CFLAGS="-fpermissive" \
     install
-
+    
+cd ${ROOT}
+rm -rf telemetry
+git clone https://github.com/rdkcentral/telemetry.git
+cd telemetry
+cp include/*.h /usr/local/include
+sh  build_inside_container.sh
 
 cd $ROOT
 cd dcm-agent
-sh cov_build.sh
-#autoreconf -i
-#./configure
-#cd uploadstblogs/src
-#make
-#make install
+autoreconf -i
+./configure
+cd uploadstblogs/src
+make
+make install
 
 cd $WORKDIR
 
