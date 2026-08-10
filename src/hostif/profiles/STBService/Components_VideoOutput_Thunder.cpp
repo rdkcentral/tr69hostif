@@ -43,7 +43,7 @@
 #define THUNDER_DS_GET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.getCurrentResolution"
 #define THUNDER_DS_GET_DISPLAY_ASPECT_RATIO     "org.rdk.DisplaySettings.getDisplayAspectRatio"
 #define THUNDER_DS_GET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.getEnableVideoPort"
-#define THUNDER_AVO_GET_ZOOM_MODE               "org.rdk.AVOutput.getZoomMode"
+#define THUNDER_DS_GET_ZOOM_SETTINGS            "org.rdk.DisplaySettings.getZoomSetting"
 #define THUNDER_HDCP_GET_STATUS                 "org.rdk.HdcpProfile.getHDCPStatus"
 #define THUNDER_DI_CONNECTED                    "DisplayInfo.1.connected"
 
@@ -273,7 +273,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
-    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_AVO_GET_ZOOM_MODE, "{}", "zoomSetting", mode))
+    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_GET_ZOOM_SETTINGS, "{}", "zoomSetting", mode))
         mode = "None";
     strncpy(stMsgData->paramValue, mode.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
