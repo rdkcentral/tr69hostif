@@ -96,6 +96,11 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
 
+# Clean up any stale Thunder mock server from previous runs
+echo "[L2] Cleaning up stale Thunder mock servers..."
+pkill -f "thunder-mock-server.js" 2>/dev/null || true
+sleep 1
+
 # Start Thunder mock server for STBService tests
 echo "[L2] Starting Thunder mock server on port 9998..."
 cd $top_srcdir
@@ -117,6 +122,9 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbser
 echo "[L2] Stopping Thunder mock server..."
 kill $THUNDER_MOCK_PID 2>/dev/null || true
 wait $THUNDER_MOCK_PID 2>/dev/null || true
+# Ensure ALL Thunder mock servers are terminated (in case of zombie processes)
+pkill -f "thunder-mock-server.js" 2>/dev/null || true
+sleep 1
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
