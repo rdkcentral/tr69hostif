@@ -97,13 +97,24 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
 
 # Start Thunder mock server for STBService tests
-node test/test-artifacts/native-platform/thunder-mock-server.js &
+echo "[L2] Starting Thunder mock server on port 9998..."
+cd $top_srcdir
+node test/test-artifacts/native-platform/thunder-mock-server.js > /tmp/thunder-mock-server.log 2>&1 &
 THUNDER_MOCK_PID=$!
-sleep 2
+sleep 3
+
+# Verify server is running
+if kill -0 $THUNDER_MOCK_PID 2>/dev/null; then
+    echo "[L2] Thunder mock server started (PID: $THUNDER_MOCK_PID)"
+else
+    echo "[L2] ERROR: Thunder mock server failed to start"
+    cat /tmp/thunder-mock-server.log
+fi
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 
 # Stop Thunder mock server
+echo "[L2] Stopping Thunder mock server..."
 kill $THUNDER_MOCK_PID 2>/dev/null || true
 wait $THUNDER_MOCK_PID 2>/dev/null || true
 
