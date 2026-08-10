@@ -236,8 +236,8 @@ const mockResponses = {
   // STBService Thunder APIs - PowerManager
   // ───────────────────────────────────────────────────────────────────────────
   'org.rdk.PowerManager.GetPowerState': {
-    result: { powerState: 'ON', success: true },
-    description: 'System power state',
+    result: { currentState: 'ON', success: true },
+    description: 'System power state (currentState: ON/STANDBY/LIGHT_SLEEP/DEEP_SLEEP)',
   },
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -265,13 +265,13 @@ const mockResponses = {
   },
   'org.rdk.DisplaySettings.getVideoCodecInfo': {
     result: {
-      videocodecinfo: [{
-        codec: 'H.265',
-        profile: 'Main',
-        level: '5.1'
-      }]
+      numberOfEntries: 2,
+      entries: [
+        { profile: 'Main', level: 5.1 },
+        { profile: 'Main10', level: 5.1 }
+      ]
     },
-    description: 'Detailed video codec capabilities',
+    description: 'HEVC (MPEGH-Part2) codec profile/level capabilities',
   },
   'org.rdk.DisplaySettings.getSupportedSettopResolutions': {
     result: { supportedSettopResolutions: ['480p', '720p', '1080p', '2160p60'] },

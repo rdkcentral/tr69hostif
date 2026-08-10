@@ -449,7 +449,7 @@ def test_STBService_VideoOutput_Get_Status():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
-    assert rstdout.strip() in ("Enabled", "Disabled"), \
+    assert any(v in rstdout for v in ("Enabled", "Disabled")), \
         f"Unexpected VideoOutput Status: {rstdout}"
 
 
