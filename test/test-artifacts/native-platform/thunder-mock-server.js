@@ -219,6 +219,10 @@ const mockResponses = {
     result: { EDID: 'AP///////wBQrDYBAAAAAAwXAQSlOSJ4CvCVoVdTnCYPUFQAAAABAQEBAQEBAQEBAQEBAQEB3iGgcFCEHzAgOCUIAClHAAAeAAAA/QAyTBFEH4AgIAkQCQAKAAAA/ABERUxMCgAgAAAAAD9BUzEzMgogICAgAAAAAEE=' },
     description: 'EDID data from connected display',
   },
+  'org.rdk.DisplaySettings.getZoomSetting': {
+    result: { zoomSetting: 'Full' },
+    description: 'Current zoom/aspect ratio setting (Full, None, etc.)',
+  },
 
   // ───────────────────────────────────────────────────────────────────────────
   // STBService Thunder APIs - DisplayInfo

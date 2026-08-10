@@ -95,7 +95,17 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom.json test/functional-tests/tests/tr69hostif_custom.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
+
+# Start Thunder mock server for STBService tests
+node test/test-artifacts/native-platform/thunder-mock-server.js &
+THUNDER_MOCK_PID=$!
+sleep 2
+
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
+
+# Stop Thunder mock server
+kill $THUNDER_MOCK_PID 2>/dev/null || true
+wait $THUNDER_MOCK_PID 2>/dev/null || true
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py

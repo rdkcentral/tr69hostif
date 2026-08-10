@@ -248,8 +248,9 @@ def test_STBService_DisplayDevice_Get_Status():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
-    assert rstdout.strip() in ("Present", "Absent"), \
-        f"Unexpected DisplayDevice Status: {rstdout}"
+    value = rbus_get_value(param)
+    assert value in ("Present", "Absent"), \
+        f"Unexpected DisplayDevice Status: {value}"
 
 
 @pytest.mark.run(order=324)
@@ -366,8 +367,9 @@ def test_STBService_AudioOutput_Get_AudioLevel():
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
     # AudioLevel is a numeric volume level (0-100)
-    assert rstdout.strip().isdigit() or rstdout.strip().lstrip('-').isdigit(), \
-        f"Expected numeric AudioLevel, got: {rstdout}"
+    value = rbus_get_value(param)
+    assert value.isdigit() or value.lstrip('-').isdigit(), \
+        f"Expected numeric AudioLevel, got: {value}"
 
 
 @pytest.mark.run(order=332)
@@ -500,7 +502,7 @@ def test_STBService_VideoOutput_Get_VideoFormat():
 @pytest.mark.run(order=340)
 def test_STBService_VideoOutput_Get_AspectRatioBehaviour():
     """
-    GET VideoOutput.1.AspectRatioBehaviour – backed by AVOutput.getZoomMode;
+    GET VideoOutput.1.AspectRatioBehaviour – backed by DisplaySettings.getZoomSetting;
     falls back to "None" if Thunder fails.
     """
     param = VIDOUT_BASE + ".AspectRatioBehaviour"
@@ -604,10 +606,11 @@ def test_STBService_Capabilities_Get_HEVCProfileEntries():
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
     # Value should be a positive integer
+    value = rbus_get_value(param)
     try:
-        assert int(rstdout.strip()) >= 1
+        assert int(value) >= 1
     except ValueError:
-        assert False, f"Expected integer, got: {rstdout}"
+        assert False, f"Expected integer, got: {value}"
 
 
 @pytest.mark.run(order=347)

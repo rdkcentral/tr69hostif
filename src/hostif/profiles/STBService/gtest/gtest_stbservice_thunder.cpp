@@ -80,7 +80,7 @@ namespace ThunderStub {
 
 #define THUNDER_DS_GET_CURRENT_RESOLUTION   "org.rdk.DisplaySettings.getCurrentResolution"
 #define THUNDER_DS_GET_ENABLE_VIDEO_PORT    "org.rdk.DisplaySettings.getEnableVideoPort"
-#define THUNDER_AVO_GET_ZOOM_MODE           "org.rdk.AVOutput.getZoomMode"
+#define THUNDER_DS_GET_ZOOM_SETTINGS        "org.rdk.DisplaySettings.getZoomSetting"
 #define THUNDER_HDCP_GET_STATUS             "org.rdk.HdcpProfile.getHDCPStatus"
 #define THUNDER_DI_FRAMERATE                "DisplayInfo.1.framerate"
 
@@ -1270,7 +1270,7 @@ TEST_F(VideoOutputThunderTest, GetVideoFormat_ThunderFailure_FallsBackToUnknown)
 /* getAspectRatioBehaviour: Thunder returns zoom mode */
 TEST_F(VideoOutputThunderTest, GetAspectRatioBehaviour_Success)
 {
-    ThunderStub::setString(THUNDER_AVO_GET_ZOOM_MODE, true, "FULL");
+    ThunderStub::setString(THUNDER_DS_GET_ZOOM_SETTINGS, true, "FULL");
 
     HOSTIF_MsgData_t msg = makeMsg();
     int rc = m_iface->handleGetMsg("AspectRatioBehaviour", &msg);
@@ -1283,7 +1283,7 @@ TEST_F(VideoOutputThunderTest, GetAspectRatioBehaviour_Success)
 /* getAspectRatioBehaviour: Thunder failure → falls back to "None", still OK */
 TEST_F(VideoOutputThunderTest, GetAspectRatioBehaviour_ThunderFailure_FallsBackToNone)
 {
-    ThunderStub::setString(THUNDER_AVO_GET_ZOOM_MODE, false, "");
+    ThunderStub::setString(THUNDER_DS_GET_ZOOM_SETTINGS, false, "");
 
     HOSTIF_MsgData_t msg = makeMsg();
     int rc = m_iface->handleGetMsg("AspectRatioBehaviour", &msg);
