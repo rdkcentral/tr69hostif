@@ -114,6 +114,38 @@ if kill -0 $THUNDER_MOCK_PID 2>/dev/null; then
 else
     echo "[L2] ERROR: Thunder mock server failed to start"
     cat /tmp/thunder-mock-server.log
+    exit 1
+fi
+
+# Wait for Thunder mock server to be ready to accept connections
+echo "[L2] Waiting for Thunder mock server to accept connections..."
+MAX_RETRIES=15
+RETRY_COUNT=0
+SERVER_READY=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if curl -s -f -X POST http://127.0.0.1:9998/jsonrpc \
+        -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","id":"1","method":"test"}' > /dev/null 2>&1; then
+        SERVER_READY=true
+        echo "[L2] ✓ Thunder mock server is ready (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)"
+        break
+    fi
+    RETRY_COUNT=$((RETRY_COUNT+1))
+    if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+        echo "[L2] Waiting for server... (attempt $RETRY_COUNT/$MAX_RETRIES)"
+        sleep 1
+    fi
+done
+
+if [ "$SERVER_READY" = false ]; then
+    echo "[L2] ❌ ERROR: Thunder mock server not responding after $MAX_RETRIES attempts"
+    echo "[L2] Mock server log:"
+    cat /tmp/thunder-mock-server.log
+    echo "[L2] Checking if port 9998 is listening:"
+    ss -tln | grep 9998 || netstat -tln | grep 9998 || echo "Port 9998 not listening"
+    kill $THUNDER_MOCK_PID 2>/dev/null || true
+    exit 1
 fi
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
