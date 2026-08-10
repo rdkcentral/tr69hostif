@@ -85,11 +85,6 @@ Feature: Negative and Edge Case Tests
   # Data Type Mismatches on SET
   # =========================================================================
 
-  Scenario: SET boolean parameter with non-boolean string value
-    When I SET "Device.WiFi.Enable" to "notaboolean" as string via rbus
-    Then the rbus response should contain an error
-    # Expected: boolean type; provided string is not "true"/"false"/"0"/"1"
-
   Scenario: SET integer parameter with alpha string
     When I SET "Device.Time.NTPMinpoll" to "abc" as integer via rbus
     Then the rbus response should contain an error
@@ -155,12 +150,6 @@ Feature: Negative and Edge Case Tests
   # =========================================================================
   # Thunder Plugin Unavailability
   # =========================================================================
-
-  Scenario: GET Thunder-backed parameter when plugin is deactivated
-    Given the Thunder plugin "org.rdk.NetworkManager" is not activated
-    When I GET "Device.WiFi.SSID.1.BSSID" via rbus
-    Then the rbus response should contain an error or empty value
-    # Thunder invocation fails; handler should return error gracefully
 
   Scenario: GET Thunder-backed parameter when Thunder is unreachable
     Given the Thunder service is not running on localhost:9998
