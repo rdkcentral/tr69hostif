@@ -1295,7 +1295,8 @@ TEST_F(VideoOutputThunderTest, GetAspectRatioBehaviour_ThunderFailure_FallsBackT
 /* getHDCP: HDCP compliant → boolean true */
 TEST_F(VideoOutputThunderTest, GetHDCP_Compliant)
 {
-    ThunderStub::setBool(THUNDER_HDCP_GET_STATUS, true, true);
+    ThunderStub::setRaw(THUNDER_HDCP_GET_STATUS, true,
+        R"({"jsonrpc":"2.0","id":1,"result":{"HDCPStatus":{"isConnected":true,"isHDCPCompliant":true,"isHDCPEnabled":true,"hdcpReason":2},"success":true}})");
 
     HOSTIF_MsgData_t msg = makeMsg();
     int rc = m_iface->handleGetMsg("HDCP", &msg);
@@ -1308,7 +1309,8 @@ TEST_F(VideoOutputThunderTest, GetHDCP_Compliant)
 /* getHDCP: HDCP not compliant → boolean false */
 TEST_F(VideoOutputThunderTest, GetHDCP_NotCompliant)
 {
-    ThunderStub::setBool(THUNDER_HDCP_GET_STATUS, true, false);
+    ThunderStub::setRaw(THUNDER_HDCP_GET_STATUS, true,
+        R"({"jsonrpc":"2.0","id":1,"result":{"HDCPStatus":{"isConnected":true,"isHDCPCompliant":false,"isHDCPEnabled":true,"hdcpReason":0},"success":true}})");
 
     HOSTIF_MsgData_t msg = makeMsg();
     int rc = m_iface->handleGetMsg("HDCP", &msg);
@@ -1320,7 +1322,7 @@ TEST_F(VideoOutputThunderTest, GetHDCP_NotCompliant)
 /* getHDCP: Thunder failure → defaults to not-compliant (false), still OK */
 TEST_F(VideoOutputThunderTest, GetHDCP_ThunderFailure_DefaultsToFalse)
 {
-    ThunderStub::setBool(THUNDER_HDCP_GET_STATUS, false, false);
+    ThunderStub::setRaw(THUNDER_HDCP_GET_STATUS, false, "");
 
     HOSTIF_MsgData_t msg = makeMsg();
     int rc = m_iface->handleGetMsg("HDCP", &msg);

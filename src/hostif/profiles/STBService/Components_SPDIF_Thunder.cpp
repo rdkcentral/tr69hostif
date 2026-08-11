@@ -78,6 +78,8 @@ void hostIf_STBServiceSPDIF::buildPortNameHash()
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
                 "[%s:%d] Failed to get supported audio ports\n", __FUNCTION__, __LINE__);
+        g_hash_table_destroy(ifHash);
+        ifHash = NULL;
         return;
     }
 
