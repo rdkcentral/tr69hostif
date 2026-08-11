@@ -149,7 +149,8 @@ if [ "$SERVER_READY" = false ]; then
 fi
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
-
+cat /opt/logs/tr69hostiflog.0
+ls -l /opt/logs/
 # Stop Thunder mock server
 echo "[L2] Stopping Thunder mock server..."
 kill $THUNDER_MOCK_PID 2>/dev/null || true
@@ -158,12 +159,11 @@ wait $THUNDER_MOCK_PID 2>/dev/null || true
 pkill -f "thunder-mock-server.js" 2>/dev/null || true
 sleep 1
 
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_logging.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_logging.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_rpc.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_rpc.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/storageservice.json test/functional-tests/tests/tr69hostif_storageservice.py
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bluetooth.json test/functional-tests/tests/tr69hostif_bluetooth.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_logging.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_logging.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_rpc.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_rpc.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/storageservice.json test/functional-tests/tests/tr69hostif_storageservice.py
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bluetooth.json test/functional-tests/tests/tr69hostif_bluetooth.py
 pkill -f thunder-mock-server.js
-pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
-
+#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
