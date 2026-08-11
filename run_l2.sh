@@ -149,7 +149,7 @@ if [ "$SERVER_READY" = false ]; then
 fi
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
-cat /opt/logs/tr69hostiflog.0
+cat /opt/logs/tr69hostIf.log.0
 ls -l /opt/logs/
 # Stop Thunder mock server
 echo "[L2] Stopping Thunder mock server..."
