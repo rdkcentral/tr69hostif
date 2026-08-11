@@ -256,7 +256,11 @@ const mockResponses = {
   // STBService Thunder APIs - HdcpProfile
   // ───────────────────────────────────────────────────────────────────────────
   'org.rdk.HdcpProfile.getHDCPStatus': {
-    result: { isConnected: true, isHDCPCompliant: true, isHDCPEnabled: true, hdcpReason: 0, success: true },
+    result: {
+      HDCPStatus: { isConnected: true, isHDCPCompliant: true, isHDCPEnabled: true,
+                    hdcpReason: 2, supportedHDCPVersion: '2.2', receiverHDCPVersion: '2.2', currentHDCPVersion: '2.2' },
+      success: true,
+    },
     description: 'HDCP connection and compliance status',
   },
 

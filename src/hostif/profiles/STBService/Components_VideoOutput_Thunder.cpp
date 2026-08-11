@@ -61,6 +61,8 @@ void hostIf_STBServiceVideoOutput::buildPortNameHash()
             THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, "{}", "supportedVideoDisplays", ",", delimitedPorts))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Failed to get video displays\n", __FUNCTION__, __LINE__);
+        g_hash_table_destroy(ifHash);
+        ifHash = NULL;
         return;
     }
 
@@ -289,8 +291,25 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
 
 int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
+    /* getHDCPStatus response nests flags inside result.HDCPStatus.{field} */
     bool hdcpEnabled = false;
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled))
+    std::string response;
+    if (invokeThunderPluginMethod(THUNDER_HDCP_GET_STATUS, "{}", response))
+    {
+        cJSON *root = cJSON_Parse(response.c_str());
+        if (root)
+        {
+            cJSON *result  = cJSON_GetObjectItem(root, "result");
+            cJSON *hdcpObj = result ? cJSON_GetObjectItem(result, "HDCPStatus") : NULL;
+            cJSON *field   = hdcpObj ? cJSON_GetObjectItem(hdcpObj, "isHDCPCompliant") : NULL;
+            if (cJSON_IsBool(field))
+                hdcpEnabled = cJSON_IsTrue(field);
+            else
+                RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Missing isHDCPCompliant in HDCPStatus\n", __FUNCTION__);
+            cJSON_Delete(root);
+        }
+    }
+    else
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getHDCPStatus failed, assuming not compliant\n", __FUNCTION__);
     }
