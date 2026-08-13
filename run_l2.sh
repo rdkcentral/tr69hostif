@@ -97,7 +97,8 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
-cat /opt/logs/tr69hostif.log.0
+#cat /opt/logs/tr69hostif.log.0
+cat /opt/logs/tr69hostIf.log.0
 ls -l /opt/logs/
 #cat /opt/logs/tr69hostif.log.1
 #ls -l /opt/logs/

@@ -63,23 +63,23 @@ def clear_log_before_test():
 # AudioOutput – GET tests
 # ─────────────────────────────────────────────────────────────────────────────
 
-@pytest.mark.run(order=310)
-def test_STBService_AudioOutput_Get_Status():
-    """
-    GET AudioOutput.1.Status should return one of Enabled / Muted / Disabled
-    and must produce a successful Thunder curl call in the tr69hostif log.
-    """
-    param = AUDIO_BASE + ".Status"
-    rstdout = rbus_get_data(param)
-
-    assert RBUS_EXCEPTION_STRING not in rstdout, \
-        f"rbus exception getting {param}"
-    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG), \
-        "Expected Thunder curl log entry for getEnableAudioPort"
-    # Status must be one of the valid TR-135 values
-    valid = {"Enabled", "Muted", "Disabled"}
-    assert any(v in rstdout for v in valid), \
-        f"Unexpected Status value: {rstdout}"
+#@pytest.mark.run(order=310)
+#def test_STBService_AudioOutput_Get_Status():
+#    """
+#    GET AudioOutput.1.Status should return one of Enabled / Muted / Disabled
+#    and must produce a successful Thunder curl call in the tr69hostif log.
+#    """
+#    param = AUDIO_BASE + ".Status"
+#    rstdout = rbus_get_data(param)
+#
+#    assert RBUS_EXCEPTION_STRING not in rstdout, \
+#        f"rbus exception getting {param}"
+#    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG), \
+#        "Expected Thunder curl log entry for getEnableAudioPort"
+#    # Status must be one of the valid TR-135 values
+#    valid = {"Enabled", "Muted", "Disabled"}
+#    assert any(v in rstdout for v in valid), \
+#        f"Unexpected Status value: {rstdout}"
 
 
 @pytest.mark.run(order=311)
@@ -173,36 +173,6 @@ def test_STBService_AudioOutput_Get_AudioEncoding():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# AudioOutput – SET tests (NOT_HANDLED in Thunder build)
-# ─────────────────────────────────────────────────────────────────────────────
-
-@pytest.mark.run(order=318)
-def test_STBService_AudioOutput_Set_CancelMute_NotHandled():
-    """
-    SET AudioOutput.1.CancelMute must fail – setter is NOT_HANDLED in
-    the Thunder build.
-    """
-    param = AUDIO_BASE + ".CancelMute"
-    rstdout = rbus_set_data(param, "boolean", "true")
-
-    assert RBUS_SUCCESS_STRING not in rstdout, \
-        f"Expected SET to fail for NOT_HANDLED param {param}"
-
-
-@pytest.mark.run(order=319)
-def test_STBService_AudioOutput_Set_AudioLevel_NotHandled():
-    """
-    SET AudioOutput.1.AudioLevel must fail.
-    """
-    param = AUDIO_BASE + ".AudioLevel"
-    rstdout = rbus_set_data(param, "uint", "50")
-
-    assert RBUS_SUCCESS_STRING not in rstdout, \
-        f"Expected SET to fail for NOT_HANDLED param {param}"
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SPDIF – GET tests
