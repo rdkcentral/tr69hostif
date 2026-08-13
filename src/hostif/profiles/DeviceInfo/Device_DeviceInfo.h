@@ -171,7 +171,7 @@
 #define XRE_CONTAINER_RFC_ENABLE                        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable"
 #define TR181_AUTOREBOOT_ENABLE                         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define SHORTS_RFC_ENABLE                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SHORTS.Enable"
-#define RFC_FEATURE_BOOT_ID                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Enable.Boot_id"
+#define RFC_FEATURE_BOOT_ID                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Boot_id.Enable"
 /* Profile: X_RDKCENTRAL-COM_RFC.Control */
 #define RFC_CTL_RETRIEVE_NOW                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.RetrieveNow"
 /* Profile: X_RDKCENTRAL-COM_IPRemoteSupport */
