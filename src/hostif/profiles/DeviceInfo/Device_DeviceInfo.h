@@ -171,6 +171,7 @@
 #define XRE_CONTAINER_RFC_ENABLE                        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable"
 #define TR181_AUTOREBOOT_ENABLE                         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define SHORTS_RFC_ENABLE                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SHORTS.Enable"
+#define RFC_FEATURE_BOOT_ID                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Enable.Boot_id"
 /* Profile: X_RDKCENTRAL-COM_RFC.Control */
 #define RFC_CTL_RETRIEVE_NOW                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.RetrieveNow"
 /* Profile: X_RDKCENTRAL-COM_IPRemoteSupport */
@@ -1376,6 +1377,9 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId(HOSTIF_MsgData_t *);
 
     int validate_ParamValue(HOSTIF_MsgData_t *);
+
+    int set_xRDKCentralComRFCBootId(HOSTIF_MsgData_t *);
+    int get_xRDKCentralComRFCBootId(HOSTIF_MsgData_t *);
 
     int set_xRDKCentralComRFC(HOSTIF_MsgData_t *);
     int get_xRDKCentralComRFC(HOSTIF_MsgData_t *);

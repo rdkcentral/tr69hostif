@@ -136,6 +136,7 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
+#define BOOT_ID_ENABLE "/opt/secure/RFC/boot_id/boot_id_enabled"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
@@ -3644,10 +3645,104 @@ int hostIf_DeviceInfo::sendDeviceMgtNotification(const char* source, const char*
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCBootId(HOSTIF_MsgData_t *stMsgData)
+{
+    bool enable = false;
+
+    if (stMsgData->paramtype == hostIf_BooleanType)
+    {
+        enable = get_boolean(stMsgData->paramValue);
+    }
+    else if (stMsgData->paramtype == hostIf_StringType)
+    {
+        if (!strcasecmp(stMsgData->paramValue, "true") || !strcmp(stMsgData->paramValue, "1"))
+        {
+            enable = true;
+        }
+        else if (!strcasecmp(stMsgData->paramValue, "false") || !strcmp(stMsgData->paramValue, "0"))
+        {
+            enable = false;
+        }
+        else
+        {
+            stMsgData->faultCode = fcInvalidParameterValue;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%d] Invalid value for %s. Use true/false or 1/0.\n",
+                    __FUNCTION__, __LINE__, stMsgData->paramName);
+            return NOK;
+        }
+    }
+    else
+    {
+        stMsgData->faultCode = fcInvalidParameterValue;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Invalid type for %s. Expected boolean/string.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+        return NOK;
+    }
+
+    /* Presence of BOOT_ID_ENABLE means boot-id template mode, absence means general template mode. */
+    if (enable)
+    {
+        v_secure_system("mkdir -p /opt/secure/RFC/boot_id");
+        ofstream bootIdFile(BOOT_ID_ENABLE);
+        if (!bootIdFile.is_open())
+        {
+            stMsgData->faultCode = fcInternalError;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%d] Failed to create %s\n",
+                    __FUNCTION__, __LINE__, BOOT_ID_ENABLE);
+            return NOK;
+        }
+        bootIdFile.close();
+    }
+    else
+    {
+        if ((remove(BOOT_ID_ENABLE) != 0) && (errno != ENOENT))
+        {
+            stMsgData->faultCode = fcInternalError;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%d] Failed to remove %s: %s\n",
+                    __FUNCTION__, __LINE__, BOOT_ID_ENABLE, strerror(errno));
+            return NOK;
+        }
+    }
+    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", enable ? "true" : "false");
+    stMsgData->paramtype = hostIf_BooleanType;
+
+#ifndef NEW_HTTP_SERVER_DISABLE
+    if (!legacyRFCEnabled())
+    {
+        return m_rfcStore->setValue(stMsgData);
+    }
+
+    return m_rfcStorage.setValue(stMsgData);
+#else
+    return m_rfcStorage.setValue(stMsgData);
+#endif
+}
+
+int hostIf_DeviceInfo::get_xRDKCentralComRFCBootId(HOSTIF_MsgData_t *stMsgData)
+{
+    bool enable = (access(BOOT_ID_ENABLE, F_OK) == 0);
+
+    put_boolean(stMsgData->paramValue, enable);
+    stMsgData->paramtype = hostIf_BooleanType;
+    stMsgData->paramLen = sizeof(bool);
+    stMsgData->faultCode = fcNoFault;
+
+    return OK;
+}
+
 int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
     int validate_paramVal;
+
+    if (strcasecmp(stMsgData->paramName, RFC_FEATURE_BOOT_ID) == 0)
+    {
+        return set_xRDKCentralComRFCBootId(stMsgData);
+    }
 
     // any additional immediate handling
     if (strcasecmp(stMsgData->paramName,TR181_RFC_RESET_DATA_START) == 0) // used to clear out all data from storage
@@ -3966,6 +4061,10 @@ int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 
 int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
 {
+    if (strcasecmp(stMsgData->paramName, RFC_FEATURE_BOOT_ID) == 0)
+    {
+        return get_xRDKCentralComRFCBootId(stMsgData);
+    }
     int ret=NOK;
 #ifndef NEW_HTTP_SERVER_DISABLE
     if(!legacyRFCEnabled())
