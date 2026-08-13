@@ -36,7 +36,7 @@ typedef enum TokenType
 
 typedef struct Token
 {
-    char* text;         /* text of token. e.g. the 'WiFi' in 'Device.WiFi.Radio.1' */
+    char* text;         /* text of token. */
     elementNode* node;  /* the corresponding registration node in the element tree */
     TokenType type;     /* type of expression used to identify a row instance*/
     struct Token* prev; /* the previous token in list */

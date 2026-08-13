@@ -806,7 +806,7 @@ int getParamInfoFromDataModel(void *dbhandle,const char *paramName, DataModelPar
     doc = (XMLDocument *) dbhandle;
 
 
-    /* Check if Parameter is one of {i} entriesi ex:Device.WiFi.Radio.1.Status should become Device.WiFi.Radio.{i}.Status */
+    /* Check if Parameter is one of {i} entries */
     std::string str(paramName);
     std::size_t found = str.find_first_of("0123456789");
     if(found != std::string::npos)
@@ -1089,7 +1089,7 @@ void test_get_complete_param_list()
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"======================================================================\n");
     DataModelParam dmParam = {0};
 
-    const char *pParameterName = "Device.WiFi.EndPoint.1.Profile.1.Status";
+    const char *pParameterName = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Enable";
 
     if (getParamInfoFromDataModel(g_dbhandle, pParameterName, &dmParam))
     {

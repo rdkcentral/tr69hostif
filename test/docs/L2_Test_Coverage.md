@@ -6,30 +6,38 @@ This document provides the detailed L2 coverage view for the functional test sui
 It restores the richer format with summary, layout, infrastructure notes, current
 coverage detail, heat map, pending gaps to reach 100%, and parameter count analysis.
 
-Last analyzed: July 20, 2026.
+Last analyzed: August 6, 2026.
 
 ---
 
 ## Test Coverage Summary
 
-| Metric | Value |
-|---|---:|
-| Total source functions (approx baseline) | ~761 |
-| Functions with direct L2 coverage | ~416 |
-| Functions with no current L2 coverage (estimated) | ~345 |
-| Active L2 test functions | 416 |
-| Disabled test functions via skip/xfail decorators | 0 |
-| Runtime skip paths detected | 1 |
-| Active feature scenarios | 427 |
-| Test files active | 31 |
-| Feature files active | 35 |
-| Estimated current L2 coverage | ~54.7% |
-| Target L2 coverage | 100% |
+```
+Total source functions (approx): ~608
+Functions with direct L2 coverage: ~494
+Functions with indirect L2 coverage: ~0
+Functions with no L2 coverage: ~114
+
+Active L2 test functions: 494
+Disabled L2 test functions: 0
+Active feature scenarios: 464
+Proposed new test scenarios: ~114
+
+High priority: ~49
+Medium priority: ~53
+Low priority: ~12
+Test files active: 30
+Test files disabled (commented out): 0
+
+Estimated current L2 functional coverage: ~81.3%
+Target L2 functional coverage: ~100%
+```
 
 Coverage calculation:
 
-- `416 / 761 = 54.7%`
-- Remaining estimated gap: `761 - 416 = 345`
+- `494 / 608 = 81.3%`
+- WiFi profile removed from module surface: 761 − 153 = 608 revised baseline
+- Remaining estimated gap: `608 - 494 = 114`
 
 ---
 
@@ -37,41 +45,42 @@ Coverage calculation:
 
 ```text
 test/functional-tests/
-├── features/                                   # BDD feature specs
+├── features/                                   # BDD feature specs (35 files)
 │   ├── tr69hostif_bootup_sequence.feature
-│   ├── tr69hostif_bluetooth.feature             # NEW
-│   ├── tr69hostif_device_info.feature           # NEW
+│   ├── tr69hostif_bluetooth.feature
+│   ├── tr69hostif_device_info.feature
 │   ├── tr69hostif_handlers_communications.feature
 │   ├── tr69hostif_deviceip.feature
-│   ├── tr69hostif_interfacestack.feature        # NEW
+│   ├── tr69hostif_interfacestack.feature
 │   ├── tr69hostif_webpa.feature
 │   ├── tr69hostif_http_server.feature
 │   ├── tr69hostif_ethernet_handlers.feature
 │   ├── tr69hostif_moca.feature
-│   ├── tr69hostif_opsdevicemgmt_logging.feature # NEW
-│   ├── tr69hostif_opsdevicemgmt_rpc.feature     # NEW
+│   ├── tr69hostif_opsdevicemgmt_logging.feature
+│   ├── tr69hostif_opsdevicemgmt_rpc.feature
 │   ├── tr69hostif_rfc_store.feature
-│   ├── tr69hostif_storageservice.feature        # NEW
+│   ├── tr69hostif_storageservice.feature
 │   ├── tr69hostif_thunder_negative_edge_cases.feature
 │   └── ... (total 35 feature files)
-└── tests/                                      # Runnable pytest tests
+└── tests/                                      # Runnable pytest tests (30 files)
     ├── test_bootup_sequence.py
     ├── test_handlers_communications.py
-    ├── tr69hostif_bluetooth.py                  # NEW
-    ├── tr69hostif_device_info.py                # NEW
+    ├── tr69hostif_bluetooth.py
+    ├── tr69hostif_device_info.py
     ├── tr69hostif_deviceip.py
-    ├── tr69hostif_interfacestack.py             # NEW
+    ├── tr69hostif_interfacestack.py
     ├── tr69hostif_ip.py
     ├── tr69hostif_webpa.py
     ├── tr69hostif_http_server.py
     ├── tr69hostif_ethernet_handlers.py
     ├── tr69hostif_moca.py
-    ├── tr69hostif_opsdevicemgmt_logging.py      # NEW
-    ├── tr69hostif_opsdevicemgmt_rpc.py          # NEW
+    ├── tr69hostif_opsdevicemgmt_logging.py
+    ├── tr69hostif_opsdevicemgmt_rpc.py
     ├── tr69hostif_rfc_store.py
-    ├── tr69hostif_storageservice.py             # NEW
+    ├── tr69hostif_storageservice.py
+    ├── tr69hostif_stbservice_thunder.py         # NEW (Aug 2026)
     ├── tr69hostif_thunder_negative_edge_cases.py
-    └── ... (total 31 runnable test files)
+    └── ... (total 30 runnable test files)
 ```
 
 Test runner: pytest with `@pytest.mark.run(order=N)` sequencing.
@@ -92,10 +101,10 @@ Interfaces exercised:
 |---|---|---|
 | Test fixture orchestration | Partial | No global rollback fixture baseline documented in this file |
 | BDD execution wiring | Mixed | Features are present; tests run as pytest modules |
-| Order tagging | Needs cleanup | 416 tags, 409 unique values, 7 duplicates |
+| Order tagging | Needs cleanup | 494 tags; duplicate slots likely inherited from prior additions |
 | Static skip/xfail decorators | None found | No `@pytest.mark.skip` or `@pytest.mark.xfail` decorators |
 | Runtime skip behavior | Present | 1 runtime skip path in Thunder negative tests when port bind fails |
-| Test/feature map consistency | Partial | 25 mapped test files, 4 documentation-only feature files |
+| Test/feature map consistency | Partial | 30 runnable test files; 5 documentation-only feature files (see Gap 10) |
 
 Duplicate order values:
 
@@ -124,33 +133,32 @@ Runtime skip signal:
 | tr69hostif_account_thunder_plugin.py | 2 |
 | tr69hostif_authservice_thunder_plugin.py | 3 |
 | tr69hostif_bluetooth.py | 35 |
-| tr69hostif_custom.py | 34 |
+| tr69hostif_custom.py | 42 |
 | tr69hostif_device_info.py | 33 |
 | tr69hostif_deviceip.py | 4 |
-| tr69hostif_devicetime.py | 15 |
+| tr69hostif_devicetime.py | 19 |
 | tr69hostif_dhcpv4.py | 4 |
-| tr69hostif_ethernet_handlers.py | 24 |
+| tr69hostif_ethernet_handlers.py | 30 |
 | tr69hostif_http_server.py | 8 |
 | tr69hostif_interfacestack.py | 3 |
-| tr69hostif_ip.py | 47 |
+| tr69hostif_ip.py | 68 |
 | tr69hostif_ipremotesupport.py | 5 |
-| tr69hostif_moca.py | 53 |
+| tr69hostif_moca.py | 63 |
 | tr69hostif_negative_edge_cases.py | 4 |
-| tr69hostif_networkmanager_endpoint_thunder_plugin.py | 7 |
-| tr69hostif_networkmanager_ssid_thunder_plugin.py | 7 |
 | tr69hostif_opsdevicemgmt_logging.py | 7 |
 | tr69hostif_opsdevicemgmt_rpc.py | 10 |
-| tr69hostif_processor_processstatus.py | 8 |
+| tr69hostif_processor_processstatus.py | 9 |
 | tr69hostif_rfc_store_params.py | 12 |
 | tr69hostif_rfc_store.py | 4 |
+| tr69hostif_stbservice_thunder.py | 40 |
 | tr69hostif_std_params.py | 9 |
 | tr69hostif_storageservice.py | 15 |
 | tr69hostif_system_thunder_plugin.py | 2 |
 | tr69hostif_thunder_negative_edge_cases.py | 3 |
 | tr69hostif_webpa_negative_edge_cases.py | 6 |
-| tr69hostif_webpa_rdkdlmgr.py | 7 |
+| tr69hostif_webpa_rdkdlmgr.py | 9 |
 | tr69hostif_webpa.py | 17 |
-| Total | 416 |
+| Total | 494 |
 
 ### Per-Feature-File Detail
 
@@ -160,38 +168,38 @@ Runtime skip signal:
 | tr69hostif_authservice_thunder_plugin.feature | 3 |
 | tr69hostif_bluetooth.feature | 7 |
 | tr69hostif_bootup_sequence.feature | 18 |
-| tr69hostif_custom.feature | 5 |
+| tr69hostif_custom.feature | 16 |
 | tr69hostif_device_info.feature | 30 |
 | tr69hostif_deviceip.feature | 9 |
-| tr69hostif_devicetime.feature | 10 |
+| tr69hostif_devicetime.feature | 14 |
 | tr69hostif_dhcpv4.feature | 4 |
-| tr69hostif_ethernet_handlers.feature | 24 |
+| tr69hostif_ethernet_handlers.feature | 30 |
 | tr69hostif_ethernet.feature | 13 |
 | tr69hostif_handlers_communications.feature | 20 |
 | tr69hostif_http_server.feature | 14 |
 | tr69hostif_interfacestack.feature | 3 |
-| tr69hostif_ip.feature | 12 |
+| tr69hostif_ip.feature | 33 |
 | tr69hostif_ipremotesupport.feature | 5 |
-| tr69hostif_moca.feature | 53 |
+| tr69hostif_moca.feature | 59 |
 | tr69hostif_negative_edge_cases.feature | 4 |
-| tr69hostif_negative_tests.feature | 28 |
+| tr69hostif_negative_tests.feature | 26 |
 | tr69hostif_networkmanager_endpoint_thunder_plugin.feature | 7 |
 | tr69hostif_networkmanager_ssid_thunder_plugin.feature | 8 |
 | tr69hostif_opsdevicemgmt_logging.feature | 7 |
 | tr69hostif_opsdevicemgmt_rpc.feature | 10 |
-| tr69hostif_processor_processstatus.feature | 8 |
+| tr69hostif_processor_processstatus.feature | 9 |
 | tr69hostif_rfc_store_params.feature | 12 |
 | tr69hostif_rfc_store.feature | 4 |
 | tr69hostif_std_params.feature | 9 |
 | tr69hostif_storageservice.feature | 15 |
 | tr69hostif_system_thunder_plugin.feature | 1 |
 | tr69hostif_thunder_negative_edge_cases.feature | 3 |
-| tr69hostif_thunder_plugins.feature | 21 |
+| tr69hostif_thunder_plugins.feature | 9 |
 | tr69hostif_time_chrony.feature | 29 |
 | tr69hostif_webpa_negative_edge_cases.feature | 6 |
-| tr69hostif_webpa_rdkdlmgr.feature | 7 |
+| tr69hostif_webpa_rdkdlmgr.feature | 9 |
 | tr69hostif_webpa.feature | 16 |
-| Total | 427 |
+| Total | 464 |
 
 ### Bootup Sequence (orders 1–18)
 
@@ -275,25 +283,26 @@ Via mock parodus binary with JSON payloads. Validation reads `/opt/logs/parodus.
 
 | Category | Test Functions |
 |---|---:|
-| Device/IP Core | 56 |
-| MoCA | 53 |
+| Device/IP Core | 77 |
+| MoCA | 63 |
+| STBService Thunder | 40 |
 | Bluetooth | 35 |
-| Custom/DeviceInfo | 43 |
+| Custom/DeviceInfo | 51 |
 | DeviceInfo Extended | 33 |
-| WebPA/Parodus | 30 |
-| Ethernet | 24 |
-| Thunder Plugins | 24 |
-| StorageService | 15 |
+| WebPA/Parodus | 32 |
+| Ethernet | 30 |
 | Bootup/Lifecycle | 18 |
 | RFC/Bootstrap Store | 16 |
-| Time/Chrony | 15 |
+| Time/Chrony | 19 |
 | OpsDeviceMgmt RPC | 10 |
 | Handler Communications | 10 |
+| Thunder Plugins | 10 |
 | HTTP Server | 8 |
-| Processor/ProcessStatus | 8 |
+| Processor/ProcessStatus | 9 |
 | OpsDeviceMgmt Logging | 7 |
+| StorageService | 15 |
 | DHCPv4 | 4 |
-| Negative/Edge Cases | 4 |
+| Negative/Edge Cases | 7 |
 | InterfaceStack | 3 |
 
 ---
@@ -317,6 +326,7 @@ graph TD
     A --> N[StorageService]
     A --> O[InterfaceStack]
     A --> P[OpsDeviceMgmt]
+    A --> Q[STBService]
 
     style B fill:#2d7a2d,color:#fff
     style C fill:#2d7a2d,color:#fff
@@ -333,6 +343,7 @@ graph TD
     style N fill:#2d7a2d,color:#fff
     style O fill:#2d7a2d,color:#fff
     style P fill:#2d7a2d,color:#fff
+    style Q fill:#d4a017,color:#000
 ```
 
 Legend:
@@ -348,43 +359,47 @@ Legend:
 This section lists every handler function and TR-181 data model parameter that currently
 has **no runnable L2 test**. Sourced directly from profile header files.
 
-Estimated remaining gap: **~448 items** against the ~761 baseline.
+Estimated remaining gap: **~176 parameter handlers** against the revised ~608 baseline (WiFi profile removed Aug 2026).
+
+> **Verified removed from module (Aug 2026):** `Device.WiFi.*` (all handlers), SNMP profile,
+> HwSelfTest profile, and deprecated ControlManager RFC parameters are confirmed absent from
+> `src/hostif/profiles/` — no source files, no header symbols, no test coverage required.
 
 ---
 
-### Gap 1 — Device.DeviceInfo (uncovered handlers)
+### Gap 1 — Device.DeviceInfo (uncovered handlers) ✔ RESOLVED (August 2026)
 
 Source: `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.h`
 
-Handlers with no test (confirmed absent from test files).
-Items covered by `tr69hostif_device_info.py` (July 2026) have been removed from this table.
+All 14 handlers previously listed as uncovered are confirmed covered by existing test files.
+The gap table was stale; tests existed but were not cross-referenced.
 
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.DeviceInfo.Description` | `get_Device_DeviceInfo_Description` | GET |
-| `Device.DeviceInfo.ProductClass` | `get_Device_DeviceInfo_ProductClass` | GET |
-| `Device.DeviceInfo.UpTime` | `get_Device_DeviceInfo_UpTime` | GET |
-| `Device.DeviceInfo.MemoryStatus.Total` | `get_Device_DeviceInfo_MemoryStatus_Total` | GET |
-| `Device.DeviceInfo.MemoryStatus.Free` | `get_Device_DeviceInfo_MemoryStatus_Free` | GET |
-| `Device.DeviceInfo.ProcessorNumberOfEntries` | `get_Device_DeviceInfo_ProcessorNumberOfEntries` | GET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | GET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | SET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.IpAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpaddress` | GET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.MACAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMACaddress` | GET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.IssueType` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType` | SET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.WebCfgData` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData` | SET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Canary.WakeUpStart` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart` | SET |
-| `Device.DeviceInfo.X_RDKCENTRAL-COM_Canary.WakeUpEnd` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd` | SET |
+| TR-181 Parameter | Handler Function | Dir | Test | File |
+|---|---|---|---|---|
+| `Device.DeviceInfo.Description` | `get_Device_DeviceInfo_Description` | GET | `test_DeviceInfo_Description_Get_Handler` | `tr69hostif_std_params.py` |
+| `Device.DeviceInfo.ProductClass` | `get_Device_DeviceInfo_ProductClass` | GET | `test_DeviceInfo_ProductClass_Get_Handler` | `tr69hostif_std_params.py` |
+| `Device.DeviceInfo.UpTime` | `get_Device_DeviceInfo_UpTime` | GET | `test_DeviceInfo_UpTime_Get_Handler` | `tr69hostif_std_params.py` |
+| `Device.DeviceInfo.MemoryStatus.Total` | `get_Device_DeviceInfo_MemoryStatus_Total` | GET | `test_DeviceInfo_MemoryStatus_Total_Get_Handler` | `tr69hostif_std_params.py` |
+| `Device.DeviceInfo.MemoryStatus.Free` | `get_Device_DeviceInfo_MemoryStatus_Free` | GET | `test_DeviceInfo_MemoryStatus_Free_Get_Handler` | `tr69hostif_std_params.py` |
+| `Device.DeviceInfo.ProcessorNumberOfEntries` | `get_Device_DeviceInfo_ProcessorNumberOfEntries` | GET | `test_DeviceInfo_NumberOfEntries_Get_Handler` | `tr69hostif_std_params.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | GET | `test_DeviceInfo_Reset_Get_Handler` | `tr69hostif_custom.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_Reset` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Reset` | SET | `test_DeviceInfo_Reset_Set_Handler` | `tr69hostif_custom.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.IpAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpaddress` | GET | `test_IPRemoteSupport_IPAddr_Get_Handler` | `tr69hostif_ipremotesupport.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_IPRemoteSupport.MACAddress` | `get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMACaddress` | GET | `test_IPRemoteSupport_MACAddr_Get_Handler` | `tr69hostif_ipremotesupport.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.IssueType` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType` | SET | `test_RDKRemoteDebugger_IssueType_Set_Handler` | `tr69hostif_webpa_rdkdlmgr.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_RDKRemoteDebugger.WebCfgData` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData` | SET | `test_RDKRemoteDebugger_WebCfgData_Set_Handler` | `tr69hostif_webpa_rdkdlmgr.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpStart` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart` | SET | `test_RFC_wakeUpStart_Set_Handler` | `tr69hostif_rfc_store_params.py` |
+| `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd` | `set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpEnd` | SET | `test_RFC_wakeUpEnd_Set_Handler` | `tr69hostif_rfc_store_params.py` |
 
 ---
 
-### Gap 2 — Device.DeviceInfo.ProcessStatus (uncovered)
+### Gap 2 — Device.DeviceInfo.ProcessStatus ✔ RESOLVED (August 2026)
 
 Source: `src/hostif/profiles/DeviceInfo/Device_DeviceInfo_ProcessStatus.h`
 
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.DeviceInfo.ProcessStatus.CPUUsage` | `get_Device_DeviceInfo_ProcessStatus_CPUUsage` | GET |
+| TR-181 Parameter | Handler Function | Dir | Status |
+|---|---|---|---|
+| `Device.DeviceInfo.ProcessStatus.CPUUsage` | `get_Device_DeviceInfo_ProcessStatus_CPUUsage` | GET | ✔ Covered (Aug 2026) |
 
 ---
 
@@ -445,136 +460,12 @@ All 15 handlers are now covered by `tr69hostif_storageservice.py` (orders 344–
 
 ---
 
-### Gap 6 — Device.WiFi (zero coverage — build flag `WITH_WIFI_PROFILE`)
+### Gap 6 — Device.WiFi ✔ REMOVED FROM MODULE (August 2026)
 
-Source: `src/hostif/profiles/wifi/Device_WiFi*.h`
-
-#### Device.WiFi top-level
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.RadioNumberOfEntries` | `get_Device_WiFi_RadioNumberOfEntries` | GET |
-| `Device.WiFi.SSIDNumberOfEntries` | `get_Device_WiFi_SSIDNumberOfEntries` | GET |
-| `Device.WiFi.AccessPointNumberOfEntries` | `get_Device_WiFi_AccessPointNumberOfEntries` | GET |
-| `Device.WiFi.EndPointNumberOfEntries` | `get_Device_WiFi_EndPointNumberOfEntries` | GET |
-| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | `get_Device_WiFi_EnableWiFi` | GET |
-| `Device.WiFi.X_RDKCENTRAL-COM_WiFiEnable` | `set_Device_WiFi_EnableWiFi` | SET |
-
-#### Device.WiFi.Radio.{i}
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.Radio.{i}.Enable` | `get_Device_WiFi_Radio_Enable` / `set_Device_WiFi_Radio_Enable` | GET+SET |
-| `Device.WiFi.Radio.{i}.Status` | `get_Device_WiFi_Radio_Status` | GET |
-| `Device.WiFi.Radio.{i}.Alias` | `get_Device_WiFi_Radio_Alias` / `set_Device_WiFi_Radio_Alias` | GET+SET |
-| `Device.WiFi.Radio.{i}.Name` | `get_Device_WiFi_Radio_Name` | GET |
-| `Device.WiFi.Radio.{i}.LastChange` | `get_Device_WiFi_Radio_LastChange` | GET |
-| `Device.WiFi.Radio.{i}.LowerLayers` | `get_Device_WiFi_Radio_LowerLayers` / `set_Device_WiFi_Radio_LowerLayers` | GET+SET |
-| `Device.WiFi.Radio.{i}.Upstream` | `get_Device_WiFi_Radio_Upstream` | GET |
-| `Device.WiFi.Radio.{i}.MaxBitRate` | `get_Device_WiFi_Radio_MaxBitRate` | GET |
-| `Device.WiFi.Radio.{i}.SupportedFrequencyBands` | `get_Device_WiFi_Radio_SupportedFrequencyBands` | GET |
-| `Device.WiFi.Radio.{i}.OperatingFrequencyBand` | `get_Device_WiFi_Radio_OperatingFrequencyBand` / `set_Device_WiFi_Radio_OperatingFrequencyBand` | GET+SET |
-| `Device.WiFi.Radio.{i}.SupportedStandards` | `get_Device_WiFi_Radio_SupportedStandards` | GET |
-| `Device.WiFi.Radio.{i}.OperatingStandards` | `get_Device_WiFi_Radio_OperatingStandards` / `set_Device_WiFi_Radio_OperatingStandards` | GET+SET |
-| `Device.WiFi.Radio.{i}.PossibleChannels` | `get_Device_WiFi_Radio_PossibleChannels` | GET |
-| `Device.WiFi.Radio.{i}.ChannelsInUse` | `get_Device_WiFi_Radio_ChannelsInUse` | GET |
-| `Device.WiFi.Radio.{i}.Channel` | `get_Device_WiFi_Radio_Channel` / `set_Device_WiFi_Radio_Channel` | GET+SET |
-| `Device.WiFi.Radio.{i}.AutoChannelSupported` | `get_Device_WiFi_Radio_AutoChannelSupported` | GET |
-| `Device.WiFi.Radio.{i}.AutoChannelEnable` | `get_Device_WiFi_Radio_AutoChannelEnable` / `set_Device_WiFi_Radio_AutoChannelEnable` | GET+SET |
-| `Device.WiFi.Radio.{i}.AutoChannelRefreshPeriod` | `get_Device_WiFi_Radio_AutoChannelRefreshPeriod` / `set_Device_WiFi_Radio_AutoChannelRefreshPeriod` | GET+SET |
-| `Device.WiFi.Radio.{i}.OperatingChannelBandwidth` | `get_Device_WiFi_Radio_OperatingChannelBandwidth` / `set_Device_WiFi_Radio_OperatingChannelBandwidth` | GET+SET |
-| `Device.WiFi.Radio.{i}.ExtensionChannel` | `get_Device_WiFi_Radio_ExtensionChannel` / `set_Device_WiFi_Radio_ExtensionChannel` | GET+SET |
-| `Device.WiFi.Radio.{i}.GuardInterval` | `get_Device_WiFi_Radio_GuardInterval` / `set_Device_WiFi_Radio_GuardInterval` | GET+SET |
-| `Device.WiFi.Radio.{i}.MCS` | `get_Device_WiFi_Radio_MCS` / `set_Device_WiFi_Radio_MCS` | GET+SET |
-| `Device.WiFi.Radio.{i}.TransmitPowerSupported` | `get_Device_WiFi_Radio_TransmitPowerSupported` | GET |
-| `Device.WiFi.Radio.{i}.TransmitPower` | `get_Device_WiFi_Radio_TransmitPower` / `set_Device_WiFi_Radio_TransmitPower` | GET+SET |
-| `Device.WiFi.Radio.{i}.IEEE80211hSupported` | `get_Device_WiFi_Radio_IEEE80211hSupported` | GET |
-| `Device.WiFi.Radio.{i}.IEEE80211hEnabled` | `get_Device_WiFi_Radio_IEEE80211hEnabled` / `set_Device_WiFi_Radio_IEEE80211hEnabled` | GET+SET |
-| `Device.WiFi.Radio.{i}.RegulatoryDomain` | `get_Device_WiFi_Radio_RegulatoryDomain` / `set_Device_WiFi_Radio_RegulatoryDomain` | GET+SET |
-
-#### Device.WiFi.Radio.{i}.Stats
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.Radio.{i}.Stats.BytesSent` | `get_Device_WiFi_Radio_Stats_BytesSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.BytesReceived` | `get_Device_WiFi_Radio_Stats_BytesReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.PacketsSent` | `get_Device_WiFi_Radio_Stats_PacketsSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.PacketsReceived` | `get_Device_WiFi_Radio_Stats_PacketsReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.ErrorsSent` | `get_Device_WiFi_Radio_Stats_ErrorsSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.ErrorsReceived` | `get_Device_WiFi_Radio_Stats_ErrorsReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsSent` | `get_Device_WiFi_Radio_Stats_DiscardPacketsSent` | GET |
-| `Device.WiFi.Radio.{i}.Stats.DiscardPacketsReceived` | `get_Device_WiFi_Radio_Stats_DiscardPacketsReceived` | GET |
-| `Device.WiFi.Radio.{i}.Stats.NoiseFloor` | `get_Device_WiFi_Radio_Stats_NoiseFloor` | GET |
-
-#### Device.WiFi.SSID.{i}
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.SSID.{i}.Enable` | `get_Device_WiFi_SSID_Enable` / `set_Device_WiFi_SSID_Enable` | GET+SET |
-| `Device.WiFi.SSID.{i}.Status` | `get_Device_WiFi_SSID_Status` | GET |
-| `Device.WiFi.SSID.{i}.Alias` | `get_Device_WiFi_SSID_Alias` / `set_Device_WiFi_SSID_Alias` | GET+SET |
-| `Device.WiFi.SSID.{i}.Name` | `get_Device_WiFi_SSID_Name` | GET |
-| `Device.WiFi.SSID.{i}.LastChange` | `get_Device_WiFi_SSID_LastChange` | GET |
-| `Device.WiFi.SSID.{i}.LowerLayers` | `get_Device_WiFi_SSID_LowerLayers` / `set_Device_WiFi_SSID_LowerLayers` | GET+SET |
-| `Device.WiFi.SSID.{i}.BSSID` | `get_Device_WiFi_SSID_BSSID` | GET |
-| `Device.WiFi.SSID.{i}.MACAddress` | `get_Device_WiFi_SSID_MACAddress` | GET |
-| `Device.WiFi.SSID.{i}.SSID` | `get_Device_WiFi_SSID_SSID` / `set_Device_WiFi_SSID_SSID` | GET+SET |
-
-#### Device.WiFi.SSID.{i}.Stats
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.SSID.{i}.Stats.BytesSent` | `get_Device_WiFi_SSID_Stats_BytesSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.BytesReceived` | `get_Device_WiFi_SSID_Stats_BytesReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.PacketsSent` | `get_Device_WiFi_SSID_Stats_PacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.PacketsReceived` | `get_Device_WiFi_SSID_Stats_PacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.ErrorsSent` | `get_Device_WiFi_SSID_Stats_ErrorsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.ErrorsReceived` | `get_Device_WiFi_SSID_Stats_ErrorsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsSent` | `get_Device_WiFi_SSID_Stats_UnicastPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.UnicastPacketsReceived` | `get_Device_WiFi_SSID_Stats_UnicastPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsSent` | `get_Device_WiFi_SSID_Stats_DiscardPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.DiscardPacketsReceived` | `get_Device_WiFi_SSID_Stats_DiscardPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsSent` | `get_Device_WiFi_SSID_Stats_MulticastPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.MulticastPacketsReceived` | `get_Device_WiFi_SSID_Stats_MulticastPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsSent` | `get_Device_WiFi_SSID_Stats_BroadcastPacketsSent` | GET |
-| `Device.WiFi.SSID.{i}.Stats.BroadcastPacketsReceived` | `get_Device_WiFi_SSID_Stats_BroadcastPacketsReceived` | GET |
-| `Device.WiFi.SSID.{i}.Stats.UnknownProtoPacketsReceived` | `get_Device_WiFi_SSID_Stats_UnknownProtoPacketsReceived` | GET |
-
-#### Device.WiFi.EndPoint.{i}
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `Device.WiFi.EndPoint.{i}.Enable` | `get_Device_WiFi_EndPoint_Enable` / `set_Device_WiFi_EndPoint_Enable` | GET+SET |
-| `Device.WiFi.EndPoint.{i}.Status` | `get_Device_WiFi_EndPoint_Status` | GET |
-| `Device.WiFi.EndPoint.{i}.Alias` | `get_Device_WiFi_EndPoint_Alias` / `set_Device_WiFi_EndPoint_Alias` | GET+SET |
-| `Device.WiFi.EndPoint.{i}.ProfileReference` | `get_Device_WiFi_EndPoint_ProfileReference` / `set_Device_WiFi_EndPoint_ProfileReference` | GET+SET |
-| `Device.WiFi.EndPoint.{i}.SSIDReference` | `get_Device_WiFi_EndPoint_SSIDReference` | GET |
-| `Device.WiFi.EndPoint.{i}.ProfileNumberOfEntries` | `get_Device_WiFi_EndPoint_ProfileNumberOfEntries` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.LastDataDownlinkRate` | `get_Device_WiFi_EndPoint_Stats_LastDataDownlinkRate` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.LastDataUplinkRate` | `get_Device_WiFi_EndPoint_Stats_LastDataUplinkRate` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.SignalStrength` | `get_Device_WiFi_EndPoint_Stats_SignalStrength` | GET |
-| `Device.WiFi.EndPoint.{i}.Stats.Retransmissions` | `get_Device_WiFi_EndPoint_Stats_Retransmissions` | GET |
-| `Device.WiFi.EndPoint.{i}.WPS.Enable` | `get_Device_WiFi_EndPoint_WPS_Enable` | GET |
-| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsSupported` | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsSupported` | GET |
-| `Device.WiFi.EndPoint.{i}.WPS.ConfigMethodsEnabled` | `get_Device_WiFi_EndPoint_WPS_ConfigMethodsEnabled` | GET |
-
-#### Device.WiFi.X_RDKCENTRAL-COM.ClientRoaming
-
-| TR-181 Parameter | Handler Function | Dir |
-|---|---|---|
-| `...ClientRoaming.Enable` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_Enable` | GET+SET |
-| `...PreAssn.ProbeRetryCnt` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_ProbeRetryCnt` | GET+SET |
-| `...PreAssn.BestThresholdLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_BestThresholdLevel` | GET+SET |
-| `...PreAssn.BestDeltaLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PreAssn_BestDeltaLevel` | GET+SET |
-| `...SelfSteerOverride` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_SelfSteerOverride` | GET+SET |
-| `...PostAssn.BestDeltaLevelConnected` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_BestDeltaLevelConnected` | GET+SET |
-| `...PostAssn.BestDeltaLevelDisconnected` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_BestDeltaLevelDisconnected` | GET+SET |
-| `...PostAssn.SelfSteerThreshold` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_SelfSteerThreshold` | GET+SET |
-| `...PostAssn.SelfSteerTimeframe` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_SelfSteerTimeframe` | GET+SET |
-| `...PostAssn.APcontrolThresholdLevel` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_APcontrolThresholdLevel` | GET+SET |
-| `...PostAssn.APcontrolTimeframe` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_PostAssn_APcontrolTimeframe` | GET+SET |
-| `...postAssnBackOffTime` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_postAssnBackOffTime` | GET+SET |
-| `...80211kvrEnable` | `get/set_Device_WiFi_X_Rdkcentral_clientRoaming_80211kvrEnable` | GET+SET |
+The entire `Device.WiFi.*` profile (~153 handlers, build flag `WITH_WIFI_PROFILE`) has been
+deleted from the codebase. The source directory `src/hostif/profiles/wifi/` no longer exists.
+This gap is closed by removal; no tests are required. The module baseline has been revised
+from ~761 to ~608.
 
 ---
 
@@ -624,7 +515,7 @@ No negative test scenarios currently exist for the items below.
 | 49 | 2 | Thunder negative edge case overlap |
 | 50 | 2 | Thunder negative edge case overlap |
 
-### Gap 10 — Documentation-only Feature Files
+### Gap 10 — Documentation-only / Orphan Feature Files
 
 These feature files have no matching runnable test file:
 
@@ -632,8 +523,10 @@ These feature files have no matching runnable test file:
 |---|---|---|
 | `tr69hostif_ethernet.feature` | `tr69hostif_ethernet_handlers.py` | Merge or alias |
 | `tr69hostif_negative_tests.feature` | `tr69hostif_negative_edge_cases.py` | Merge or alias |
-| `tr69hostif_thunder_plugins.feature` | split across 5 thunder plugin files | Merge or alias |
+| `tr69hostif_thunder_plugins.feature` | split across thunder plugin files | Merge or alias |
 | `tr69hostif_time_chrony.feature` | `tr69hostif_devicetime.py` | Merge or alias |
+| `tr69hostif_networkmanager_endpoint_thunder_plugin.feature` | *(test file removed Aug 2026)* | Recreate or delete |
+| `tr69hostif_networkmanager_ssid_thunder_plugin.feature` | *(test file removed Aug 2026)* | Recreate or delete |
 
 ---
 
@@ -641,16 +534,16 @@ These feature files have no matching runnable test file:
 
 | Gap | Area | Handler/Parameter Count | Priority |
 |---|---|---:|---|
-| 1 | DeviceInfo uncovered handlers | ~14 | High |
-| 2 | ProcessStatus.CPUUsage | 1 | Medium |
-| 3 | Time SET-side | 2 | Low |
+| 1 | DeviceInfo uncovered handlers | 0 (**resolved** Aug 2026 — all 14 confirmed covered) | — |
+| 2 | ProcessStatus.CPUUsage | 0 (**resolved** Aug 2026) | — |
+| 3 | Time SET-side | ~13 | Low |
 | 4 | InterfaceStack | 0 (**resolved**) | — |
 | 5 | StorageService | 0 (**resolved**) | — |
-| 6 | WiFi (entire subtree) | ~153 | High |
-| 7 | Time SET gap | 2 | Low |
-| 8 | Negative/edge cases | ~12 | High |
-| 9 | Order conflicts | 7 dupes | Medium |
-| 10 | Documentation-only features | 4 files | Low |
+| 6 | WiFi (entire subtree) | 0 (**removed from module** Aug 2026) | — |
+| 7 | Time SET gap | ~13 | Low |
+| 8 | Negative/edge cases | ~4 | High |
+| 9 | Order conflicts | to verify | Medium |
+| 10 | Documentation-only / orphan feature files | 5 files | Low |
 
 ---
 
@@ -661,16 +554,16 @@ These feature files have no matching runnable test file:
 - Unit of coverage in this report: runnable pytest test function.
 - Test count source: `^def test_` across functional tests, excluding helper modules.
 - Scenario count source: `^\s*Scenario(?: Outline)?:` across feature files.
-- Approximate module surface baseline retained from previous analysis: ~761.
+- Approximate module surface baseline: ~608 (revised Aug 2026; WiFi profile removed from ~761).
 
 ### Coverage Count Table
 
 | Category | Count |
 |---|---:|
-| Baseline module surface (approx) | 761 |
-| Implemented runnable tests | 416 |
-| Remaining estimated items | 345 |
-| Coverage percentage | 54.7% |
+| Baseline module surface (approx, WiFi removed) | 608 |
+| Implemented runnable tests | 494 |
+| Remaining estimated items | 114 |
+| Coverage percentage | 81.3% |
 
 ---
 
@@ -681,18 +574,17 @@ runnable test functions to known handler surfaces.
 
 | # | Profile Area | TR-181 Namespace | GET | SET | Tests Needed | Covered (est.) | Gap | Coverage |
 |---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| 1 | **DeviceInfo** | `Device.DeviceInfo.*` | 111 | 61 | **172** | ~151 | ~21 | ~88% |
-| 2 | **Ethernet** | `Device.Ethernet.*` | 25 | 5 | **30** | 24 | 6 | ~80% |
-| 3 | **IP** | `Device.IP.*` | 73 | 33 | **106** | ~51 | ~55 | ~48% |
+| 1 | **DeviceInfo** | `Device.DeviceInfo.*` | 111 | 61 | **172** | ~148 | ~24 | ~86% |
+| 2 | **Ethernet** | `Device.Ethernet.*` | 25 | 5 | **30** | ~28 | ~2 | ~93% |
+| 3 | **IP** | `Device.IP.*` | 73 | 33 | **106** | ~68 | ~38 | ~64% |
 | 4 | **DHCPv4** | `Device.DHCPv4.*` | 4 | 0 | **4** | 4 | 0 | 100% |
 | 5 | **InterfaceStack** | `Device.InterfaceStack.*` | 3 | 0 | **3** | 3 | 0 | 100% |
-| 6 | **MoCA** | `Device.MoCA.*` | 89 | 10 | **99** | 53 | 46 | ~54% |
-| 7 | **STBService** | `Device.Services.STBService.*` | 71 | 14 | **85** | ~1 | ~84 | ~1% |
+| 6 | **MoCA** | `Device.MoCA.*` | 89 | 10 | **99** | ~63 | ~36 | ~64% |
+| 7 | **STBService** | `Device.Services.STBService.*` | 71 | 14 | **85** | ~40 | ~45 | ~47% |
 | 8 | **StorageService** | `Device.StorageService.*` | 15 | 0 | **15** | 15 | 0 | 100% |
-| 9 | **Time** | `Device.Time.*` | 20 | 17 | **37** | ~20 | ~17 | ~54% |
-| 10 | **WiFi** | `Device.WiFi.*` | 132 | 21 | **153** | ~14 | ~139 | ~9% |
-| 11 | **Device** | `Device.*` (misc) | 3 | 1 | **4** | 0 | 4 | 0% |
-| | **Parameter subtotal** | | **545** | **163** | **707** | **~336** | **~371** | **~48%** |
+| 9 | **Time** | `Device.Time.*` | 20 | 17 | **37** | ~24 | ~13 | ~65% |
+| 10 | **Device** | `Device.*` (misc) | 3 | 1 | **4** | 0 | 4 | 0% |
+| | **Parameter subtotal** | | **414** | **141** | **555** | **~379** | **~176** | **~68%** |
 
 ---
 
@@ -700,15 +592,15 @@ runnable test functions to known handler surfaces.
 
 DeviceInfo is the largest single profile area.
 
-| Source File | GET | SET | Tests Needed | July 2026 Covered | Notes |
+| Source File | GET | SET | Tests Needed | Aug 2026 Covered | Notes |
 |---|:---:|:---:|:---:|:---:|---|
-| `Device_DeviceInfo.cpp` | 70 | 59 | 129 | ~83 | tr69hostif_custom.py + std_params + thunder plugins + device_info.py + opsdevicemgmt_*.py cover majority |
+| `Device_DeviceInfo.cpp` | 70 | 59 | 129 | ~105 | Description, ProductClass, UpTime, MemoryStatus, Reset, RDKRemoteDebugger, Canary, IPRemoteSupport all confirmed covered via std_params, custom, ipremotesupport, webpa_rdkdlmgr, rfc_store_params |
 | `Device_DeviceInfo_Processor.cpp` | 1 | 0 | 1 | 1 | `Processor.Architecture` covered in processor_processstatus |
-| `Device_DeviceInfo_ProcessStatus.cpp` | 1 | 0 | 1 | 0 | `CPUUsage` not yet tested |
+| `Device_DeviceInfo_ProcessStatus.cpp` | 1 | 0 | 1 | 1 | `CPUUsage` covered via processor_processstatus.py |
 | `Device_DeviceInfo_ProcessStatus_Process.cpp` | 6 | 0 | 6 | 7 | PID, Command, Size, Priority, CPUTime, State, ProcessNumberOfEntries |
 | `XrdkBlueTooth.cpp` | 32 | 2 | 34 | ~34 | Covered via `tr69hostif_bluetooth.py` (orders 437–471) |
 | `XrdkCentralComRFC.cpp` | 1 | 0 | 1 | 1 | `XRFCStorage::getValue` via rfc_store tests |
-| **DeviceInfo TOTAL** | **111** | **61** | **172** | **~126** | |
+| **DeviceInfo TOTAL** | **111** | **61** | **172** | **~149** | |
 
 ---
 
@@ -728,12 +620,12 @@ DeviceInfo is the largest single profile area.
 
 ### Progress Delta (from earlier state)
 
-| Metric | Earlier | June 2026 | July 2026 | Delta (Jun→Jul) |
-|---|---:|---:|---:|---:|
-| Runnable tests | 47 | 313 | 416 | +103 |
-| Feature scenarios | 73 | 355 | 427 | +72 |
-| Runnable test files | 4 | 25 | 31 | +6 |
-| Feature files | 4 | 29 | 35 | +6 |
+| Metric | Earlier | June 2026 | July 2026 | Aug 2026 | Delta (Jul→Aug) |
+|---|---:|---:|---:|---:|---:|
+| Runnable tests | 47 | 313 | 416 | 494 | +78 |
+| Feature scenarios | 73 | 355 | 427 | 464 | +37 |
+| Runnable test files | 4 | 25 | 31 | 30 | -1 (networkmanager removed; stbservice added) |
+| Feature files | 4 | 29 | 35 | 35 | 0 |
 
 ---
 
@@ -741,33 +633,33 @@ DeviceInfo is the largest single profile area.
 
 This section preserves the earlier parameter-surface summary model and updates it as a
 planning baseline. Values remain approximate and are used for gap planning against the
-~761 module-surface estimate.
+~608 revised module-surface estimate.
 
 ### Per-Profile Parameter Baseline
 
 | Profile Area | GET | SET | Tests Needed (Baseline) | Current Status |
 |---|---:|---:|---:|---|
-| DeviceInfo | 111 | 61 | 172 | Strongly improved (~88%) |
-| Ethernet | 25 | 5 | 30 | Improved but not complete |
-| IP | 73 | 33 | 106 | Strongly improved |
-| DHCPv4 | 4 | 0 | 4 | Limited |
+| DeviceInfo | 111 | 61 | 172 | Strongly improved (~86%) |
+| Ethernet | 25 | 5 | 30 | Near-complete (~93%) |
+| IP | 73 | 33 | 106 | Strongly improved (~64%) |
+| DHCPv4 | 4 | 0 | 4 | **Fully covered** |
 | InterfaceStack | 3 | 0 | 3 | **Fully covered** |
-| MoCA | 89 | 10 | 99 | Strongly improved but not closed |
-| STBService | 71 | 14 | 85 | Partial |
+| MoCA | 89 | 10 | 99 | Improved (~64%), not closed |
+| STBService | 71 | 14 | 85 | Improved (~47%) via stbservice_thunder |
 | StorageService | 15 | 0 | 15 | **Fully covered** |
-| Time | 20 | 17 | 37 | Improved |
-| WiFi | 132 | 21 | 153 | Improved, still large surface |
+| Time | 20 | 17 | 37 | Improved (~65%) |
+| ~~WiFi~~ | ~~132~~ | ~~21~~ | ~~153~~ | **Removed from module** |
 | Device (misc) | 3 | 1 | 4 | Partial |
-| Parameter subtotal | 545 | 163 | 707 | Planning baseline |
+| Parameter subtotal | 414 | 141 | 555 | Revised baseline (WiFi removed) |
 
 ### Grand Total Planning Baseline
 
 | Category | Tests Needed | Covered (Estimated) | Remaining |
 |---|---:|---:|---:|
-| Parameter handlers (all profiles) | 707 | 416-equivalent partial mix | Pending |
-| Behavioral scenarios | 38 | Partial |
-| Negative and edge cases | ~16 | Partial |
-| Total baseline | ~761 | 416 | ~345 |
+| Parameter handlers (all profiles, WiFi removed) | 555 | ~379 | ~176 |
+| Behavioral scenarios | 38 | Partial | — |
+| Negative and edge cases | ~16 | ~12 | ~4 |
+| Total baseline | ~608 | 494 | ~114 |
 
 ---
 
@@ -777,13 +669,12 @@ Quick-reference table showing how much of each profile is still untested.
 
 | Profile | Tests Needed | Have | Missing | Primary Gap Areas |
 |---|:---:|:---:|:---:|---|
-| `Device.WiFi.*` | 153 | ~14 | **~139** | Radio (27 params), SSID (9), SSID.Stats (15), EndPoint (13), ClientRoaming (13), AccessPoint (~20) |
-| `Device.MoCA.*` | 99 | 53 | **46** | AssociatedDevice (17), QoS (10), MeshTable (4), remaining interface params |
-| `Device.DeviceInfo.*` | 172 | ~151 | **~21** | RDKRemoteDebugger, Canary, MemoryStatus, UpTime, Description, ProductClass, ProcessorNumberOfEntries |
-| `Device.IP.*` | 106 | ~51 | **~55** | IPv4 SETs (6), IPv6Address/Prefix non-tested params, Interface.Stats SETs |
-| `Device.Services.STBService.*` | 85 | ~1 | **~84** | AudioOutput SET/GET (25), eMMC (14), SPDIF (11), SDCard (10), Security (9) |
-| `Device.Ethernet.*` | 30 | 24 | **6** | LowerLayers, LastChange, Enable SET, DuplexMode SET |
-| `Device.Time.*` | 37 | ~20 | **~17** | `set_Device_Time_Enable`, `set_Device_Time_LocalTimeZone`, remaining SET handlers |
+| `Device.Services.STBService.*` | 85 | ~40 | **~45** | AudioOutput SET/GET (~25), SPDIF (11), SDCard (10), Security (9) |
+| `Device.MoCA.*` | 99 | 63 | **36** | AssociatedDevice (17), QoS (10), MeshTable (4), remaining interface params |
+| `Device.IP.*` | 106 | ~68 | **~38** | IPv4 SETs (6), IPv6Address/Prefix non-tested params, Interface.Stats SETs |
+| `Device.DeviceInfo.*` | 172 | ~148 | **~24** | Miscellaneous SET handlers not yet exercised (~24 remaining) |
+| `Device.Ethernet.*` | 30 | ~28 | **~2** | LowerLayers, LastChange remaining gaps |
+| `Device.Time.*` | 37 | ~24 | **~13** | `set_Device_Time_Enable`, `set_Device_Time_LocalTimeZone`, remaining SET handlers |
 | `Device.StorageService.*` | 15 | 15 | **0** | **Fully covered** |
 | `Device.InterfaceStack.*` | 3 | 3 | **0** | **Fully covered** |
 | `Device.DHCPv4.*` | 4 | 4 | **0** | Fully covered |
@@ -795,21 +686,20 @@ Quick-reference table showing how much of each profile is still untested.
 
 ```mermaid
 flowchart TD
-    P1[P1: WiFi Profile Tests\n~139 remaining handlers] --> P2
-    P2[P2: STBService Profile Tests\n~84 remaining handlers] --> P3
-    P3[P3: MoCA Remaining Tests\n~46 remaining handlers] --> P4
-    P4[P4: DeviceInfo Remaining\nRDKRemoteDebugger, Canary, MemoryStatus (~21)] --> P5
-    P5[P5: Negative Edge Cases\n~4 remaining scenarios]
+    P1[P1: STBService Remaining Tests\n~45 remaining handlers] --> P2
+    P2[P2: MoCA Remaining Tests\n~36 remaining handlers] --> P3
+    P3[P3: IP Remaining\n~38 remaining] --> P4
+    P4[P4: Time SET + DeviceInfo remaining + Negative Edge Cases\n~37 remaining scenarios]
 ```
 
 | Priority | Area | Remaining Tests | Blocking? |
 |---|---|:---:|---|
-| P1 | WiFi full profile | ~139 | Yes — 9% coverage on large surface |
-| P2 | STBService profile | ~84 | Yes — 1% coverage |
-| P3 | MoCA remaining | ~46 | No — 54% base exists |
-| P4 | DeviceInfo remaining handlers | ~21 | No — 88% base now exists |
-| P5 | Negative/edge cases | ~4 | No — partial coverage exists |
-| P6 | Time SET-side | 2 | No — GET side complete |
+| P1 | STBService remaining | ~45 | Yes — 47% coverage, large surface |
+| P2 | MoCA remaining | ~36 | No — 64% base exists |
+| P3 | IP remaining | ~38 | No — 64% base exists |
+| P4 | DeviceInfo remaining handlers | ~24 | No — 86% base now exists |
+| P4 | Time SET-side + Negative/Edge | ~17 | No — partial coverage exists |
+| P5 | Ethernet remaining | ~2 | No — near-complete at ~93% |
 
 ---
 
@@ -822,7 +712,7 @@ Before new tests can be added reliably, the following infrastructure issues shou
 | Duplicate `@pytest.mark.run` order values | 7 duplicates (25–28, 48–50) | Renumber conflicting tests to unique sequential slots |
 | No `conftest.py` parameter rollback | Missing | Add `conftest.py` with `@pytest.fixture(autouse=True)` that records and restores any SET parameters after each test |
 | BDD feature files not wired to pytest-bdd | Features are docs-only | Either wire with step implementations or document formally as specs |
-| 4 documentation-only feature files | Naming mismatch | Rename or delete `tr69hostif_ethernet.feature`, `tr69hostif_negative_tests.feature`, `tr69hostif_thunder_plugins.feature`, `tr69hostif_time_chrony.feature` |
+| 4 documentation-only feature files | Naming mismatch | Rename or delete `tr69hostif_ethernet.feature`, `tr69hostif_negative_tests.feature`, `tr69hostif_thunder_plugins.feature`, `tr69hostif_time_chrony.feature`; also recreate or delete orphaned `tr69hostif_networkmanager_*.feature` files |
 | Hardcoded expected values in tests | `"DOCKER"`, `"99.99.15.07"` etc | Extract to `basic_constants.py` with image-specific comments |
 | Log isolation absent | Logs not cleared per test | Call `clear_tr69hostiflogs()` at the start of each test |
 

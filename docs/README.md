@@ -62,7 +62,6 @@ The `tr69hostif` module depends on a mix of middleware services, platform-facing
 | WebPA gateway | Remote management plane that uses the Parodus integration path |
 | Parodus daemon | Local broker service required for WebPA request and notification exchange |
 | Device Settings / DS HAL | Backing implementation for `STBService` and selected device state queries |
-| WiFi HAL / WiFi manager | Backing implementation for the `Device.WiFi.*` profile |
 | MoCA HAL | Backing implementation for the `Device.MoCA.*` profile when enabled |
 | systemd notify | Optional readiness signaling for service startup integration |
 

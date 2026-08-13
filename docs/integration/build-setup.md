@@ -27,7 +27,6 @@ The top-level `configure.ac` currently exposes feature toggles including:
 | Flag | Effect |
 |------|--------|
 | `--enable-moca` / `--enable-moca2` | Enable MoCA profile support |
-| `--enable-wifi` | Enable WiFi profile support |
 | `--enable-DHCPv4` | Enable DHCPv4 profile support |
 | `--enable-StorageService` | Enable StorageService profile support |
 | `--enable-InterfaceStack` | Enable InterfaceStack profile support |
@@ -86,7 +85,7 @@ Choose the unit that matches the build-time feature set and deployment model.
 
 ```sh
 autoreconf --install
-./configure --enable-wifi --enable-DHCPv4 --enable-notification --enable-systemd-notify
+./configure --enable-DHCPv4 --enable-notification --enable-systemd-notify
 make -j4
 ```
 

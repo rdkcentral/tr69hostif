@@ -48,9 +48,6 @@
 #include "hostIf_EthernetClient_ReqHandler.h"
 #include "hostIf_IPClient_ReqHandler.h"
 #include "hostIf_TimeClient_ReqHandler.h"
-#ifdef USE_WIFI_PROFILE
-#include "hostIf_WiFi_ReqHandler.h"
-#endif /* USE_WIFI_PROFILE */
 #ifdef USE_DHCPv4_PROFILE
 #include "hostIf_DHCPv4Client_ReqHandler.h"
 #endif /* WITH_DHCP_PROFILE*/
@@ -444,12 +441,6 @@ bool hostIf_initalize_ConfigManger()
             {
                 mgrName = HOSTIF_TimeMgr;
             }
-#ifdef USE_WIFI_PROFILE
-            else if (strcasecmp(mgr, "wifiMgr") == 0)
-            {
-                mgrName = HOSTIF_WiFiMgr;
-            }
-#endif
 #ifdef USE_DHCPv4_PROFILE
             else if(strcasecmp(mgr, "dhcpv4Mgr") == 0)
             {
@@ -546,11 +537,6 @@ msgHandler* HostIf_GetMgr(HOSTIF_MsgData_t *stMsgHandlerData)
                 case HOSTIF_IPMgr:
                     pRet = IPClientReqHandler::getInstance();
                     break;
-#ifdef USE_WIFI_PROFILE
-                case HOSTIF_WiFiMgr:
-                    pRet = WiFiReqHandler::getInstance();
-                    break;
-#endif /* USE_WIFI_PROFILE*/
 #ifdef USE_DHCPv4_PROFILE
                 case HOSTIF_DHCPv4:
                     pRet = DHCPv4ClientReqHandler::getInstance();

@@ -111,17 +111,16 @@ Signal path: `SIGINT / SIGTERM / SIGHUP` → `quit_handler()` → `sem_post(&shu
 2. `pthread_mutex_trylock(&graceful_exit_mutex)` — **mutex is never initialized; this is undefined behavior**
 3. Set `isShutdownTriggered = 1`
 4. `t2_uninit()` (conditional on `T2_EVENT_ENABLED`)
-5. `WiFiDevice::shutdown()` (conditional on `USE_WIFI_PROFILE`)
-6. `stop_parodus_recv_wait()` — sets `exit_parodus_recv = true` and calls `pthread_cond_signal()` **without holding `parodus_lock`**
-7. `hostIf_HttpServerStop()` — stops HTTP and JSON handler threads
-8. `updateHandler::stop()` — sets `stopped = true` only; thread is not joined; may still be sleeping
-9. `XBSStore::getInstance()->stop()` — sets `m_stopped = true` and calls `cv.notify_one()`
-10. `fclose(logfile)`
-11. `g_hash_table_destroy(paramMgrhash)` — destroyed while handler threads are possibly still live
-12. `hostIf_IARM_IF_Stop()`
-13. `g_main_loop_quit(main_loop)` — unblocks `g_main_loop_run()` in `main()`
-14. `HttpServerStop()` (conditional, legacy HTTP)
-15. `pthread_mutex_unlock(&graceful_exit_mutex)`
+5. `stop_parodus_recv_wait()` — sets `exit_parodus_recv = true` and calls `pthread_cond_signal()` **without holding `parodus_lock`**
+6. `hostIf_HttpServerStop()` — stops HTTP and JSON handler threads
+7. `updateHandler::stop()` — sets `stopped = true` only; thread is not joined; may still be sleeping
+8. `XBSStore::getInstance()->stop()` — sets `m_stopped = true` and calls `cv.notify_one()`
+9. `fclose(logfile)`
+10. `g_hash_table_destroy(paramMgrhash)` — destroyed while handler threads are possibly still live
+11. `hostIf_IARM_IF_Stop()`
+12. `g_main_loop_quit(main_loop)` — unblocks `g_main_loop_run()` in `main()`
+13. `HttpServerStop()` (conditional, legacy HTTP)
+14. `pthread_mutex_unlock(&graceful_exit_mutex)`
 
 Back in `main()` after `g_main_loop_run` returns:
 

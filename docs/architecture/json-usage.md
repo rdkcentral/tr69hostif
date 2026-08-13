@@ -63,7 +63,7 @@ flowchart LR
 | Current WDMP HTTP server | `src/hostif/httpserver/src/http_server.cpp` | `cJSON` | inbound + outbound |
 | Parodus and startup config files | `src/hostif/parodusClient/startParodus/startParodus.cpp`, `src/hostif/parodusClient/pal/libpd.cpp`, `src/hostif/parodusClient/pal/webpa_notification.cpp` | `cJSON` | inbound |
 | Device defaults and bootstrap data | `src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp` | `cJSON` | inbound |
-| Thunder JSON-RPC consumers | `src/hostif/src/hostIf_utils.cpp`, `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`, `src/hostif/profiles/wifi/*.cpp` | `cJSON` | outbound request + inbound response |
+| Thunder JSON-RPC consumers | `src/hostif/src/hostIf_utils.cpp`, `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp` | `cJSON` | outbound request + inbound response |
 | Parodus notifications | `src/hostif/handlers/src/hostIf_NotificationHandler.cpp` | `cJSON` | outbound |
 
 ## Request And Response Contracts
@@ -164,10 +164,6 @@ This is the newer local HTTP interface. It accepts JSON request bodies, converts
 
 - `src/hostif/src/hostIf_utils.cpp`
 - `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
-- `src/hostif/profiles/wifi/Device_WiFi.cpp`
-- `src/hostif/profiles/wifi/Device_WiFi_SSID.cpp`
-- `src/hostif/profiles/wifi/Device_WiFi_EndPoint.cpp`
-- `src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp`
 
 `getJsonRPCData()` sends JSON-RPC POST bodies to the Thunder endpoint and returns a response string which is then parsed by profile code.
 
@@ -205,8 +201,6 @@ This is the newer local HTTP interface. It accepts JSON request bodies, converts
 | DeviceInfo checkout reset time | `result` as number |
 | DeviceInfo experience | `result.experience` |
 | WiFi interface list | `result.interfaces[]` |
-| WiFi endpoint security | `result.securityMode` |
-| WiFi enable or disable result | `result.success` |
 
 ### 4. JSON File Inputs
 
@@ -334,7 +328,7 @@ The following items are the main input for the planned robustness story.
 | Gap | Affected files | Why it matters |
 |-----|----------------|----------------|
 | `getJsonRPCData()` does not accumulate the HTTP response body because the curl write callback takes the output string by value | `src/hostif/src/hostIf_utils.cpp` | Most Thunder JSON-RPC consumers effectively parse an empty string, which breaks the central JSON-RPC integration path |
-| Nested JSON members are dereferenced without consistent null and type checks | `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`, `src/hostif/profiles/wifi/Device_WiFi_EndPoint_Security.cpp` | Malformed or changed JSON can cause crashes or invalid reads |
+| Nested JSON members are dereferenced without consistent null and type checks | `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp` | Malformed or changed JSON can cause crashes or invalid reads |
 | Parsed JSON roots are not deleted on many success and error paths | `src/hostif/parodusClient/startParodus/startParodus.cpp`, `src/hostif/parodusClient/pal/libpd.cpp`, `src/hostif/parodusClient/pal/webpa_notification.cpp`, `src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp` | Long-running service code accumulates avoidable leaks |
 | The notify config parser dereferences `notify_cfg` before verifying parse success | `src/hostif/parodusClient/pal/webpa_notification.cpp` | Invalid JSON can turn into null dereference or inconsistent startup behavior |
 
@@ -389,7 +383,6 @@ The following items are the main input for the planned robustness story.
 - `src/hostif/handlers/docs/README.md` documents the legacy JSON request handler and notification flow.
 - `src/hostif/parodusClient/docs/README.md` documents WebPA orchestration and JSON config files.
 - `src/hostif/docs/README.md` already records the `getJsonRPCData()` response handling defect.
-- `src/hostif/profiles/wifi/docs/README.md` documents the non-RDKV WiFi JSON-RPC path.
 - `src/hostif/profiles/DeviceInfo/docs/README.md` documents partner-default JSON and bootstrap behavior.
 
 ## See Also
