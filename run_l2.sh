@@ -99,10 +99,10 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.j
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 cat /opt/logs/tr69hostif.log.0
 ls -l /opt/logs/
-cat /opt/logs/tr69hostif.log.1
-ls -l /opt/logs/
-cat /opt/logs/tr69hostif.log.2
-ls -l /opt/logs/
+#cat /opt/logs/tr69hostif.log.1
+#ls -l /opt/logs/
+#cat /opt/logs/tr69hostif.log.2
+#ls -l /opt/logs/
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_logging.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_logging.py
