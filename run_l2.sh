@@ -96,68 +96,9 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
 
-# Clean up any stale Thunder mock server from previous runs
-echo "[L2] Cleaning up stale Thunder mock servers..."
-pkill -f "thunder-mock-server.js" 2>/dev/null || true
-sleep 1
-
-# Start Thunder mock server for STBService tests
-echo "[L2] Starting Thunder mock server on port 9998..."
-cd $top_srcdir
-node test/test-artifacts/native-platform/thunder-mock-server.js > /tmp/thunder-mock-server.log 2>&1 &
-THUNDER_MOCK_PID=$!
-sleep 3
-
-# Verify server is running
-if kill -0 $THUNDER_MOCK_PID 2>/dev/null; then
-    echo "[L2] Thunder mock server started (PID: $THUNDER_MOCK_PID)"
-else
-    echo "[L2] ERROR: Thunder mock server failed to start"
-    cat /tmp/thunder-mock-server.log
-    exit 1
-fi
-
-# Wait for Thunder mock server to be ready to accept connections
-echo "[L2] Waiting for Thunder mock server to accept connections..."
-MAX_RETRIES=15
-RETRY_COUNT=0
-SERVER_READY=false
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if curl -s -f -X POST http://127.0.0.1:9998/jsonrpc \
-        -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","id":"1","method":"test"}' > /dev/null 2>&1; then
-        SERVER_READY=true
-        echo "[L2] ✓ Thunder mock server is ready (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)"
-        break
-    fi
-    RETRY_COUNT=$((RETRY_COUNT+1))
-    if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-        echo "[L2] Waiting for server... (attempt $RETRY_COUNT/$MAX_RETRIES)"
-        sleep 1
-    fi
-done
-
-if [ "$SERVER_READY" = false ]; then
-    echo "[L2] ❌ ERROR: Thunder mock server not responding after $MAX_RETRIES attempts"
-    echo "[L2] Mock server log:"
-    cat /tmp/thunder-mock-server.log
-    echo "[L2] Checking if port 9998 is listening:"
-    ss -tln | grep 9998 || netstat -tln | grep 9998 || echo "Port 9998 not listening"
-    kill $THUNDER_MOCK_PID 2>/dev/null || true
-    exit 1
-fi
-
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 cat /opt/logs/tr69hostIf.log.0
 ls -l /opt/logs/
-# Stop Thunder mock server
-echo "[L2] Stopping Thunder mock server..."
-kill $THUNDER_MOCK_PID 2>/dev/null || true
-wait $THUNDER_MOCK_PID 2>/dev/null || true
-# Ensure ALL Thunder mock servers are terminated (in case of zombie processes)
-pkill -f "thunder-mock-server.js" 2>/dev/null || true
-sleep 1
 
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
@@ -165,5 +106,4 @@ sleep 1
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_rpc.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_rpc.py
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/storageservice.json test/functional-tests/tests/tr69hostif_storageservice.py
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bluetooth.json test/functional-tests/tests/tr69hostif_bluetooth.py
-pkill -f thunder-mock-server.js
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
