@@ -61,8 +61,6 @@ void hostIf_STBServiceVideoOutput::buildPortNameHash()
             THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, "{}", "supportedVideoDisplays", ",", delimitedPorts))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Failed to get video displays\n", __FUNCTION__, __LINE__);
-        g_hash_table_destroy(ifHash);
-        ifHash = NULL;
         return;
     }
 
