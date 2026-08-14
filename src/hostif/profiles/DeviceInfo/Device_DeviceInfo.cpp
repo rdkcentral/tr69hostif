@@ -40,6 +40,11 @@
 
 #include <cmath>
 #include <cstring>
+#include <string>
+#include <fstream>
+#include <cstdio>
+#include <errno.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/sysinfo.h>
@@ -136,6 +141,7 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
+#define LOGCHRONO_ENABLE_FILE "/opt/secure/RFC/LogChrono/LogChrono_enabled"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
@@ -3839,6 +3845,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
+    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
+    {
+        ret = set_xRDKCentralComRFCLogChronoEnable(stMsgData);
+    }
     return ret;
 }
 
@@ -3959,6 +3969,72 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    const char* logChronoDir = "/opt/secure/RFC/LogChrono";
+    std::string logChronoEnableStr;
+    LOG_ENTRY_EXIT;
+
+    if(stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] stMsgData is NULL\n", __FUNCTION__, __LINE__);
+        return NOK;
+    }
+
+    logChronoEnableStr = getStringValue(stMsgData);
+
+    if (logChronoEnableStr.empty() ||
+        !strcasecmp(logChronoEnableStr.c_str(), "false") ||
+        !strcmp(logChronoEnableStr.c_str(), "0"))
+    {
+        if(remove(LOGCHRONO_ENABLE_FILE) != 0 && errno != ENOENT)
+        {
+            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s:%d] Failed to remove file %s: %s\n", __FUNCTION__, __LINE__, LOGCHRONO_ENABLE_FILE, strerror(errno));
+        }
+        return OK;
+    }
+
+    if (!strcasecmp(logChronoEnableStr.c_str(), "true") ||
+        !strcmp(logChronoEnableStr.c_str(), "1"))
+    {
+        if(mkdir(logChronoDir, 0755) != 0 && errno != EEXIST)
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed to create %s: %s\n", __FUNCTION__, __LINE__, logChronoDir, strerror(errno));
+            return NOK;
+        }
+
+        ofstream ofs(LOGCHRONO_ENABLE_FILE, std::ios::out | std::ios::trunc);
+        if(!ofs.is_open())
+        {
+            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Unable to create file %s\n", __FUNCTION__, __LINE__, LOGCHRONO_ENABLE_FILE);
+            return NOK;
+        }
+        ofs << "true";
+        ofs.close();
+        return OK;
+    }
+
+    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Invalid value for %s: %s\n", __FUNCTION__, __LINE__, stMsgData->paramName, logChronoEnableStr.c_str());
+    return NOK;
+}
+
+int hostIf_DeviceInfo::get_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    if(stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] stMsgData is NULL\n", __FUNCTION__, __LINE__);
+        return NOK;
+    }
+
+    stMsgData->paramtype = hostIf_BooleanType;
+    bool isEnabled = (access(LOGCHRONO_ENABLE_FILE, F_OK) == 0) ? true : false;
+    put_boolean(stMsgData->paramValue, isEnabled);
+    stMsgData->paramLen = sizeof(bool);
+    stMsgData->faultCode = fcNoFault;
+    return OK;
+}
+
+
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
     return m_bsStore->getValue(stMsgData);
@@ -3989,6 +4065,11 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
             // Store the value from authservice into the db so we don't get here again
             m_rfcStorage.setValue(stMsgData);
         }
+    }
+
+    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
+    {
+        ret = get_xRDKCentralComRFCLogChronoEnable(stMsgData);
     }
 
     return ret;
