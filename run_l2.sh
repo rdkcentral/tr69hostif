@@ -95,19 +95,14 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/webpa_
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/custom.json test/functional-tests/tests/tr69hostif_custom.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/dhcpv4.json test/functional-tests/tests/tr69hostif_dhcpv4.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.json test/functional-tests/tests/tr69hostif_moca.py
-
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
-#cat /opt/logs/tr69hostif.log.0
-#cat /opt/logs/tr69hostIf.log.0
-#ls -l /opt/logs/
-cat /opt/logs/tr69hostif.log.1
-ls -l /opt/logs/
-#cat /opt/logs/tr69hostif.log.2
-#ls -l /opt/logs/
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_logging.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_logging.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_rpc.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_rpc.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/storageservice.json test/functional-tests/tests/tr69hostif_storageservice.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bluetooth.json test/functional-tests/tests/tr69hostif_bluetooth.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
+
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_logging.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_logging.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_rpc.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_rpc.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/storageservice.json test/functional-tests/tests/tr69hostif_storageservice.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bluetooth.json test/functional-tests/tests/tr69hostif_bluetooth.py
+pkill -f thunder-mock-server.js
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
+
