@@ -43,7 +43,7 @@
 #define THUNDER_DS_GET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.getCurrentResolution"
 #define THUNDER_DS_GET_DISPLAY_ASPECT_RATIO     "org.rdk.DisplaySettings.getDisplayAspectRatio"
 #define THUNDER_DS_GET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.getEnableVideoPort"
-#define THUNDER_AVO_GET_ZOOM_MODE               "org.rdk.AVOutput.getZoomMode"
+#define THUNDER_DS_GET_ZOOM_SETTINGS            "org.rdk.DisplaySettings.getZoomSetting"
 #define THUNDER_HDCP_GET_STATUS                 "org.rdk.HdcpProfile.getHDCPStatus"
 #define THUNDER_DI_CONNECTED                    "DisplayInfo.1.connected"
 
@@ -193,7 +193,7 @@ int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *p
 {
     bool isConnected = false;
 
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected))
+    if (!invokeThunderPluginMethodAndExtractScalarBoolResult(THUNDER_DI_CONNECTED, "{}", isConnected))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed, returning Disabled\n", __FUNCTION__);
         // On failure, default to Disabled
@@ -273,7 +273,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
-    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_AVO_GET_ZOOM_MODE, "{}", "zoomSetting", mode))
+    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_GET_ZOOM_SETTINGS, "{}", "zoomSetting", mode))
         mode = "None";
     strncpy(stMsgData->paramValue, mode.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
@@ -289,8 +289,25 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
 
 int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
+    /* getHDCPStatus response nests flags inside result.HDCPStatus.{field} */
     bool hdcpEnabled = false;
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled))
+    std::string response;
+    if (invokeThunderPluginMethod(THUNDER_HDCP_GET_STATUS, "{}", response))
+    {
+        cJSON *root = cJSON_Parse(response.c_str());
+        if (root)
+        {
+            cJSON *result  = cJSON_GetObjectItem(root, "result");
+            cJSON *hdcpObj = result ? cJSON_GetObjectItem(result, "HDCPStatus") : NULL;
+            cJSON *field   = hdcpObj ? cJSON_GetObjectItem(hdcpObj, "isHDCPCompliant") : NULL;
+            if (cJSON_IsBool(field))
+                hdcpEnabled = cJSON_IsTrue(field);
+            else
+                RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Missing isHDCPCompliant in HDCPStatus\n", __FUNCTION__);
+            cJSON_Delete(root);
+        }
+    }
+    else
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getHDCPStatus failed, assuming not compliant\n", __FUNCTION__);
     }
