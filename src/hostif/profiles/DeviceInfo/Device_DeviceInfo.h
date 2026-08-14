@@ -168,7 +168,6 @@
 #define MS12_DE_RFC_ENABLE                              "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DE_Enable"
 #define LE_RFC_ENABLE                                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LoudnessEquivalence.Enable"
 #define DAB_RFC_ENABLE                                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable"
-#define XRE_CONTAINER_RFC_ENABLE                        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable"
 #define TR181_AUTOREBOOT_ENABLE                         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define SHORTS_RFC_ENABLE                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SHORTS.Enable"
 /* Profile: X_RDKCENTRAL-COM_RFC.Control */
@@ -292,7 +291,6 @@ class hostIf_DeviceInfo {
 
     int set_xRDKCentralComTelemetryRFCEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComDABRFCEnable(HOSTIF_MsgData_t *stMsgData);
-    int set_xRDKCentralComXREContainerRFCEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCLoudnessEquivalenceEnable(HOSTIF_MsgData_t *);
 
     // This is to set wl roam_trigger
@@ -329,19 +327,14 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, getEstbIp);
     FRIEND_TEST(deviceTest, NewNtpEnable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCDisable);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCInvalidtype);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComApparmorBlocklist);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldStartedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceInfoTest, findLocalPortAvailable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRetrieveNow);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
     FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
@@ -359,11 +352,49 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCInvalidtype);
     FRIEND_TEST(deviceTest, get_xOpsRPCDevManageableNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRoamTrigger);
+    FRIEND_TEST(deviceTest, set_xFirmwareDownloadNow_SuccessAndAlreadyInProgress);
+    FRIEND_TEST(deviceTest, set_xFirmwareDownloadNow_AllBranches);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_InvalidType);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCAutoRebootEnable_Invalidtype);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable_FileRemoved);
     FRIEND_TEST(deviceTest, NewNtpEnable_Disable_FileRemoved);
     FRIEND_TEST(deviceTest, get_xRDKCentralComRFCAccountId);
+    FRIEND_TEST(deviceTest, findIgnoreCase);
+    FRIEND_TEST(deviceTest, isRsshactive);
+    FRIEND_TEST(deviceTest, getStbMacIf_fr_devProperties);
+    FRIEND_TEST(deviceInfoTest, findLocalPortAvailable_PortInUse);
+    FRIEND_TEST(deviceInfoTest, findLocalPortAvailable_AllPortsInUse);
+    FRIEND_TEST(deviceInfoTest, set_xOpsReverseSshArgs_IPv6);
+    FRIEND_TEST(deviceInfoTest, set_xOpsReverseSshArgs_NoPortsAvailable);
+    FRIEND_TEST(deviceTest, getEstbIp_IPv4MatchingInterface);
+    FRIEND_TEST(deviceTest, getEstbIp_IPv6MatchingInterface);
+    FRIEND_TEST(deviceTest, getEstbIp_WiFiEnabled);
+    FRIEND_TEST(deviceTest, getStbMacIf_fr_devProperties_IoctlSuccess);
+    FRIEND_TEST(deviceTest, getStbMacIf_fr_devProperties_SocketFailure);
+    FRIEND_TEST(deviceTest, getStbMacIf_fr_devProperties_Exception);
+    FRIEND_TEST(deviceTest, initMutexAttributes_DirectCall);
+    FRIEND_TEST(deviceTest, systemMgmtTimePathMonitorThr_WhenWebpaReady_Exits);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_DisableWhenFileMissing);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_InvalidType);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagCreateFails);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagRemoveFails);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCVideoTelFreq);
+    FRIEND_TEST(deviceTest, get_xOpsRPCDevManageableNotification_CopyFailure);
+    FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldStartedNotification_CopyFailure);
+    FRIEND_TEST(deviceTest, get_xRDKCentralComRFCAccountId_Success);
+    FRIEND_TEST(deviceTest, NewNtpEnable_Disable_RemoveFails);
+    FRIEND_TEST(deviceTest, NewNtpEnable_InvalidParameterType);
+    FRIEND_TEST(deviceTest, ScheduleAutoReboot_Disable);
+    FRIEND_TEST(deviceTest, set_xOpsDeviceMgmtRPCRebootNow_Disabled);
+    FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification_Enabled);
+    FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification_Enabled);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComDABRFCEnable_RemoveFails);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_Enable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_Disable);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_DeviceSettingsFailure);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_DeviceSettingsException);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRetrieveNow_GettimeofdayFailure);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRoamTrigger_EmptyValue);
 #endif
 
 public:

@@ -215,6 +215,15 @@ TEST(dhcpv4Test, Lock_ReleaseLock) {
     dhcpClient->closeAllInstances();
 }
 
+TEST(dhcpv4Test, getNotifyHash_ReturnsSameNonNullTable) {
+    GHashTable* first = hostIf_DHCPv4Client::getNotifyHash();
+    ASSERT_NE(first, nullptr);
+
+    GHashTable* second = hostIf_DHCPv4Client::getNotifyHash();
+    ASSERT_NE(second, nullptr);
+    EXPECT_EQ(first, second);
+}
+
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
     char buffer[GTEST_REPORT_FILEPATH_SIZE];
