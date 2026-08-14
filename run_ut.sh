@@ -181,6 +181,10 @@ make || { echo "ERROR: STBService Thunder gtest build failed"; exit 1; }
 ./stbservice_thunder_gtest || { echo "ERROR: STBService Thunder gtest execution failed"; exit 1; }
 echo "********************"
 
+cd $TOP_DIR/src/hostif/profiles/DeviceInfo/
+gcov -b -c devieInfo_gtest-Device_DeviceInfo.gcno
+cat Device_DeviceInfo.cpp.gcov
+
 cd $TOP_DIR
 
 if [ "$ENABLE_COV" = true ]; then

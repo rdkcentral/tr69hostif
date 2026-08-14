@@ -30,6 +30,8 @@ std::string get_PartnerId();
 std::string get_RebootReason();
 
 std::string get_FwName();
+
+void (*processExitFunc())(int);
 #endif
 
 #endif /* STARTPARODUS_H_ */

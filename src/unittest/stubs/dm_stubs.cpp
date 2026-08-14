@@ -17,12 +17,104 @@
  */
 
 #include "libIBus.h"
+#include "mfrMgr.h"
+#ifndef USE_THUNDER_CLIENT
+#include "audioOutputPort.hpp"
+#endif
 #include "webpa_parameter.h"
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_main.h"
 #include "XrdkCentralComRFCStore.h"
 #include "rbus.h"
 #include "power_controller.h"
+#include "sysMgr.h"
+#include <string.h>
+#include <pthread.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <stdexcept>
+
+bool g_pthread_create_fail = false;
+bool g_malloc_fail = false;
+bool g_gettimeofday_fail = false;
+bool g_socket_fail = false;
+bool g_ioctl_success = false;
+bool g_ioctl_throw = false;
+int g_v_secure_system_result = -1;
+namespace device {
+dsError_t g_enable_le_config_result = dsERR_NONE;
+bool g_enable_le_config_throw = false;
+}
+
+extern "C" {
+int __real_pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                          void *(*start_routine)(void *), void *arg);
+void *__real_malloc(size_t size);
+
+void *__wrap_malloc(size_t size)
+{
+    if (g_malloc_fail)
+        return NULL;
+    return __real_malloc(size);
+}
+
+int __real_gettimeofday(struct timeval *tv, struct timezone *tz);
+
+int __wrap_gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+    if (g_gettimeofday_fail)
+        return -1;
+    return __real_gettimeofday(tv, tz);
+}
+
+int __wrap_v_secure_system(const char *format, ...)
+{
+    return g_v_secure_system_result;
+}
+
+int __real_socket(int domain, int type, int protocol);
+
+int __wrap_socket(int domain, int type, int protocol)
+{
+    if (g_socket_fail)
+        return -1;
+    return __real_socket(domain, type, protocol);
+}
+
+int __real_ioctl(int fd, unsigned long request, ...);
+
+int __wrap_ioctl(int fd, unsigned long request, void *arg)
+{
+    if (g_ioctl_throw)
+        throw std::runtime_error("ioctl failure");
+    if (g_ioctl_success)
+    {
+        struct ifreq *interfaceRequest = static_cast<struct ifreq *>(arg);
+        const unsigned char mac[] = {0x02, 0x11, 0x22, 0x33, 0x44, 0x55};
+        memcpy(interfaceRequest->ifr_hwaddr.sa_data, mac, sizeof(mac));
+        return 0;
+    }
+    return __real_ioctl(fd, request, arg);
+}
+
+int __wrap_pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                          void *(*start_routine)(void *), void *arg)
+{
+    if (g_pthread_create_fail)
+        return EAGAIN;
+    return __real_pthread_create(thread, attr, start_routine, arg);
+}
+} /* extern "C" */
+
+IARM_Result_t g_iarm_bus_call_result = IARM_RESULT_SUCCESS;
+IARM_Result_t g_iarm_broadcast_event_result = IARM_RESULT_SUCCESS;
+extern rbusError_t g_rbus_event_publish_result;
+uint32_t g_powerctrl_get_state_result = POWER_CONTROLLER_ERROR_NONE;
+char g_iarm_stub_serial_payload[128] = "STB-UNITTEST-SN";
+char g_iarm_stub_hwver_payload[128] = "";
+char g_iarm_stub_provisioning_payload[128] = "";
+char g_iarm_stub_swver_payload[128] = "";
 
 #ifdef PARODUS
 rbusHandle_t rbusHandle = NULL;
@@ -76,7 +168,7 @@ void setValues(const ParamVal paramVal[], const unsigned int paramCount, const W
 #endif
 IARM_Result_t IARM_Bus_BroadcastEvent(const char *ownerName, IARM_EventId_t eventId, void *arg, size_t argLen)
 {
-    return IARM_RESULT_SUCCESS;
+    return g_iarm_broadcast_event_result;
 }
 
 IARM_Result_t IARM_Bus_Init(const char* name)
@@ -111,7 +203,37 @@ IARM_Result_t IARM_Bus_RemoveEventHandler(const char* ownerName, IARM_EventId_t 
 
 IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void* arg, size_t argLen)
 {
-    return IARM_RESULT_SUCCESS;
+    if (arg && methodName && (strcmp(methodName, IARM_BUS_SYSMGR_API_GetSystemStates) == 0))
+    {
+        IARM_Bus_SYSMgr_GetSystemStates_Param_t* sysParam = (IARM_Bus_SYSMgr_GetSystemStates_Param_t*)arg;
+        strncpy(sysParam->stb_serial_no.payload, g_iarm_stub_serial_payload, sizeof(sysParam->stb_serial_no.payload) - 1);
+        sysParam->stb_serial_no.payload[sizeof(sysParam->stb_serial_no.payload) - 1] = '\0';
+    }
+
+    if (arg && methodName && (strcmp(methodName, IARM_BUS_MFRLIB_API_GetSerializedData) == 0))
+    {
+        IARM_Bus_MFRLib_GetSerializedData_Param_t* mfrParam = (IARM_Bus_MFRLib_GetSerializedData_Param_t*)arg;
+        if (mfrParam->type == mfrSERIALIZED_TYPE_HARDWAREVERSION)
+        {
+            strncpy(mfrParam->buffer, g_iarm_stub_hwver_payload, sizeof(mfrParam->buffer) - 1);
+            mfrParam->buffer[sizeof(mfrParam->buffer) - 1] = '\0';
+            mfrParam->bufLen = strlen(mfrParam->buffer);
+        }
+        else if (mfrParam->type == mfrSERIALIZED_TYPE_PROVISIONINGCODE)
+        {
+            strncpy(mfrParam->buffer, g_iarm_stub_provisioning_payload, sizeof(mfrParam->buffer) - 1);
+            mfrParam->buffer[sizeof(mfrParam->buffer) - 1] = '\0';
+            mfrParam->bufLen = strlen(mfrParam->buffer);
+        }
+        else if (mfrParam->type == mfrSERIALIZED_TYPE_SOFTWAREVERSION)
+        {
+            strncpy(mfrParam->buffer, g_iarm_stub_swver_payload, sizeof(mfrParam->buffer) - 1);
+            mfrParam->buffer[sizeof(mfrParam->buffer) - 1] = '\0';
+            mfrParam->bufLen = strlen(mfrParam->buffer);
+        }
+    }
+
+    return g_iarm_bus_call_result;
 }
 
 
@@ -142,7 +264,7 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
 
 uint32_t PowerController_GetPowerState(PowerController_PowerState_t* currentState, PowerController_PowerState_t* previousState)
 {
-    return POWER_CONTROLLER_ERROR_NONE;
+    return g_powerctrl_get_state_result;
 }
 
 rbusValue_t rbusValue_Init(rbusValue_t* value)
@@ -215,11 +337,13 @@ const char* rbusError_ToString(rbusError_t e)
   return s;
 }
 
+rbusError_t g_rbus_event_publish_result = RBUS_ERROR_SUCCESS;
+
 rbusError_t  rbusEvent_Publish(
     rbusHandle_t handle,
     rbusEvent_t* eventData)
 {
-    return RBUS_ERROR_SUCCESS;
+    return g_rbus_event_publish_result;
 }
 
 rbusObject_t rbusObject_Init(rbusObject_t* object, char const* value)
