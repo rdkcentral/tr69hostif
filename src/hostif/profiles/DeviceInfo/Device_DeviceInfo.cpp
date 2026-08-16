@@ -3971,51 +3971,55 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
 
 int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
 {
-    const char* logChronoDir = "/opt/secure/RFC/LogChrono";
-    std::string logChronoEnableStr;
+    int ret = NOK;
+    bool enable;
     LOG_ENTRY_EXIT;
 
-    if(stMsgData == NULL)
+    if(stMsgData->paramtype == hostIf_BooleanType)
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] stMsgData is NULL\n", __FUNCTION__, __LINE__);
-        return NOK;
+        enable = get_boolean(stMsgData->paramValue);
+        if(enable)
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to true\n", __FUNCTION__);
+            ofstream ofp(LOGCHRONO_ENABLE_FILE);
+            if(ofp.is_open())
+            {
+                ret = OK;
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to create File %s, LogChrono.Enable is unchanged\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to false\n", __FUNCTION__);
+            ifstream ifp(LOGCHRONO_ENABLE_FILE);
+            if(ifp.is_open())
+            {
+                ifp.close();
+                if(remove(LOGCHRONO_ENABLE_FILE) == 0)
+                {
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Removed File %s, LogChrono is disabled\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                    ret = OK;
+                }
+                else
+                {
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to remove File %s, LogChrono.Enable is unchanged\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                }
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] File %s is already removed, LogChrono is disabled already\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                ret = OK;
+            }
+        }
     }
-
-    logChronoEnableStr = getStringValue(stMsgData);
-
-    if (logChronoEnableStr.empty() ||
-        !strcasecmp(logChronoEnableStr.c_str(), "false") ||
-        !strcmp(logChronoEnableStr.c_str(), "0"))
+    else
     {
-        if(remove(LOGCHRONO_ENABLE_FILE) != 0 && errno != ENOENT)
-        {
-            RDK_LOG(RDK_LOG_WARN,LOG_TR69HOSTIF,"[%s:%d] Failed to remove file %s: %s\n", __FUNCTION__, __LINE__, LOGCHRONO_ENABLE_FILE, strerror(errno));
-        }
-        return OK;
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
     }
-
-    if (!strcasecmp(logChronoEnableStr.c_str(), "true") ||
-        !strcmp(logChronoEnableStr.c_str(), "1"))
-    {
-        if(mkdir(logChronoDir, 0755) != 0 && errno != EEXIST)
-        {
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed to create %s: %s\n", __FUNCTION__, __LINE__, logChronoDir, strerror(errno));
-            return NOK;
-        }
-
-        ofstream ofs(LOGCHRONO_ENABLE_FILE, std::ios::out | std::ios::trunc);
-        if(!ofs.is_open())
-        {
-            RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Unable to create file %s\n", __FUNCTION__, __LINE__, LOGCHRONO_ENABLE_FILE);
-            return NOK;
-        }
-        ofs << "true";
-        ofs.close();
-        return OK;
-    }
-
-    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Invalid value for %s: %s\n", __FUNCTION__, __LINE__, stMsgData->paramName, logChronoEnableStr.c_str());
-    return NOK;
+    return ret;
 }
 
 int hostIf_DeviceInfo::get_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
