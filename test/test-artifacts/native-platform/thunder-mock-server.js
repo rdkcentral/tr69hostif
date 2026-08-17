@@ -151,6 +151,140 @@ const mockResponses = {
     result: { resetTime: 1717000000 },
     description: 'Last checkout reset timestamp',
   },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STBService Thunder APIs - DisplaySettings (Audio)
+  // ───────────────────────────────────────────────────────────────────────────
+  'org.rdk.DisplaySettings.getSupportedAudioPorts': {
+    result: { supportedAudioPorts: ['HDMI0', 'SPEAKER0', 'SPDIF0'] },
+    description: 'List of available audio output ports',
+  },
+  'org.rdk.DisplaySettings.getEnableAudioPort': {
+    result: { enable: true },
+    description: 'Audio port enabled status',
+  },
+  'org.rdk.DisplaySettings.getMuted': {
+    result: { muted: false },
+    description: 'Audio mute status',
+  },
+  'org.rdk.DisplaySettings.getVolumeLevel': {
+    result: { volumeLevel: 50 },
+    description: 'Current audio volume level',
+  },
+  'org.rdk.DisplaySettings.getAudioEncoding': {
+    result: { encoding: 'PCM' },
+    description: 'Current audio encoding format',
+  },
+  'org.rdk.DisplaySettings.getSoundMode': {
+    result: { soundMode: 'SURROUND' },
+    description: 'Current audio sound mode',
+  },
+  'org.rdk.DisplaySettings.getMS12AudioCompression': {
+    result: { compressionlevel: 0 },
+    description: 'MS12 audio compression level',
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STBService Thunder APIs - DisplaySettings (Video)
+  // ───────────────────────────────────────────────────────────────────────────
+  'org.rdk.DisplaySettings.getSupportedVideoPorts': {
+    result: { supportedVideoPorts: ['HDMI0'] },
+    description: 'List of available video output ports',
+  },
+  'org.rdk.DisplaySettings.getSupportedVideoDisplays': {
+    result: { supportedVideoDisplays: ['HDMI0'] },
+    description: 'List of available video displays (for HDMI component)',
+  },
+  'org.rdk.DisplaySettings.getEnableVideoPort': {
+    result: { enable: true },
+    description: 'Video port enabled status',
+  },
+  'org.rdk.DisplaySettings.getCurrentResolution': {
+    result: { resolution: '1080p' },
+    description: 'Current video resolution',
+  },
+  'org.rdk.DisplaySettings.getSupportedResolutions': {
+    result: { supportedResolutions: ['480p', '720p', '1080p', '2160p60'] },
+    description: 'Supported video resolutions',
+  },
+  'org.rdk.DisplaySettings.getDefaultResolution': {
+    result: { defaultResolution: '1080p' },
+    description: 'Default/preferred resolution',
+  },
+  'org.rdk.DisplaySettings.getDisplayAspectRatio': {
+    result: { aspectRatio: '16x9' },
+    description: 'Display aspect ratio',
+  },
+  'org.rdk.DisplaySettings.readEDID': {
+    result: { EDID: 'AP///////wBQrDYBAAAAAAwXAQSlOSJ4CvCVoVdTnCYPUFQAAAABAQEBAQEBAQEBAQEBAQEB3iGgcFCEHzAgOCUIAClHAAAeAAAA/QAyTBFEH4AgIAkQCQAKAAAA/ABERUxMCgAgAAAAAD9BUzEzMgogICAgAAAAAEE=' },
+    description: 'EDID data from connected display',
+  },
+  'org.rdk.DisplaySettings.getZoomSetting': {
+    result: { zoomSetting: 'Full' },
+    description: 'Current zoom/aspect ratio setting (Full, None, etc.)',
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STBService Thunder APIs - DisplayInfo
+  // ───────────────────────────────────────────────────────────────────────────
+  'DisplayInfo.1.connected': {
+    result: true,
+    description: 'Display connection status (property-style boolean)',
+  },
+  'DisplayInfo.1.framerate': {
+    result: 'Framerate6000',
+    description: 'Current display framerate (property-style string: FramerateXXXX where XXXX/100 = Hz)',
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STBService Thunder APIs - PowerManager
+  // ───────────────────────────────────────────────────────────────────────────
+  'org.rdk.PowerManager.GetPowerState': {
+    result: { currentState: 'ON', success: true },
+    description: 'System power state (currentState: ON/STANDBY/LIGHT_SLEEP/DEEP_SLEEP)',
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STBService Thunder APIs - AVOutput
+  // ───────────────────────────────────────────────────────────────────────────
+  'org.rdk.AVOutput.getZoomMode': {
+    result: { zoomMode: 'Full' },
+    description: 'Video zoom/aspect ratio behavior',
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STBService Thunder APIs - HdcpProfile
+  // ───────────────────────────────────────────────────────────────────────────
+  'org.rdk.HdcpProfile.getHDCPStatus': {
+    result: {
+      HDCPStatus: { isConnected: true, isHDCPCompliant: true, isHDCPEnabled: true,
+                    hdcpReason: 2, supportedHDCPVersion: '2.2', receiverHDCPVersion: '2.2', currentHDCPVersion: '2.2' },
+      success: true,
+    },
+    description: 'HDCP connection and compliance status',
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // STBService Thunder APIs - Capabilities
+  // ───────────────────────────────────────────────────────────────────────────
+  'org.rdk.DisplaySettings.getSupportedVideoCodingFormats': {
+    result: { supportedVideoCodingFormats: ['H264', 'MPEG2', 'HEVC'] },
+    description: 'Supported video codec formats',
+  },
+  'org.rdk.DisplaySettings.getVideoCodecInfo': {
+    result: {
+      numberOfEntries: 2,
+      entries: [
+        { profile: 'Main', level: 5.1 },
+        { profile: 'Main10', level: 5.1 }
+      ]
+    },
+    description: 'HEVC (MPEGH-Part2) codec profile/level capabilities',
+  },
+  'org.rdk.DisplaySettings.getSupportedSettopResolutions': {
+    result: { supportedSettopResolutions: ['480p', '720p', '1080p', '2160p60'] },
+    description: 'Supported set-top box output resolutions',
+  },
 };
 
 /**
