@@ -40,6 +40,8 @@
 
 #include <cmath>
 #include <cstring>
+#include <cstdio>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/sysinfo.h>
@@ -136,6 +138,7 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
+#define LOGCHRONO_ENABLE_FILE "/opt/secure/RFC/LogChrono/LogChrono_enabled"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
@@ -3839,6 +3842,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
+    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
+    {
+        ret = set_xRDKCentralComRFCLogChronoEnable(stMsgData);
+    }
     return ret;
 }
 
@@ -3959,6 +3966,75 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    bool enable;
+    LOG_ENTRY_EXIT;
+
+    if(stMsgData->paramtype == hostIf_BooleanType)
+    {
+        enable = get_boolean(stMsgData->paramValue);
+        if(enable)
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to true\n", __FUNCTION__);
+            ofstream ofp(LOGCHRONO_ENABLE_FILE);
+            if(ofp.is_open())
+            {
+                ret = OK;
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to create File %s, LogChrono.Enable is unchanged\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to false\n", __FUNCTION__);
+            ifstream ifp(LOGCHRONO_ENABLE_FILE);
+            if(ifp.is_open())
+            {
+                ifp.close();
+                if(remove(LOGCHRONO_ENABLE_FILE) == 0)
+                {
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Removed File %s, LogChrono is disabled\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                    ret = OK;
+                }
+                else
+                {
+                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to remove File %s, LogChrono.Enable is unchanged\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                }
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] File %s is already removed, LogChrono is disabled already\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                ret = OK;
+            }
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
+    }
+    return ret;
+}
+
+int hostIf_DeviceInfo::get_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    if(stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] stMsgData is NULL\n", __FUNCTION__, __LINE__);
+        return NOK;
+    }
+
+    stMsgData->paramtype = hostIf_BooleanType;
+    bool isEnabled = (access(LOGCHRONO_ENABLE_FILE, F_OK) == 0) ? true : false;
+    put_boolean(stMsgData->paramValue, isEnabled);
+    stMsgData->paramLen = sizeof(bool);
+    stMsgData->faultCode = fcNoFault;
+    return OK;
+}
+
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
     return m_bsStore->getValue(stMsgData);
@@ -3990,7 +4066,10 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
             m_rfcStorage.setValue(stMsgData);
         }
     }
-
+    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
+    {
+        ret = get_xRDKCentralComRFCLogChronoEnable(stMsgData);
+    }
     return ret;
 }
 
