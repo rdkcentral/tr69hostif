@@ -57,6 +57,8 @@ void hostIf_STBServiceHDMI::buildPortNameHash()
             THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, "{}", "supportedVideoDisplays", ",", delimitedPorts))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Failed to get video displays\n", __FUNCTION__, __LINE__);
+        g_hash_table_destroy(ifHash);
+        ifHash = NULL;
         return;
     }
 
@@ -78,9 +80,31 @@ void hostIf_STBServiceHDMI::buildPortNameHash()
 
 hostIf_STBServiceHDMI* hostIf_STBServiceHDMI::getInstance(int dev_id)
 {
-    if (!ifHash) buildPortNameHash();
+    if (!ifHash) {
+        buildPortNameHash();
+        if (!ifHash) {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%s:%d]: HDMI hash not initialized (Thunder may be inactive)\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+            return NULL;
+        }
+    }
+
     hostIf_STBServiceHDMI *pRet =
         (hostIf_STBServiceHDMI*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+
+    if (!pRet)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s:%s:%d]: Retry HDMI hash build for dev_id=%d\n",
+                __FILE__, __FUNCTION__, __LINE__, dev_id);
+        buildPortNameHash();
+        if (ifHash)
+        {
+            pRet = (hostIf_STBServiceHDMI*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+        }
+    }
+
     if (!pRet)
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%s:%d]: No instance for dev_id=%d\n",
                 __FILE__, __FUNCTION__, __LINE__, dev_id);
