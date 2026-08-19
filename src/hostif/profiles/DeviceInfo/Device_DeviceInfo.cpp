@@ -141,7 +141,7 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
-#define LOGCHRONO_ENABLE_FILE "/opt/secure/RFC/LogChrono_enabled"
+#define LOGCHRONO_ENABLE_FILE "/opt/secure/RFC/enable_logchrono"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
