@@ -2586,9 +2586,9 @@ int hostIf_DeviceInfo::set_xOpsDMUploadLogsNow (HOSTIF_MsgData_t *stMsgData)
 
     if(triggerUploadLog)
     {
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Triggering log upload via uploadstblogs_run API... \n",__FUNCTION__);
+		RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Start executing script to upload logs... \n",__FUNCTION__);
         triggerUploadLogsNow();
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Log upload triggered successfully. \n",__FUNCTION__);
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully executed Logupload binary \n");
     }
     else
     {
