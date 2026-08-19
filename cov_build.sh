@@ -92,7 +92,6 @@ sh  build_inside_container.sh
 
 cd $ROOT
 cd dcm-agent
-git checkout feature/RDKEMW-22385
 autoreconf -i
 ./configure
 cp uploadstblogs/include/*.h /usr/local/include
