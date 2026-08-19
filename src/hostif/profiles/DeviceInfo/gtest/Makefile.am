@@ -37,5 +37,6 @@ devieInfo_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/
 devieInfo_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 devieInfo_gtest_LDADD = $(COMMON_LDADD)
 devieInfo_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+devieInfo_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl
 
 
