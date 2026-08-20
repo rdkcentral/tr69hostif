@@ -354,53 +354,67 @@ int hostIf_DeviceInfo::updateSecureDebugState(void)
     HOSTIF_MsgData_t deviceType = {};
     FILE *fp = NULL;
     int state = 0;
-    int ret = NOK;
+    int dbgServicesRet = NOK;
+    int deviceTypeRet = NOK;
+    bool dbgServicesEnabled = false;
 
     strncpy(dbgServices.paramName, RFC_DBG_SERVICES, sizeof(dbgServices.paramName) - 1);
     strncpy(deviceType.paramName, RFC_DEVICE_TYPE, sizeof(deviceType.paramName) - 1);
 
+    dbgServices.paramtype = hostIf_BooleanType;
+    deviceType.paramtype = hostIf_StringType;
+
+#ifndef NEW_HTTP_SERVER_DISABLE
     if (!legacyRFCEnabled())
     {
-        if ((m_rfcStore->getValue(&dbgServices) != OK) || (m_rfcStore->getValue(&deviceType) != OK))
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to read secure debug RFC values\n", __FUNCTION__);
-            return NOK;
-        }
+        dbgServicesRet = m_rfcStore->getValue(&dbgServices);
+        deviceTypeRet = m_rfcStore->getValue(&deviceType);
     }
     else
     {
-        if ((m_rfcStorage.getValue(&dbgServices) != OK) || (m_rfcStorage.getValue(&deviceType) != OK))
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to read secure debug RFC values\n", __FUNCTION__);
-            return NOK;
-        }
+        dbgServicesRet = m_rfcStorage.getValue(&dbgServices);
+        deviceTypeRet = m_rfcStorage.getValue(&deviceType);
     }
+#else
+    dbgServicesRet = m_rfcStorage.getValue(&dbgServices);
+    deviceTypeRet = m_rfcStorage.getValue(&deviceType);
+#endif
 
-    if ((strcasecmp((char *)dbgServices.paramValue, "true") == 0) && (strcasecmp((char *)deviceType.paramValue, "test") == 0))
+    if ((dbgServicesRet == OK) && (deviceTypeRet == OK))
     {
-        state = 1;
+        dbgServicesEnabled = get_boolean(dbgServices.paramValue);
+
+        if (dbgServicesEnabled && (strcasecmp(deviceType.paramValue, "test") == 0))
+        {
+            state = 1;
+        }
+
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] DbgServices=%s DeviceType=%s SecureDebugState=%d\n", __FUNCTION__, dbgServicesEnabled ? "true" : "false", deviceType.paramValue, state);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read secure debug RFC values. DbgServicesRet=%d DeviceTypeRet=%d. Defaulting state to 0\n", __FUNCTION__, dbgServicesRet, deviceTypeRet);
     }
 
     fp = fopen(DBG_SERVICES_STATE_FILE, "w");
     if (fp == NULL)
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to open %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to open %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
         return NOK;
     }
 
     if (fprintf(fp, "%d\n", state) < 0)
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to write %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE);
         fclose(fp);
         return NOK;
     }
 
     fclose(fp);
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: dbgServices=%s deviceType=%s state=%d\n", __FUNCTION__, dbgServices.paramValue, deviceType.paramValue, state);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Updated %s with value %d\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, state);
 
-    ret = OK;
-    return ret;
+    return OK;
 }
 
 /**
