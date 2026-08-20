@@ -316,8 +316,7 @@ class hostIf_DeviceInfo {
     int set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *);
 
     int updateSecureDebugState(void);
-    int set_xRDKCentralComRFCDbgServices(HOSTIF_MsgData_t *stMsgData);
-    int set_xRDKCentralComRFCDeviceType(HOSTIF_MsgData_t *stMsgData);
+    int set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData);
 
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);
