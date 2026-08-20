@@ -396,10 +396,18 @@ int hostIf_DeviceInfo::updateSecureDebugState(void)
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read secure debug RFC values. DbgServicesRet=%d DeviceTypeRet=%d. Defaulting state to 0\n", __FUNCTION__, dbgServicesRet, deviceTypeRet);
     }
 
-    fp = fopen(DBG_SERVICES_STATE_FILE, "w");
-    if (fp == NULL)
+    int fd = open(DBG_SERVICES_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd < 0)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to open %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        return NOK;
+    }
+
+    fp = fdopen(fd, "w");
+    if (fp == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to convert fd to stream for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        close(fd);
         return NOK;
     }
 
