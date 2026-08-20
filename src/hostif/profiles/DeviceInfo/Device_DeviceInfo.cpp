@@ -137,6 +137,8 @@
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
 
+#define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
+
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
 
@@ -344,6 +346,61 @@ GHashTable*  hostIf_DeviceInfo::getNotifyHash()
     {
         return m_notifyHash = g_hash_table_new(g_str_hash, g_str_equal);
     }
+}
+
+int hostIf_DeviceInfo::updateSecureDebugState(void)
+{
+    HOSTIF_MsgData_t dbgServices = {};
+    HOSTIF_MsgData_t deviceType = {};
+    FILE *fp = NULL;
+    int state = 0;
+    int ret = NOK;
+
+    strncpy(dbgServices.paramName, RFC_DBG_SERVICES, sizeof(dbgServices.paramName) - 1);
+    strncpy(deviceType.paramName, RFC_DEVICE_TYPE, sizeof(deviceType.paramName) - 1);
+
+    if (!legacyRFCEnabled())
+    {
+        if ((m_rfcStore->getValue(&dbgServices) != OK) || (m_rfcStore->getValue(&deviceType) != OK))
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to read secure debug RFC values\n", __FUNCTION__);
+            return NOK;
+        }
+    }
+    else
+    {
+        if ((m_rfcStorage.getValue(&dbgServices) != OK) || (m_rfcStorage.getValue(&deviceType) != OK))
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to read secure debug RFC values\n", __FUNCTION__);
+            return NOK;
+        }
+    }
+
+    if ((strcasecmp((char *)dbgServices.paramValue, "true") == 0) && (strcasecmp((char *)deviceType.paramValue, "test") == 0))
+    {
+        state = 1;
+    }
+
+    fp = fopen(DBG_SERVICES_STATE_FILE, "w");
+    if (fp == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to open %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE);
+        return NOK;
+    }
+
+    if (fprintf(fp, "%d\n", state) < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "%s: Failed to write %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE);
+        fclose(fp);
+        return NOK;
+    }
+
+    fclose(fp);
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "%s: dbgServices=%s deviceType=%s state=%d\n", __FUNCTION__, dbgServices.paramValue, deviceType.paramValue, state);
+
+    ret = OK;
+    return ret;
 }
 
 /**
@@ -3644,6 +3701,16 @@ int hostIf_DeviceInfo::sendDeviceMgtNotification(const char* source, const char*
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        return NOK;
+    }
+
+    return updateSecureDebugState();
+}
+
 int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
@@ -3839,6 +3906,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
+	else if ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE)))
+	{
+    	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
+	}
     return ret;
 }
 
