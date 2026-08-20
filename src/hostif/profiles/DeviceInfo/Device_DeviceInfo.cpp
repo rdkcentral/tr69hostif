@@ -3719,9 +3719,11 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *s
 {
     if (stMsgData == NULL)
     {
+		RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] stMsgData is NULL\n", __FUNCTION__);
         return NOK;
     }
 
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Secure debug RFC updated: %s\n", __FUNCTION__, stMsgData->paramName);
     return updateSecureDebugState();
 }
 
