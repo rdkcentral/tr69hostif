@@ -213,6 +213,9 @@
 #define HOTEL_CHECKOUT_LAST_RESET_TIME                  "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.LastResetTime"
 #define HOTEL_CHECKOUT_STATUS                           "Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout.Status"
 
+/* Profile: X_RDKCENTRAL-COM_RFC.Identity */
+#define RFC_DBG_SERVICES                                "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable"
+#define RFC_DEVICE_TYPE                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType"
 
 char* getLastField(char* line, char delimiter);
 
@@ -309,6 +312,9 @@ class hostIf_DeviceInfo {
 
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *);
+
+    int updateSecureDebugState(void);
+    int set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData);
 
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);

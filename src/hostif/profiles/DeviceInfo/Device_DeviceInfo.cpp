@@ -133,6 +133,8 @@
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
 
+#define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
+
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
 
@@ -340,6 +342,83 @@ GHashTable*  hostIf_DeviceInfo::getNotifyHash()
     {
         return m_notifyHash = g_hash_table_new(g_str_hash, g_str_equal);
     }
+}
+
+int hostIf_DeviceInfo::updateSecureDebugState(void)
+{
+    HOSTIF_MsgData_t dbgServices = {};
+    HOSTIF_MsgData_t deviceType = {};
+    FILE *fp = NULL;
+    int state = 0;
+    int dbgServicesRet = NOK;
+    int deviceTypeRet = NOK;
+    bool dbgServicesEnabled = false;
+
+    strncpy(dbgServices.paramName, RFC_DBG_SERVICES, sizeof(dbgServices.paramName) - 1);
+    strncpy(deviceType.paramName, RFC_DEVICE_TYPE, sizeof(deviceType.paramName) - 1);
+
+    dbgServices.paramtype = hostIf_BooleanType;
+    deviceType.paramtype = hostIf_StringType;
+
+#ifndef NEW_HTTP_SERVER_DISABLE
+    if (!legacyRFCEnabled())
+    {
+        dbgServicesRet = m_rfcStore->getValue(&dbgServices);
+        deviceTypeRet = m_rfcStore->getValue(&deviceType);
+    }
+    else
+    {
+        dbgServicesRet = m_rfcStorage.getValue(&dbgServices);
+        deviceTypeRet = m_rfcStorage.getValue(&deviceType);
+    }
+#else
+    dbgServicesRet = m_rfcStorage.getValue(&dbgServices);
+    deviceTypeRet = m_rfcStorage.getValue(&deviceType);
+#endif
+
+    if ((dbgServicesRet == OK) && (deviceTypeRet == OK))
+    {
+        dbgServicesEnabled = get_boolean(dbgServices.paramValue);
+
+        if (dbgServicesEnabled && (strcasecmp(deviceType.paramValue, "test") == 0))
+        {
+            state = 1;
+        }
+
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] DbgServices=%s DeviceType=%s SecureDebugState=%d\n", __FUNCTION__, dbgServicesEnabled ? "true" : "false", deviceType.paramValue, state);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read secure debug RFC values. DbgServicesRet=%d DeviceTypeRet=%d. Defaulting state to 0\n", __FUNCTION__, dbgServicesRet, deviceTypeRet);
+    }
+
+    int fd = open(DBG_SERVICES_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to open %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        return NOK;
+    }
+
+    fp = fdopen(fd, "w");
+    if (fp == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to convert fd to stream for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        close(fd);
+        return NOK;
+    }
+
+    if (fprintf(fp, "%d\n", state) < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE);
+        fclose(fp);
+        return NOK;
+    }
+
+    fclose(fp);
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Updated %s with value %d\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, state);
+
+    return OK;
 }
 
 /**
@@ -3622,6 +3701,18 @@ int hostIf_DeviceInfo::sendDeviceMgtNotification(const char* source, const char*
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+		RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] stMsgData is NULL\n", __FUNCTION__);
+        return NOK;
+    }
+
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Secure debug RFC updated: %s\n", __FUNCTION__, stMsgData->paramName);
+    return updateSecureDebugState();
+}
+
 int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
@@ -3813,6 +3904,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
+	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
+	{
+    	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
+	}
     return ret;
 }
 
