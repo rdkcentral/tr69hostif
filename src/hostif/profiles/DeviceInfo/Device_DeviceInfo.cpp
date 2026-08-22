@@ -92,6 +92,7 @@
 #endif
 
 #include "secure_wrapper.h"
+#include "uploadstblogs.h"
 
 #ifdef USE_MoCA_PROFILE
 #include "Device_MoCA_Interface.h"
@@ -2533,6 +2534,27 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadURL (
     return OK;
 }
 
+static void triggerUploadLogsNow()
+{
+    UploadSTBLogsParams params = {0};
+    params.flag = 1;
+    params.dcm_flag = 1;
+    params.upload_on_reboot = true;
+    params.upload_protocol = NULL;
+    params.upload_http_link = NULL;
+    params.trigger_type = TRIGGER_ONDEMAND;
+    params.rrd_flag = false;
+    params.rrd_file = NULL;
+    params.uploadlogsnow_mode = true;
+
+    int result = uploadstblogs_run(&params);
+    if (result != 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] uploadstblogs_run failed with code %d\n", __FUNCTION__, result);
+    } else {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] uploadstblogs_run completed successfully\n", __FUNCTION__);
+    }
+}
+
 int hostIf_DeviceInfo::set_xOpsDMUploadLogsNow (HOSTIF_MsgData_t *stMsgData)
 {
     bool triggerUploadLog  = false;
@@ -2542,10 +2564,9 @@ int hostIf_DeviceInfo::set_xOpsDMUploadLogsNow (HOSTIF_MsgData_t *stMsgData)
 
     if(triggerUploadLog)
     {
-        /*@ TODO: Execute the script;*/
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Start executing script to upload logs... \n",__FUNCTION__);
-        v_secure_system(LOG_UPLOAD_SCR);
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully executed %s. \n", LOG_UPLOAD_SCR);
+		RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Start executing script to upload logs... \n",__FUNCTION__);
+        triggerUploadLogsNow();
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully executed Logupload binary \n");
     }
     else
     {
