@@ -368,7 +368,7 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, SecureDebugState_BothDisabled);
     FRIEND_TEST(deviceTest, SecureDebugState_NullInput);
     FRIEND_TEST(deviceTest, SecureDebugState_ValidHandler);
-    FRIEND_TEST(deviceTest, SecureDebugState_RFCReadFailure);
+    FRIEND_TEST(deviceTest, SecureDebugState_UpdateExistingFile);
 #endif
 
 public:

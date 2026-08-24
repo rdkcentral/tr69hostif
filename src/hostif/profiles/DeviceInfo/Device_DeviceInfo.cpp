@@ -396,10 +396,18 @@ int hostIf_DeviceInfo::updateSecureDebugState(void)
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read secure debug RFC values. DbgServicesRet=%d DeviceTypeRet=%d. Defaulting state to 0\n", __FUNCTION__, dbgServicesRet, deviceTypeRet);
     }
 
-    int fd = open(DBG_SERVICES_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    int fd = open(DBG_SERVICES_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
     if (fd < 0)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to open %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        return NOK;
+    }
+
+    if (fchmod(fd, 0644) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to set permissions for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        close(fd);
         return NOK;
     }
 

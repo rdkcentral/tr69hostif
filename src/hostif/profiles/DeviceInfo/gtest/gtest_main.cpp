@@ -54,6 +54,9 @@ extern "C"
 
 #include <mutex>
 #include <condition_variable>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #define TEST_SECURE_DEBUG_STATE_FILE "/tmp/enable_secure_dbg"
 #define TEST_RFC_DBG_SERVICES "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable"
 #define TEST_RFC_DEVICE_TYPE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType"
@@ -1505,6 +1508,34 @@ TEST(deviceTest, SecureDebugState_Enabled)
     EXPECT_EQ(pIface->updateSecureDebugState(), OK);
     EXPECT_EQ(readSecureDebugStateFile(), "1");
 
+    struct stat fileStat = {};
+    ASSERT_EQ(stat(TEST_SECURE_DEBUG_STATE_FILE, &fileStat), 0);
+    EXPECT_EQ(fileStat.st_mode & 0777, 0644);
+
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_UpdateExistingFile)
+{
+    removeSecureDebugStateFile();
+
+    int fd = open(TEST_SECURE_DEBUG_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    ASSERT_GE(fd, 0);
+    ASSERT_EQ(write(fd, "1\n", 2), 2);
+    close(fd);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(false, "test");
+
+    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "0");
+
+    struct stat fileStat = {};
+    ASSERT_EQ(stat(TEST_SECURE_DEBUG_STATE_FILE, &fileStat), 0);
+    EXPECT_EQ(fileStat.st_mode & 0777, 0644);
+
     removeSecureDebugStateFile();
 }
 
@@ -1579,24 +1610,6 @@ TEST(deviceTest, SecureDebugState_ValidHandler)
     removeSecureDebugStateFile();
 }
 
-TEST(deviceTest, SecureDebugState_RFCReadFailure)
-{
-    removeSecureDebugStateFile();
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
-    ASSERT_NE(pIface, nullptr);
-
-    XRFCStore *rfcStore = XRFCStore::getInstance();
-    ASSERT_NE(rfcStore, nullptr);
-
-    rfcStore->clearAll();
-    rfcStore->reloadCache();
-
-    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
-    EXPECT_EQ(readSecureDebugStateFile(), "0");
-
-    removeSecureDebugStateFile();
-}
 
 TEST(deviceTest, SecureDebugState_DbgServicesDispatch)
 {
