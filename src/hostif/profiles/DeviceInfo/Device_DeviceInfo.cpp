@@ -4014,6 +4014,11 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_t value, preValue, byVal;
     rbusEvent_t event = {0};
     rbusObject_t data;
+    //start distributed trace
+    rdk_otlp_start_distributed_trace(RRD_SET_ISSUE_EVENT, "publish");
+
+    const char* tp = rdk_otlp_get_current_traceparent();
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Publishing traceparent is %s \n",__FUNCTION__, tp ? tp : "(none - is tracing enabled?)");
 
     rbusValue_Init(&value);
     rbusValue_Init(&preValue);
@@ -4047,6 +4052,8 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_Release(preValue);
     rbusValue_Release(byVal);
     rbusObject_Release(data);
+    //finish the distributed_trace
+    rdk_otlp_finish_distributed_trace();
     free(issueStr);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
 
