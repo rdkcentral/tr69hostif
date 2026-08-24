@@ -141,7 +141,7 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
-#define LOGCHRONO_ENABLE_FILE "/opt/secure/RFC/enable_logchrono"
+#define LOGCHRONO_DISABLE_FILE "/opt/secure/RFC/disable_logchrono"
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
@@ -3981,36 +3981,30 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *st
         if(enable)
         {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to true\n", __FUNCTION__);
-            ofstream ofp(LOGCHRONO_ENABLE_FILE);
-            if(ofp.is_open())
+            if(remove(LOGCHRONO_DISABLE_FILE) != 0 && errno != ENOENT)
             {
-                ret = OK;
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Unable to clear disable logchrono flag %s\n",
+                        __FUNCTION__, LOGCHRONO_DISABLE_FILE);
+                ret = NOK;
             }
             else
             {
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to create File %s, LogChrono.Enable is unchanged\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                ret = OK;
             }
         }
         else
         {
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to false\n", __FUNCTION__);
-            ifstream ifp(LOGCHRONO_ENABLE_FILE);
-            if(ifp.is_open())
+            std::ofstream disableFile(LOGCHRONO_DISABLE_FILE);
+            if(!disableFile.is_open())
             {
-                ifp.close();
-                if(remove(LOGCHRONO_ENABLE_FILE) == 0)
-                {
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Removed File %s, LogChrono is disabled\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
-                    ret = OK;
-                }
-                else
-                {
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to remove File %s, LogChrono.Enable is unchanged\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
-                }
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Unable to create disable logchrono flag %s\n",
+                        __FUNCTION__, LOGCHRONO_DISABLE_FILE);
+                ret = NOK;
             }
             else
             {
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] File %s is already removed, LogChrono is disabled already\n", __FUNCTION__, LOGCHRONO_ENABLE_FILE);
+                disableFile.close();
                 ret = OK;
             }
         }
@@ -4031,7 +4025,7 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *st
     }
 
     stMsgData->paramtype = hostIf_BooleanType;
-    bool isEnabled = (access(LOGCHRONO_ENABLE_FILE, F_OK) == 0) ? true : false;
+    bool isEnabled = (access(LOGCHRONO_DISABLE_FILE, F_OK) == 0) ? true : false;
     put_boolean(stMsgData->paramValue, isEnabled);
     stMsgData->paramLen = sizeof(bool);
     stMsgData->faultCode = fcNoFault;
