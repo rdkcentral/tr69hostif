@@ -898,103 +898,6 @@ TEST(deviceTest, get_Device_DeviceInfo_FirstUseDate_FileRemoved) {
     }
 }
 
-TEST(deviceTest, set_xRDKCentralComXREContainerRFCDisable) {
-    HOSTIF_MsgData_t param;
-    bool bChanged;
-    int instanceNumber = 0;
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_SET;
-    strncpy (param.paramName, "Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-
-    put_boolean(param.paramValue, false);
-    param.paramtype = hostIf_BooleanType;
-    param.paramLen = sizeof(hostIf_BooleanType);
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        bChanged =  false;
-        int ret = pIface->set_xRDKCentralComXREContainerRFCEnable(&param);
-        cout << "param.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, OK);
-    }
-}
-
-TEST(deviceTest, set_xRDKCentralComXREContainerRFCInvalidtype) {
-    HOSTIF_MsgData_t param;
-    bool bChanged;
-    int instanceNumber = 0;
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_SET;
-    strncpy (param.paramName, "Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-
-    strncpy(param.paramValue, "TestName2", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.paramtype = hostIf_StringType;
-    param.paramLen = strlen(param.paramValue);
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        bChanged =  false;
-        int ret = pIface->set_xRDKCentralComXREContainerRFCEnable(&param);
-        cout << "param.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, NOK);
-    }
-}
-
-TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable) {
-    HOSTIF_MsgData_t param;
-    bool bChanged;
-    int instanceNumber = 0;
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_SET;
-    strncpy (param.paramName, "Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-    
-    put_boolean(param.paramValue, true);
-    param.paramtype = hostIf_BooleanType;
-    param.paramLen = sizeof(hostIf_BooleanType);
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        bChanged =  false;
-        int ret = pIface->set_xRDKCentralComXREContainerRFCEnable(&param);
-        cout << "param.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, OK);
-    }
-}
-
-TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable_FileRemoved) {
-    std::remove("/opt/XRE_container_enable");	
-    HOSTIF_MsgData_t param;
-    bool bChanged;
-    int instanceNumber = 0;
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_SET;
-    strncpy (param.paramName, "Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-
-    put_boolean(param.paramValue, false);
-    param.paramtype = hostIf_BooleanType;
-    param.paramLen = sizeof(hostIf_BooleanType);
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        bChanged =  false;
-        int ret = pIface->set_xRDKCentralComXREContainerRFCEnable(&param);
-        cout << "param.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, OK);
-    }
-}
-
 TEST(deviceTest, set_xOpsRPCDevManageableNotification) {
     HOSTIF_MsgData_t param;
     bool bChanged;
@@ -3589,30 +3492,6 @@ TEST(deviceTest, set_xRDKCentralComRFC_RebootStopEnable_AUTOREBOOT)
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
     param.reqType = HOSTIF_SET;
     strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-
-    put_boolean(param.paramValue, true);
-    param.paramtype = hostIf_BooleanType;
-    param.paramLen = sizeof(hostIf_BooleanType);
-
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        int ret = pIface->set_xRDKCentralComRFC(&param);
-        cout << "msgData.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, OK);
-    }
-}
-
-TEST(deviceTest, set_xRDKCentralComRFC_RebootStopEnable_XRE_CONTAINER_RFC_ENABLE)
-{
-    int instanceNumber = 0;
-    bool pChanged;
-    HOSTIF_MsgData_t param = { 0 };
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_SET;
-    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
     param.bsUpdate = HOSTIF_NONE;
     param.requestor = HOSTIF_SRC_RFC;
 

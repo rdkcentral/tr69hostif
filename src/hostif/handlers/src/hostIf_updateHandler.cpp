@@ -29,7 +29,6 @@
 
 #include "hostIf_updateHandler.h"
 #include "hostIf_MoCAClient_ReqHandler.h"
-#include "hostIf_XREClient_ReqHandler.h"
 #include "hostIf_EthernetClient_ReqHandler.h"
 #include "hostIf_IPClient_ReqHandler.h"
 #include "hostIf_TimeClient_ReqHandler.h"
@@ -50,10 +49,6 @@
 #include "hostIf_InterfaceStackClient_ReqHandler.h"
 #endif /* USE_INTFSTACK_PROFILE */
 
-#ifdef USE_XRESRC
-#include "Device_XComcast_Xcalibur_Client_XRE_ConnectionTable.h"
-#endif
-
 #ifdef USE_XRDK_BT_PROFILE
 #include "XrdkBlueTooth.h"
 #endif
@@ -69,7 +64,6 @@ void updateHandler::Init()
     MoCAClientReqHandler::registerUpdateCallback(notifyCallback);
 #endif /*USE_MoCA_PROFILE*/
 
-    /* XREClientReqHandler::registerUpdateCallback(notifyCallback); */
     EthernetClientReqHandler::registerUpdateCallback(notifyCallback);
     /* DSClientReqHandler::registerUpdateCallback(notifyCallback);*/
     IPClientReqHandler::registerUpdateCallback(notifyCallback);
@@ -82,10 +76,6 @@ void updateHandler::Init()
 #ifdef USE_INTFSTACK_PROFILE		
     InterfaceStackClientReqHandler::registerUpdateCallback(notifyCallback);
 #endif /* USE_STORAGESERVICE_PROFILE */	
-
-#ifdef USE_XRESRC
-    XREClientReqHandler::registerUpdateCallback(notifyCallback);
-#endif
 
 #ifdef USE_XRDK_BT_PROFILE
     hostIf_DeviceInfoRdk_xBT::registerUpdateCallback(notifyCallback);
@@ -112,11 +102,6 @@ void updateHandler::reset()
 
 #ifdef USE_INTFSTACK_PROFILE
     InterfaceStackClientReqHandler::reset();
-#endif
-#if 0
-#ifdef USE_XRESRC
-   XREClientReqHandler::reset();
-#endif
 #endif
 #ifdef USE_XRDK_BT_PROFILE
     hostIf_DeviceInfoRdk_xBT::reset();
@@ -148,19 +133,11 @@ gpointer updateHandler::run(gpointer ptr)
         InterfaceStackClientReqHandler::checkForUpdates();
 #endif /* USE_STORAGESERVICE_PROFILE */		
 
-        /* No need to update now, since it has one instances */
-        /*XREClientReqHandler::checkForUpdates();*/
-
         /* Here no need to add event by agent. The agent will not
          * be responsible for creating instances. The ACS can create
          * instance and get the value for that instances. */
         /*DSClientReqHandler::checkForUpdates();*/
         /*TimeClientReqHandler::checkForUpdates(); */
-#if 0
-#ifdef USE_XRESRC
-        XREClientReqHandler::checkForUpdates();
-#endif
-#endif
 #ifdef USE_XRDK_BT_PROFILE
         hostIf_DeviceInfoRdk_xBT::checkForUpdates();
 #endif

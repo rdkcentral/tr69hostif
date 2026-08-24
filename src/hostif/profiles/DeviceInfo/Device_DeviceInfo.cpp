@@ -96,9 +96,6 @@
 #ifdef USE_MoCA_PROFILE
 #include "Device_MoCA_Interface.h"
 #endif
-#ifdef USE_XRESRC
-#include "Device_XComcast_Xcalibur_Client_XRE_ConnectionTable.h"
-#endif
 
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
@@ -111,7 +108,6 @@
 #define FORWARD_SSH_FILE                   "/opt/secure/.RFC_ForwardSSH"
 #define GATEWAY_NAME_SIZE                  4
 #define IPREMOTE_SUPPORT_STATUS_FILE       "/opt/.ipremote_status"
-#define XRE_CONTAINER_SUPPORT_STATUS_FILE  "/opt/XRE_container_enable"
 #define IPREMOTE_INTERFACE_INFO            "/tmp/ipremote_interface_info"
 #define MODEL_NAME_FILE                    "/tmp/.model"
 #define IUI_VERSION_FILE                   "/tmp/.iuiVersion"
@@ -2108,7 +2104,6 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_MemoryStatus_Free (HOSTIF_MsgData_t
  *  			Joining MoCA Network
  *  			Connection successful
  *  			Acquiring IP Address from Gateway
- *  			Contacting XRE
  *
  * @param[out] stMsgData TR-069 Host interface message request.
  * @param[in] pChanged Status of the operation.
@@ -2136,23 +2131,6 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_BootStatus (HOSTIF
     MoCAInterface *mIf = MoCAInterface::getInstance(0);
     mocaStatus = mIf->check_MoCABootStatus(statusStr);
 #endif
-
-    /**
-     * Check for Xre Connection State
-     *   4. XRE connection established - Successful
-     */
-
-#ifdef USE_XRESRC
-    if(get_Device_X_COMCAST_COM_Xcalibur_Client_XRE_ConnectionTable_xreConnStatus(stMsgData) == OK)
-    {
-        const char* xreConn = "XRE connection established - Successful";
-
-        if(strcasecmp(stMsgData->paramValue, "Connected" ) == 0) {
-            memset(stMsgData->paramValue, '\0', TR69HOSTIFMGR_MAX_PARAM_LEN);
-            snprintf(statusStr, TR69HOSTIFMGR_MAX_PARAM_LEN -1, xreConn);
-        }
-    }
-#endif /*USE_XRESRC*/
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] BootStatus string: %s \n", __FILE__, __FUNCTION__, statusStr);
     strncpy(stMsgData->paramValue, statusStr, TR69HOSTIFMGR_MAX_PARAM_LEN);
@@ -3874,10 +3852,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComDABRFCEnable(stMsgData);
     }
-    else if (strcasecmp(stMsgData->paramName,XRE_CONTAINER_RFC_ENABLE) == 0)
-    {
-        ret = set_xRDKCentralComXREContainerRFCEnable(stMsgData);
-    }
     else if (strcasecmp(stMsgData->paramName,RFC_CTL_RETRIEVE_NOW) == 0)
     {
         ret = set_xRDKCentralComRFCRetrieveNow(stMsgData);
@@ -4577,52 +4551,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComDABRFCEnable(HOSTIF_MsgData_t *stMsgDat
         stMsgData->faultCode = fcInvalidParameterType;
     }
 
-    return ret;
-}
-
-int hostIf_DeviceInfo::set_xRDKCentralComXREContainerRFCEnable(HOSTIF_MsgData_t *stMsgData)
-{
-    int ret = NOK;
-    bool enable;
-    LOG_ENTRY_EXIT;
-    if(stMsgData->paramtype == hostIf_BooleanType)
-    {
-        enable = get_boolean(stMsgData->paramValue);
-        if( enable )
-        {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] XRE_ContainerSupport enable request\n", __FUNCTION__);
-            ofstream ofp(XRE_CONTAINER_SUPPORT_STATUS_FILE);
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Created File %s, XRE_ContainerSupport is enabled\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-            ret = OK;
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] XRE_ContainerSupport disable request\n", __FUNCTION__);
-            ifstream ifp(XRE_CONTAINER_SUPPORT_STATUS_FILE);
-            if(ifp.is_open())
-            {
-                ifp.close();
-                if(remove(XRE_CONTAINER_SUPPORT_STATUS_FILE) == 0)
-                {
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Removed File %s, XRE_ContainerSupport is disabled\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-                    ret = OK;
-                }
-                else
-                {
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to remove File %s, XRE_ContainerSupport Status unchanged\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-                }
-            }
-            else
-            {
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] File %s is already removed, XRE_ContainerSupport is disabled already\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-                ret = OK;
-            }
-        }
-    }
-    else
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
-    }
     return ret;
 }
 
