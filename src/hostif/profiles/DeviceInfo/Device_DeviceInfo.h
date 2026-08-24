@@ -362,6 +362,13 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCAutoRebootEnable_Invalidtype);
     FRIEND_TEST(deviceTest, NewNtpEnable_Disable_FileRemoved);
     FRIEND_TEST(deviceTest, get_xRDKCentralComRFCAccountId);
+    FRIEND_TEST(deviceTest, SecureDebugState_Enabled);
+    FRIEND_TEST(deviceTest, SecureDebugState_DbgServicesDisabled);
+    FRIEND_TEST(deviceTest, SecureDebugState_DeviceTypeNotTest);
+    FRIEND_TEST(deviceTest, SecureDebugState_BothDisabled);
+    FRIEND_TEST(deviceTest, SecureDebugState_NullInput);
+    FRIEND_TEST(deviceTest, SecureDebugState_ValidHandler);
+    FRIEND_TEST(deviceTest, SecureDebugState_RFCReadFailure);
 #endif
 
 public:

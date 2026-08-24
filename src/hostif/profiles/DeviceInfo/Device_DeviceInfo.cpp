@@ -133,7 +133,11 @@
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
 
+#ifndef GTEST_ENABLE
 #define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
+#else
+#define DBG_SERVICES_STATE_FILE "/tmp/enable_secure_dbg"
+#endif
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
