@@ -681,8 +681,8 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_MACAddress(HOSTIF_Ms
         *pChanged = true;
     }
     bCalledMACAddress = true;
-    rc=strcpy_s(backupMACAddress,sizeof(backupMACAddress), stEthInterface.mACAddress);
-    ERR_CHK(rc);
+    strncpy(backupMACAddress, stEthInterface.mACAddress, sizeof(backupMACAddress) - 1);
+    backupMACAddress[sizeof(backupMACAddress) - 1] = '\0';
     strncpy(stMsgData->paramValue,stEthInterface.mACAddress,S_LENGTH );
     stMsgData->paramtype = hostIf_StringType;
     stMsgData->paramLen = strlen(stEthInterface.mACAddress);
