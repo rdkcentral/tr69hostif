@@ -167,7 +167,6 @@
 #define MS12_DE_RFC_ENABLE                              "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MS12.DE_Enable"
 #define LE_RFC_ENABLE                                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LoudnessEquivalence.Enable"
 #define DAB_RFC_ENABLE                                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable"
-#define XRE_CONTAINER_RFC_ENABLE                        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LXC.XRE.Enable"
 #define TR181_AUTOREBOOT_ENABLE                         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define SHORTS_RFC_ENABLE                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SHORTS.Enable"
 /* Profile: X_RDKCENTRAL-COM_RFC.Control */
@@ -291,7 +290,6 @@ class hostIf_DeviceInfo {
 
     int set_xRDKCentralComTelemetryRFCEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComDABRFCEnable(HOSTIF_MsgData_t *stMsgData);
-    int set_xRDKCentralComXREContainerRFCEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCLoudnessEquivalenceEnable(HOSTIF_MsgData_t *);
 
     // This is to set wl roam_trigger
@@ -328,19 +326,14 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, getEstbIp);
     FRIEND_TEST(deviceTest, NewNtpEnable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCDisable);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCInvalidtype);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComApparmorBlocklist);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldStartedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceInfoTest, findLocalPortAvailable);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRetrieveNow);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable);
     FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
@@ -360,7 +353,6 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRoamTrigger);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_InvalidType);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCAutoRebootEnable_Invalidtype);
-    FRIEND_TEST(deviceTest, set_xRDKCentralComXREContainerRFCEnable_FileRemoved);
     FRIEND_TEST(deviceTest, NewNtpEnable_Disable_FileRemoved);
     FRIEND_TEST(deviceTest, get_xRDKCentralComRFCAccountId);
 #endif
@@ -1044,7 +1036,6 @@ public:
     *  			Connection successful
     *  			Acquiring IP Address from Gateway
     *  			Contacting ACS
-    *  			Contacting XRE
     *
     * @return The status of the operation. When read, this parameter returns an enumeration string.
     *

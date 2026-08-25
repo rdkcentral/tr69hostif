@@ -24,9 +24,7 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 -I$(top_srcdir)/src/hostif/handlers/include \
 -I$(top_srcdir)/src/hostif/handlers/src \
 -I$(top_srcdir)/src/hostif/profiles/moca \
--I$(top_srcdir)/src/hostif/profiles/X_COMCAST-COM/X_COMCAST-COM_Xcalibur/include \
--I$(top_srcdir)/src/hostif/profiles/moca \
-$(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLAGS) $(YOCTO_FLAG) \
+$(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLAGS) $(YOCTO_FLAG) \
 -I=/usr/include/rdk/iarmbus/ \
 -I=/usr/include/rdk/iarmmgrs/mfr/ \
 -I=/usr/include/rdk/iarmmgrs-hal/ \
