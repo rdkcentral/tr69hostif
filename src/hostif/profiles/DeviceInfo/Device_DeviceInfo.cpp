@@ -99,6 +99,7 @@
 
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
+#include "rdk_otlp_instrumentation.h"
 
 
 

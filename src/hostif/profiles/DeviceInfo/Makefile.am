@@ -31,7 +31,7 @@ $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLAGS) $(YOCTO_FLAG
 -I=/usr/include/wdmp-c/ \
 -I=/usr/include/rbus/
 
-AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lcurl -lrfcapi -lrbus
+AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lcurl -lrfcapi -lrbus -lrdk_otlp
 
 if WITH_THUNDER_CLIENT
 AM_CXXFLAGS += -DUSE_THUNDER_CLIENT
