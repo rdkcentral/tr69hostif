@@ -41,6 +41,8 @@ git clone https://github.com/rdkcentral/rdk-halif-device_settings.git
 git clone https://github.com/rdkcentral/rdkvhal-devicesettings-raspberrypi4.git
 git clone https://github.com/rdkcentral/iarmbus.git
 git clone https://github.com/rdkcentral/remote_debugger.git
+git clone https://github.com/rdkcentral/dcm-agent.git
+
 
 cp $WORKDIR/src/unittest/stubs/telemetry_busmessage_sender.h /usr/local/include/
 cp $WORKDIR/src/unittest/stubs/dsVideoResolutionSettings.h /usr/rdk-halif-device_settings/include/dsVideoResolutionSettings.h
@@ -74,6 +76,30 @@ make \
     libdshalsrv_la_CPPFLAGS="-I/usr/iarmbus/core/include -I/usr/devicesettings/rpc/include -I/usr/devicesettings/rpc/srv -I/usr/rdk-halif-device_settings/include -I$WORKDIR/src/unittest/stubs -isystem $WORKDIR/src/unittest/stubs -DDSMGR_LOGGER_ENABLED=ON -DRDK_DSHAL_NAME='\"libdshal.so\"'" \
     CFLAGS="-fpermissive" \
     install
+    
+cd ${ROOT}
+rm -rf iarmmgrs
+git clone https://github.com/rdkcentral/iarmmgrs.git
+cp iarmmgrs/sysmgr/include/sysMgr.h /usr/local/include
+cp iarmmgrs/maintenance/include/maintenanceMGR.h /usr/local/include
+
+cd ${ROOT}
+rm -rf telemetry
+git clone https://github.com/rdkcentral/telemetry.git
+cd telemetry
+cp include/*.h /usr/local/include
+sh  build_inside_container.sh
+
+cd $ROOT
+cd dcm-agent
+autoreconf -i
+./configure
+cp uploadstblogs/include/*.h /usr/local/include
+cd uploadstblogs/src
+make
+make install
+
+cd $WORKDIR
 
 # Build and deploy stubs for IARMBus
 echo "Building IARMBus stubs"
@@ -95,7 +121,7 @@ autoreconf -i
 ./configure  --enable-IPv6=yes --enable-thunder=yes
 
 make AM_CXXFLAGS="-I$WORKDIR/src/unittest/stubs -I$WORKDIR/src/hostif/include -I/usr/include/cjson -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I$WORKDIR/src/hostif/handlers/include -I$WORKDIR/src/hostif/parodusClient/waldb -I$WORKDIR/src/hostif/profiles/DeviceInfo -I/usr/include/cjson -I$WORKDIR/src/hostif/profiles/Time -I$WORKDIR/src/hostif/profiles/Device -I/usr/include/libsoup-3.0 -I/usr/include/yajl -I$WORKDIR/src/hostif/profiles/STBService -I$WORKDIR/src/unittest/stubs/ds -I/usr/devicesettings/ds -I/usr/local/include -I$WORKDIR/src/hostif/profiles/IP -I$WORKDIR/src/hostif/profiles/Ethernet -I/usr/local/include/rbus -I$WORKDIR/src/hostif/parodusClient/pal -I/usr/rdk-halif-device_settings/include -I/usr/local/include/libparodus -I/usr/local/include -I/usr/rdkvhal-devicesettings-raspberrypi4 -I/usr/local/include/ -I/usr/include/yajl -I/usr/tinyxml2 -I/usr/devicesettings/ds -I/$WORKDIR/src/hostif/httpserver/include -I/usr/remote_debugger/src/ -DIPV6_SUPPORT -DMEDIA_CLIENT -DPRIVACYMODES_CONTROL" \
-AM_LDFLAGS="-L/usr/local/lib -lrbus -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus -lglib-2.0 -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER -DUSE_THUNDER_CLIENT" \
+AM_LDFLAGS="-L/usr/local/lib -lrbus -luploadstblogs -lsecure_wrapper -lcurl -lrfcapi -lrdkloggers -llibparodus -lglib-2.0 -lnanomsg  -lIARMBus -lWPEFrameworkPowerController -lwrp-c -lwdmp-c -lprocps -ltrower-base64 -lcimplog -lsoup-3.0 -L/usr/lib/x86_64-linux-gnu -lyajl -L/usr/local/lib/x86_64-linux-gnu -ltinyxml2"  CXXFLAGS="-fpermissive -DPARODUS_ENABLE -DUSE_REMOTE_DEBUGGER -DUSE_THUNDER_CLIENT" \
     install
 
 cd ./src/hostif/parodusClient/pal/mock-parodus/
