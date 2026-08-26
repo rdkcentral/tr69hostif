@@ -3990,22 +3990,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *st
     return ret;
 }
 
-int hostIf_DeviceInfo::get_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
-{
-    if(stMsgData == NULL)
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] stMsgData is NULL\n", __FUNCTION__, __LINE__);
-        return NOK;
-    }
-
-    stMsgData->paramtype = hostIf_BooleanType;
-    bool isEnabled = (access(LOGCHRONO_DISABLE_FILE, F_OK) == 0) ? true : false;
-    put_boolean(stMsgData->paramValue, isEnabled);
-    stMsgData->paramLen = sizeof(bool);
-    stMsgData->faultCode = fcNoFault;
-    return OK;
-}
-
 
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
@@ -4037,11 +4021,6 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
             // Store the value from authservice into the db so we don't get here again
             m_rfcStorage.setValue(stMsgData);
         }
-    }
-
-    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
-    {
-        ret = get_xRDKCentralComRFCLogChronoEnable(stMsgData);
     }
 
     return ret;

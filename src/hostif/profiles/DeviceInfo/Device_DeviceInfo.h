@@ -311,7 +311,6 @@ class hostIf_DeviceInfo {
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *);
-    int get_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *);
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);
     int get_xOpsRPCDevManageableNotification(HOSTIF_MsgData_t *);
