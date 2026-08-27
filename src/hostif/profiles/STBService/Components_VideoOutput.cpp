@@ -157,8 +157,7 @@ hostIf_STBServiceVideoOutput::hostIf_STBServiceVideoOutput(int devid, device::Vi
     ERR_CHK(rc);
     rc=strcpy_s(backupDisplayFormat,sizeof(backupDisplayFormat)," ");
     ERR_CHK(rc);
-    rc=strcpy_s(backupDisplayName,sizeof(backupDisplayName)," ");
-    ERR_CHK(rc);
+    backupDisplayName[0] = '\0';
     rc=strcpy_s(backupVideoFormat,sizeof(backupVideoFormat)," ");
     ERR_CHK(rc);
     backupHDCP = false;
@@ -449,7 +448,7 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
                DVI.
 TODO:  Need correct implementation.  Here's what TR-135 says:
    Comma-separated list of strings. Each entry is a supported display format and
-   MUST be in the form of “x:y”, such as for example “4:3, 16:9, 14:9".
+   MUST be in the form of "x:y", such as for example "4:3, 16:9, 14:9".
 ************************************************************/
 int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData,bool *pChanged)
 {
