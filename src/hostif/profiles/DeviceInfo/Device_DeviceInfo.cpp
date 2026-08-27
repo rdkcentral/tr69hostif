@@ -2893,7 +2893,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportIpa
 
             //values not populated so unknown.
             rc=strcpy_s(ipAddress,sizeof(ipAddress),"unknown");
-            ERR_CHK(rc);
+            if(rc!=EOK)
+            {
+                ERR_CHK(rc);
+            }
             snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",ipAddress);
         }
 
@@ -2943,7 +2946,10 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportMAC
 
             //values not populated so unknown.
             rc=strcpy_s(macAddress,sizeof(macAddress),"unknown");
-            ERR_CHK(rc);
+            if(rc!=EOK)
+            {
+                ERR_CHK(rc);
+            }
             snprintf((char *)stMsgData->paramValue, sizeof(stMsgData->paramValue), "%s",macAddress);
         }
 
@@ -3372,12 +3378,18 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
         /*rc = strcpy_s(ForwardSSH, sizeof(ForwardSSH), get_boolean(stMsgData->paramValue) ? "true" : "false");
         if (rc != EOK)
         {
-               	ERR_CHK(rc);
+            if(rc!=EOK)
+            {
+                ERR_CHK(rc);
+            }
            	}*/
         if (get_boolean(stMsgData->paramValue))
         {
             rc=strcpy_s(ForwardSSH,sizeof(ForwardSSH),"true");
-            ERR_CHK(rc);
+            if(rc!=EOK)
+            {
+                ERR_CHK(rc);
+            }
         }
         else
         {
@@ -5039,7 +5051,10 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldStartedNotification(HOSTIF_MsgData_t *st
     /* Check for RFC */
     HOSTIF_MsgData_t stRfcData = {0};
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
-    ERR_CHK(rc);
+    if(rc!=EOK)
+    {
+        ERR_CHK(rc);
+    }
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
     {
         m_strXOpsRPCFwDwldStartedNotification = stMsgData->paramValue;
@@ -5060,7 +5075,10 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldCompletedNotification(HOSTIF_MsgData_t *
     /* Check for RFC */
     HOSTIF_MsgData_t stRfcData = {0};
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
-    ERR_CHK(rc);
+    if(rc!=EOK)
+    {
+        ERR_CHK(rc);
+    }
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
     {
         m_bXOpsRPCFwDwldCompletedNotification = get_boolean(stMsgData->paramValue);
@@ -5084,7 +5102,10 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
     errno_t rc = -1;
     HOSTIF_MsgData_t stRfcData = {0};
     rc=strcpy_s(stRfcData.paramName,sizeof(stRfcData.paramName), X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE);
-    ERR_CHK(rc);
+    if(rc!=EOK)
+    {
+        ERR_CHK(rc);
+    }
     if((get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
     {
         unsigned int uinVal = get_uint(stMsgData->paramValue);
