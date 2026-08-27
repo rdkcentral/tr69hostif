@@ -648,11 +648,10 @@ int hostIf_IPInterface::get_Interface_Name(HOSTIF_MsgData_t *stMsgData, bool *pC
     LOG_ENTRY_EXIT;
 
     errno_t rc = -1;
-    rc=strcpy_s (stIPInterfaceInstance.name,sizeof(stIPInterfaceInstance.name), nameOfInterface);
-    ERR_CHK(rc);
+    strncpy (stIPInterfaceInstance.name, nameOfInterface, sizeof(stIPInterfaceInstance.name) - 1);
+    stIPInterfaceInstance.name[sizeof(stIPInterfaceInstance.name) - 1] = '\0';
 
     RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "%s(): Interface name = %s \n", __FUNCTION__, stIPInterfaceInstance.name);
-
     if(bCalledName && pChanged && strncmp(stIPInterfaceInstance.name, backupName,_BUF_LEN_16 ))
     {
         *pChanged = true;
