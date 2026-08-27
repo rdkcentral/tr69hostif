@@ -177,6 +177,7 @@ hostIf_STBServiceAudioInterface::hostIf_STBServiceAudioInterface(int devid, devi
     ERR_CHK(rc);
     backupAudioCompression=0;
     backupAudioEncoding[0] = '\0';
+    ERR_CHK(rc);
     rc=strcpy_s(backupAudioGain,sizeof(backupAudioGain)," ");
     ERR_CHK(rc);
     rc=strcpy_s(backupMinAudioDB,sizeof(backupMinAudioDB)," ");
