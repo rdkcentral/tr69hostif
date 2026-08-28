@@ -351,7 +351,7 @@ int TimeClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         // There for allocating a memory for both Param name and param value. This should be freed whenever we disable Notification.
         char *notifyKey = NULL;
         notifyKey = (char*) calloc(sizeof(char),strlen(stMsgData->paramName)+1);
-        if((NULL != notifyValuePtr) && (NULL != notifyKey))
+        if((NULL != notifyValuePtr) && (NULL != notifyKey) && (stMsgData->paramName[0] != '\0'))
         {
             *notifyValuePtr = 1;
 	    errno_t rc = -1;

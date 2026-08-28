@@ -707,3 +707,4 @@ const char* hostIf_STBServiceHDMI::getHDMIResolutionMode()
 
 /** @} */
 /** @} */
+
