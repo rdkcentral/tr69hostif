@@ -647,7 +647,6 @@ int hostIf_IPInterface::get_Interface_Name(HOSTIF_MsgData_t *stMsgData, bool *pC
 {
     LOG_ENTRY_EXIT;
 
-    errno_t rc = -1;
     strncpy (stIPInterfaceInstance.name, nameOfInterface, sizeof(stIPInterfaceInstance.name) - 1);
     stIPInterfaceInstance.name[sizeof(stIPInterfaceInstance.name) - 1] = '\0';
 
