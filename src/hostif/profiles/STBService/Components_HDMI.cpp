@@ -493,18 +493,21 @@ int hostIf_STBServiceHDMI::setResolution(const HOSTIF_MsgData_t *stMsgData)
 int hostIf_STBServiceHDMI::getResolutionValue(HOSTIF_MsgData_t *stMsgData,bool *pChanged)
 {
     try {
-        snprintf(stMsgData->paramValue, PARAM_LEN, "%s%s/%sHz",
-                vPort.getResolution().getPixelResolution().getName().c_str(),
-                vPort.getResolution().isInterlaced()?"i":"p",
-                vPort.getResolution().getFrameRate().getName().c_str());
-
-        if(bCalledResolutionValue && pChanged && strcmp(backupResolutionValue, stMsgData->paramValue))
+        if(vPort.getResolution().getPixelResolution().getName().c_str() && vPort.getResolution().getFrameRate().getName().c_str())
         {
-            *pChanged = true;
+            snprintf(stMsgData->paramValue, PARAM_LEN, "%s%s/%sHz",
+                    vPort.getResolution().getPixelResolution().getName().c_str(),
+                    vPort.getResolution().isInterlaced()?"i":"p",
+                    vPort.getResolution().getFrameRate().getName().c_str());
+
+            if(bCalledResolutionValue && pChanged && strcmp(backupResolutionValue, stMsgData->paramValue))
+            {
+                *pChanged = true;
+            }
+            bCalledResolutionValue = true;
+            strncpy(backupResolutionValue, stMsgData->paramValue, _BUF_LEN_16-1);
+            backupResolutionValue[_BUF_LEN_16-1] = '\0';
         }
-        bCalledResolutionValue = true;
-        strncpy(backupResolutionValue, stMsgData->paramValue, _BUF_LEN_16-1);
-        backupResolutionValue[_BUF_LEN_16-1] = '\0';
         stMsgData->paramtype = hostIf_StringType;
         stMsgData->paramLen = strlen(stMsgData->paramValue);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] getHDMIResolution(): Value: %s\n",__FUNCTION__, stMsgData->paramValue);
@@ -704,3 +707,4 @@ const char* hostIf_STBServiceHDMI::getHDMIResolutionMode()
 
 /** @} */
 /** @} */
+
