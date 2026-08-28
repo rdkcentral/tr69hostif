@@ -42,8 +42,9 @@
 #include <cstring>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/sysinfo.h>
+#include <linux/fs.h>
 #include <sys/ioctl.h>
+#include <sys/sysinfo.h>
 #include <net/if.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
@@ -396,6 +397,42 @@ int hostIf_DeviceInfo::updateSecureDebugState(void)
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read secure debug RFC values. DbgServicesRet=%d DeviceTypeRet=%d. Defaulting state to 0\n", __FUNCTION__, dbgServicesRet, deviceTypeRet);
     }
 
+#ifndef GTEST_ENABLE
+    /* Make existing state file mutable before updating it */
+    int attrFd = open(DBG_SERVICES_STATE_FILE, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (attrFd >= 0)
+    {
+        int fileFlags = 0;
+
+        if (ioctl(attrFd, FS_IOC_GETFLAGS, &fileFlags) != 0)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to get file flags for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+            close(attrFd);
+            return NOK;
+        }
+
+        if (fileFlags & FS_IMMUTABLE_FL)
+        {
+            fileFlags &= ~FS_IMMUTABLE_FL;
+
+            if (ioctl(attrFd, FS_IOC_SETFLAGS, &fileFlags) != 0)
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to clear immutable flag for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+                close(attrFd);
+                return NOK;
+            }
+        }
+
+        close(attrFd);
+    }
+    else if (errno != ENOENT)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to open %s for attribute update: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        return NOK;
+    }
+
+#endif
+
     int fd = open(DBG_SERVICES_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
     if (fd < 0)
@@ -425,6 +462,33 @@ int hostIf_DeviceInfo::updateSecureDebugState(void)
         fclose(fp);
         return NOK;
     }
+
+    if (fflush(fp) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to flush %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        fclose(fp);
+        return NOK;
+    }
+
+#ifndef GTEST_ENABLE
+    int fileFlags = 0;
+
+    if (ioctl(fd, FS_IOC_GETFLAGS, &fileFlags) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to get file flags for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        fclose(fp);
+        return NOK;
+    }
+
+    fileFlags |= FS_IMMUTABLE_FL;
+
+    if (ioctl(fd, FS_IOC_SETFLAGS, &fileFlags) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to set immutable flag for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        fclose(fp);
+        return NOK;
+    }
+#endif
 
     fclose(fp);
 
