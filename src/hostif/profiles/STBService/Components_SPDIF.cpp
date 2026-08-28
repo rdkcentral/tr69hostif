@@ -153,7 +153,7 @@ hostIf_STBServiceSPDIF::hostIf_STBServiceSPDIF(int devid, device::AudioOutputPor
 {
     backupEnable = false;
     errno_t rc = -1;
-    rc=strcpy_s(backupStatus,sizeof(backupStatus), "");
+    rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
     ERR_CHK(rc);
     backupForcePCM = false;
     backupPassthrough = false;
@@ -597,3 +597,4 @@ int hostIf_STBServiceSPDIF::getAudioDelay(HOSTIF_MsgData_t *stMsgData, bool *pCh
 
 /** @} */
 /** @} */
+
