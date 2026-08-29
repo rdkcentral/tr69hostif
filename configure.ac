@@ -30,6 +30,7 @@ AC_CONFIG_HEADERS([cfg/config.h])
 
 LT_INIT
 
+XREMGR_FLAGS=" "
 MOCAMGR_FLAGS=" "
 SUBDIRS_MOCA=" "
 MOCA2_FLAG=" "
@@ -56,6 +57,21 @@ WEB_CONFIG_ENABLE=" "
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],
 [AM_DEFAULT_VERBOSITY=1
 AC_SUBST(AM_DEFAULT_VERBOSITY)]) 
+
+AC_ARG_ENABLE([xre],
+	[ AS_HELP_STRING([--enable-xre], [enable xre profile (default is no)])],
+        [
+        case "${enableval}" in
+	yes) XREMGR_FLAGS="-DUSE_XRESRC"
+	     xre=true;;
+	no)  AC_MSG_ERROR([xre profile is disabled])
+             xre=false;;
+	*) AC_MSG_ERROR([bad value ${enableval} for --enable-xre])
+           xre=false;;
+	esac
+	],
+        [xre=false; echo "xre profile is disabled"])
+AM_CONDITIONAL([XRELIB_FLAG], [test "x$xre" = xtrue])
 
 # This adds the option of compiling with/without using the  profile source code
 AC_ARG_ENABLE([moca],
@@ -408,6 +424,7 @@ AM_CONDITIONAL([ENABLE_RDK_STMGR_V2], [test "x$HAVE_RDK_STMGR_V2_H" = "xyes" -a 
 AC_FUNC_MALLOC
 
 AC_SUBST(PROFILE_SRC)
+AC_SUBST(XREMGR_FLAGS)
 AC_SUBST(MOCAMGR_FLAGS)
 AC_SUBST(SUBDIRS_MOCA)
 AC_SUBST(SUBDIRS_STORAGESERVICE)

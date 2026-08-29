@@ -71,10 +71,18 @@ if WITH_WEBPA_RFC
 AM_CXXFLAGS += -DWEBPA_RFC_ENABLED
 endif
 
+if XRELIB_FLAG
+AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
+	$(G_THREAD_LIBS) -lyajl $(SOUP_LIBS) \
+	$(NEXUS_LIB) -ldbus-1 \
+	-lIARMBus -lrdkloggers \
+	-ltr69ProfileXcaliber -lrbus
+else
 AM_LDFLAGS = $(GLIB_LDFLAGS) $(GLIB_LIBS) \
 	$(G_THREAD_LIBS) -lyajl $(SOUP_LIBS) \
 	$(NEXUS_LIB) -ldbus-1 \
 	-lIARMBus -lrdkloggers -lrbus
+endif
 
 if WITH_THUNDER_CLIENT
 else
@@ -133,6 +141,10 @@ endif
 
 if WITH_MOCA_PROFILE
 tr69hostif_LDADD += $(top_builddir)/src/hostif/profiles/moca/libhostIfMoCA.la
+endif
+
+if XRELIB_FLAG
+tr69hostif_LDADD += -ltr69ProfileXcaliber
 endif
 
 AM_CXXFLAGS += -I$(top_srcdir)/src/hostif/parodusClient/pal 
