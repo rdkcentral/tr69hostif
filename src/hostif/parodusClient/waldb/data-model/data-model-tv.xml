@@ -266,18 +266,6 @@
          </syntax>
        </parameter>
     </object>
-      <object base="Device.X_COMCAST-COM_Xcalibur.Client.CoPilot." access="readOnly" minEntries="1" maxEntries="unbounded" >
-      <parameter base="rssServerMode" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <unsignedInt/>
-        </syntax>
-      </parameter>
-      <parameter base="rssServerArgs" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-      </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xBlueTooth.BLE." access="readOnly" minEntries="1" maxEntries="1"/>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_XRPolling." access="readWrite" minEntries="0" maxEntries="1" >
       <parameter base="Action" access="readWrite" notification="0" maxNotification="2" >
