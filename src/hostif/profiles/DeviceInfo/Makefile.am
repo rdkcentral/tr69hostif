@@ -24,14 +24,16 @@ AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 -I$(top_srcdir)/src/hostif/handlers/include \
 -I$(top_srcdir)/src/hostif/handlers/src \
 -I$(top_srcdir)/src/hostif/profiles/moca \
-$(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLAGS) $(YOCTO_FLAG) \
+-I$(top_srcdir)/src/hostif/profiles/X_COMCAST-COM/X_COMCAST-COM_Xcalibur/include \
+-I$(top_srcdir)/src/hostif/profiles/moca \
+$(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(XREMGR_FLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLAGS) $(YOCTO_FLAG) \
 -I=/usr/include/rdk/iarmbus/ \
 -I=/usr/include/rdk/iarmmgrs/mfr/ \
 -I=/usr/include/rdk/iarmmgrs-hal/ \
 -I=/usr/include/wdmp-c/ \
 -I=/usr/include/rbus/
 
-AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lcurl -lrfcapi -lrbus -luploadstblogs
+AM_LDFLAGS = $(PROCPS_LIBS) -lIARMBus -lyajl -ldbus-1 -lcurl -lrfcapi -lrbus
 
 if WITH_THUNDER_CLIENT
 AM_CXXFLAGS += -DUSE_THUNDER_CLIENT

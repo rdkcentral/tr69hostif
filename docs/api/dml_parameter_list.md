@@ -4,9 +4,9 @@
 
 | Access | Count | Test Action |
 |--------|-------|-------------|
-| readOnly  | 254 | GET only - assert non-empty or expected value |
-| readWrite | 493 | GET + SET - verify set/get round-trip |
-| **Total** | **747** | |
+| readOnly  | 356 | GET only - assert non-empty or expected value |
+| readWrite | 548 | GET + SET - verify set/get round-trip |
+| **Total** | **904** | |
 
 ---
 
@@ -753,9 +753,64 @@
 | 739 | `Device.Time.NTPServer5Directive` | readWrite | string | Chrony directive used for the numbered NTP server slot. |
 | 740 | `Device.Time.Status` | readWrite | string | Current status of the system time service. |
 | 741 | `Device.Time.X_RDK_CurrentUTCTime` | readOnly | string | Current UTC time reported by the device. |
-| 742 | `Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow` | readWrite | string | Triggers an immediate Xconf check for the Xcalibur client. |
-| 743 | `Device.X_RDKCENTRAL-COM_T2.ReportProfiles` | readWrite | string | Telemetry 2.0 report profiles payload. |
-| 744 | `Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack` | readWrite | string | Telemetry 2.0 report profiles payload. |
-| 745 | `Device.X_RDK_WebPA_DNSText.URL` | readWrite | string | Bootstrap URL used to retrieve WebPA DNS text records. |
-| 746 | `Device.X_RDK_WebPA_Server.URL` | readOnly | string | Current WebPA server URL from the bootstrap store. |
-| 747 | `Device.X_RDK_WebPA_TokenServer.URL` | readOnly | string | Current WebPA token server URL from the bootstrap store. |
+| 742 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceId` | readOnly | string | Security system device identifier. |
+| 743 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssDeviceReg` | readOnly | dateTime | Security system device registration time. |
+| 744 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssErrorCnt` | readOnly | unsignedInt | Security system error count. |
+| 745 | `Device.X_COMCAST-COM_Xcalibur.Client.SecuritySystem.ssRegTs` | readOnly | boolean | Indicates whether a security system registration timestamp is available. |
+| 746 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreAppId` | readOnly | string | Application identifier for this XRE connection entry. |
+| 747 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnEstTs` | readOnly | string | Connection establishment timestamp for this XRE connection entry. |
+| 748 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnIfName` | readOnly | string | Interface name used by this XRE connection entry. |
+| 749 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnRetryAttempts` | readOnly | unsignedInt | Retry attempts recorded for this XRE connection entry. |
+| 750 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnStatus` | readOnly | string | Current status of this XRE connection entry. |
+| 751 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.ConnectionTable.xreConnURL` | readOnly | string | Connection URL used by this XRE connection entry. |
+| 752 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreAvgCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
+| 753 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreChannelMapId` | readOnly | string | Channel map identifier currently used by the XRE client. |
+| 754 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreCommandCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 755 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreControllerId` | readOnly | string | Controller identifier reported by the XRE client. |
+| 756 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreEnable` | readWrite | boolean | Enables or disables the XRE client. |
+| 757 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreErrorCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 758 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreFlushLocalCache` | readWrite | boolean | Triggers an XRE local cache flush when set. |
+| 759 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGatewaySTBMAC` | readOnly | string | Gateway STB MAC address reported by the XRE client. |
+| 760 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreGetTWPDiags` | readOnly | string | Diagnostic payload returned by XRE TWP diagnostics. |
+| 761 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastURLAccessed` | readOnly | string | Last URL accessed by the XRE client. |
+| 762 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLastVideoUrl` | readOnly | string | Last video URL accessed by the XRE client. |
+| 763 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreLogLevel` | readWrite | string | Logging level used by the XRE client. |
+| 764 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMaxCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
+| 765 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreMinCmdProcTime` | readOnly | int | Command processing time statistic reported by XRE. |
+| 766 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xrePlantId` | readOnly | string | Plant identifier reported by the XRE client. |
+| 767 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreReceiverId` | readOnly | string | Receiver identifier reported by the XRE client. |
+| 768 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSession` | readWrite | boolean | Triggers XRE session refresh behavior. |
+| 769 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreRefreshXreSessionWithRR` | readWrite | int | Controls refresh-with-RR behavior for the XRE session. |
+| 770 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionId` | readOnly | string | Active XRE session identifier reported by the client. |
+| 771 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionLastModTs` | readOnly | string | Timestamp of the last XRE session update. |
+| 772 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreSessionUptime` | readOnly | string | Uptime of the current XRE session. |
+| 773 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreStatus` | readOnly | string | Configuration or status value for the XRE client. |
+| 774 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAnimCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 775 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotAppCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 776 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFlashCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 777 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotFontCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 778 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotHtmlTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 779 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 780 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotNineSliceImgCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 781 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotRectCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 782 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotSoundCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 783 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotStyleshtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 784 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 785 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotTxtIpCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 786 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotVideoCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 787 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreTotViewCnt` | readOnly | unsignedInt | Count metric reported by the XRE client. |
+| 788 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVersion` | readOnly | string | Version string reported by the XRE client. |
+| 789 | `Device.X_COMCAST-COM_Xcalibur.Client.XRE.xreVodId` | readOnly | string | VOD identifier reported by the XRE client. |
+| 790 | `Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow` | readWrite | string | Triggers an immediate Xconf check for the Xcalibur client. |
+| 791 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppNumAps` | readOnly | unsignedInt | Number of DevApp application entries reported by the platform. |
+| 792 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppId` | readOnly | string | Application identifier for this DevApp entry. |
+| 793 | `Device.X_COMCAST-COM_Xcalibur.DevApp.devAppTable.{i}.devAppRestartCapability` | readOnly | string | Restart capability reported for this DevApp entry. |
+| 794 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayDeviceFriendlyName` | readOnly | string | Gateway identification value reported by TRM. |
+| 795 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAIP` | readOnly | string | Gateway identification value reported by TRM. |
+| 796 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewayMoCAMAC` | readOnly | string | Gateway identification value reported by TRM. |
+| 797 | `Device.X_COMCAST-COM_Xcalibur.TRM.trmGatewaySTBMAC` | readOnly | string | Gateway identification value reported by TRM. |
+| 798 | `Device.X_RDKCENTRAL-COM_T2.ReportProfiles` | readWrite | string | Telemetry 2.0 report profiles payload. |
+| 799 | `Device.X_RDKCENTRAL-COM_T2.ReportProfilesMsgPack` | readWrite | string | Telemetry 2.0 report profiles payload. |
+| 800 | `Device.X_RDK_WebPA_DNSText.URL` | readWrite | string | Bootstrap URL used to retrieve WebPA DNS text records. |
+| 801 | `Device.X_RDK_WebPA_Server.URL` | readOnly | string | Current WebPA server URL from the bootstrap store. |
+| 802 | `Device.X_RDK_WebPA_TokenServer.URL` | readOnly | string | Current WebPA token server URL from the bootstrap store. |

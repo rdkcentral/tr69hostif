@@ -26,6 +26,7 @@ The top-level `configure.ac` currently exposes feature toggles including:
 
 | Flag | Effect |
 |------|--------|
+| `--enable-xre` | Enable XRE-related profile support |
 | `--enable-moca` / `--enable-moca2` | Enable MoCA profile support |
 | `--enable-DHCPv4` | Enable DHCPv4 profile support |
 | `--enable-StorageService` | Enable StorageService profile support |
