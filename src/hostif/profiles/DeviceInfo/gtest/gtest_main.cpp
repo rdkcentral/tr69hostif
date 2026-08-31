@@ -54,6 +54,12 @@ extern "C"
 
 #include <mutex>
 #include <condition_variable>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#define TEST_SECURE_DEBUG_STATE_FILE "/tmp/enable_secure_dbg"
+#define TEST_RFC_DBG_SERVICES "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable"
+#define TEST_RFC_DEVICE_TYPE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType"
 
 #define GTEST_DEFAULT_RESULT_FILEPATH "/tmp/Gtest_Report/"
 #define GTEST_DEFAULT_RESULT_FILENAME "hostif_gtest_report.json"
@@ -76,6 +82,64 @@ T_ARGLIST argList = {{'\0'}, 0};
 #ifdef GTEST_ENABLE
 extern bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr);
 #endif
+
+static void removeSecureDebugStateFile()
+{
+    std::remove(TEST_SECURE_DEBUG_STATE_FILE);
+}
+
+static std::string readSecureDebugStateFile()
+{
+    FILE *fp = fopen(TEST_SECURE_DEBUG_STATE_FILE, "r");
+    char value[8] = {0};
+
+    if (fp == NULL)
+    {
+        return "";
+    }
+
+    if (fgets(value, sizeof(value), fp) == NULL)
+    {
+        fclose(fp);
+        return "";
+    }
+
+    fclose(fp);
+
+    size_t len = strlen(value);
+    if ((len > 0) && (value[len - 1] == '\n'))
+    {
+        value[len - 1] = '\0';
+    }
+
+    return std::string(value);
+}
+
+static void setSecureDebugRFCValues(bool dbgServicesEnabled, const char *deviceType)
+{
+    XRFCStore *rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+
+    HOSTIF_MsgData_t dbgServices = {0};
+    dbgServices.reqType = HOSTIF_SET;
+    strncpy(dbgServices.paramName, TEST_RFC_DBG_SERVICES, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    dbgServices.bsUpdate = HOSTIF_NONE;
+    dbgServices.requestor = HOSTIF_SRC_RFC;
+    put_boolean(dbgServices.paramValue, dbgServicesEnabled);
+    dbgServices.paramtype = hostIf_BooleanType;
+    dbgServices.paramLen = sizeof(hostIf_BooleanType);
+    ASSERT_EQ(rfcStore->setValue(&dbgServices), OK);
+
+    HOSTIF_MsgData_t deviceTypeParam = {0};
+    deviceTypeParam.reqType = HOSTIF_SET;
+    strncpy(deviceTypeParam.paramName, TEST_RFC_DEVICE_TYPE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    deviceTypeParam.bsUpdate = HOSTIF_NONE;
+    deviceTypeParam.requestor = HOSTIF_SRC_RFC;
+    strncpy(deviceTypeParam.paramValue, deviceType, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    deviceTypeParam.paramtype = hostIf_StringType;
+    deviceTypeParam.paramLen = strlen(deviceTypeParam.paramValue);
+    ASSERT_EQ(rfcStore->setValue(&deviceTypeParam), OK);
+}
 
 TEST(rfcStoreTest, setValue) {
     m_rfcStore = XRFCStore::getInstance();
@@ -1430,6 +1494,169 @@ TEST(deviceTest, get_xOpsDeviceMgmtForwardSSHEnable) {
         EXPECT_EQ(ret, OK);
         EXPECT_EQ(getStringValue(&param), "false");
     }
+}
+
+TEST(deviceTest, SecureDebugState_Enabled)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(true, "test");
+
+    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "1");
+
+    struct stat fileStat = {};
+    ASSERT_EQ(stat(TEST_SECURE_DEBUG_STATE_FILE, &fileStat), 0);
+    EXPECT_EQ(fileStat.st_mode & 0777, 0644);
+
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_UpdateExistingFile)
+{
+    removeSecureDebugStateFile();
+
+    int fd = open(TEST_SECURE_DEBUG_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    ASSERT_GE(fd, 0);
+    ASSERT_EQ(write(fd, "1\n", 2), 2);
+    close(fd);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(false, "test");
+
+    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "0");
+
+    struct stat fileStat = {};
+    ASSERT_EQ(stat(TEST_SECURE_DEBUG_STATE_FILE, &fileStat), 0);
+    EXPECT_EQ(fileStat.st_mode & 0777, 0644);
+
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_DbgServicesDisabled)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(false, "test");
+
+    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "0");
+
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_DeviceTypeNotTest)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(true, "prod");
+
+    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "0");
+
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_BothDisabled)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(false, "prod");
+
+    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "0");
+
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_NullInput)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_xRDKCentralComRFCSecureDebugState(NULL), NOK);
+}
+
+TEST(deviceTest, SecureDebugState_ValidHandler)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(true, "test");
+
+    HOSTIF_MsgData_t msgData = {0};
+    strncpy(msgData.paramName, TEST_RFC_DBG_SERVICES, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    EXPECT_EQ(pIface->set_xRDKCentralComRFCSecureDebugState(&msgData), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "1");
+
+    removeSecureDebugStateFile();
+}
+
+
+TEST(deviceTest, SecureDebugState_DbgServicesDispatch)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(false, "test");
+
+    HOSTIF_MsgData_t msgData = {0};
+    msgData.reqType = HOSTIF_SET;
+    strncpy(msgData.paramName, TEST_RFC_DBG_SERVICES, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.bsUpdate = HOSTIF_NONE;
+    msgData.requestor = HOSTIF_SRC_RFC;
+    put_boolean(msgData.paramValue, true);
+    msgData.paramtype = hostIf_BooleanType;
+    msgData.paramLen = sizeof(hostIf_BooleanType);
+
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&msgData), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "1");
+
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_DeviceTypeDispatch)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(true, "prod");
+
+    HOSTIF_MsgData_t msgData = {0};
+    msgData.reqType = HOSTIF_SET;
+    strncpy(msgData.paramName, TEST_RFC_DEVICE_TYPE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.bsUpdate = HOSTIF_NONE;
+    msgData.requestor = HOSTIF_SRC_RFC;
+    strncpy(msgData.paramValue, "test", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_StringType;
+    msgData.paramLen = strlen(msgData.paramValue);
+
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&msgData), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "1");
+
+    removeSecureDebugStateFile();
 }
 
 TEST(deviceTest, get_xOpsDeviceMgmtForwardSSHEnable_Disable) {
