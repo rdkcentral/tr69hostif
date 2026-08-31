@@ -744,7 +744,7 @@ int DeviceClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         if((NULL != notifyValuePtr) && (NULL != notifyKey))
         {
             *notifyValuePtr = 1;
-            rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,stMsgData->paramName);
+                rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,(stMsgData->paramName[0] != '\0') ? stMsgData->paramName : "");
             ERR_CHK(rc);
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
             ret = OK;

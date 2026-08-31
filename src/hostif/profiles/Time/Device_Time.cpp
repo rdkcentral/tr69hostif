@@ -335,11 +335,11 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
     }
 
     bCalledCurrentUTCTime = true;
-    rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), buffer);
+    const char *bufPtr = buffer;
+    rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), bufPtr);
     ERR_CHK(rc);
     rc=strcpy_s(backupCurrentUTCTime, sizeof(backupCurrentUTCTime), buffer);
     ERR_CHK(rc);
-
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] buffer : %s stMsgData->paramValue: %s\n", __FILE__, __FUNCTION__, buffer, stMsgData->paramValue);
 
     stMsgData->paramtype = hostIf_StringType;
