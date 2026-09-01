@@ -37,3 +37,4 @@ handlers_gtest_SOURCES = handlers_test.cpp $(TOP_DIR)/src/hostif/parodusClient/s
 handlers_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 handlers_gtest_LDADD = $(COMMON_LDADD)
 handlers_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+handlers_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl
