@@ -127,7 +127,6 @@
 
 #define CDL_FLASH_FILE "/opt/cdl_flashed_file_name"
 #define CURENT_FW_FILE "/tmp/currently_running_image_name"
-#define LOG_UPLOAD_SCR "backgroundrun /usr/bin/logupload uploadlogsnow >> /opt/logs/dcmscript.log 2>&1"
 #define CURRENT_LOG_UPLOAD_STATUS "/opt/loguploadstatus.txt"
 
 #define XRDK_BOOT_TIME                                  "Device.DeviceInfo.X_RDKCENTRAL-COM_BootTime"
@@ -1076,7 +1075,6 @@ public:
     *  			Connection successful
     *  			Acquiring IP Address from Gateway
     *  			Contacting ACS
-    *  			Contacting XRE
     *
     * @return The status of the operation. When read, this parameter returns an enumeration string.
     *

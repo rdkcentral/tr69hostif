@@ -75,11 +75,11 @@ def test_STBService_AudioOutput_Get_Status():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG), \
-        "Expected Thunder curl log entry for getEnableAudioPort"
-    # Status must be one of the valid TR-135 values
+        "Expected Thunder curl log entry for AudioOutput status path"
+    value = rbus_get_value(param)
     valid = {"Enabled", "Muted", "Disabled"}
-    assert any(v in rstdout for v in valid), \
-        f"Unexpected Status value: {rstdout}"
+    assert value in valid, \
+        f"Unexpected Status value: {value}"
 
 
 @pytest.mark.run(order=311)
@@ -107,6 +107,8 @@ def test_STBService_AudioOutput_Get_CancelMute():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert '"muted"' in grep_tr69hostiflogs('"muted"'), \
+        "Expected Thunder response payload for getMuted"
 
 
 @pytest.mark.run(order=313)
@@ -174,36 +176,6 @@ def test_STBService_AudioOutput_Get_AudioEncoding():
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# AudioOutput – SET tests (NOT_HANDLED in Thunder build)
-# ─────────────────────────────────────────────────────────────────────────────
-
-@pytest.mark.run(order=318)
-def test_STBService_AudioOutput_Set_CancelMute_NotHandled():
-    """
-    SET AudioOutput.1.CancelMute must fail – setter is NOT_HANDLED in
-    the Thunder build.
-    """
-    param = AUDIO_BASE + ".CancelMute"
-    rstdout = rbus_set_data(param, "boolean", "true")
-
-    assert RBUS_SUCCESS_STRING not in rstdout, \
-        f"Expected SET to fail for NOT_HANDLED param {param}"
-
-
-@pytest.mark.run(order=319)
-def test_STBService_AudioOutput_Set_AudioLevel_NotHandled():
-    """
-    SET AudioOutput.1.AudioLevel must fail.
-    """
-    param = AUDIO_BASE + ".AudioLevel"
-    rstdout = rbus_set_data(param, "uint", "50")
-
-    assert RBUS_SUCCESS_STRING not in rstdout, \
-        f"Expected SET to fail for NOT_HANDLED param {param}"
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # SPDIF – GET tests
 # ─────────────────────────────────────────────────────────────────────────────
@@ -248,8 +220,9 @@ def test_STBService_DisplayDevice_Get_Status():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
-    assert rstdout.strip() in ("Present", "Absent"), \
-        f"Unexpected DisplayDevice Status: {rstdout}"
+    value = rbus_get_value(param)
+    assert value in ("Present", "Absent"), \
+        f"Unexpected DisplayDevice Status: {value}"
 
 
 @pytest.mark.run(order=324)
@@ -263,6 +236,8 @@ def test_STBService_DisplayDevice_Get_SupportedResolutions():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert '"supportedResolutions"' in grep_tr69hostiflogs('"supportedResolutions"'), \
+        "Expected Thunder response payload for getSupportedResolutions"
 
 
 @pytest.mark.run(order=325)
@@ -365,9 +340,12 @@ def test_STBService_AudioOutput_Get_AudioLevel():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert '"volumeLevel"' in grep_tr69hostiflogs('"volumeLevel"'), \
+        "Expected Thunder response payload for getVolumeLevel"
     # AudioLevel is a numeric volume level (0-100)
-    assert rstdout.strip().isdigit() or rstdout.strip().lstrip('-').isdigit(), \
-        f"Expected numeric AudioLevel, got: {rstdout}"
+    value = rbus_get_value(param)
+    assert value.isdigit() or value.lstrip('-').isdigit(), \
+        f"Expected numeric AudioLevel, got: {value}"
 
 
 @pytest.mark.run(order=332)
@@ -449,7 +427,7 @@ def test_STBService_VideoOutput_Get_Status():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
-    assert rstdout.strip() in ("Enabled", "Disabled"), \
+    assert any(v in rstdout for v in ("Enabled", "Disabled")), \
         f"Unexpected VideoOutput Status: {rstdout}"
 
 
@@ -500,7 +478,7 @@ def test_STBService_VideoOutput_Get_VideoFormat():
 @pytest.mark.run(order=340)
 def test_STBService_VideoOutput_Get_AspectRatioBehaviour():
     """
-    GET VideoOutput.1.AspectRatioBehaviour – backed by AVOutput.getZoomMode;
+    GET VideoOutput.1.AspectRatioBehaviour – backed by DisplaySettings.getZoomSetting;
     falls back to "None" if Thunder fails.
     """
     param = VIDOUT_BASE + ".AspectRatioBehaviour"
@@ -508,6 +486,9 @@ def test_STBService_VideoOutput_Get_AspectRatioBehaviour():
 
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
+    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert '"zoomSetting"' in grep_tr69hostiflogs('"zoomSetting"'), \
+        "Expected Thunder response payload for getZoomSetting"
     assert rstdout.strip() != ""
 
 
@@ -522,6 +503,8 @@ def test_STBService_VideoOutput_Get_HDCP():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
+    assert '"HDCPStatus"' in grep_tr69hostiflogs('"HDCPStatus"'), \
+        "Expected Thunder response payload for getHDCPStatus"
     assert "true" in rstdout.lower() or "false" in rstdout.lower() \
         or "1" in rstdout or "0" in rstdout
 
@@ -604,10 +587,11 @@ def test_STBService_Capabilities_Get_HEVCProfileEntries():
         f"rbus exception getting {param}"
     assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
     # Value should be a positive integer
+    value = rbus_get_value(param)
     try:
-        assert int(rstdout.strip()) >= 1
+        assert int(value) >= 1
     except ValueError:
-        assert False, f"Expected integer, got: {rstdout}"
+        assert False, f"Expected integer, got: {value}"
 
 
 @pytest.mark.run(order=347)

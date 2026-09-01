@@ -75,6 +75,25 @@ def clear_persistant_files():
 def rbus_get_data(param: str):
     return subprocess.run(RBUSCLI_GET_CMD + param, shell=True, capture_output=True).stdout.decode('utf-8')
 
+def rbus_get_value(param: str):
+    """Extract just the value from RBUS output.
+    
+    RBUS output format:
+        Parameter  1:
+                      Name  : Device.Services.STBService.1.Param
+                      Type  : string
+                      Value : ActualValue
+    
+    Returns just 'ActualValue' string.
+    """
+    output = rbus_get_data(param)
+    for line in output.split('\n'):
+        if 'Value :' in line or 'Value:' in line:
+            # Extract everything after 'Value :' or 'Value:'
+            return line.split(':', 1)[1].strip()
+    # If no Value line found, return the full output stripped
+    return output.strip()
+
 def rbus_set_data(param: str, type:str, value: str):
     return subprocess.run(f"{RBUSCLI_SET_CMD} {param} {type} {value}", shell=True, capture_output=True).stdout.decode('utf-8')
 
