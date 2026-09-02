@@ -41,7 +41,7 @@ STBSVC_BASE = "Device.Services.STBService.1"
 
 AUDIO_BASE   = STBSVC_BASE + ".Components.AudioOutput.1"
 SPDIF_BASE   = STBSVC_BASE + ".Components.SPDIF.1"
-DISPDEV_BASE = STBSVC_BASE + ".Components.DisplayDevice.1"
+DISPDEV_BASE = STBSVC_BASE + ".Components.HDMI.1.DisplayDevice"
 VIDDEC_BASE  = STBSVC_BASE + ".Components.VideoDecoder.1"
 VIDOUT_BASE  = STBSVC_BASE + ".Components.VideoOutput.1"
 CAPS_BASE    = STBSVC_BASE + ".Capabilities"
