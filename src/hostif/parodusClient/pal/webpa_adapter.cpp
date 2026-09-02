@@ -114,7 +114,8 @@ void setInitialNotify()
     int notifyListSize =0;
 
     // Read Notify configuration file
-    if(notifyparameters != NULL)
+    getnotifyparamList(&notifyparameters, &notifyListSize);
+    if((notifyparameters != NULL) && (notifyListSize > 0))
     {
         WDMP_STATUS *ret = NULL;
         AttrVal **attArr = NULL;

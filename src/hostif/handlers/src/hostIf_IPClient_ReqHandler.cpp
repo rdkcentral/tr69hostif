@@ -472,11 +472,15 @@ void IPClientReqHandler::checkForUpdates()
     if (hostIf_IP::get_Device_IP_InterfaceNumberOfEntries (&msgData) == OK)
     {
         interfaceNumberOfEntries = get_int (msgData.paramValue);
+        int currentNumOfIPInterface;
+        {
+            std::lock_guard<std::mutex> lg (m_mutex);
+            currentNumOfIPInterface = curNumOfIPInterface;
+        }
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] interfaceNumberOfEntries = %d, curNumOfIPInterface = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, interfaceNumberOfEntries, curNumOfIPInterface);
+            __FILE__, __FUNCTION__, __LINE__, interfaceNumberOfEntries, currentNumOfIPInterface);
         sprintf (objectPath, "Device.IP.Interface.");
-        // Access to curNumOfIPInterface is protected by lock acquired above
-        sendAddRemoveEvents (mUpdateCallback, interfaceNumberOfEntries, curNumOfIPInterface, objectPath);
+        sendAddRemoveEvents (mUpdateCallback, interfaceNumberOfEntries, currentNumOfIPInterface, objectPath);
     }
 
     unsigned int ifindexes[MAX_IFCS];
@@ -485,25 +489,26 @@ void IPClientReqHandler::checkForUpdates()
     {
 	
         if (ifindexes[i] > 0 && ifindexes[i] < sizeof(curNumOfInterfaceIPv4Addresses)/sizeof(curNumOfInterfaceIPv4Addresses[0])) {
-            int ipv4AddressNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv4AddressNumberOfEntries ();
+            int interfaceIndex = static_cast<int>(ifindexes[i]);
+            int ipv4AddressNumberOfEntries = hostIf_IPInterface::getInstance (interfaceIndex)->getIPv4AddressNumberOfEntries ();
             RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv4AddressNumberOfEntries = %d, curNumOfInterfaceIPv4Addresses[%d] = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, ipv4AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv4Addresses[ifindexes[i]]);
-            sprintf (objectPath, "Device.IP.Interface.%d.IPv4Address.", ifindexes[i]);
-            sendAddRemoveEvents (mUpdateCallback, ipv4AddressNumberOfEntries, curNumOfInterfaceIPv4Addresses[ifindexes[i]], objectPath);
+                __FILE__, __FUNCTION__, __LINE__, ipv4AddressNumberOfEntries, interfaceIndex, curNumOfInterfaceIPv4Addresses[interfaceIndex]);
+            sprintf (objectPath, "Device.IP.Interface.%d.IPv4Address.", interfaceIndex);
+            sendAddRemoveEvents (mUpdateCallback, ipv4AddressNumberOfEntries, curNumOfInterfaceIPv4Addresses[interfaceIndex], objectPath);
 
 #ifdef IPV6_SUPPORT
-	    if (ifindexes[i] < sizeof(curNumOfInterfaceIPv6Addresses)/sizeof(curNumOfInterfaceIPv6Addresses[0]))  {
-                int ipv6AddressNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv6AddressNumberOfEntries ();
+	    if (interfaceIndex < sizeof(curNumOfInterfaceIPv6Addresses)/sizeof(curNumOfInterfaceIPv6Addresses[0]))  {
+                int ipv6AddressNumberOfEntries = hostIf_IPInterface::getInstance (interfaceIndex)->getIPv6AddressNumberOfEntries ();
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv6AddressNumberOfEntries = %d, curNumOfInterfaceIPv6Addresses[%d] = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, ipv6AddressNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv6Addresses[ifindexes[i]]);
-                sprintf (objectPath, "Device.IP.Interface.%d.IPv6Address.", ifindexes[i]);
-                sendAddRemoveEvents (mUpdateCallback, ipv6AddressNumberOfEntries, curNumOfInterfaceIPv6Addresses[ifindexes[i]], objectPath);
+                __FILE__, __FUNCTION__, __LINE__, ipv6AddressNumberOfEntries, interfaceIndex, curNumOfInterfaceIPv6Addresses[interfaceIndex]);
+                sprintf (objectPath, "Device.IP.Interface.%d.IPv6Address.", interfaceIndex);
+                sendAddRemoveEvents (mUpdateCallback, ipv6AddressNumberOfEntries, curNumOfInterfaceIPv6Addresses[interfaceIndex], objectPath);
 
-                int ipv6PrefixNumberOfEntries = hostIf_IPInterface::getInstance (ifindexes[i])->getIPv6PrefixNumberOfEntries ();
+                int ipv6PrefixNumberOfEntries = hostIf_IPInterface::getInstance (interfaceIndex)->getIPv6PrefixNumberOfEntries ();
                 RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] ipv6PrefixNumberOfEntries = %d, curNumOfInterfaceIPv6Prefixes[%d] = %d\n",
-                __FILE__, __FUNCTION__, __LINE__, ipv6PrefixNumberOfEntries, ifindexes[i], curNumOfInterfaceIPv6Prefixes[ifindexes[i]]);
-                sprintf (objectPath, "Device.IP.Interface.%d.IPv6Prefix.", ifindexes[i]);
-                sendAddRemoveEvents (mUpdateCallback, ipv6PrefixNumberOfEntries, curNumOfInterfaceIPv6Prefixes[ifindexes[i]], objectPath);
+                __FILE__, __FUNCTION__, __LINE__, ipv6PrefixNumberOfEntries, interfaceIndex, curNumOfInterfaceIPv6Prefixes[interfaceIndex]);
+                sprintf (objectPath, "Device.IP.Interface.%d.IPv6Prefix.", interfaceIndex);
+                sendAddRemoveEvents (mUpdateCallback, ipv6PrefixNumberOfEntries, curNumOfInterfaceIPv6Prefixes[interfaceIndex], objectPath);
 	    }
 #endif // IPV6_SUPPORT
 	}
