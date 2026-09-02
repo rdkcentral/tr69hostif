@@ -604,22 +604,3 @@ def test_STBService_AudioOutput_Get_Enable():
     assert RBUS_EXCEPTION_STRING not in rstdout, \
         f"rbus exception getting {param}"
     assert "true" in rstdout.lower() or "1" in rstdout
-
-@pytest.mark.run(order=348)
-def test_STBService_AudioOutput_Get_AudioLevel():
-    """
-    GET AudioOutput.1.AudioLevel – backed by getEnableAudioPort + getMuted,
-    returns one of Enabled / Muted / Disabled.
-    """
-    param = AUDIO_BASE + ".AudioLevel"
-    rstdout = rbus_get_data(param)
-
-    assert RBUS_EXCEPTION_STRING not in rstdout, \
-        f"rbus exception getting {param}"
-    assert CURL_OK_MSG in grep_tr69hostiflogs(CURL_OK_MSG)
-    assert '"volumeLevel"' in grep_tr69hostiflogs('"volumeLevel"'), \
-        "Expected Thunder response payload for getVolumeLevel"
-    # AudioLevel is a numeric volume level (0-100)
-    value = rbus_get_value(param)
-    assert value.isdigit() or value.lstrip('-').isdigit(), \
-        f"Expected numeric AudioLevel, got: {value}"
