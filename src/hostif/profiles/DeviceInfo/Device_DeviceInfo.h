@@ -284,6 +284,7 @@ class hostIf_DeviceInfo {
     string getEstbIp();
     bool isRsshactive();
     bool isShortsEnabled();
+    bool isProdHardened();
     int findLocalPortAvailable();
     size_t findIgnoreCase (std::string haystack, std::string needle, size_t pos = 0);
     string getStbMacIf_fr_devProperties();
