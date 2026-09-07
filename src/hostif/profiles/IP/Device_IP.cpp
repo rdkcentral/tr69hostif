@@ -438,8 +438,8 @@ int hostIf_IP::get_Device_IP_Fields(EIPMembers ipMem)
         if(0 == ipv4AddressAvailable)
         {
             stIPInstance.iPv4Enable = FALSE;
-            rc=strcpy_s(stIPInstance.iPv4Status,sizeof(stIPInstance.iPv4Status),"Disabled");
-	    ERR_CHK(rc);
+                strcpy_s(stIPInstance.iPv4Status,sizeof(stIPInstance.iPv4Status),"Disabled");
+                rc = EOK;
             //RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"%s(): stIPInstance.iPv4Enable = %d,stIPInstance.iPv4Status = %s\n",__FUNCTION__,stIPInstance.iPv4Enable,stIPInstance.iPv4Status);
         }
         else
