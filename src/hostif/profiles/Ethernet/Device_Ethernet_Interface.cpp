@@ -745,7 +745,7 @@ int hostIf_EthernetInterface::get_Device_Ethernet_Interface_DuplexMode(HOSTIF_Ms
         *pChanged = true;
     }
     bCalledDuplexMode = true;
-    rc=strcpy_s(backupDuplexMode,sizeof(backupDuplexMode), stEthInterface.duplexMode);
+        rc = (strlen(stEthInterface.duplexMode) < sizeof(backupDuplexMode)) ? (strcpy(backupDuplexMode, stEthInterface.duplexMode), EOK) : ESLEMAX;
     ERR_CHK(rc);
     strncpy(stMsgData->paramValue,stEthInterface.duplexMode,_BUF_LEN_16-1 );
     stMsgData->paramtype = hostIf_StringType;
