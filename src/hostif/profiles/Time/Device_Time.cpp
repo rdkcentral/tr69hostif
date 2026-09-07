@@ -262,11 +262,11 @@ int hostIf_Time::get_Device_Time_CurrentLocalTime(HOSTIF_MsgData_t *stMsgData, b
     }
 
     bCalledCurrentLocalTime = true;
-    rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue), buffer);
+    const char *pBuffer = buffer;
+    rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue), pBuffer);
     ERR_CHK(rc);
-    rc=strcpy_s(backupCurrentLocalTime,sizeof(backupCurrentLocalTime),buffer);
+    rc=strcpy_s(backupCurrentLocalTime,sizeof(backupCurrentLocalTime),pBuffer);
     ERR_CHK(rc);
-
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] buffer : %s stMsgData->paramValue: %s\n", __FILE__, __FUNCTION__, buffer, stMsgData->paramValue);
 
     stMsgData->paramtype = hostIf_StringType;
