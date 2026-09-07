@@ -67,11 +67,11 @@ hostIf_STBServiceDisplayDevice::hostIf_STBServiceDisplayDevice(int devId, device
     ERR_CHK(rc);
     rc=strcpy_s(backupEDIDBytes,sizeof(backupEDIDBytes)," ");
     ERR_CHK(rc);
-    rc=strcpy_s(backupSupportedResolution,sizeof(backupSupportedResolution)," ");
+    backupSupportedResolution[0] = '\0';
+    rc = EOK;
     ERR_CHK(rc);
     rc=strcpy_s(backupPreferredResolution,sizeof(backupPreferredResolution)," ");
     ERR_CHK(rc);
-
     bCalledDisplayDeviceStatus = false;
     bCalledEDID = false;
     bCalledEDIDBytes = false;
