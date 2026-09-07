@@ -63,8 +63,8 @@ public:
 	static const FrameRate & getInstance(int id);
 	static const FrameRate & getInstance(const std::string &name);
 
-	FrameRate(float value) {}
-	FrameRate(int id) {}
+	FrameRate(float value) : _value(value) {}
+	FrameRate(int id) : _value(static_cast<float>(id)) {}
 	virtual ~FrameRate() {}
 };
 
