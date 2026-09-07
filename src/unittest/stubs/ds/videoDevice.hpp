@@ -71,7 +71,7 @@ public:
            return instance;	   
 	}
 
-	VideoDevice(int id) {}
+	VideoDevice(int id) : _handle(0), _dfc(0) {}
 	void setDFC(const std::string & name);
 	void setDFC(int id);
 	void setPlatformDFC();
