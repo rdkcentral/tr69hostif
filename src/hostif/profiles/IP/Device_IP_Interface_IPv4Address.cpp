@@ -567,7 +567,7 @@ int hostIf_IPv4Address::get_IPv4Address_AddressingType(HOSTIF_MsgData_t *stMsgDa
     if (hostIf_IPInterface::isLoopback (nameOfInterface))
     {
         rc=strcpy_s (addressingType,sizeof(addressingType), "Static");
-	ERR_CHK(rc);
+        ERR_CHK(rc);
     }
     else if (isLinkLocalAddress (in_address))
     {
