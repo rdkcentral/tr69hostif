@@ -471,11 +471,11 @@ void IPClientReqHandler::checkForUpdates()
     int interfaceNumberOfEntries = 0;
     if (hostIf_IP::get_Device_IP_InterfaceNumberOfEntries (&msgData) == OK)
     {
+        std::lock_guard<std::mutex> lg (m_mutex);
         interfaceNumberOfEntries = get_int (msgData.paramValue);
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%s:%d] interfaceNumberOfEntries = %d, curNumOfIPInterface = %d\n",
                 __FILE__, __FUNCTION__, __LINE__, interfaceNumberOfEntries, curNumOfIPInterface);
         sprintf (objectPath, "Device.IP.Interface.");
-        // Access to curNumOfIPInterface is protected by lock acquired above
         sendAddRemoveEvents (mUpdateCallback, interfaceNumberOfEntries, curNumOfIPInterface, objectPath);
     }
 
