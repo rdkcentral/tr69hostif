@@ -264,7 +264,7 @@ int getProcessFields(int iProcInstanceNum, EProcessMembers eProcessMem)
         break;
     case eProcessCommand:
         memset(processStatus.cCommand,'\0',_COMMAND_LENGTH);
-        safec_rc=strcpy_s(processStatus.cCommand, sizeof(processStatus.cCommand) ,procTask.cmd);
+        safec_rc=(procTask.cmd[0] != '\0') ? strcpy_s(processStatus.cCommand, sizeof(processStatus.cCommand) ,procTask.cmd) : EOK;
         ERR_CHK(safec_rc);
 	RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"ProcessInstance: %d Command: %s\n",iProcInstanceNum, procTask.cmd);
         break;
