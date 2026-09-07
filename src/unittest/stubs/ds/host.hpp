@@ -76,7 +76,7 @@ public:
     void addDisplayConnectionListener(DisplayConnectionChangeListener *l);
     void removeDisplayConnectionListener(DisplayConnectionChangeListener *l);
 
-    static Host& getInstance(void){};
+    static Host& getInstance(void){ static Host instance; return instance; };
 
     List<VideoOutputPort> getVideoOutputPorts();
     List<AudioOutputPort> getAudioOutputPorts(){};
