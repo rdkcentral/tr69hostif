@@ -92,7 +92,7 @@ public:
 	static AudioOutputPort & getInstance(const std::string &name);
 
 	AudioOutputPort(const int type, const int index, const int id);
-	AudioOutputPort(int id) {}
+	AudioOutputPort(int id) : _type(0), _index(0), _id(id), _handle(0), _encoding(0), _stereoMode(0), _audioDelayMs(0), _audioDelayOffsetMs(0), _stereoAuto(false), _gain(0.0f), _db(0.0f), _maxDb(0.0f), _minDb(0.0f), _optimalLevel(0.0f), _level(0.0f), _loopThru(false), _muted(false) {}
 	virtual ~AudioOutputPort() {}
 
 	const AudioOutputPortType & getType() const;
