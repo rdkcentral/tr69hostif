@@ -84,7 +84,7 @@ public:
 	static VideoOutputPortType & getInstance(const std::string &name);
 
 
-	VideoOutputPortType(const int id) {}
+	VideoOutputPortType(const int id) : _dtcpSupported(false), _hdcpSupported(false), _dynamic(false), _restrictedResolution(0) {}
 	virtual ~VideoOutputPortType() {}
 
 	int  getTypeId() const;
