@@ -4019,7 +4019,23 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rdk_otlp_start_distributed_trace(RRD_SET_ISSUE_EVENT, "publish");
 
     const char* tp = rdk_otlp_get_current_traceparent();
+    bool traceContextSet = false;
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Publishing traceparent is %s \n",__FUNCTION__, tp ? tp : "(none - is tracing enabled?)");
+
+    if (tp != NULL && tp[0] != '\0')
+    {
+        rbusError_t traceRc = rbusHandle_SetTraceContextFromString(rbusHandle, tp, "");
+        if (traceRc == RBUS_ERROR_SUCCESS)
+        {
+            traceContextSet = true;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%d]: Failed to set RBUS trace context: %d\n",
+                    __FUNCTION__, __LINE__, traceRc);
+        }
+    }
 
     rbusValue_Init(&value);
     rbusValue_Init(&preValue);
@@ -4038,6 +4054,16 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     event.type = RBUS_EVENT_VALUE_CHANGED;
 
     rc = rbusEvent_Publish(rbusHandle, &event);
+    if (traceContextSet)
+    {
+        rbusError_t clearTraceRc = rbusHandle_ClearTraceContext(rbusHandle);
+        if (clearTraceRc != RBUS_ERROR_SUCCESS)
+        {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%d]: Failed to clear RBUS trace context: %d\n",
+                    __FUNCTION__, __LINE__, clearTraceRc);
+        }
+    }
     if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %d !!! \n ", __FUNCTION__, __LINE__, RRD_SET_ISSUE_EVENT, rc);
