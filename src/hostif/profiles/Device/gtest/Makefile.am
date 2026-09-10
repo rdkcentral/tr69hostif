@@ -37,3 +37,4 @@ device_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/src
 device_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 device_gtest_LDADD = $(COMMON_LDADD)
 device_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+device_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl

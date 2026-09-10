@@ -37,4 +37,4 @@ dm_gtest_SOURCES = dm_test.cpp $(TOP_DIR)/src/hostif/parodusClient/startParodus/
 dm_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 dm_gtest_LDADD = $(COMMON_LDADD)
 dm_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
-
+dm_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl
