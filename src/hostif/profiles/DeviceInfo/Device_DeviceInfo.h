@@ -400,6 +400,13 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable_DeviceSettingsException);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRetrieveNow_GettimeofdayFailure);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRoamTrigger_EmptyValue);
+    FRIEND_TEST(deviceTest, SecureDebugState_Enabled);
+    FRIEND_TEST(deviceTest, SecureDebugState_DbgServicesDisabled);
+    FRIEND_TEST(deviceTest, SecureDebugState_DeviceTypeNotTest);
+    FRIEND_TEST(deviceTest, SecureDebugState_BothDisabled);
+    FRIEND_TEST(deviceTest, SecureDebugState_NullInput);
+    FRIEND_TEST(deviceTest, SecureDebugState_ValidHandler);
+    FRIEND_TEST(deviceTest, SecureDebugState_UpdateExistingFile);
 #endif
 
 public:
