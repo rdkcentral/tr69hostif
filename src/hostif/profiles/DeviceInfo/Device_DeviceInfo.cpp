@@ -366,21 +366,8 @@ int hostIf_DeviceInfo::updateSecureDebugState(void)
     dbgServices.paramtype = hostIf_BooleanType;
     deviceType.paramtype = hostIf_StringType;
 
-#ifndef NEW_HTTP_SERVER_DISABLE
-    if (!legacyRFCEnabled())
-    {
-        dbgServicesRet = m_rfcStore->getValue(&dbgServices);
-        deviceTypeRet = m_rfcStore->getValue(&deviceType);
-    }
-    else
-    {
-        dbgServicesRet = m_rfcStorage.getValue(&dbgServices);
-        deviceTypeRet = m_rfcStorage.getValue(&deviceType);
-    }
-#else
-    dbgServicesRet = m_rfcStorage.getValue(&dbgServices);
-    deviceTypeRet = m_rfcStorage.getValue(&deviceType);
-#endif
+    dbgServicesRet = get_xRDKCentralComRFC(&dbgServices);
+    deviceTypeRet = get_xRDKCentralComRFC(&deviceType);
 
     if ((dbgServicesRet == OK) && (deviceTypeRet == OK))
     {
