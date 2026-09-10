@@ -61,6 +61,7 @@ private:
     FRIEND_TEST(httpserverTest, getValue_InitNotDone_ReturnsEmptyEvenWhenKeyExists);
     FRIEND_TEST(httpserverTest, reloadCache_WithQuotedFilename_LoadsValues);
     FRIEND_TEST(httpserverTest, handleRFCRequest_GET);
+    FRIEND_TEST(httpserverTest, handleRFCRequest_GET_UnknownKey_ReturnsValueIsNull);
 #endif
 };
 
