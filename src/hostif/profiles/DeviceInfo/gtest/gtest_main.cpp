@@ -115,6 +115,64 @@ extern bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr);
 static void* handle_reset_time_mock(void* arg);
 static void* handle_zero_reset_time_mock(void* arg);
 
+static void removeSecureDebugStateFile()
+{
+    std::remove(TEST_SECURE_DEBUG_STATE_FILE);
+}
+
+static std::string readSecureDebugStateFile()
+{
+    FILE *fp = fopen(TEST_SECURE_DEBUG_STATE_FILE, "r");
+    char value[8] = {0};
+
+    if (fp == NULL)
+    {
+        return "";
+    }
+
+    if (fgets(value, sizeof(value), fp) == NULL)
+    {
+        fclose(fp);
+        return "";
+    }
+
+    fclose(fp);
+
+    size_t len = strlen(value);
+    if ((len > 0) && (value[len - 1] == '\n'))
+    {
+        value[len - 1] = '\0';
+    }
+
+    return std::string(value);
+}
+
+static void setSecureDebugRFCValues(bool dbgServicesEnabled, const char *deviceType)
+{
+    XRFCStore *rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+
+    HOSTIF_MsgData_t dbgServices = {0};
+    dbgServices.reqType = HOSTIF_SET;
+    strncpy(dbgServices.paramName, TEST_RFC_DBG_SERVICES, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    dbgServices.bsUpdate = HOSTIF_NONE;
+    dbgServices.requestor = HOSTIF_SRC_RFC;
+    put_boolean(dbgServices.paramValue, dbgServicesEnabled);
+    dbgServices.paramtype = hostIf_BooleanType;
+    dbgServices.paramLen = sizeof(hostIf_BooleanType);
+    ASSERT_EQ(rfcStore->setValue(&dbgServices), OK);
+
+    HOSTIF_MsgData_t deviceTypeParam = {0};
+    deviceTypeParam.reqType = HOSTIF_SET;
+    strncpy(deviceTypeParam.paramName, TEST_RFC_DEVICE_TYPE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    deviceTypeParam.bsUpdate = HOSTIF_NONE;
+    deviceTypeParam.requestor = HOSTIF_SRC_RFC;
+    strncpy(deviceTypeParam.paramValue, deviceType, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    deviceTypeParam.paramtype = hostIf_StringType;
+    deviceTypeParam.paramLen = strlen(deviceTypeParam.paramValue);
+    ASSERT_EQ(rfcStore->setValue(&deviceTypeParam), OK);
+}
+
 TEST(rfcStoreTest, setValue) {
     m_rfcStore = XRFCStore::getInstance();
     
