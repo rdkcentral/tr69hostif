@@ -169,6 +169,7 @@
 #define DAB_RFC_ENABLE                                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable"
 #define TR181_AUTOREBOOT_ENABLE                         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define SHORTS_RFC_ENABLE                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SHORTS.Enable"
+#define LOGCHRONO_RFC_ENABLE                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogChrono.Enable"
 /* Profile: X_RDKCENTRAL-COM_RFC.Control */
 #define RFC_CTL_RETRIEVE_NOW                            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.RetrieveNow"
 /* Profile: X_RDKCENTRAL-COM_IPRemoteSupport */
@@ -308,7 +309,7 @@ class hostIf_DeviceInfo {
 
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *);
-
+    int set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *);
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);
     int get_xOpsRPCDevManageableNotification(HOSTIF_MsgData_t *);
