@@ -18,6 +18,8 @@
 
 #include "power_controller.h"
 
+uint32_t g_powerctrl_get_state_result = POWER_CONTROLLER_ERROR_NONE;
+
 void PowerController_Init()
 {
 
@@ -45,5 +47,5 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
 
 uint32_t PowerController_GetPowerState(PowerController_PowerState_t* currentState, PowerController_PowerState_t* previousState)
 {
-    return POWER_CONTROLLER_ERROR_NONE;
+    return g_powerctrl_get_state_result;
 }
