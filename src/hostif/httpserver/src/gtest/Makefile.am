@@ -35,3 +35,4 @@ httpserver_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)
 httpserver_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 httpserver_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 httpserver_gtest_LDADD = $(COMMON_LDADD)
+httpserver_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl
