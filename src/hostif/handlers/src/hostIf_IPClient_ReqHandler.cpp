@@ -1,4 +1,3 @@
-
 /*
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
@@ -331,7 +330,7 @@ int IPClientReqHandler::handleSetMsg (HOSTIF_MsgData_t *stMsgData)
 	ret = spdtst.handleSetMsg (stMsgData);
     }
 #endif
-    else if (strncasecmp (stMsgData->paramName, "Device.IP", strlen ("Device.IP")))
+    else if (strncasecmp (stMsgData->paramName, "Device.IP", strlen ("Device.IP")) == 0)
     {
         stMsgData->instanceNum = instanceNumber;
         hostIf_IP *pIPIface = hostIf_IP::getInstance (instanceNumber);
@@ -401,7 +400,7 @@ int IPClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         if((NULL != notifyValuePtr) && (NULL != notifyKey))
         {
             *notifyValuePtr = 1;
-            rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,stMsgData->paramName);
+            rc=strcpy_s(notifyKey,strlen(stMsgData->paramName)+1,(const char *)stMsgData->paramName);
 	    ERR_CHK(rc);
             g_hash_table_insert(notifyhash,notifyKey,notifyValuePtr);
             ret = OK;
@@ -446,7 +445,8 @@ void getIPIfcIDs(unsigned int *ifindexes) {
         if (ifindex_fp) {
             char buffer[64];
             if (fgets(buffer, sizeof(buffer), ifindex_fp)) {
-                ifindexes[count++] = atoi(buffer);
+                if (count < MAX_IFCS)
+                    ifindexes[count++] = atoi(buffer);
             }
             v_secure_pclose(ifindex_fp);
         }
@@ -1164,12 +1164,6 @@ void IPClientReqHandler::checkForUpdates()
 
 #endif  /* HAVE_VALUE_CHANGE_EVENT */
 }
-
-
-
-
-
-
 
 
 /** @} */

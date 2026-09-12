@@ -597,3 +597,4 @@ int hostIf_STBServiceSPDIF::getAudioDelay(HOSTIF_MsgData_t *stMsgData, bool *pCh
 
 /** @} */
 /** @} */
+

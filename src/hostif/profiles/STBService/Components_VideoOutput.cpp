@@ -592,3 +592,4 @@ int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData,bool *pCha
 
 /** @} */
 /** @} */
+
