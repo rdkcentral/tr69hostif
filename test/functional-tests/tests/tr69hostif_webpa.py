@@ -317,4 +317,36 @@ def test_WebPA_Set_FirmwareDownloadNow_Trigger():
     sleep(3)
     SCRIPT_TRIGGER_MSG = "Triggered Download"
     assert SCRIPT_TRIGGER_MSG in grep_tr69hostiflogs(SCRIPT_TRIGGER_MSG)
-                                                                   
+
+@pytest.mark.run(order=46)
+def test_WebPA_Set_ACC_Id():
+    print("Starting parodus mock process")
+    payload = '{"command":"SET","parameters":[{"name":"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID","dataType":0,"value":"412370664406228514"}]}'
+    command = ["/usr/local/bin/parodus", payload]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+    assert result.returncode == 0, f"Command failed with error: {result.stderr}"
+
+    STATUS_CODE_MSG = '"statusCode":200'
+    assert STATUS_CODE_MSG in grep_paroduslogs(STATUS_CODE_MSG)
+
+    SUCCESS_STATUS_MSG = '"message":"Success"'
+    assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
+
+@pytest.mark.run(order=47)
+def test_WebPA_Get_ACC_Id():
+    print("Starting parodus mock process")
+    payload ='{"command":"GET","names":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AccountInfo.AccountID"]}'
+    command = ["/usr/local/bin/parodus", payload]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+    assert result.returncode == 0, f"Command failed with error: {result.stderr}"
+
+    STATUS_CODE_MSG = '"statusCode":200'
+    assert STATUS_CODE_MSG in grep_paroduslogs(STATUS_CODE_MSG)
+
+    SUCCESS_STATUS_MSG = '"message":"Success"'
+    assert SUCCESS_STATUS_MSG in grep_paroduslogs(SUCCESS_STATUS_MSG)
+
+    ACC_ID_MSG = '"value":"412370664406228514"'
+    assert ACC_ID_MSG in grep_paroduslogs(ACC_ID_MSG)
