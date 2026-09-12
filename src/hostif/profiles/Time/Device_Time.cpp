@@ -318,7 +318,6 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
 {
     time_t rawtime;
     struct tm * timeinfo;
-    errno_t rc = -1;
     char buffer [_BUF_LEN_64] = {'\0'};
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s:%s] Entering..\n", __FILE__, __FUNCTION__);
     char timeZoneTmp[7];
@@ -335,10 +334,10 @@ int hostIf_Time::get_Device_Time_CurrentUTCTime(HOSTIF_MsgData_t *stMsgData, boo
     }
 
     bCalledCurrentUTCTime = true;
-    rc=strcpy_s(stMsgData->paramValue, sizeof(stMsgData->paramValue), buffer);
-    ERR_CHK(rc);
-    rc=strcpy_s(backupCurrentUTCTime, sizeof(backupCurrentUTCTime), buffer);
-    ERR_CHK(rc);
+    strncpy(stMsgData->paramValue, buffer, sizeof(stMsgData->paramValue) - 1);
+    stMsgData->paramValue[sizeof(stMsgData->paramValue) - 1] = '\0';
+    strncpy(backupCurrentUTCTime, buffer, sizeof(backupCurrentUTCTime) - 1);
+    backupCurrentUTCTime[sizeof(backupCurrentUTCTime) - 1] = '\0';
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] buffer : %s stMsgData->paramValue: %s\n", __FILE__, __FUNCTION__, buffer, stMsgData->paramValue);
 

@@ -552,8 +552,6 @@ int hostIf_DeviceProcess::get_Device_DeviceInfo_ProcessStatus_Process_State(HOST
         *pChanged =  true;
     }
     bCalledProcessState = true;
-    rc=strcpy_s(backupProcessState,sizeof(backupProcessState),processStatus.cState);
-    ERR_CHK(rc);
 
     rc=strcpy_s(stMsgData->paramValue,sizeof(stMsgData->paramValue),processStatus.cState);
     ERR_CHK(rc);
