@@ -38,6 +38,8 @@ dos2unix /etc/data-model-stb.xml
 
 echo "RDK_PROFILE=STB" > /etc/device.properties
 
+export BUILD_TYPE=${BUILD_TYPE:-dev}
+
 echo "VERSION=99.99.15.07" >> /version.txt
 echo "Proto|http" >> /opt/fwdnldstatus.txt
 echo "Status|Download In Progress" >> /opt/fwdnldstatus.txt

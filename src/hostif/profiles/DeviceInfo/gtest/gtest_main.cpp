@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <cstdlib>
 #include <iostream>
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_utils.h"
@@ -3213,6 +3214,24 @@ TEST(deviceTest, set_xOpsReverseSshTrigger)
         cout << "msgData.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, OK);
     }
+}
+
+TEST(deviceTest, set_xOpsReverseSshTrigger_blocksPlainStartOnProd)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    strncpy(param.paramValue, "start", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramLen = strlen(param.paramValue);
+
+    setenv("BUILD_TYPE", "prod", 1);
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_xOpsReverseSshTrigger(&param), NOK);
+
+    unsetenv("BUILD_TYPE");
 }
 
 TEST(deviceTest, set_xRDKCentralComRFC)
