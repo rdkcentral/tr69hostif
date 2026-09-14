@@ -19,6 +19,6 @@
 #ifndef DM_MOCKS_H_
 #define DM_MOCKS_H_
 
-
+extern bool g_pthread_create_fail;
 
 #endif
