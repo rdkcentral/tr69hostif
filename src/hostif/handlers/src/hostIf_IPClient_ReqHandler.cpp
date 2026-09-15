@@ -469,6 +469,8 @@ void IPClientReqHandler::checkForUpdates()
     memset(&msgData,0,sizeof(msgData));
 
     int interfaceNumberOfEntries = 0;
+    std::lock_guard<std::mutex> lg (m_mutex);
+
     if (hostIf_IP::get_Device_IP_InterfaceNumberOfEntries (&msgData) == OK)
     {
         interfaceNumberOfEntries = get_int (msgData.paramValue);

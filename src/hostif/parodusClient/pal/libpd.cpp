@@ -158,7 +158,7 @@ static void parodus_receive_wait()
             clock_gettime(CLOCK_MONOTONIC, &currTime);
             currTime.tv_sec += 5;
             pthread_mutex_lock(&parodus_lock);
-            if (!exit_parodus_recv.load())
+                while (!exit_parodus_recv.load())
             {
                 int wait_ret = pthread_cond_timedwait(&parodus_cond, &parodus_lock,&currTime);
                 if(wait_ret == ETIMEDOUT)
