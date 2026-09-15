@@ -1568,29 +1568,37 @@ bool hostIf_DeviceInfo::isRsshactive()
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Entering... \n",__FUNCTION__);
     bool retCode = false;
 
-    ifstream pidstrm;
-    pidstrm.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try {
-        pidstrm.open(pidfile.c_str());
-        int sshpid;
-        pidstrm>>sshpid;
+    ifstream pidstrm(pidfile.c_str());
+    if (!pidstrm.is_open())
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] SSH Session inactive; failed to open pid file %s (errno=%d:%s) \n",__FUNCTION__, pidfile.c_str(), errno, strerror(errno));
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+        return false;
+    }
 
-        if (getpgid(sshpid) >= 0)
-        {
-            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] SSH Session Active \n",__FUNCTION__);
-            retCode = true;
-        }
-        else
-        {
-            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] SSH Session inactive \n",__FUNCTION__);
-        }
-    } catch (const std::exception& e) {
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] SSH Session inactive ; Error opening pid file\n",__FUNCTION__);
+    int sshpid = -1;
+    pidstrm >> sshpid;
+    if (pidstrm.fail())
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] SSH Session inactive; pid file %s contains invalid/non-numeric content \n",__FUNCTION__, pidfile.c_str());
+        RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
+        return false;
+    }
+
+    if (getpgid(sshpid) >= 0)
+    {
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] SSH Session Active (pid=%d) \n",__FUNCTION__, sshpid);
+        retCode = true;
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] SSH Session inactive; pid %d not running (getpgid errno=%d:%s) \n",__FUNCTION__, sshpid, errno, strerror(errno));
     }
 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
     return retCode;
 }
+
 /**
  * @brief This function use to get the IPv4 Address of the eth1 interface currently.
  *
@@ -3229,6 +3237,11 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
                                 shortsArgs.c_str(),
                                 nonShortsArgs.c_str());
             }else {
+                const char *buildType = getenv("BUILD_TYPE");
+                if (buildType != NULL && strcmp(buildType, "prod") == 0) {
+                    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] plain reverse SSH trigger rejected on prod-built device \n",__FUNCTION__);
+                    return NOK;
+                }
 
                 RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting SSH Tunnel \n",__FUNCTION__);
                 string arg = "start";
