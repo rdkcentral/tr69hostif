@@ -191,9 +191,10 @@ hostIf_STBServiceHDMI::hostIf_STBServiceHDMI(int devid, device::VideoOutputPort&
     backupEnable = false;
     rc=strcpy_s(backupStatus,sizeof(backupStatus), " ");
     ERR_CHK(rc);
-    rc=strcpy_s(backupResolutionValue,sizeof(backupResolutionValue)," ");
+    rc=strcpy_s(backupResolutionValue,sizeof(backupResolutionValue),"");
     ERR_CHK(rc);
     rc=strcpy_s(backupName,sizeof(backupName)," ");
+    ERR_CHK(rc);
     ERR_CHK(rc);
 
     bCalledEnable = false;
