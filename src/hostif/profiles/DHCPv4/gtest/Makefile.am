@@ -21,7 +21,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = dhcpv4_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DYOCTO_BUILD -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/handlers/include -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/profiles/IP -I$(TOP_DIR)/src/hostif/profiles/DHCPv4 -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include  -I/usr/include/rbus -I/usr/local/include/rbus $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) -I/usr/include/libsoup-3.0
+COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DSAFEC_DUMMY_API -DYOCTO_BUILD -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/handlers/include -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/profiles/IP -I$(TOP_DIR)/src/hostif/profiles/DHCPv4 -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include  -I/usr/include/rbus -I/usr/local/include/rbus $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) -I/usr/include/libsoup-3.0
 
 # Define the libraries to link against
 COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl -lsoup-3.0
