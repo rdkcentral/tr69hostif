@@ -2706,9 +2706,10 @@ int hostIf_DeviceInfo::set_xOpsDMUploadLogsNow (HOSTIF_MsgData_t *stMsgData)
 
     if(triggerUploadLog)
     {
-		RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Start executing script to upload logs API... \n",__FUNCTION__);
-        triggerUploadLogsNow();
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully executed Logupload API \n");
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Queueing log upload API... \n",__FUNCTION__);
+        std::thread uploadThread(triggerUploadLogsNow);
+        uploadThread.detach();
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Log upload API queued successfully\n");
     }
     else
     {
