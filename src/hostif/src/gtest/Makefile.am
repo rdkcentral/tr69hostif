@@ -21,7 +21,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = src_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DPARODUS -DUNIT_TEST -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include -I$(TOP_DIR)/src/hostif/handlers/include -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/hostif/httpserver/include -I$(TOP_DIR)/src/hostif/handlers/src -I/usr/include/rbus -I/usr/local/include/rbus -I/usr/include/libsoup-3.0
+COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DPARODUS -DSAFEC_DUMMY_API -DUNIT_TEST -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include -I$(TOP_DIR)/src/hostif/handlers/include -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/hostif/httpserver/include -I$(TOP_DIR)/src/hostif/handlers/src -I/usr/include/rbus -I/usr/local/include/rbus -I/usr/include/libsoup-3.0
 
 COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl -lsoup-3.0
 
