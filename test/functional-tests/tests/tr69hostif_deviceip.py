@@ -19,6 +19,7 @@
 
 
 import subprocess
+import os
 import pytest
 from time import sleep
 
@@ -184,4 +185,14 @@ def test_ReverseSSH_Set_Get_Handler():
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", SSH_ARGS_MSG)
     # Force reload config fetch from xconf
     assert RBUS_SUCCESS_STRING in rstdout
-    
+
+@pytest.mark.skipif(os.environ.get("BUILD_TYPE") != "prod", reason="requires a production build environment")
+def test_ReverseSSH_Plain_Trigger_Rejected_On_Prod():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", "start")
+
+    assert RBUS_SET_EXCEPTION_STRING in rstdout
+    assert "plain reverse SSH trigger rejected on prod-built device" in grep_tr69hostiflogs(
+        "plain reverse SSH trigger rejected on prod-built device"
+    )
+

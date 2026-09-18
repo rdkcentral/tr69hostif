@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
@@ -5078,6 +5079,54 @@ TEST(deviceTest, set_xOpsReverseSshTrigger)
         int ret = pIface->set_xOpsReverseSshTrigger(&param);
         cout << "msgData.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, OK);
+    }
+}
+
+TEST(deviceTest, set_xOpsReverseSshTrigger_blocksPlainStartOnProd)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    strncpy(param.paramValue, "start", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramLen = strlen(param.paramValue);
+
+    const char *savedBuildType = getenv("BUILD_TYPE");
+    std::string savedBuildTypeValue = savedBuildType ? savedBuildType : "";
+    setenv("BUILD_TYPE", "prod", 1);
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_xOpsReverseSshTrigger(&param), NOK);
+
+    if (savedBuildType) {
+        setenv("BUILD_TYPE", savedBuildTypeValue.c_str(), 1);
+    } else {
+        unsetenv("BUILD_TYPE");
+    }
+}
+
+TEST(deviceTest, set_xOpsReverseSshTrigger_AllowsPlainStartOnDev)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    strncpy(param.paramValue, "start", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramLen = strlen(param.paramValue);
+
+    const char *savedBuildType = getenv("BUILD_TYPE");
+    std::string savedBuildTypeValue = savedBuildType ? savedBuildType : "";
+    setenv("BUILD_TYPE", "dev", 1);
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_xOpsReverseSshTrigger(&param), OK);
+
+    if (savedBuildType) {
+        setenv("BUILD_TYPE", savedBuildTypeValue.c_str(), 1);
+    } else {
+        unsetenv("BUILD_TYPE");
     }
 }
 
