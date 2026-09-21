@@ -18,7 +18,6 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
@@ -5082,56 +5081,7 @@ TEST(deviceTest, set_xOpsReverseSshTrigger)
     }
 }
 
-TEST(deviceTest, set_xOpsReverseSshTrigger_blocksPlainStartOnProd)
-{
-    HOSTIF_MsgData_t param = { 0 };
-    param.reqType = HOSTIF_SET;
-    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.paramtype = hostIf_StringType;
-    strncpy(param.paramValue, "start", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.paramLen = strlen(param.paramValue);
-
-    const char *savedBuildType = getenv("BUILD_TYPE");
-    std::string savedBuildTypeValue = savedBuildType ? savedBuildType : "";
-    setenv("BUILD_TYPE", "prod", 1);
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
-    ASSERT_NE(pIface, nullptr);
-
-    EXPECT_EQ(pIface->set_xOpsReverseSshTrigger(&param), NOK);
-
-    if (savedBuildType) {
-        setenv("BUILD_TYPE", savedBuildTypeValue.c_str(), 1);
-    } else {
-        unsetenv("BUILD_TYPE");
-    }
-}
-
-TEST(deviceTest, set_xOpsReverseSshTrigger_AllowsPlainStartOnDev)
-{
-    HOSTIF_MsgData_t param = { 0 };
-    param.reqType = HOSTIF_SET;
-    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.paramtype = hostIf_StringType;
-    strncpy(param.paramValue, "start", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.paramLen = strlen(param.paramValue);
-
-    const char *savedBuildType = getenv("BUILD_TYPE");
-    std::string savedBuildTypeValue = savedBuildType ? savedBuildType : "";
-    setenv("BUILD_TYPE", "dev", 1);
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
-    ASSERT_NE(pIface, nullptr);
-
-    EXPECT_EQ(pIface->set_xOpsReverseSshTrigger(&param), OK);
-
-    if (savedBuildType) {
-        setenv("BUILD_TYPE", savedBuildTypeValue.c_str(), 1);
-    } else {
-        unsetenv("BUILD_TYPE");
-    }
-}
-
 TEST(deviceTest, set_xOpsReverseSshTrigger_StartNoShorts) {
-    // trigger=true, trigger_shorts=false -> else branch at line 3092 (startTunnel.sh start)
     int instanceNumber = 0;
     HOSTIF_MsgData_t param = { 0 };
     memset(&param, 0, sizeof(HOSTIF_MsgData_t));
@@ -5145,7 +5095,54 @@ TEST(deviceTest, set_xOpsReverseSshTrigger_StartNoShorts) {
 
     hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
     ASSERT_NE(pIface, nullptr);
-    EXPECT_EQ(pIface->set_xOpsReverseSshTrigger(&param), OK);
+
+    const char *buildType = getenv("BUILD_TYPE");
+    const std::string savedBuildType = buildType ? buildType : "";
+    setenv("BUILD_TYPE", "dev", 1);
+
+    testing::internal::CaptureStdout();
+    int ret = pIface->set_xOpsReverseSshTrigger(&param);
+    std::string logs = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, OK);
+    EXPECT_NE(logs.find("Starting SSH Tunnel"), std::string::npos);
+
+    if (buildType) {
+        setenv("BUILD_TYPE", savedBuildType.c_str(), 1);
+    } else {
+        unsetenv("BUILD_TYPE");
+    }
+}
+
+TEST(deviceTest, set_xOpsReverseSshTrigger_BlocksPlainStartOnProd) {
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    strncpy(param.paramValue, "start", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen = strlen(param.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    const char *buildType = getenv("BUILD_TYPE");
+    const std::string savedBuildType = buildType ? buildType : "";
+    setenv("BUILD_TYPE", "PROD", 1);
+
+    testing::internal::CaptureStdout();
+    int ret = pIface->set_xOpsReverseSshTrigger(&param);
+    std::string logs = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, NOK);
+    EXPECT_NE(logs.find("plain reverse SSH trigger rejected on prod-built device"), std::string::npos);
+
+    if (buildType) {
+        setenv("BUILD_TYPE", savedBuildType.c_str(), 1);
+    } else {
+        unsetenv("BUILD_TYPE");
+    }
 }
 
 TEST(deviceTest, set_xOpsReverseSshTrigger_Stop) {
