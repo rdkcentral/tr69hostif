@@ -186,8 +186,8 @@ def test_ReverseSSH_Set_Get_Handler():
     # Force reload config fetch from xconf
     assert RBUS_SUCCESS_STRING in rstdout
 
+@pytest.mark.skipif(os.environ.get("BUILD_TYPE", "").lower() != "prod", reason="requires a production build environment")
 def test_ReverseSSH_Plain_Trigger_Rejected_On_Prod():
-    assert os.environ.get("BUILD_TYPE", "").lower() == "prod"
 
     clear_tr69hostiflogs()
     data_element_name = "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger"
