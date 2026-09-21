@@ -36,9 +36,8 @@ sed -i '/ModelName/ {n; n; a\
 
 dos2unix /etc/data-model-stb.xml
 
-if ! grep -q '^RDK_PROFILE=' /etc/device.properties; then
-    echo "RDK_PROFILE=STB" >> /etc/device.properties
-fi
+sed -i '/^RDK_PROFILE=/d' /etc/device.properties
+echo "RDK_PROFILE=STB" >> /etc/device.properties
 
 set -a
 . /etc/device.properties
