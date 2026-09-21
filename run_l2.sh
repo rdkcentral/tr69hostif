@@ -36,9 +36,13 @@ sed -i '/ModelName/ {n; n; a\
 
 dos2unix /etc/data-model-stb.xml
 
-echo "RDK_PROFILE=STB" > /etc/device.properties
+if ! grep -q '^RDK_PROFILE=' /etc/device.properties; then
+    echo "RDK_PROFILE=STB" >> /etc/device.properties
+fi
 
-export BUILD_TYPE=${BUILD_TYPE:-dev}
+set -a
+. /etc/device.properties
+set +a
 
 echo "VERSION=99.99.15.07" >> /version.txt
 echo "Proto|http" >> /opt/fwdnldstatus.txt
