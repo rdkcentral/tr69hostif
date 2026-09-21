@@ -3231,7 +3231,7 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
                                 nonShortsArgs.c_str());
             }else {
                 const char *buildType = getenv("BUILD_TYPE");
-                if (buildType != NULL && strcmp(buildType, "prod") == 0) {
+                if (buildType == NULL || strcasecmp(buildType, "prod") == 0) {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] plain reverse SSH trigger rejected on prod-built device \n",__FUNCTION__);
                     return NOK;
                 }
