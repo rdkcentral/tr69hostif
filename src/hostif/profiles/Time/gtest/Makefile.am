@@ -21,7 +21,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = time_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DPARODUS -DUNIT_TEST -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/handlers/include -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/profiles/Time -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include  -I/usr/include/rbus -I/usr/local/include/rbus $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) -I/usr/include/libsoup-3.0
+COMMON_CPPFLAGS = -std=c++11 -DGTEST_ENABLE -DSAFEC_DUMMY_API -DPARODUS -DUNIT_TEST -I$(TOP_DIR)/src/hostif/include -I$(TOP_DIR)/src/hostif/handlers/include -I/usr/include -I/usr/include/cjson -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/profiles/Time -I$(TOP_DIR)/src/hostif/profiles/DeviceInfo -I$(TOP_DIR)/src/hostif/parodusClient/pal -I$(TOP_DIR)/src/hostif/parodusClient/waldb -I$(TOP_DIR)/src/unittest/stubs -I$(TOP_DIR)/src/unittest/stubs/ds -I$(TOP_DIR)/src/unittest/stubs/rbus/include  -I/usr/include/rbus -I/usr/local/include/rbus $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) -I/usr/include/libsoup-3.0
 
 # Define the libraries to link against
 COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -ltinyxml2 -lcjson -lcurl -lsoup-3.0
@@ -30,9 +30,10 @@ COMMON_LDADD =  -lgtest -lgtest_main -lgmock_main -lgmock -lgcov $(GLIB_LIBS) -l
 COMMON_CXXFLAGS = -frtti $(GLIB_CFLAGS) $(SOUP_LIBS) -fprofile-arcs -ftest-coverage
 
 # Define the source files
-time_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/src/hostif/src/IniFile.cpp $(TOP_DIR)/src/unittest/stubs/secure_wrapper.c $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFCStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFC.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStoreJournal.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp  $(TOP_DIR)/src/hostif/handlers/src/hostIf_NotificationHandler.cpp $(TOP_DIR)/src/hostif/parodusClient/pal/webpa_notification.cpp $(TOP_DIR)/src/hostif/profiles/Time/Device_Time.cpp $(TOP_DIR)/src/unittest/stubs/dm_stubs.cpp $(TOP_DIR)/src/hostif/parodusClient/waldb/waldb.cpp $(TOP_DIR)/src/hostif/profiles/Time/gtest/gtest_time.cpp
+time_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/src/hostif/src/IniFile.cpp $(TOP_DIR)/src/unittest/stubs/uploadstblogs_mock.cpp $(TOP_DIR)/src/unittest/stubs/secure_wrapper.c $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFCStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComRFC.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/XrdkCentralComBSStoreJournal.cpp $(TOP_DIR)/src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp  $(TOP_DIR)/src/hostif/handlers/src/hostIf_NotificationHandler.cpp $(TOP_DIR)/src/hostif/parodusClient/pal/webpa_notification.cpp $(TOP_DIR)/src/hostif/profiles/Time/Device_Time.cpp $(TOP_DIR)/src/unittest/stubs/dm_stubs.cpp $(TOP_DIR)/src/hostif/parodusClient/waldb/waldb.cpp $(TOP_DIR)/src/hostif/profiles/Time/gtest/gtest_time.cpp
  
 # Apply common properties to each program
 time_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 time_gtest_LDADD = $(COMMON_LDADD)
 time_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+time_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl
