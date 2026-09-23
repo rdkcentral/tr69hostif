@@ -50,7 +50,7 @@ extern "C"
 #include "waldb.h"
 //#include "rbus.h"
 
-
+#include "rdk_otlp_instrumentation.h"
 
 #define MAX_NUM_PARAMETERS 2048
 #define MAX_PARAMETER_LENGTH 512
@@ -464,6 +464,9 @@ void init_rbus_dml_provider()
     rbusError_t rc = RBUS_ERROR_SUCCESS;
     rbusDataElement_t* dataElements = NULL;
     int i = 0;
+
+    rdk_otlp_init("tr69hostif_provider", "1.0.0");
+
     rc = rbus_open(&rbusHandle, "tr69hostif");
     if(rc != RBUS_ERROR_SUCCESS)
     {
