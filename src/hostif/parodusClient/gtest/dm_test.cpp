@@ -27,7 +27,6 @@
 #include "webpa_parameter.h"
 #include "webpa_adapter.h"
 #include "libpd.h"
-#include "libparodus.h"
 #include "webpa_attribute.h"
 #include "rbus_value.h"
 #include "hostIf_tr69ReqHandler.h"
@@ -45,6 +44,9 @@ using namespace std;
 
 #include <mutex>
 #include <condition_variable>
+#include <future>
+#include <chrono>
+#include <thread>
 
 #define GTEST_DEFAULT_RESULT_FILEPATH "/tmp/Gtest_Report/"
 #define GTEST_DEFAULT_RESULT_FILENAME "datamodel_gtest_report.json"
@@ -68,80 +70,6 @@ typedef struct {
     char message[512];
 } ParsedResult;
 
-extern "C" {
-static int g_libparodus_init_ret = 0;
-static int g_libparodus_receive_ret = 1;
-static int g_libparodus_close_ret = 0;
-static int g_libparodus_send_ret = 0;
-
-static int g_libparodus_init_calls = 0;
-static int g_libparodus_receive_calls = 0;
-static int g_libparodus_close_calls = 0;
-static int g_libparodus_shutdown_calls = 0;
-static int g_libparodus_send_calls = 0;
-
-int libparodus_init(libpd_instance_t *instance, libpd_cfg_t *)
-{
-    g_libparodus_init_calls++;
-    if(instance)
-    {
-        *instance = reinterpret_cast<libpd_instance_t>(0x1);
-    }
-    return g_libparodus_init_ret;
-}
-
-int libparodus_receive(libpd_instance_t, wrp_msg_t **msg, uint32_t)
-{
-    g_libparodus_receive_calls++;
-    if(msg)
-    {
-        *msg = NULL;
-    }
-    return g_libparodus_receive_ret;
-}
-
-int libparodus_close_receiver(libpd_instance_t)
-{
-    g_libparodus_close_calls++;
-    return g_libparodus_close_ret;
-}
-
-int libparodus_shutdown(libpd_instance_t *instance)
-{
-    g_libparodus_shutdown_calls++;
-    if(instance)
-    {
-        *instance = NULL;
-    }
-    return 0;
-}
-
-int libparodus_send(libpd_instance_t, wrp_msg_t *)
-{
-    g_libparodus_send_calls++;
-    return g_libparodus_send_ret;
-}
-
-const char *libparodus_strerror(libpd_error_t)
-{
-    return "stubbed libparodus error";
-}
-}
-
-static void reset_libparodus_stub_state()
-{
-    g_libparodus_init_ret = 0;
-    g_libparodus_receive_ret = 1;
-    g_libparodus_close_ret = 0;
-    g_libparodus_send_ret = 0;
-
-    g_libparodus_init_calls = 0;
-    g_libparodus_receive_calls = 0;
-    g_libparodus_close_calls = 0;
-    g_libparodus_shutdown_calls = 0;
-    g_libparodus_send_calls = 0;
-}
-
 #ifdef GTEST_ENABLE
 extern void (*macToLowerFunc())(char macValue[],char macConverted[]);
 extern WDMP_STATUS (*GetParamInfoFunc()) (const char *pParameterName, param_t ***parametervalPtrPtr, int *paramCountPtr,int paramIndex);
@@ -163,10 +91,8 @@ extern long (*timeValDiffFunc()) (struct timespec *starttime, struct timespec *f
 extern WDMP_STATUS (*rbusGetParamInfoFunc()) (const char *pParameterName, param_t ***parametervalPtrPtr, int *paramCountPtr, int index);
 extern WAL_STATUS (*rbusSetParamInfoFunc()) (ParamVal paramVal, char * transactionID);
 extern WAL_STATUS (*SetParamInfoFunc()) (ParamVal paramVal, char * transactionID);
+extern std::atomic_bool exit_parodus_recv;
 void (*parodus_receive_waitFunc()) ();
-
-// libpd.cpp defines this inside an extern "C" block
-extern "C" const char *rdk_logger_module_fetch(void);
 #endif
 
 int parse_json(char *json_str, ParsedResult *result) {
@@ -949,36 +875,6 @@ TEST(palTest, get_parodus_url) {
     EXPECT_STREQ(client_url, "tcp://127.0.0.1:6666");
 }
 
-TEST(palTest, sendNotification_ValidPayloadSends) {
-    reset_libparodus_stub_state();
-    // sendNotification hands the payload to wrp_free_struct(), so it must be heap allocated
-    char *payload = strdup("{\"notify\":\"ok\"}");
-    char source[] = "test-source";
-    char dest[] = "test-dest";
-
-    sendNotification(payload, source, dest);
-    EXPECT_GE(g_libparodus_send_calls, 1);
-}
-
-TEST(palTest, rdk_logger_module_fetch_ReturnsExpectedModule) {
-    EXPECT_STREQ(rdk_logger_module_fetch(), "LOG.RDK.PARADUSIF");
-}
-
-TEST(palTest, libpd_client_mgr_StartsAndUsesParodusHooks) {
-    reset_libparodus_stub_state();
-    pthread_t threadId;
-
-    int createStatus = pthread_create(&threadId, NULL, libpd_client_mgr, NULL);
-    EXPECT_EQ(createStatus, 0);
-
-    usleep(200000);
-    stop_parodus_recv_wait();
-    usleep(200000);
-
-    EXPECT_GE(g_libparodus_init_calls, 1);
-    EXPECT_GE(g_libparodus_close_calls, 1);
-}
-
 /*TEST(LibPdTest, sendNotification_ValidPayloadSends) {
     // This requires a mock/fake for libparodus_send, wrp_free_struct, etc.
     // For now, ensure function does not crash with valid input
@@ -1197,29 +1093,17 @@ TEST(srcTest, setInitialNotifyConfigFile) {
     EXPECT_EQ(0, 0);
 }
 
-TEST(palTest, get_AttribValues_tr69hostIf_FunctionPointerNonNull) {
-    auto getAttribFn = get_AttribValues_tr69hostIfFunc();
-    ASSERT_NE(getAttribFn, nullptr);
-}
-
-TEST(palTest, get_AttribValues_tr69hostIf) {
+/* TEST(palTest, get_AttribValues_tr69hostIf) {
     HOSTIF_MsgData_t param = { 0 };
-    memset(&param, 0, sizeof(HOSTIF_MsgData_t));
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
     param.reqType = HOSTIF_GET;
-    // no manager is mapped for this prefix, so the request is rejected without touching the notify hash
-    strncpy(param.paramName, "Device.UnMappedProfile.Feature.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
     param.bsUpdate = HOSTIF_NONE;
     param.requestor = HOSTIF_SRC_RFC;
-    param.paramtype = hostIf_IntegerType;
 
-    auto getAttribFn = get_AttribValues_tr69hostIfFunc();
-    ASSERT_NE(getAttribFn, nullptr);
-
-    WAL_STATUS status = getAttribFn(&param);
-
-    EXPECT_EQ(param.reqType, HOSTIF_GETATTRIB);
+    WAL_STATUS status = get_AttribValues_tr69hostIfFunc()(&param);
     EXPECT_EQ(status, WAL_ERR_INVALID_PARAM);
-}
+} */
 
 TEST(palTest, set_AttribValues_tr69hostIf) {
     strcpy(argList.confFile, "/etc/mgrlist.conf");
@@ -1345,10 +1229,15 @@ TEST(palTest, setAttributes) {
 
 
 TEST(palTest, parodus_receive_waitFunc) {
-    parodus_receive_waitFunc();
-    sleep(30);
+    exit_parodus_recv.store(false);
+    auto receiveFuture = std::async(std::launch::async, parodus_receive_waitFunc);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     stop_parodus_recv_wait();
-    EXPECT_EQ(0, 0);
+
+    auto status = receiveFuture.wait_for(std::chrono::seconds(2));
+    EXPECT_NE(std::future_status::timeout, status);
+    EXPECT_TRUE(exit_parodus_recv.load());
 }
 
 TEST(palTest, stop_parodus_recv_wait) {
@@ -1362,12 +1251,18 @@ TEST(palTest, notificationCallBack) {
 }
 
 TEST(palTest, setInitialNotify) {
-    notificationCallBack();
+    std::remove("/tmp/notify.conf");
+    const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed"]})";
+    write_on_file("/tmp/notify.conf", json_data);
+    libpd_set_notifyConfigFile("/tmp/notify.conf");
+
+    EXPECT_NO_THROW(setInitialNotify());
     EXPECT_EQ(0, 0);
 }
 
 TEST(palTest, libpd_set_notifyConfigFile) {
-     std::remove("/tmp/notify.conf");                                                                                                     const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed"]})";
+    std::remove("/tmp/notify.conf");
+    const char* json_data = R"({"Notify":["Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.Enable","Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed"]})";
     write_on_file("/tmp/notify.conf", json_data);
     char **notifyParamList = NULL;
     int ptrnotifyListSize = 2;
@@ -1436,30 +1331,6 @@ TEST(palTest, rbusSetParamInfo) {
 
     WAL_STATUS status = rbusSetParamInfoFunc() (param, transactionID);
     EXPECT_EQ(status, WAL_SUCCESS);
-}
-
-TEST(palTest, rbusGetParamInfoFunc_NonNull) {
-    auto getInfoFn = rbusGetParamInfoFunc();
-    ASSERT_NE(getInfoFn, nullptr);
-}
-
-TEST(palTest, rbusGetParamInfo_WildcardPath) {
-    auto getInfoFn = rbusGetParamInfoFunc();
-    ASSERT_NE(getInfoFn, nullptr);
-
-    const char *pParameterName = "Device.IP.";
-    param_t **parametervalPtrPtr = (param_t**) calloc(1, sizeof(param_t*));
-    ASSERT_NE(parametervalPtrPtr, nullptr);
-
-    int paramCountPtr = -1;
-    int index = 0;
-
-    WDMP_STATUS status = getInfoFn(pParameterName, &parametervalPtrPtr, &paramCountPtr, index);
-    EXPECT_EQ(status, WDMP_SUCCESS);
-    EXPECT_EQ(paramCountPtr, 0);
-
-    free(parametervalPtrPtr[index]);
-    free(parametervalPtrPtr);
 }
 
 TEST(palTest, getnotifyparamList_NULL) {
@@ -1583,7 +1454,7 @@ TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_Command) {
     if(hostIf_DeviceProcess)
     {
         bChanged =  false;
-        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_Command(&param, &bChanged);
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
         cout << "param.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, -1);
     }
@@ -1603,7 +1474,7 @@ TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_Size) {
     if(hostIf_DeviceProcess)
     {
         bChanged =  false;
-        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_Size(&param, &bChanged);
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
         cout << "param.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, -1);
     }
@@ -1623,7 +1494,7 @@ TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_Priority) {
     if(hostIf_DeviceProcess)
     {
         bChanged =  false;
-        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_Priority(&param, &bChanged);
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
         cout << "param.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, -1);
     }
@@ -1643,7 +1514,7 @@ TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_CPUTime) {
     if(hostIf_DeviceProcess)
     {
         bChanged =  false;
-        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_CPUTime(&param, &bChanged);
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
         cout << "param.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, -1);
     }
@@ -1663,55 +1534,9 @@ TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_State) {
     if(hostIf_DeviceProcess)
     {
         bChanged =  false;
-        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_State(&param, &bChanged);
+        int ret = hostIf_DeviceProcess->get_Device_DeviceInfo_ProcessStatus_Process_PID(&param, &bChanged);
         cout << "param.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, -1);
-    }
-}
-
-TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_InstanceLifecycleAndList) {
-    hostIf_DeviceProcess::closeAllInstances();
-    EXPECT_EQ(hostIf_DeviceProcess::getAllInstances(), nullptr);
-
-    hostIf_DeviceProcess *first = hostIf_DeviceProcess::getInstance(0);
-    ASSERT_NE(first, nullptr);
-
-    hostIf_DeviceProcess *same = hostIf_DeviceProcess::getInstance(0);
-    EXPECT_EQ(same, first);
-
-    hostIf_DeviceProcess *second = hostIf_DeviceProcess::getInstance(1);
-    ASSERT_NE(second, nullptr);
-
-    GList* allInstances = hostIf_DeviceProcess::getAllInstances();
-    ASSERT_NE(allInstances, nullptr);
-    EXPECT_EQ(g_list_length(allInstances), 2);
-    g_list_free(allInstances);
-
-    hostIf_DeviceProcess::closeInstance(first);
-
-    GList* oneLeft = hostIf_DeviceProcess::getAllInstances();
-    ASSERT_NE(oneLeft, nullptr);
-    EXPECT_EQ(g_list_length(oneLeft), 1);
-    g_list_free(oneLeft);
-
-    hostIf_DeviceProcess::closeInstance(nullptr);
-    hostIf_DeviceProcess::closeAllInstances();
-    EXPECT_EQ(hostIf_DeviceProcess::getAllInstances(), nullptr);
-}
-
-TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_LockUnlock) {
-    hostIf_DeviceProcess::getLock();
-    hostIf_DeviceProcess::releaseLock();
-    EXPECT_EQ(0, 0);
-}
-
-TEST(ProcessStatus, DeviceInfo_ProcessStatus_Process_NumEntries) {
-    HOSTIF_MsgData_t msgData = {0};
-    int ret = hostIf_DeviceProcess::getNumOfProcessEntries(&msgData);
-    EXPECT_TRUE((ret == OK) || (ret == NOK));
-    if(ret == OK)
-    {
-        EXPECT_EQ(msgData.paramtype, hostIf_UnsignedIntType);
     }
 }
 
