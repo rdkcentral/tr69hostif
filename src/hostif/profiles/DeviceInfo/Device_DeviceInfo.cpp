@@ -3990,10 +3990,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
-    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
-    {
-        ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
-    }
 	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
 	{
     	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
@@ -4113,75 +4109,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
                     "[%s] Removed tracing flag file %s\n", __FUNCTION__, RDK_TRACING_FLAG_FILE);
         }
     }
-
-    ret = OK;
-    return ret;
-}
-
-int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *stMsgData)
-{
-    int ret = NOK;
-    LOG_ENTRY_EXIT;
-
-    if (stMsgData->paramtype != hostIf_StringType)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%d] Wrong type for %s, expected string.\n",
-                __FUNCTION__, __LINE__, stMsgData->paramName);
-        return NOK;
-    }
-
-    const char *url = (const char *)stMsgData->paramValue;
-
-    /* Empty value clears the override so the collector falls back to its
-       default endpoint on next start. NO URL value is logged. */
-    if (!url || url[0] == '\0')
-    {
-        if (remove(OTEL_EXPORT_ENDPOINT_FILE) != 0 && errno != ENOENT)
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                    "[%s] Failed to remove endpoint override %s: %s\n",
-                    __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
-            return NOK;
-        }
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                "[%s] Cleared trace upload URL override\n", __FUNCTION__);
-        return OK;
-    }
-
-    /* Write the override file (read once by the collector at startup). */
-    int fd = open(OTEL_EXPORT_ENDPOINT_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (fd < 0)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s] Failed to open %s: %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
-        return NOK;
-    }
-
-    FILE *fp = fdopen(fd, "w");
-    if (!fp)
-    {
-        close(fd);
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s] Failed to open stream for %s: %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
-        return NOK;
-    }
-
-    if (fprintf(fp, "%s\n", url) < 0)
-    {
-        fclose(fp);
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s] Failed to write %s: %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
-        return NOK;
-    }
-
-    fclose(fp);
-
-    /* Takes effect on next collector start (e.g. DistributedTracing.Enable
-       toggle, which restarts the service, or a device reboot). */
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-            "[%s] Updated trace upload URL override %s\n",
-            __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
 
     ret = OK;
     return ret;
