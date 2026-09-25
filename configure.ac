@@ -448,6 +448,5 @@ AC_CONFIG_FILES([src/hostif/httpserver/Makefile])
 AC_CONFIG_FILES([src/hostif/parodusClient/Makefile])
 AC_CONFIG_FILES([src/hostif/parodusClient/pal/Makefile])
 AC_CONFIG_FILES([src/hostif/parodusClient/waldb/Makefile])
-AC_CONFIG_FILES([src/hostif/parodusClient/startParodus/Makefile])
 
 AC_OUTPUT

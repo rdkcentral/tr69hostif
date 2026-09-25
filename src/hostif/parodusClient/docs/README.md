@@ -14,7 +14,8 @@ It also includes:
 
 - a data-model helper layer under `waldb/`
 - notification configuration parsing
-- an auxiliary `startParodus/` bootstrap helper used to prepare Parodus launch parameters and runtime configuration
+
+The Parodus process itself is started and managed by the separate [rdkcentral/start-parodus](https://github.com/rdkcentral/start-parodus) project, which is triggered by the `/tmp/bspcomplete` file this module creates.
 
 ## Source Layout
 
@@ -26,12 +27,11 @@ It also includes:
 | `src/hostif/parodusClient/pal/webpa_attribute.cpp` | GET_ATTRIBUTES and SET_ATTRIBUTES translation to hostif |
 | `src/hostif/parodusClient/pal/webpa_notification.cpp` | notification source discovery and notify-list parsing |
 | `src/hostif/parodusClient/waldb/waldb.cpp` | TR-181 data-model loading, wildcard expansion, and parameter metadata lookup |
-| `src/hostif/parodusClient/startParodus/` | startup helper that prepares Parodus runtime configuration and environment |
 | `src/hostif/parodusClient/conf/webpa_cfg.json` | Parodus URL and WebPA runtime configuration |
 | `src/hostif/parodusClient/conf/notify_webpa_cfg.json` | initial notification list configuration |
-| `src/hostif/parodusClient/parodus.service` | systemd service unit for Parodus |
-| `src/hostif/parodusClient/parodus_bsp.path` | systemd path unit that triggers Parodus startup when `/tmp/bspcomplete` changes |
 | `src/hostif/parodusClient/gtest/dm_test.cpp` | unit coverage for data-model, WebPA PAL, notification, and helper functions |
+
+Parodus startup (`parodusStart` binary, `parodus.service`, `parodus_bsp.path`) now lives in [rdkcentral/start-parodus](https://github.com/rdkcentral/start-parodus).
 
 ## Architecture
 
@@ -84,11 +84,10 @@ graph TB
 
 ## Build and Runtime Integration
 
-The module is organized as three subdirectories in [src/hostif/parodusClient/Makefile.am](src/hostif/parodusClient/Makefile.am):
+The module is organized as two subdirectories in [src/hostif/parodusClient/Makefile.am](src/hostif/parodusClient/Makefile.am):
 
 - `waldb`
 - `pal`
-- `startParodus`
 
 The Parodus client library itself is built in [src/hostif/parodusClient/pal/Makefile.am](src/hostif/parodusClient/pal/Makefile.am) as `libparodusclient.la` from:
 
@@ -293,7 +292,7 @@ This file provides the list of parameters that should have initial notification 
 
 ### `parodus.service` and `parodus_bsp.path`
 
-These files show that Parodus is managed as a separate systemd unit. `parodus.service` now uses `After=network-up.target` and `Wants=network-up.target` for network readiness and keeps `ConditionPathExists=/opt/bspcomplete.ini` as the BSP gate. `parodus_bsp.path` watches `/tmp/bspcomplete` and triggers `parodus.service` for BSP-complete flows such as factory reset and first-boot bring-up. The service runs `startParodusMain`, which is implemented under `startParodus/`.
+These systemd units now ship with [rdkcentral/start-parodus](https://github.com/rdkcentral/start-parodus) rather than tr69hostif. `parodus.service` keeps `ConditionPathExists=/opt/bspcomplete.ini` as the BSP gate, and `parodus_bsp.path` watches `/tmp/bspcomplete` and triggers `parodus.service` for BSP-complete flows such as factory reset and first-boot bring-up. tr69hostif's [`XrdkCentralComBSStore.cpp`](../../profiles/DeviceInfo/XrdkCentralComBSStore.cpp) still creates both trigger files unchanged, so this file-based handshake works the same as before the migration.
 
 ## Threading Model
 
