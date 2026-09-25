@@ -3230,6 +3230,11 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
                                 shortsArgs.c_str(),
                                 nonShortsArgs.c_str());
             }else {
+                const char *buildType = getenv("BUILD_TYPE");
+                if (buildType == NULL || strcasecmp(buildType, "prod") == 0) {
+                    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] plain reverse SSH trigger rejected on prod-built device \n",__FUNCTION__);
+                    return NOK;
+                }
 
                 RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting SSH Tunnel \n",__FUNCTION__);
                 string arg = "start";
