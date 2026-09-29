@@ -4177,7 +4177,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData
     }
 
     return ret;
-
+}
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
     return m_bsStore->getValue(stMsgData);
