@@ -101,6 +101,7 @@
 
 #include "hostIf_NotificationHandler.h"
 #include "safec_lib.h"
+#include "rdk_otlp_instrumentation.h"
 
 
 
@@ -3989,6 +3990,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
+    }
 	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
 	{
     	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
@@ -4113,6 +4118,66 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    LOG_ENTRY_EXIT;
+
+    if (stMsgData->paramtype != hostIf_StringType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Wrong type for %s, expected string.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+        return NOK;
+    }
+
+    const char *url = stMsgData->paramValue;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] DistributedTracing URL: %s\n", __FUNCTION__, url);
+
+    /* Write URL to platform-specific endpoint file.
+       - RDKB: /nvram/secure/otel-export-endpoint
+       - RDKE: /opt/secure/otel-export-endpoint
+       File is read by rdk-otel-collector at startup. */
+    int fd = open(OTEL_EXPORT_ENDPOINT_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd >= 0)
+    {
+        FILE *fp = fdopen(fd, "w");
+        if (fp)
+        {
+            /* Write URL directly without key=value wrapper (collector reads raw URL) */
+            if (fputs(url, fp) >= 0)
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                        "[%s] Wrote OTEL endpoint URL to %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
+                ret = OK;
+            }
+            else
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Failed to write OTEL endpoint URL to %s: %s\n",
+                        __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+            }
+        }
+        else
+        {
+            close(fd);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to open %s for writing: %s\n",
+                    __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to create %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+    }
+
+    return ret;
+
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
     return m_bsStore->getValue(stMsgData);
@@ -4194,6 +4259,27 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_t value, preValue, byVal;
     rbusEvent_t event = {0};
     rbusObject_t data;
+    //start distributed trace
+    rdk_otlp_start_distributed_trace(RRD_SET_ISSUE_EVENT, "publish");
+
+    const char* tp = rdk_otlp_get_current_traceparent();
+    bool traceContextSet = false;
+    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Publishing traceparent is %s \n",__FUNCTION__, tp ? tp : "(none - is tracing enabled?)");
+
+    if (tp != NULL && tp[0] != '\0')
+    {
+        rbusError_t traceRc = rbusHandle_SetTraceContextFromString(rbusHandle, tp, "");
+        if (traceRc == RBUS_ERROR_SUCCESS)
+        {
+            traceContextSet = true;
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%d]: Failed to set RBUS trace context: %d\n",
+                    __FUNCTION__, __LINE__, traceRc);
+        }
+    }
 
     rbusValue_Init(&value);
     rbusValue_Init(&preValue);
@@ -4212,6 +4298,16 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     event.type = RBUS_EVENT_VALUE_CHANGED;
 
     rc = rbusEvent_Publish(rbusHandle, &event);
+    if (traceContextSet)
+    {
+        rbusError_t clearTraceRc = rbusHandle_ClearTraceContext(rbusHandle);
+        if (clearTraceRc != RBUS_ERROR_SUCCESS)
+        {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%d]: Failed to clear RBUS trace context: %d\n",
+                    __FUNCTION__, __LINE__, clearTraceRc);
+        }
+    }
     if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %d !!! \n ", __FUNCTION__, __LINE__, RRD_SET_ISSUE_EVENT, rc);
@@ -4227,6 +4323,8 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_Release(preValue);
     rbusValue_Release(byVal);
     rbusObject_Release(data);
+    //finish the distributed_trace
+    rdk_otlp_finish_distributed_trace();
     free(issueStr);
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Exiting... \n",__FUNCTION__);
 
