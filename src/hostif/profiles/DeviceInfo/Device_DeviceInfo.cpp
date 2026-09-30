@@ -71,6 +71,9 @@
 #include "power_controller.h"
 #endif
 #include "rbus.h"
+#ifdef ENABLE_RDK_OTLP
+#include <rdk_otlp_instrumentation.h>
+#endif
 #include <curl/curl.h>
 
 #ifndef USE_THUNDER_CLIENT
@@ -4194,6 +4197,9 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_t value, preValue, byVal;
     rbusEvent_t event = {0};
     rbusObject_t data;
+#ifdef ENABLE_RDK_OTLP
+    const char *traceparent = NULL;
+#endif
 
     rbusValue_Init(&value);
     rbusValue_Init(&preValue);
@@ -4211,7 +4217,19 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     event.data = data;
     event.type = RBUS_EVENT_VALUE_CHANGED;
 
+#ifdef ENABLE_RDK_OTLP
+    rdk_otlp_start_distributed_trace(RRD_SET_ISSUE_EVENT, "set");
+    traceparent = rdk_otlp_get_current_traceparent();
+    if (traceparent != NULL)
+    {
+        rbusHandle_SetTraceContextFromString(rbusHandle, traceparent, NULL);
+    }
+#endif
     rc = rbusEvent_Publish(rbusHandle, &event);
+#ifdef ENABLE_RDK_OTLP
+    rbusHandle_ClearTraceContext(rbusHandle);
+    rdk_otlp_finish_distributed_trace();
+#endif
     if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %d !!! \n ", __FUNCTION__, __LINE__, RRD_SET_ISSUE_EVENT, rc);
