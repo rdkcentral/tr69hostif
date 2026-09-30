@@ -142,8 +142,6 @@
 | 128 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CredDwnld.Enable` | readWrite | string | RFC flag that enables or disables Feature CredDwnld Enable. |
 | 129 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.CredDwnld.Use` | readWrite | string | RFC configuration value for Feature CredDwnld Use. |
 | 130 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DAB.Enable` | readWrite | boolean | RFC flag that enables or disables Feature DAB Enable. |
-| 130a | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Enable` | readWrite | boolean | RFC flag that enables or disables the distributed tracing collector. |
-| 130b | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.URL` | readWrite | string | Endpoint URL used by the collector exporter override file `/opt/secure/otel-export-endpoint`. |
 | 131 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DHCPv6Client.Enable` | readWrite | boolean | RFC flag that enables or disables Feature DHCPv6Client Enable. |
 | 132 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DNSStrictOrder.Enable` | readWrite | boolean | RFC flag that enables or disables Feature DNSStrictOrder Enable. |
 | 133 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DefaultSupportedLocales` | readWrite | string | RFC configuration value for Feature DefaultSupportedLocales. |

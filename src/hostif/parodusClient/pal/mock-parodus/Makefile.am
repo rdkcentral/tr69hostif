@@ -29,7 +29,6 @@ parodus_SOURCES =  \
         ../webpa_parameter.cpp \
         ../webpa_adapter.cpp ../webpa_attribute.cpp \
         ../../../handlers/src/hostIf_msgHandler.cpp \
-        ../../../handlers/src/hostIf_XREClient_ReqHandler.cpp \
         ../../../src/hostIf_utils.cpp  \
         ../../../handlers/src/hostIf_NotificationHandler.cpp \
         ../../../handlers/src/hostIf_TimeClient_ReqHandler.cpp \
