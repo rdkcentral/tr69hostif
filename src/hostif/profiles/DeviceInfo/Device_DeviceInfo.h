@@ -196,8 +196,7 @@
 #define DISTRIBUTED_TRACING_RFC_URL                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.URL"
 #define RDK_TRACING_FLAG_FILE                       "/tmp/rdk_distributed_tracing_enabled"
 
-#define PERSISTENCE_PATH                            "/opt"
-#define OTEL_EXPORT_ENDPOINT_FILE                   PERSISTENCE_PATH "/secure/otel-export-endpoint"
+#define OTEL_EXPORT_ENDPOINT_FILE                   "/opt/secure/otel-export-endpoint"
 
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.RebootStop */
 #define RDK_REBOOTSTOP_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable"
