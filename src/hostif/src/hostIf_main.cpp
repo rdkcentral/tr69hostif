@@ -80,6 +80,9 @@ extern "C" {
 #include "hostIf_rbus_Dml_Provider.h"
 #include "Device_DeviceInfo.h"
 #include "safec_lib.h"
+#ifdef ENABLE_RDK_OTLP
+#include <rdk_otlp_instrumentation.h>
+#endif
 
 //------------------------------------------------------------------------------
 // Initialize global variables and functions.
@@ -293,6 +296,9 @@ int main(int argc, char *argv[])
 
         /* Enable RDK logger.*/
         if(rdk_logger_init(0 == access("/opt/debug.ini", R_OK) ? "/opt/debug.ini" : "/etc/debug.ini") == 0) rdk_logger_enabled = 1;
+    #ifdef ENABLE_RDK_OTLP
+        rdk_otlp_init("tr69hostif", "1.0");
+    #endif
         #ifdef T2_EVENT_ENABLED
          t2_init(const_cast<char*>("tr69hostif"));
         #endif
@@ -617,6 +623,10 @@ void exit_gracefully (int sig_received)
             }
             RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Stopping IARM IF\n", __FUNCTION__, __FILE__);
             hostIf_IARM_IF_Stop();
+
+#ifdef ENABLE_RDK_OTLP
+            rdk_otlp_shutdown();
+#endif
 
             RDK_LOG(RDK_LOG_NOTICE,LOG_TR69HOSTIF,"[%s:%s] Exiting program gracefully..\n", __FUNCTION__, __FILE__);
             if (g_main_loop_is_running(main_loop)) {
