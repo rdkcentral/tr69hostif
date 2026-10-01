@@ -40,10 +40,7 @@
 
 #include <cmath>
 #include <cstring>
-#include <string>
-#include <fstream>
 #include <cstdio>
-#include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -55,10 +52,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 #include <ifaddrs.h>
 #include <sys/inotify.h>
 #include <map>
+#include <string>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <regex>
 #include <dirent.h>
@@ -3995,18 +3995,18 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
-    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
     {
-        ret = set_xRDKCentralComRFCLogChronoEnable(stMsgData);
+        ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
     }
     else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
     {
         ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
     }
-    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
+    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
     {
-        ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
-    }
+        ret = set_xRDKCentralComRFCLogChronoEnable(stMsgData);
+    }	
     return ret;
 }
 
@@ -4183,9 +4183,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData
 
     if (stMsgData->paramtype != hostIf_StringType)
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%d] Wrong type for %s, expected string.\n",
-                __FUNCTION__, __LINE__, stMsgData->paramName);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Wrong type for %s, expected string.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
         return NOK;
     }
 
@@ -4202,9 +4200,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData
             if (fputs(url, fp) >= 0)
             {
                 fclose(fp);
-                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                        "[%s] Wrote OTEL endpoint URL to %s\n",
-                        __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Wrote OTEL endpoint URL to %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
                 ret = OK;
             }
             else
