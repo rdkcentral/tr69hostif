@@ -40,6 +40,8 @@
 
 #include <cmath>
 #include <cstring>
+#include <cstdio>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/fs.h>
@@ -137,6 +139,7 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
+#define LOGCHRONO_DISABLE_FILE "/opt/secure/RFC/disable_logchrono"
 
 #ifndef GTEST_ENABLE
 #define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
@@ -3996,10 +3999,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
     }
-	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
-	{
-    	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
-	}
+    else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
+    {
+        ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
+    }
+    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
+    {
+        ret = set_xRDKCentralComRFCLogChronoEnable(stMsgData);
+    }	
     return ret;
 }
 
@@ -4120,6 +4127,55 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    bool enable;
+    LOG_ENTRY_EXIT;
+
+    if(stMsgData->paramtype == hostIf_BooleanType)
+    {
+        enable = get_boolean(stMsgData->paramValue);
+        if(enable)
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to true\n", __FUNCTION__);
+            if(remove(LOGCHRONO_DISABLE_FILE) != 0 && errno != ENOENT)
+            {
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Unable to clear disable logchrono flag %s\n",
+                        __FUNCTION__, LOGCHRONO_DISABLE_FILE);
+                ret = NOK;
+            }
+            else
+            {
+                ret = OK;
+            }
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to false\n", __FUNCTION__);
+            std::ofstream disableFile(LOGCHRONO_DISABLE_FILE);
+            if(!disableFile.is_open())
+            {
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Unable to create disable logchrono flag %s\n",
+                        __FUNCTION__, LOGCHRONO_DISABLE_FILE);
+                ret = NOK;
+            }
+            else
+            {
+                disableFile.close();
+                ret = OK;
+            }
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+    }
+
+    return ret;
+}
+
 int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *stMsgData)
 {
     int ret = NOK;
@@ -4127,9 +4183,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData
 
     if (stMsgData->paramtype != hostIf_StringType)
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s:%d] Wrong type for %s, expected string.\n",
-                __FUNCTION__, __LINE__, stMsgData->paramName);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d] Wrong type for %s, expected string.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
         return NOK;
     }
 
@@ -4146,8 +4200,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData
             if (fputs(url, fp) >= 0)
             {
                 fclose(fp);
-                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                        "[%s] Wrote OTEL endpoint URL to %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Wrote OTEL endpoint URL to %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
                 ret = OK;
             }
             else
