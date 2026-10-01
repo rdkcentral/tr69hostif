@@ -55,13 +55,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <errno.h>
 #include <ifaddrs.h>
 #include <sys/inotify.h>
 #include <map>
-#include <string>
 #include <iostream>
-#include <fstream>
 #include <algorithm>
 #include <regex>
 #include <dirent.h>
