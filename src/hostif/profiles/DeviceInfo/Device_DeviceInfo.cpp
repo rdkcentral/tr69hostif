@@ -76,6 +76,9 @@
 #include "power_controller.h"
 #endif
 #include "rbus.h"
+#ifdef ENABLE_RDK_OTLP
+#include <rdk_otlp_instrumentation.h>
+#endif
 #include <curl/curl.h>
 
 #ifndef USE_THUNDER_CLIENT
@@ -4003,6 +4006,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
     }
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
+    }
     return ret;
 }
 
@@ -4165,11 +4172,69 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *st
     }
     else
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
     }
+
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    LOG_ENTRY_EXIT;
+
+    if (stMsgData->paramtype != hostIf_StringType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Wrong type for %s, expected string.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+        return NOK;
+    }
+
+    const char *url = stMsgData->paramValue;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] DistributedTracing URL: %s\n", __FUNCTION__, url);
+
+    int fd = open(OTEL_EXPORT_ENDPOINT_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd >= 0)
+    {
+        FILE *fp = fdopen(fd, "w");
+        if (fp)
+        {
+            if (fputs(url, fp) >= 0)
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                        "[%s] Wrote OTEL endpoint URL to %s\n",
+                        __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
+                ret = OK;
+            }
+            else
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Failed to write OTEL endpoint URL to %s: %s\n",
+                        __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+            }
+        }
+        else
+        {
+            close(fd);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to open %s for writing: %s\n",
+                    __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to create %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+    }
+
+    return ret;
+}
 
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
@@ -4252,6 +4317,9 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_t value, preValue, byVal;
     rbusEvent_t event = {0};
     rbusObject_t data;
+#ifdef ENABLE_RDK_OTLP
+    const char *traceparent = NULL;
+#endif
 
     rbusValue_Init(&value);
     rbusValue_Init(&preValue);
@@ -4269,7 +4337,19 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     event.data = data;
     event.type = RBUS_EVENT_VALUE_CHANGED;
 
+#ifdef ENABLE_RDK_OTLP
+    rdk_otlp_start_distributed_trace(RRD_SET_ISSUE_EVENT, "set");
+    traceparent = rdk_otlp_get_current_traceparent();
+    if (traceparent != NULL)
+    {
+        rbusHandle_SetTraceContextFromString(rbusHandle, traceparent, NULL);
+    }
+#endif
     rc = rbusEvent_Publish(rbusHandle, &event);
+#ifdef ENABLE_RDK_OTLP
+    rbusHandle_ClearTraceContext(rbusHandle);
+    rdk_otlp_finish_distributed_trace();
+#endif
     if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %d !!! \n ", __FUNCTION__, __LINE__, RRD_SET_ISSUE_EVENT, rc);
