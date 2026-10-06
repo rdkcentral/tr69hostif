@@ -8213,13 +8213,6 @@ TEST(DeviceInfoRFCLogChrono, SetWithWrongTypeReturnsFailure)
     EXPECT_FALSE(fileExists(TEST_LOGCHRONO_DISABLE_FILE));
 }
 
-TEST(DeviceInfoRFCLogChrono, ParamNameIsDispatchedToLogChronoHandler)
-{
-    // Ensure the dispatch path from DeviceInfo RFC switch recognizes LogChrono
-    EXPECT_STREQ("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogChrono.Enable",
-                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogChrono.Enable");
-}
-
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
     char buffer[GTEST_REPORT_FILEPATH_SIZE];
