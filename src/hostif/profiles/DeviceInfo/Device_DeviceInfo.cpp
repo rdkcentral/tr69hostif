@@ -4414,7 +4414,7 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_Tool(HOSTIF_MsgData_t *stMsgData)
     if (!std::getline(toolFile, tool) || tool.empty())
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Debug tool value not available\n", __FUNCTION__);
-        stMsgData->faultCode = fcNoSuchParameterName;
+        stMsgData->faultCode = fcInvalidParameterName;
         return NOK;
     }
 
@@ -4463,7 +4463,7 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
     if (!std::getline(toolFile, tool) || tool.empty())
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Debug tool value not available for expiry read\n", __FUNCTION__);
-        stMsgData->faultCode = fcNoSuchParameterName;
+        stMsgData->faultCode = fcInvalidParameterName;
         return NOK;
     }
 
@@ -4492,7 +4492,7 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
     if (!found)
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No expiry record found for tool %s\n", __FUNCTION__, tool.c_str());
-        stMsgData->faultCode = fcNoSuchParameterName;
+        stMsgData->faultCode = fcInvalidParameterName;
         return NOK;
     }
 
