@@ -3806,6 +3806,47 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *s
     return updateSecureDebugState();
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] stMsgData is NULL\n", __FUNCTION__);
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_StringType || strlen(stMsgData->paramValue) == 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password value\n", __FUNCTION__);
+        stMsgData->faultCode = (stMsgData->paramtype != hostIf_StringType) ? fcInvalidParameterType : fcInvalidParameterValue;
+        return NOK;
+    }
+
+    if (access(SIGNEDLAB_SHADOW_FILE, F_OK) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow backing file not available at %s: %s\n", __FUNCTION__, SIGNEDLAB_SHADOW_FILE, strerror(errno));
+        stMsgData->faultCode = fcInternalError;
+        return NOK;
+    }
+
+    int ret = v_secure_system("/lib/rdk/signedlab-set-password.sh %s", stMsgData->paramValue);
+    if (ret != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password update script failed\n", __FUNCTION__);
+        stMsgData->faultCode = fcInternalError;
+        ret = NOK;
+    }
+    else
+    {
+        ret = OK;
+    }
+
+    if (ret == OK)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SecureUnlock SSH password updated successfully\n", __FUNCTION__);
+    }
+    return ret;
+}
+
 int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
@@ -3863,6 +3904,15 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else
     {
+        if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
+        {
+            ret = set_xRDKCentralComRFCSecureUnlockSSHPassword(stMsgData);
+            if (ret != OK)
+            {
+                return ret;
+            }
+        }
+
         validate_paramVal = validate_ParamValue(stMsgData);
         if(validate_paramVal == OK)
         {
