@@ -138,6 +138,9 @@
 /* Profile: X_RDKCENTRAL-COM_RDKDownloadManager. */
 #define X_RDKDownloadManager_InstallPackage             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage"
 #define X_RDKDownloadManager_DownloadStatus             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus"
+#define X_RDKDownloadManager_Tool                       "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.Tool"
+#define X_RDKDownloadManager_PackageInstallPath         "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath"
+#define X_RDKDownloadManager_PackageExpiryTime          "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime"
 /* Profile: X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging. */
 #define xOpsDMUploadLogsNow_STR                         "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMUploadLogsNow"
 #define xOpsDMLogsUploadStatus_STR                      "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMLogsUploadStatus"
@@ -1345,6 +1348,18 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
 #endif
+    /*
+      * @brief RDKDownloadManager debug-tool lifecycle setters/getters.
+      *
+      * These parameters are part of the X_RDKCENTRAL-COM_RDKDownloadManager
+      * branch and are used for the actual package/tool expiry lifecycle.
+      */
+    int get_xRDKDownloadManager_Tool(HOSTIF_MsgData_t *);
+    int get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *);
+    int get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_Tool(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *);
 
     /*
       * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryStartTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryEndTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryExtendTime

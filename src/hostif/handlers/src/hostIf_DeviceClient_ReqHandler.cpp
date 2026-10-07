@@ -614,6 +614,18 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         {
             ret = pIface->get_xOpsDMMoCALogPeriod(stMsgData);
         }
+        else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_Tool) == 0)
+        {
+            ret = pIface->get_xRDKDownloadManager_Tool(stMsgData);
+        }
+        else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageInstallPath) == 0)
+        {
+            ret = pIface->get_xRDKDownloadManager_PackageInstallPath(stMsgData);
+        }
+        else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageExpiryTime) == 0)
+        {
+            ret = pIface->get_xRDKDownloadManager_PackageExpiryTime(stMsgData);
+        }
         else if (strcasecmp(stMsgData->paramName,xOpsDMUploadLogsNow_STR) == 0)
         {
             ret = pIface->get_xOpsDMUploadLogsNow(stMsgData);
