@@ -123,9 +123,7 @@ jobs:
           git flow release publish "${RELEASE_VERSION}"
           git flow release finish -m "${RELEASE_VERSION} release" "${RELEASE_VERSION}"
           echo "CREATED_TAG=true" >> "$GITHUB_ENV"
-          git push origin main
-          git push origin --tags
-          git push origin develop
+          git push --atomic origin main develop "refs/tags/${RELEASE_VERSION}"
           git push origin --delete "release/${RELEASE_VERSION}" || true
 
       #
