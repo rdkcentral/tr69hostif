@@ -138,7 +138,6 @@
 /* Profile: X_RDKCENTRAL-COM_RDKDownloadManager. */
 #define X_RDKDownloadManager_InstallPackage             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage"
 #define X_RDKDownloadManager_DownloadStatus             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus"
-#define X_RDKDownloadManager_Tool                       "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.Tool"
 #define X_RDKDownloadManager_PackageInstallPath         "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath"
 #define X_RDKDownloadManager_PackageExpiryTime          "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime"
 /* Profile: X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging. */
@@ -1354,10 +1353,8 @@ public:
       * These parameters are part of the X_RDKCENTRAL-COM_RDKDownloadManager
       * branch and are used for the actual package/tool expiry lifecycle.
       */
-    int get_xRDKDownloadManager_Tool(HOSTIF_MsgData_t *);
     int get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *);
     int get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *);
-    int set_xRDKDownloadManager_Tool(HOSTIF_MsgData_t *);
     int set_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *);
     int set_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *);
 
