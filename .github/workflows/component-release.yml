@@ -223,8 +223,7 @@ jobs:
 
           git tag -a "${RELEASE_VERSION}" -m "Hotfix ${RELEASE_VERSION}"
           echo "CREATED_TAG=true" >> "$GITHUB_ENV"
-          git push origin "${SOURCE_BRANCH}"
-          git push origin "${RELEASE_VERSION}"
+          git push --atomic origin "refs/heads/${SOURCE_BRANCH}" "refs/tags/${RELEASE_VERSION}"
           echo "Hotfix complete: pushed ${SOURCE_BRANCH} and tag ${RELEASE_VERSION}."
 
       #
