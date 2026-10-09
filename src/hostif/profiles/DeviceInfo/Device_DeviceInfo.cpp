@@ -61,6 +61,8 @@
 #include <regex>
 #include <dirent.h>
 #include <thread>
+#include <cstdlib>
+#include <limits>
 #include "libIBus.h"
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
@@ -3963,6 +3965,22 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
 #endif
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_InstallPackage) == 0)
+    {
+        ret = set_xRDKDownloadManager_InstallPackage(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_DownloadStatus) == 0)
+    {
+        ret = set_xRDKDownloadManager_DownloadStatus(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageInstallPath) == 0)
+    {
+        ret = set_xRDKDownloadManager_PackageInstallPath(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageExpiryTime) == 0)
+    {
+        ret = set_xRDKDownloadManager_PackageExpiryTime(stMsgData);
+    }
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
     {
 	ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(stMsgData);
@@ -4377,6 +4395,170 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     return retVal;
 }
 #endif
+
+int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
+    std::ifstream installPathFile("/tmp/.rdm_debug_tool_install_path");
+    std::string installPath;
+
+    if (!std::getline(installPathFile, installPath) || installPath.empty())
+    {
+        installPath = "/run/tools";
+    }
+
+    stMsgData->paramtype = hostIf_StringType;
+    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", installPath.c_str());
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read debug tool install path as %s\n", __FUNCTION__, installPath.c_str());
+    return OK;
+}
+
+int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
+
+    std::ifstream expiryFile("/nvram/rdm_debug_tool_expiry");
+    std::string line;
+    long long expiryValue = 0;
+    bool found = false;
+
+    while (std::getline(expiryFile, line)) {
+        std::istringstream iss(line);
+        std::string token;
+        long long expiry = 0;
+
+        if (iss >> token >> expiry) {
+            if (token == "package" || token == "rdm") {
+                expiryValue = expiry;
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (!found)
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No expiry record found for package\n", __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterName;
+        return NOK;
+    }
+
+    if (expiryValue < 0)
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Invalid negative expiry value %lld, clamping to zero\n", __FUNCTION__, expiryValue);
+        expiryValue = 0;
+    }
+
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+    put_uint(stMsgData->paramValue, static_cast<unsigned int>(expiryValue));
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiryValue));
+    return OK;
+}
+
+int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL || stMsgData->paramValue == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    std::string installPath(stMsgData->paramValue);
+    while (!installPath.empty() && std::isspace(static_cast<unsigned char>(installPath.front()))) {
+        installPath.erase(installPath.begin());
+    }
+    while (!installPath.empty() && std::isspace(static_cast<unsigned char>(installPath.back()))) {
+        installPath.pop_back();
+    }
+
+    struct stat pathStat;
+    if (installPath.empty() || installPath[0] != '/' || stat(installPath.c_str(), &pathStat) != 0)
+    {
+        installPath = "/run/tools";
+    }
+
+    std::ofstream installPathFile("/tmp/.rdm_debug_tool_install_path");
+    if (!installPathFile.is_open())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist debug tool install path\n", __FUNCTION__);
+        return NOK;
+    }
+
+    installPathFile << installPath << std::endl;
+    installPathFile.close();
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Set debug tool install path to %s\n", __FUNCTION__, installPath.c_str());
+    return OK;
+}
+
+int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL || stMsgData->paramValue == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    char *end = NULL;
+    errno = 0;
+    unsigned long long expiry = std::strtoull(stMsgData->paramValue, &end, 10);
+    if (end == stMsgData->paramValue || errno == ERANGE || expiry == 0 || expiry > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
+        return NOK;
+    }
+
+    std::ifstream expiryIn("/nvram/rdm_debug_tool_expiry");
+    std::ofstream expiryOut("/nvram/rdm_debug_tool_expiry.tmp");
+    std::string line;
+    bool updated = false;
+
+    if (expiryIn.is_open())
+    {
+        while (std::getline(expiryIn, line))
+        {
+            if (line.rfind("package ", 0) == 0)
+            {
+                updated = true;
+                continue;
+            }
+            expiryOut << line << std::endl;
+        }
+        expiryIn.close();
+    }
+
+    if (!updated)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] No existing package expiry record; creating new entry\n", __FUNCTION__);
+    }
+
+    expiryOut << "package " << expiry << std::endl;
+    expiryOut.close();
+
+    if (rename("/nvram/rdm_debug_tool_expiry.tmp", "/nvram/rdm_debug_tool_expiry") != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist package expiry\n", __FUNCTION__);
+        return NOK;
+    }
+
+    v_secure_system("/usr/bin/rdm -e");
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled package expiry at %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiry));
+    return OK;
+}
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart (HOSTIF_MsgData_t *stMsgData)
 {
