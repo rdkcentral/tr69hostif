@@ -62,6 +62,7 @@
 #include <dirent.h>
 #include <thread>
 #include <cstdlib>
+#include <limits>
 #include "libIBus.h"
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
@@ -4448,17 +4449,24 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
         }
     }
 
-    if (!found) {
+    if (!found)
+    {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No expiry record found for package\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterName;
         return NOK;
     }
 
-    stMsgData->paramtype = hostIf_IntegerType;
-    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%lld", expiryValue);
-    stMsgData->faultCode = fcNoFault;
+    if (expiryValue < 0)
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Invalid negative expiry value %lld, clamping to zero\n", __FUNCTION__, expiryValue);
+        expiryValue = 0;
+    }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read package expiry as %lld\n", __FUNCTION__, expiryValue);
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+    put_uint(stMsgData->paramValue, static_cast<unsigned int>(expiryValue));
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiryValue));
     return OK;
 }
 
@@ -4478,7 +4486,8 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgDat
         installPath.pop_back();
     }
 
-    if (installPath.empty() || installPath[0] != '/')
+    struct stat pathStat;
+    if (installPath.empty() || installPath[0] != '/' || stat(installPath.c_str(), &pathStat) != 0)
     {
         installPath = "/run/tools";
     }
@@ -4505,8 +4514,9 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
     }
 
     char *end = NULL;
-    long long expiry = std::strtoll(stMsgData->paramValue, &end, 10);
-    if (end == stMsgData->paramValue || expiry <= 0)
+    errno = 0;
+    unsigned long long expiry = std::strtoull(stMsgData->paramValue, &end, 10);
+    if (end == stMsgData->paramValue || errno == ERANGE || expiry == 0 || expiry > std::numeric_limits<unsigned int>::max())
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
         return NOK;
@@ -4546,7 +4556,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
     }
 
     v_secure_system("/usr/bin/rdm -e");
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled package expiry at %lld\n", __FUNCTION__, expiry);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled package expiry at %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiry));
     return OK;
 }
 
