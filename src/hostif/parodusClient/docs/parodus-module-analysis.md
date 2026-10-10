@@ -21,7 +21,7 @@ flowchart TB
         PARODUS_THREAD[libpd_client_mgr thread\nPARODUS_ENABLE compile flag]
         WALDB[waldb\nXML data-model validator]
         PAL[PAL layer\nwebpa_adapter\nwebpa_parameter\nwebpa_attribute\nwebpa_notification]
-        START_PARODUS[startParodus binary\nbuilt separately\nlaunched by system]
+        START_PARODUS[start-parodus binary\nbuilt separately\nlaunched by system]
 
         MAIN -->|pthread_create| PARODUS_THREAD
         PARODUS_THREAD --> PAL
@@ -52,7 +52,7 @@ flowchart TB
 | `webpa_attribute.cpp` | `parodusClient/pal/` | Translates WDMP GETATTR/SETATTR into notify-flag operations via `hostIf_GetAttributesMsgHandler`. |
 | `webpa_notification.cpp` | `parodusClient/pal/` | Builds notification WRP events and calls `sendNotification()`. Reads notify config from `notify_webpa_cfg.json`. |
 | `waldb.cpp` | `parodusClient/waldb/` | Parses the XML data model (`/tmp/data-model.xml`) to validate parameter names and resolve wildcard paths. Linked as `libwaldb.la` into the main binary. |
-| `startParodus.cpp` | `parodusClient/startParodus/` | Separate binary. Collects device identity (MAC, serial, partner ID, firmware version) and launches the `parodus` daemon via `v_secure_system`. |
+| [`start_parodus.c`](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c) | `rdkcentral/start-parodus` | Separate binary. Collects device identity (MAC, serial, partner ID, firmware version) and launches the `parodus` daemon via `v_secure_system`. |
 
 ### 1.4 Thread Lifecycle
 
@@ -72,9 +72,9 @@ Inside `libpd_client_mgr`:
 
 Because `connect_parodus()` detaches the thread, the main thread cannot `pthread_join(parodus_init_tid)` during shutdown. Any attempt to do so causes a crash (see the `pthread_detach_crash_fix` user memory note).
 
-### 1.5 startParodus Coupling
+### 1.5 start-parodus Coupling
 
-`startParodus` is a separate compiled binary but lives inside the same source tree and build system. Its job is to read device identity parameters — many of which are TR-181 parameters — and launch the `parodus` daemon with them as command-line arguments. It reads several values via `getRFCParameter()` (serial number, boot time, server URL, token server URL) and reads partner ID directly from `/opt/www/authService/partnerId3.dat`, replicating the same PartnerId resolution logic that already exists in `XBSStore`.
+[`start-parodus`](https://github.com/rdkcentral/start-parodus) is a separate compiled binary. Its job is to read device identity parameters — many of which are TR-181 parameters — and launch the `parodus` daemon with them as command-line arguments. It reads several values via `getRFCParameter()` (serial number, boot time, server URL, token server URL) and reads partner ID directly from `/opt/www/authService/partnerId3.dat`, replicating the same PartnerId resolution logic that already exists in `XBSStore`.
 
 
 ## 2. Drawbacks and Issues with the Current Design
@@ -86,13 +86,13 @@ Two independent activities bring the full WebPA channel online. They are not dir
 ```mermaid
 sequenceDiagram
     participant SYS as System / systemd
-    participant SP as startParodus binary
+    participant SP as start-parodus binary
     participant PD as parodus daemon
     participant MAIN as hostIf_main.cpp
     participant LPD as libpd_client_mgr thread
     participant LIBP as libparodus.so
 
-    SYS->>SP: launch startParodus
+    SYS->>SP: launch start-parodus
     SP->>SP: read HW MAC from /tmp/.macAddress
     SP->>SP: read PartnerId from partnerId3.dat
     SP->>SP: read SerialNumber / BootTime via getRFCParameter()
@@ -260,9 +260,9 @@ The exit flag `exit_parodus_recv` is set by `stop_parodus_recv_wait()`, but that
 
 `libwaldb.la` is linked directly into `tr69hostif`. This means the XML data-model XML is loaded into the same process address space and parsed at startup. The data model XML is large; loading it costs RSS memory even when the Parodus channel is not in use. If Parodus is not needed on a platform, the memory is still consumed because the library is unconditionally linked (even if `PARODUS_ENABLE` guards the thread creation, the library symbols are always resolved).
 
-### 2.5 Duplicate PartnerId Resolution in startParodus
+### 2.5 Duplicate PartnerId Resolution in start-parodus
 
-`startParodus.cpp` re-implements PartnerId reading from `/opt/www/authService/partnerId3.dat` and falls back to `getRFCParameter()` for `Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId`. This duplicates the same logic that already exists in `Device_DeviceInfo.cpp::get_PartnerId_From_Script()` and `XBSStore`. There are now three independent code paths that each read PartnerId independently, each with their own fallback handling and file-open retry logic.
+[`start_parodus.c`](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c) re-implements PartnerId reading from `/opt/www/authService/partnerId3.dat` and falls back to `getRFCParameter()` for `Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId`. This duplicates the same logic that already exists in `Device_DeviceInfo.cpp::get_PartnerId_From_Script()` and `XBSStore`. There are now three independent code paths that each read PartnerId independently, each with their own fallback handling and file-open retry logic.
 
 ### 2.6 Configuration Is Fragmented Across Multiple Files
 
@@ -286,7 +286,7 @@ Because the PAL layer calls `hostIf_GetMsgHandler()` / `hostIf_SetMsgHandler()` 
 
 ### 2.8 Build Flag Inconsistency
 
-Some platform builds define `PARODUS_ENABLE` to include the receive thread but do not define `WEB_CONFIG_ENABLED` or `WEBCONFIG_LITE_ENABLE`, leaving the startParodus binary unused but still compiled. The compile-time flag guards only the thread creation, not the library linkage, which means object files and their static data are always included.
+Some platform builds define `PARODUS_ENABLE` to include the receive thread but do not define `WEB_CONFIG_ENABLED` or `WEBCONFIG_LITE_ENABLE`, leaving the start-parodus binary unused but still compiled. The compile-time flag guards only the thread creation, not the library linkage, which means object files and their static data are always included.
 
 ---
 
@@ -308,7 +308,7 @@ flowchart TB
         PARODUSMGR[Parodus client manager]
         WALDB_STANDALONE[waldb\nstandalone library]
         PAL_STANDALONE[PAL layer\nwebpa_adapter\nwebpa_parameter\nwebpa_attribute]
-        START_P[startParodus\ndevice identity collector]
+        START_P[start-parodus\ndevice identity collector]
 
         PARODUSMGR --> PAL_STANDALONE
         PAL_STANDALONE --> WALDB_STANDALONE
@@ -339,7 +339,7 @@ flowchart TB
 
 **Consolidate PartnerId reading:**
 
-`startParodus.cpp` should query PartnerId via a single TR-181 GET (`Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId`) through the IPC interface instead of reading the file directly. `tr69hostif` already owns the canonical resolution path.
+[`start_parodus.c`](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c) should query PartnerId via a single TR-181 GET (`Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId`) through the IPC interface instead of reading the file directly. `tr69hostif` already owns the canonical resolution path.
 
 **Give the thread a clean shutdown path:**
 
@@ -369,7 +369,7 @@ A clean incremental migration is possible without rewriting everything at once:
 
 2. **Phase 2 — Remove waldb from tr69hostif link dependencies.** Move `libwaldb.la` out of `tr69hostif_LDADD`. Update the waldb `Makefile.am` to produce a shared or static library installable independently.
 
-3. **Phase 3 — Split the startParodus binary into its own deliverable.** Give it its own `configure.ac` or package. The binary reads device identity from `tr69hostif` via RBUS at startup rather than duplicating file reads.
+3. **Phase 3 — Complete the start-parodus separation.** The standalone binary reads device identity from `tr69hostif` via RBUS at startup rather than duplicating file reads.
 
 4. **Phase 4 — Move the parodus thread into the standalone process.** The thread entry point `libpd_client_mgr` becomes `main()`. The `PARODUS_ENABLE` guard in `hostIf_main.cpp` is removed entirely.
 
