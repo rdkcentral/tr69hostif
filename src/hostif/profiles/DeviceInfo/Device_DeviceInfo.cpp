@@ -4513,12 +4513,31 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
         return NOK;
     }
 
-    char *end = NULL;
-    errno = 0;
-    unsigned long long expiry = std::strtoull(stMsgData->paramValue, &end, 10);
-    if (end == stMsgData->paramValue || errno == ERANGE || expiry == 0 || expiry > std::numeric_limits<unsigned int>::max())
+    unsigned long long expiry = 0;
+    if (stMsgData->paramtype == hostIf_UnsignedIntType)
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
+        expiry = static_cast<unsigned long long>(get_uint(stMsgData->paramValue));
+    }
+    else if (stMsgData->paramtype == hostIf_StringType)
+    {
+        char *end = NULL;
+        errno = 0;
+        expiry = std::strtoull(stMsgData->paramValue, &end, 10);
+        if (end == stMsgData->paramValue || errno == ERANGE)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
+            return NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Unsupported expiry parameter type %d\n", __FUNCTION__, stMsgData->paramtype);
+        return NOK;
+    }
+
+    if (expiry == 0 || expiry > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiry));
         return NOK;
     }
 
