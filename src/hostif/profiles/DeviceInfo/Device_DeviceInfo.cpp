@@ -63,6 +63,7 @@
 #include <thread>
 #include <cstdlib>
 #include <limits>
+#include <ctime>
 #include "libIBus.h"
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
@@ -4431,7 +4432,8 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
     memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
     std::ifstream expiryFile("/nvram/rdm_debug_tool_expiry");
     std::string line;
-    unsigned long long expiryValue = 0;
+    unsigned long long expirySeconds = 0;
+    unsigned long long expiryEpoch = 0;
     bool found = false;
 
     if (expiryFile.is_open())
@@ -4455,14 +4457,14 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
             {
                 if (token == "package" || token == "rdm")
                 {
-                    expiryValue = expiry;
+                    expiryEpoch = expiry;
                     found = true;
                     break;
                 }
             }
             else if (std::istringstream(trimmed) >> expiry)
             {
-                expiryValue = expiry;
+                expirySeconds = expiry;
                 found = true;
                 break;
             }
@@ -4474,19 +4476,25 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
 
     if (!found)
     {
-        expiryValue = 3600;
+        expirySeconds = 3600;
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No expiry record found for package; using default value 3600\n", __FUNCTION__);
     }
-
-    if (expiryValue > std::numeric_limits<unsigned int>::max())
+    else if (expiryEpoch > 0)
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Expiry value %llu exceeds unsigned int range; clamping to max\n", __FUNCTION__, static_cast<unsigned long long>(expiryValue));
-        expiryValue = std::numeric_limits<unsigned int>::max();
+        const time_t now = std::time(nullptr);
+        const long long remaining = static_cast<long long>(expiryEpoch) - static_cast<long long>(now);
+        expirySeconds = (remaining > 0) ? static_cast<unsigned long long>(remaining) : 0;
     }
 
-    put_uint(stMsgData->paramValue, static_cast<unsigned int>(expiryValue));
+    if (expirySeconds > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Expiry value %llu exceeds unsigned int range; clamping to max\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+        expirySeconds = std::numeric_limits<unsigned int>::max();
+    }
+
+    put_uint(stMsgData->paramValue, static_cast<unsigned int>(expirySeconds));
     stMsgData->faultCode = fcNoFault;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiryValue));
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
     return OK;
 }
 
@@ -4533,16 +4541,16 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
         return NOK;
     }
 
-    unsigned long long expiry = 0;
+    unsigned long long expirySeconds = 0;
     if (stMsgData->paramtype == hostIf_UnsignedIntType)
     {
-        expiry = static_cast<unsigned long long>(get_uint(stMsgData->paramValue));
+        expirySeconds = static_cast<unsigned long long>(get_uint(stMsgData->paramValue));
     }
     else if (stMsgData->paramtype == hostIf_StringType)
     {
         char *end = NULL;
         errno = 0;
-        expiry = std::strtoull(stMsgData->paramValue, &end, 10);
+        expirySeconds = std::strtoull(stMsgData->paramValue, &end, 10);
         if (end == stMsgData->paramValue || errno == ERANGE)
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
@@ -4555,12 +4563,14 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
         return NOK;
     }
 
-    if (expiry == 0 || expiry > std::numeric_limits<unsigned int>::max())
+    if (expirySeconds == 0 || expirySeconds > std::numeric_limits<unsigned int>::max())
     {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiry));
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
         return NOK;
     }
 
+    const time_t now = std::time(nullptr);
+    const unsigned long long expiryEpoch = static_cast<unsigned long long>(now) + expirySeconds;
     std::ifstream expiryIn("/nvram/rdm_debug_tool_expiry");
     std::ofstream expiryOut("/nvram/rdm_debug_tool_expiry.tmp");
     std::string line;
@@ -4585,7 +4595,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] No existing package expiry record; creating new entry\n", __FUNCTION__);
     }
 
-    expiryOut << "package " << expiry << std::endl;
+    expiryOut << "package " << expiryEpoch << std::endl;
     expiryOut.close();
 
     if (rename("/nvram/rdm_debug_tool_expiry.tmp", "/nvram/rdm_debug_tool_expiry") != 0)
@@ -4595,7 +4605,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
     }
 
     v_secure_system("/usr/bin/rdm -e");
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled package expiry at %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiry));
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled package expiry at epoch %llu (ttl=%llu seconds)\n", __FUNCTION__, static_cast<unsigned long long>(expiryEpoch), static_cast<unsigned long long>(expirySeconds));
     return OK;
 }
 
