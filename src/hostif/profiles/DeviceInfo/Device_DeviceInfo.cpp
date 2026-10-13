@@ -4429,19 +4429,39 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
     }
 
     memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
-
     std::ifstream expiryFile("/nvram/rdm_debug_tool_expiry");
     std::string line;
-    long long expiryValue = 0;
+    unsigned long long expiryValue = 0;
     bool found = false;
 
-    while (std::getline(expiryFile, line)) {
-        std::istringstream iss(line);
-        std::string token;
-        long long expiry = 0;
+    if (expiryFile.is_open())
+    {
+        while (std::getline(expiryFile, line))
+        {
+            std::string trimmed = line;
+            trimmed.erase(trimmed.begin(), std::find_if(trimmed.begin(), trimmed.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+            trimmed.erase(std::find_if(trimmed.rbegin(), trimmed.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), trimmed.end());
 
-        if (iss >> token >> expiry) {
-            if (token == "package" || token == "rdm") {
+            if (trimmed.empty() || trimmed[0] == '#')
+            {
+                continue;
+            }
+
+            std::istringstream iss(trimmed);
+            std::string token;
+            unsigned long long expiry = 0;
+
+            if (iss >> token >> expiry)
+            {
+                if (token == "package" || token == "rdm")
+                {
+                    expiryValue = expiry;
+                    found = true;
+                    break;
+                }
+            }
+            else if (std::istringstream(trimmed) >> expiry)
+            {
                 expiryValue = expiry;
                 found = true;
                 break;
@@ -4449,21 +4469,21 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
         }
     }
 
-    if (!found)
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No expiry record found for package\n", __FUNCTION__);
-        stMsgData->faultCode = fcInvalidParameterName;
-        return NOK;
-    }
-
-    if (expiryValue < 0)
-    {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Invalid negative expiry value %lld, clamping to zero\n", __FUNCTION__, expiryValue);
-        expiryValue = 0;
-    }
-
     stMsgData->paramtype = hostIf_UnsignedIntType;
     stMsgData->paramLen = sizeof(unsigned int);
+
+    if (!found)
+    {
+        expiryValue = 3600;
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No expiry record found for package; using default value 3600\n", __FUNCTION__);
+    }
+
+    if (expiryValue > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Expiry value %llu exceeds unsigned int range; clamping to max\n", __FUNCTION__, static_cast<unsigned long long>(expiryValue));
+        expiryValue = std::numeric_limits<unsigned int>::max();
+    }
+
     put_uint(stMsgData->paramValue, static_cast<unsigned int>(expiryValue));
     stMsgData->faultCode = fcNoFault;
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expiryValue));
