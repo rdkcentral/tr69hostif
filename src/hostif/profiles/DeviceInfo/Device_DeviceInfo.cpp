@@ -4430,15 +4430,13 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
     }
 
     memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
-    std::ifstream expiryFile("/nvram/rdm_debug_tool_expiry");
+    std::ifstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
     std::string line;
-    unsigned long long expirySeconds = 0;
-    unsigned long long expiryEpoch = 0;
-    bool found = false;
+    unsigned long long expirySeconds = 3600;
 
-    if (expiryFile.is_open())
+    if (ttlFile.is_open())
     {
-        while (std::getline(expiryFile, line))
+        while (std::getline(ttlFile, line))
         {
             std::string trimmed = line;
             trimmed.erase(trimmed.begin(), std::find_if(trimmed.begin(), trimmed.end(), [](unsigned char ch) { return !std::isspace(ch); }));
@@ -4449,42 +4447,22 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
                 continue;
             }
 
+            unsigned long long ttl = 0;
             std::istringstream iss(trimmed);
-            std::string token;
-            unsigned long long expiry = 0;
-
-            if (iss >> token >> expiry)
+            if (iss >> ttl)
             {
-                if (token == "package" || token == "rdm")
-                {
-                    expiryEpoch = expiry;
-                    found = true;
-                    break;
-                }
-            }
-            else if (std::istringstream(trimmed) >> expiry)
-            {
-                expirySeconds = expiry;
-                found = true;
+                expirySeconds = ttl;
                 break;
             }
         }
     }
+    else
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No TTL config record found for package; using default value 3600\n", __FUNCTION__);
+    }
 
     stMsgData->paramtype = hostIf_UnsignedIntType;
     stMsgData->paramLen = sizeof(unsigned int);
-
-    if (!found)
-    {
-        expirySeconds = 3600;
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No expiry record found for package; using default value 3600\n", __FUNCTION__);
-    }
-    else if (expiryEpoch > 0)
-    {
-        const time_t now = std::time(nullptr);
-        const long long remaining = static_cast<long long>(expiryEpoch) - static_cast<long long>(now);
-        expirySeconds = (remaining > 0) ? static_cast<unsigned long long>(remaining) : 0;
-    }
 
     if (expirySeconds > std::numeric_limits<unsigned int>::max())
     {
@@ -4494,7 +4472,7 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
 
     put_uint(stMsgData->paramValue, static_cast<unsigned int>(expirySeconds));
     stMsgData->faultCode = fcNoFault;
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read configured package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
     return OK;
 }
 
@@ -4569,43 +4547,16 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
         return NOK;
     }
 
-    const time_t now = std::time(nullptr);
-    const unsigned long long expiryEpoch = static_cast<unsigned long long>(now) + expirySeconds;
-    std::ifstream expiryIn("/nvram/rdm_debug_tool_expiry");
-    std::ofstream expiryOut("/nvram/rdm_debug_tool_expiry.tmp");
-    std::string line;
-    bool updated = false;
-
-    if (expiryIn.is_open())
+    std::ofstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+    if (!ttlFile.is_open())
     {
-        while (std::getline(expiryIn, line))
-        {
-            if (line.rfind("package ", 0) == 0)
-            {
-                updated = true;
-                continue;
-            }
-            expiryOut << line << std::endl;
-        }
-        expiryIn.close();
-    }
-
-    if (!updated)
-    {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] No existing package expiry record; creating new entry\n", __FUNCTION__);
-    }
-
-    expiryOut << "package " << expiryEpoch << std::endl;
-    expiryOut.close();
-
-    if (rename("/nvram/rdm_debug_tool_expiry.tmp", "/nvram/rdm_debug_tool_expiry") != 0)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist package expiry\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist configured package expiry TTL\n", __FUNCTION__);
         return NOK;
     }
+    ttlFile << expirySeconds << std::endl;
+    ttlFile.close();
 
-    v_secure_system("/usr/bin/rdm -e");
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled package expiry at epoch %llu (ttl=%llu seconds)\n", __FUNCTION__, static_cast<unsigned long long>(expiryEpoch), static_cast<unsigned long long>(expirySeconds));
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Stored configured package expiry TTL=%llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
     return OK;
 }
 
@@ -5813,21 +5764,54 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
+    std::string packageSpec = (stMsgData && stMsgData->paramValue) ? stMsgData->paramValue : "";
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
 
-    if((!stMsgData) || strlen(stMsgData->paramValue) == 0 ) {
+    if((!stMsgData) || packageSpec.empty()) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
+    std::string toolName = packageSpec;
+    std::string::size_type colonPos = toolName.find(':');
+    if (colonPos != std::string::npos)
+    {
+        toolName = toolName.substr(0, colonPos);
+    }
 
-    ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", stMsgData->paramValue);
+    std::string::size_type dashPos = toolName.rfind('-');
+    if (dashPos != std::string::npos)
+    {
+        std::string suffix = toolName.substr(dashPos + 1);
+        if (suffix == "strace" || suffix == "tcpdump")
+        {
+            toolName = suffix;
+        }
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , packageSpec.c_str());
+
+    ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", packageSpec.c_str());
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
         return NOK;
+    }
+
+    if (toolName == "strace" || toolName == "tcpdump")
+    {
+        std::ifstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+        unsigned long long ttl = 3600;
+        if (ttlFile.is_open())
+        {
+            ttlFile >> ttl;
+        }
+
+        v_secure_system("backgroundrun rdm -s %s:%llu >> /opt/logs/rdm_status.log 2>&1",
+                        toolName.c_str(), static_cast<unsigned long long>(ttl));
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled expiry for %s with TTL %llu\n",
+                __FUNCTION__, toolName.c_str(), static_cast<unsigned long long>(ttl));
     }
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
