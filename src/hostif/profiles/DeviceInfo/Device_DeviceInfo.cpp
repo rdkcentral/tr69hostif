@@ -139,7 +139,7 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
-#define LOGCHRONO_DISABLE_FILE "/opt/secure/RFC/disable_logchrono"
+#define LOGCHRONO_ENABLE_FILE "/opt/secure/RFC/enable_logchrono"
 
 #ifndef GTEST_ENABLE
 #define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
@@ -4136,45 +4136,54 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCLogChronoEnable(HOSTIF_MsgData_t *st
 {
     int ret = NOK;
     bool enable;
+
     LOG_ENTRY_EXIT;
 
     if(stMsgData->paramtype == hostIf_BooleanType)
     {
         enable = get_boolean(stMsgData->paramValue);
+
         if(enable)
         {
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to true\n", __FUNCTION__);
-            if(remove(LOGCHRONO_DISABLE_FILE) != 0 && errno != ENOENT)
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                    "[%s] set LogChrono.Enable to true\n", __FUNCTION__);
+
+            std::ofstream enableFile(LOGCHRONO_ENABLE_FILE);
+            if(!enableFile.is_open())
             {
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Unable to clear disable logchrono flag %s\n",
-                        __FUNCTION__, LOGCHRONO_DISABLE_FILE);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Unable to create enable logchrono flag %s\n",
+                        __FUNCTION__, LOGCHRONO_ENABLE_FILE);
                 ret = NOK;
             }
             else
             {
+                enableFile.close();
                 ret = OK;
             }
         }
         else
         {
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] set LogChrono.Enable to false\n", __FUNCTION__);
-            std::ofstream disableFile(LOGCHRONO_DISABLE_FILE);
-            if(!disableFile.is_open())
+            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                    "[%s] set LogChrono.Enable to false\n", __FUNCTION__);
+
+            if(remove(LOGCHRONO_ENABLE_FILE) != 0 && errno != ENOENT)
             {
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] Unable to create disable logchrono flag %s\n",
-                        __FUNCTION__, LOGCHRONO_DISABLE_FILE);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Unable to remove enable logchrono flag %s\n",
+                        __FUNCTION__, LOGCHRONO_ENABLE_FILE);
                 ret = NOK;
             }
             else
             {
-                disableFile.close();
                 ret = OK;
             }
         }
     }
     else
     {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n",
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n",
                 __FUNCTION__, __LINE__, stMsgData->paramName);
     }
 
