@@ -8086,6 +8086,67 @@ TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagRemove
     rmdir(RDK_TRACING_FLAG_FILE);
 }
 
+TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval)
+{
+    int secureDirCreated = (mkdir("/opt/secure", 0700) == 0);
+    if (!secureDirCreated && errno != EEXIST)
+    {
+        GTEST_SKIP() << "Unable to create /opt/secure for persistence test";
+    }
+    if (access(OTEL_EXPORT_INTERVAL_FILE, F_OK) == 0)
+    {
+        if (secureDirCreated)
+        {
+            rmdir("/opt/secure");
+        }
+        GTEST_SKIP() << "Interval persistence file already exists";
+    }
+
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, DISTRIBUTED_TRACING_RFC_INTERVAL, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_UnsignedIntType;
+    put_uint(param.paramValue, 15);
+    param.paramLen = sizeof(hostIf_UnsignedIntType);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), OK);
+
+    std::ifstream intervalFile(OTEL_EXPORT_INTERVAL_FILE);
+    std::string persistedInterval;
+    std::getline(intervalFile, persistedInterval);
+    EXPECT_EQ(persistedInterval, "15");
+    intervalFile.close();
+    remove(OTEL_EXPORT_INTERVAL_FILE);
+    if (secureDirCreated)
+    {
+        rmdir("/opt/secure");
+    }
+}
+
+TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_InvalidType)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    param.paramtype = hostIf_StringType;
+    strncpy(param.paramValue, "15", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFCDistributedTracingInterval(&param), NOK);
+}
+
+TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_Zero)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    param.paramtype = hostIf_UnsignedIntType;
+    put_uint(param.paramValue, 0);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFCDistributedTracingInterval(&param), NOK);
+}
+
 #ifdef ENABLE_VIDEO_TELEMETRY
 TEST(deviceTest, set_xRDKCentralComRFCVideoTelFreq)
 {

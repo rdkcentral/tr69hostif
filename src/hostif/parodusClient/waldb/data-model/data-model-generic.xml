@@ -2309,6 +2309,15 @@
         </syntax>
       </parameter>
     </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing." access="readOnly" minEntries="1" maxEntries="1" >
+      <parameter base="Interval" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+          <units value="minutes"/>
+          <default type="factory" value="15"/>
+        </syntax>
+      </parameter>
+    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Detection" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
