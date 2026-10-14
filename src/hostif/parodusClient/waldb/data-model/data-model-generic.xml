@@ -2240,6 +2240,16 @@
  	  <boolean/>
         </syntax>
      </parameter>
+     <parameter base="PackageInstallPath" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+     </parameter>
+     <parameter base="PackageExpiryTime" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+        </syntax>
+     </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout." access="readOnly" minEntries="1" maxEntries="1" >
      <parameter base="LastResetTime" access="readOnly" notification="0" maxNotification="2" >
