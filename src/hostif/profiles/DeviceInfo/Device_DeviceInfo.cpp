@@ -40,16 +40,20 @@
 
 #include <cmath>
 #include <cstring>
+#include <cctype>
 #include <cstdio>
+#include <cerrno>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include <linux/fs.h>
 #include <sys/ioctl.h>
 #include <sys/sysinfo.h>
 #include <net/if.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
+#include <sys/file.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -3910,10 +3914,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
         {
             ret = set_xRDKCentralComRFCSecureUnlockSSHPassword(stMsgData);
-            if (ret != OK)
-            {
-                return ret;
-            }
         }
 
         validate_paramVal = validate_ParamValue(stMsgData);
