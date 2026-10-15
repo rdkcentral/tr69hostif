@@ -3422,7 +3422,7 @@
       </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Password" access="readWrite" notification="0" maxNotification="2" >
+      <parameter base="Password" access="writeOnly" notification="0" maxNotification="2" >
         <syntax>
           <string/>
         </syntax>
