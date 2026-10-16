@@ -46,7 +46,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <linux/fs.h>
 #include <sys/ioctl.h>
 #include <sys/sysinfo.h>
@@ -3815,43 +3814,131 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *s
 
 int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData)
 {
-    if (stMsgData == NULL)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] stMsgData is NULL\n", __FUNCTION__);
+    if (stMsgData == NULL) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SET message is NULL\n", __FUNCTION__);
         return NOK;
     }
 
-    if (stMsgData->paramtype != hostIf_StringType || strlen(stMsgData->paramValue) == 0)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password value\n", __FUNCTION__);
-        stMsgData->faultCode = (stMsgData->paramtype != hostIf_StringType) ? fcInvalidParameterType : fcInvalidParameterValue;
+    if (stMsgData->paramtype != hostIf_StringType) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password parameter type\n", __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterType;
         return NOK;
     }
 
-    if (access(SIGNEDLAB_SHADOW_FILE, F_OK) != 0)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow backing file not available at %s: %s\n", __FUNCTION__, SIGNEDLAB_SHADOW_FILE, strerror(errno));
+    const char *hash = stMsgData->paramValue;
+    size_t capacity = sizeof(stMsgData->paramValue);
+    size_t hashLen = strnlen(hash, capacity);
+
+    if (hashLen == 0 || hashLen == capacity) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password hash is empty or invalid\n", __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    const char *sep = strrchr(hash, '$');
+
+    if (strncmp(hash, "$6$", 3) != 0 || sep == NULL || sep <= hash + 3 ||
+        (size_t)(hash + hashLen - sep - 1) != 86 || strpbrk(hash, ":\r\n") != NULL) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password hash format\n", __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
+
+    if (fd < 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open shadow file: %s\n", __FUNCTION__, strerror(errno));
         stMsgData->faultCode = fcInternalError;
         return NOK;
     }
 
-    int ret = v_secure_system("/lib/rdk/signedlab-set-password.sh %s", stMsgData->paramValue);
-    if (ret != 0)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password update script failed\n", __FUNCTION__);
+    char *original = NULL, *updated = NULL;
+    size_t oldLen = 0, newLen = 0, pos = 0, oldHashLen = 0;
+    int ret = NOK;
+
+    do {
+        struct stat st;
+
+        if (flock(fd, LOCK_EX) != 0 || fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_size <= 0 || st.st_size > 1048576) break;
+
+        oldLen = (size_t)st.st_size;
+        original = (char *)malloc(oldLen + 1);
+        if (original == NULL) break;
+
+        size_t count = 0;
+        while (count < oldLen) {
+            ssize_t n = pread(fd, original + count, oldLen - count, (off_t)count);
+            if (n < 0 && errno == EINTR) continue;
+            if (n <= 0) break;
+            count += (size_t)n;
+        }
+
+        if (count != oldLen) break;
+        original[oldLen] = '\0';
+
+        int found = 0, malformed = 0;
+        for (size_t start = 0; start < oldLen;) {
+            size_t end = start;
+            while (end < oldLen && original[end] != '\n') ++end;
+
+            if (end - start >= 9 && memcmp(original + start, "rdk_user:", 9) == 0) {
+                char *colon = (char *)memchr(original + start + 9, ':', end - start - 9);
+                if (found || colon == NULL) {
+                    malformed = 1;
+                    break;
+                }
+                pos = start + 9;
+                oldHashLen = (size_t)(colon - (original + pos));
+                found = 1;
+            }
+            start = end + 1;
+        }
+
+        if (!found || malformed) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] rdk_user entry missing or malformed\n", __FUNCTION__);
+            break;
+        }
+
+        newLen = oldLen - oldHashLen + hashLen;
+        updated = (char *)malloc(newLen);
+        if (updated == NULL) break;
+
+        memcpy(updated, original, pos);
+        memcpy(updated + pos, hash, hashLen);
+        memcpy(updated + pos + hashLen, original + pos + oldHashLen, oldLen - pos - oldHashLen);
+
+        const char *data[] = {updated, original};
+        size_t lengths[] = {newLen, oldLen};
+
+        for (int attempt = 0; attempt < 2; ++attempt) {
+            size_t written = 0;
+            while (written < lengths[attempt]) {
+                ssize_t n = pwrite(fd, data[attempt] + written, lengths[attempt] - written, (off_t)written);
+                if (n < 0 && errno == EINTR) continue;
+                if (n <= 0) break;
+                written += (size_t)n;
+            }
+
+            if (written == lengths[attempt] && ftruncate(fd, (off_t)lengths[attempt]) == 0 && fsync(fd) == 0) {
+                if (attempt == 0) ret = OK;
+                break;
+            }
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file %s failed\n", __FUNCTION__, attempt == 0 ? "update" : "restore");
+        }
+    } while (0);
+
+    free(updated);
+    free(original);
+    close(fd);
+
+    if (ret != OK) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to update rdk_user password\n", __FUNCTION__);
         stMsgData->faultCode = fcInternalError;
-        ret = NOK;
-    }
-    else
-    {
-        ret = OK;
+        return NOK;
     }
 
-    if (ret == OK)
-    {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SecureUnlock SSH password updated successfully\n", __FUNCTION__);
-    }
-    return ret;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] rdk_user password updated successfully\n", __FUNCTION__);
+    return OK;
 }
 
 int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
