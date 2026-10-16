@@ -3837,7 +3837,9 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     const char *sep = strrchr(hash, '$');
 
     if (strncmp(hash, "$6$", 3) != 0 || sep == NULL || sep <= hash + 3 ||
-        (size_t)(hash + hashLen - sep - 1) != 86 || strpbrk(hash, ":\r\n") != NULL) {
+        (size_t)(hash + hashLen - sep - 1) != 86 ||
+        strspn(sep + 1, "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") != 86 ||
+        strpbrk(hash, ":\r\n") != NULL) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password hash format\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;

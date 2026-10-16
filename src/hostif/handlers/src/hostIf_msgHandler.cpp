@@ -267,7 +267,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         char paramValueStr[128] = {0};
         paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
 
-        if (strcmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
         {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%d] ret: %d, SSH Password RFC SET processing completed, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, timeTakenset);
         }
