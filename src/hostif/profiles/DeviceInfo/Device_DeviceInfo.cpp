@@ -4427,6 +4427,15 @@ int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
 {
     int ret=NOK;
+
+	if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
+	{
+    	stMsgData->paramValue[0] = '\0';
+    	stMsgData->faultCode = fcRequestDenied;
+    	RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s] GET denied for SSH Password parameter\n",__FUNCTION__);
+    	return NOK;
+	}
+	
 #ifndef NEW_HTTP_SERVER_DISABLE
     if(!legacyRFCEnabled())
     {
@@ -4450,15 +4459,6 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
             m_rfcStorage.setValue(stMsgData);
         }
     }
-
-	if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
-	{
-    	stMsgData->paramValue[0] = '\0';
-    	stMsgData->faultCode = fcRequestDenied;
-    	RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s] GET denied for SSH Password parameter\n",__FUNCTION__);
-    	return NOK;
-	}
-
     return ret;
 }
 
