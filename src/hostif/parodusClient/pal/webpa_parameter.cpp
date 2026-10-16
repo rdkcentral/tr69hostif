@@ -674,7 +674,14 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
     }
     else
     {
-        RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"[%s:%s:%d] The value for param: %s is %s paramLen : %d\n", __FILE__, __FUNCTION__, __LINE__, ptrParam->paramName,ptrParam->paramValue, ptrParam->paramLen);
+        if (strcasecmp(ptrParam->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF, "[%s] SSH Password RFC GET completed successfully\n", __FUNCTION__);
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF, "[%s:%s:%d] The value for param: %s is %s paramLen : %d\n", __FILE__, __FUNCTION__, __LINE__, ptrParam->paramName, ptrParam->paramValue, ptrParam->paramLen);
+        }
         retStatus = WDMP_SUCCESS;
     }
     return retStatus;
