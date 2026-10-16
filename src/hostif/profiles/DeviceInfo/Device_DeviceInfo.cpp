@@ -3986,6 +3986,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] rdk_user password updated successfully\n", __FUNCTION__);
+    stMsgData->paramValue[0] = '\0';
+    stMsgData->paramLen = 0;
     return OK;
 }
 
