@@ -107,7 +107,14 @@ static void convertAndAssignParamValue (HOSTIF_MsgData_t *param, char *value)
     case hostIf_StringType:
     case hostIf_DateTimeType:
         snprintf(param->paramValue,TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", value);
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF, ">> Type: String/Date, Value = %s\n", param->paramValue);
+        if (!strcasecmp(param->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,">> SSH Password value redacted\n");
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,">> Type: String/Date, Value = %s\n", param->paramValue);
+        }
         break;
     case hostIf_IntegerType:
     case hostIf_UnsignedIntType:
@@ -342,10 +349,19 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
 
     if(result == OK)
     {
-        if(hostIfParam.faultCode == fcNoFault)
+        if (hostIfParam.faultCode == fcNoFault)
         {
-            param->value = getStringValue(hostIfParam.paramtype, hostIfParam.paramValue);
-            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"The value for param: %s = %s\n", hostIfParam.paramName, param->value);
+            if (!strcasecmp(hostIfParam.paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+            {
+                param->value = strdup("");
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"SSH Password operation completed\n");
+            }
+            else
+            {
+                param->value = getStringValue(hostIfParam.paramtype,hostIfParam.paramValue);
+
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"The value for param: %s = %s\n",hostIfParam.paramName, param->value);
+            }
         }
         else
         {
@@ -384,6 +400,11 @@ static WDMP_STATUS validateAgainstDataModel(REQ_TYPE reqType, char* paramName, c
     *bsUpdate = getBSUpdateEnum(dmParam.bsUpdate);
     if(reqType == GET)
     {
+        if (!strcasecmp(paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] GET denied for SSH Password parameter\n", __FUNCTION__);
+            return WDMP_FAILURE;
+        }
         if(dmParam.dataType != NULL)
         {
             *dataType = getWdmpDataType(dmParam.dataType);  //CID:89885 - FORWARD NULL

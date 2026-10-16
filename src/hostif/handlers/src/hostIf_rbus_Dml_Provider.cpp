@@ -373,10 +373,18 @@ rbusError_t TR_Dml_SetHandler(rbusHandle_t handle, rbusProperty_t inProperty, rb
                         switch (param.paramtype)
                         {
                             case hostIf_StringType:
-                            case hostIf_DateTimeType:
-                                snprintf(param.paramValue,TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", strValue);
-                                RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF, ">> Type: String/Date, Value = %s\n", param.paramValue);
-                                break;
+							case hostIf_DateTimeType:
+    							snprintf(param.paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", strValue);
+
+    							if (strcasecmp(param.paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+    							{
+        							RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, ">> Type: String/Date, Value redacted\n");
+    							}
+    							else
+    							{
+        							RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,">> Type: String/Date, Value = %s\n", param.paramValue);
+    							}
+    						break;
                             case hostIf_IntegerType:
                             case hostIf_UnsignedIntType:
                             {
