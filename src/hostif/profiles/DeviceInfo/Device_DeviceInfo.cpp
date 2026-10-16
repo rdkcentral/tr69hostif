@@ -3834,20 +3834,40 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         return NOK;
     }
 
-    const char *sep = strrchr(hash, '$');
-	int dollarCount = 0;
+    /* Validate optional rounds field. */
+	const char *salt = hash + 3;
 
-	for (const char *p = hash; *p != '\0'; ++p)
+	if (dollarCount == 4)
 	{
-    	if (*p == '$')
-        	dollarCount++;
+    	const char *p = hash + 10;
+    	unsigned long roundsValue = 0;
+    	int digits = 0;
+
+    	while (*p >= '0' && *p <= '9' && digits < 9)
+    	{
+        	roundsValue = roundsValue * 10 + (*p - '0');
+        	++p;
+        	++digits;
+    	}
+
+    	if (digits == 0 || *p != '$' || p >= sep ||
+        	roundsValue < 1000 || roundsValue > 999999999)
+    	{
+        	stMsgData->faultCode = fcInvalidParameterValue;
+        	return NOK;
+    	}
+
+    	salt = p + 1;
 	}
 
-    if (strpbrk(hash, ":\r\n") != NULL ||
-        strncmp(hash, "$6$", 3) != 0 || sep == NULL ||
-        strlen(sep + 1) != 86 ||
-        (dollarCount != 3 &&
-         !(dollarCount == 4 && strncmp(hash, "$6$rounds=", 10) == 0)))
+	/* Validate salt and digest characters. */
+	const char *cryptChars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+	size_t saltLen = (size_t)(sep - salt);
+
+	if (saltLen == 0 || saltLen > 16 ||
+    	strspn(salt, cryptChars) != saltLen ||
+    	strspn(sep + 1, cryptChars) != 86)
 	{
     	stMsgData->faultCode = fcInvalidParameterValue;
     	return NOK;
