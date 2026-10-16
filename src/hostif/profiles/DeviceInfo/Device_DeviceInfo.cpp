@@ -3554,7 +3554,25 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
 int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = OK;
-    if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
+    if (strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_INTERVAL) == 0)
+    {
+        if (stMsgData->paramtype != hostIf_UnsignedIntType)
+        {
+            stMsgData->faultCode = fcInvalidParameterType;
+            return NOK;
+        }
+
+        unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
+        if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%d] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                    __FUNCTION__, __LINE__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+    }
+    else if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
     {
         long int tmpVal;
         if(stMsgData->paramtype == hostIf_StringType )
@@ -3887,7 +3905,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         else
         {
             ret = NOK;
-            stMsgData->faultCode = fcInvalidParameterValue;
+            if (stMsgData->faultCode != fcInvalidParameterType)
+            {
+                stMsgData->faultCode = fcInvalidParameterValue;
+            }
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Invalid ParamValue/Type to SET for param [%s] \n", __FUNCTION__, __LINE__, stMsgData->paramName);
         }
     }
@@ -4242,20 +4263,27 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingInterval(HOSTIF_Ms
 {
     int ret = NOK;
 
-    if (!stMsgData || stMsgData->paramtype != hostIf_UnsignedIntType)
+    if (!stMsgData)
+    {
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_UnsignedIntType)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
                 "[%s] Wrong type for DistributedTracing.Interval, expected unsigned integer minutes.\n",
                 __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterType;
         return NOK;
     }
 
     unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
-    if (intervalMinutes == 0)
+    if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                "[%s] DistributedTracing.Interval must be greater than zero minutes.\n",
-                __FUNCTION__);
+                "[%s] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                __FUNCTION__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+        stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 

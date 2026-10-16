@@ -8118,6 +8118,14 @@ TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval)
     std::getline(intervalFile, persistedInterval);
     EXPECT_EQ(persistedInterval, "15");
     intervalFile.close();
+
+    put_uint(param.paramValue, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), OK);
+    std::ifstream maximumIntervalFile(OTEL_EXPORT_INTERVAL_FILE);
+    std::getline(maximumIntervalFile, persistedInterval);
+    EXPECT_EQ(persistedInterval, std::to_string(MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES));
+    maximumIntervalFile.close();
+
     remove(OTEL_EXPORT_INTERVAL_FILE);
     if (secureDirCreated)
     {
@@ -8145,6 +8153,50 @@ TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_Zero)
     hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
     ASSERT_NE(pIface, nullptr);
     EXPECT_EQ(pIface->set_xRDKCentralComRFCDistributedTracingInterval(&param), NOK);
+}
+
+TEST(deviceTest, set_xRDKCentralComRFCDistributedTracingInterval_InvalidValuesNotPersisted)
+{
+    int secureDirCreated = (mkdir("/opt/secure", 0700) == 0);
+    if (!secureDirCreated && errno != EEXIST)
+    {
+        GTEST_SKIP() << "Unable to create /opt/secure for persistence test";
+    }
+    if (access(OTEL_EXPORT_INTERVAL_FILE, F_OK) == 0)
+    {
+        if (secureDirCreated)
+        {
+            rmdir("/opt/secure");
+        }
+        GTEST_SKIP() << "Interval persistence file already exists";
+    }
+
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, DISTRIBUTED_TRACING_RFC_INTERVAL, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_UnsignedIntType;
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    put_uint(param.paramValue, 0);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    EXPECT_NE(access(OTEL_EXPORT_INTERVAL_FILE, F_OK), 0);
+
+    put_uint(param.paramValue, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES + 1);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    EXPECT_NE(access(OTEL_EXPORT_INTERVAL_FILE, F_OK), 0);
+
+    param.paramtype = hostIf_StringType;
+    strncpy(param.paramValue, "15", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterType);
+    EXPECT_NE(access(OTEL_EXPORT_INTERVAL_FILE, F_OK), 0);
+
+    if (secureDirCreated)
+    {
+        rmdir("/opt/secure");
+    }
 }
 
 #ifdef ENABLE_VIDEO_TELEMETRY

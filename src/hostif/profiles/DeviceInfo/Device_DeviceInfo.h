@@ -196,6 +196,7 @@
 #define DISTRIBUTED_TRACING_RFC_ENABLE              "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Enable"
 #define DISTRIBUTED_TRACING_RFC_URL                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.URL"
 #define DISTRIBUTED_TRACING_RFC_INTERVAL            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Interval"
+#define MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES    71582U
 #define RDK_TRACING_FLAG_FILE                       "/tmp/rdk_distributed_tracing_enabled"
 
 #define OTEL_EXPORT_ENDPOINT_FILE                   "/opt/secure/otel-export-endpoint"
@@ -395,6 +396,7 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_InvalidType);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_Zero);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCDistributedTracingInterval_InvalidValuesNotPersisted);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCVideoTelFreq);
     FRIEND_TEST(deviceTest, get_xOpsRPCDevManageableNotification_CopyFailure);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldStartedNotification_CopyFailure);
