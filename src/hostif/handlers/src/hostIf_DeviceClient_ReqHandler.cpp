@@ -233,7 +233,7 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         }
         else if (strstr(stMsgData->paramName, TR181_RFC_PREFIX) != NULL)
 		{
-    		if (strcmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
+    		if (strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
     		{
         		RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] SSH Password RFC SET request received\n",__FUNCTION__);
     		}
