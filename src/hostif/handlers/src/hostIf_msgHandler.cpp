@@ -199,6 +199,10 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 
             }
         }
+        if (strcmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        {
+            RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] SSH Password RFC SET processing completed\n", __FUNCTION__);
+        }
         
     }
     catch (const std::exception& e)
@@ -286,6 +290,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         }
     }
 
+    
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
 }
