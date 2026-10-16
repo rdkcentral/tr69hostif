@@ -3843,7 +3843,11 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         	dollarCount++;
 	}
 
-	if (strncmp(hash, "$6$", 3) != 0 ||sep == NULL ||strlen(sep + 1) != 86 ||(dollarCount != 3 &&!(dollarCount == 4 && strncmp(hash, "$6$rounds=", 10) == 0)))
+    if (strpbrk(hash, ":\r\n") != NULL ||
+        strncmp(hash, "$6$", 3) != 0 || sep == NULL ||
+        strlen(sep + 1) != 86 ||
+        (dollarCount != 3 &&
+         !(dollarCount == 4 && strncmp(hash, "$6$rounds=", 10) == 0)))
 	{
     	stMsgData->faultCode = fcInvalidParameterValue;
     	return NOK;
