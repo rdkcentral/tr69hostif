@@ -400,6 +400,11 @@ static WDMP_STATUS validateAgainstDataModel(REQ_TYPE reqType, char* paramName, c
     *bsUpdate = getBSUpdateEnum(dmParam.bsUpdate);
     if(reqType == GET)
     {
+        if (!strcasecmp(paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] GET denied for SSH Password parameter\n", __FUNCTION__);
+            return WDMP_FAILURE;
+        }
         if(dmParam.dataType != NULL)
         {
             *dataType = getWdmpDataType(dmParam.dataType);  //CID:89885 - FORWARD NULL
