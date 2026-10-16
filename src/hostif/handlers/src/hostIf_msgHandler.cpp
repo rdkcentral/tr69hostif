@@ -199,11 +199,6 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 
             }
         }
-        if (strcmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
-        {
-            RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] SSH Password RFC SET processing completed\n", __FUNCTION__);
-        }
-        
     }
     catch (const std::exception& e)
     {
@@ -272,12 +267,17 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         char paramValueStr[128] = {0};
         paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
 
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+        if (strcmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%d] ret: %d, SSH Password RFC SET processing completed, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, timeTakenset);
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
-                stMsgData->paramName,
-                paramValueStr,
-                timeTakenset);
+                stMsgData->paramName, paramValueStr, timeTakenset);
+        }
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
