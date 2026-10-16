@@ -33,4 +33,5 @@ AM_CXXFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/src/hostif/include  \
               -I$(top_srcdir)/src/hostif/handlers/include \
               -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/wdmp-c \
-               $(GLIB_CFLAGS) $(G_THREAD_CFLAGS)
+               $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) \
+               -Wno-error=attribute-warning -Wno-attribute-warning

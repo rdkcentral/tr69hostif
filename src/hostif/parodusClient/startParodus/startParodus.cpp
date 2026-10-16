@@ -1,4 +1,3 @@
-
 /*
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
@@ -140,7 +139,7 @@ std::string get_PartnerId()
            }
         }
 	close(fd);
-    } 
+    }
     else
     {
         getRFCParameter((char *)"webcfg", PARTNERID, &param);
@@ -255,7 +254,7 @@ std::string get_FwName()
         token = strtok(line, ":");
         token = strtok(NULL, ":");
 	if (token != NULL) {
-            snprintf(imageName, sizeof(imageName), "%s", token); 
+            snprintf(imageName, sizeof(imageName), "%s", token);
         }
         else {
            // Handle the null case if necessary
@@ -267,6 +266,110 @@ std::string get_FwName()
         fw_name.erase(std::remove(fw_name.begin(), fw_name.end(), '\n'), fw_name.cend());
     }
     return fw_name;
+}
+
+#ifndef PARODUS_START_MODE
+#define PARODUS_START_MODE 0
+#endif
+
+enum ParodusLaunchMode
+{
+    PARODUS_LAUNCH_DIRECT = 0x1,
+    PARODUS_LAUNCH_SECURE = 0x2,
+    PARODUS_LAUNCH_SYSTEM_BACKGROUND = 0x0,
+    PARODUS_LAUNCH_SYSTEM_DIRECT = 0x1,
+    PARODUS_LAUNCH_SECURE_BACKGROUND = 0x2,
+    PARODUS_LAUNCH_SECURE_DIRECT = 0x3
+};
+
+static bool isSecureLaunchMode(const int startMode)
+{
+    return (startMode & PARODUS_LAUNCH_SECURE) != 0;
+}
+
+static bool useBackgroundRun(const int startMode)
+{
+    return (startMode & PARODUS_LAUNCH_DIRECT) == 0;
+}
+
+static int getParodusStartMode()
+{
+    const char *envMode = getenv("PARODUS_START_MODE");
+    if (envMode != NULL && *envMode != '\0')
+    {
+        char *end = NULL;
+        long mode = strtol(envMode, &end, 10);
+        printf("PARODUS_START_MODE environment variable is set to: '%s'(%ld)\n", envMode, mode);
+        if (end != envMode && (*end == '\0' || *end == '\n' || *end == '\r'))
+        {
+            if (mode >= PARODUS_LAUNCH_SYSTEM_BACKGROUND && mode <= PARODUS_LAUNCH_SECURE_DIRECT)
+            {
+                return static_cast<int>(mode);
+            }
+        }
+    }
+
+    return PARODUS_START_MODE;
+}
+
+static std::string buildParodusLaunchCommand(const int startMode,
+                                            const std::string &hw_addr,
+                                            int pingWaitTime,
+                                            const std::string &networkIf,
+                                            const std::string &webpa_url,
+                                            const std::string &partnerId,
+                                            int acquireJWT,
+                                            const std::string &dnsTextUrl,
+                                            const std::string &jwtKey,
+                                            const std::string &recordJwtPayloadFile,
+                                            const std::string &crudConfigFile,
+                                            const char *manufacturer,
+                                            const std::string &fw_name,
+                                            const char *model,
+                                            const std::string &serialNumber,
+                                            const std::string &bootTime,
+                                            const std::string &reboot_reason,
+                                            const std::string &clientCertFile,
+                                            const std::string &tokenServerUrl)
+{
+    const bool launchInBackground = useBackgroundRun(startMode);
+    const bool appendAmpersand = (startMode & PARODUS_LAUNCH_DIRECT) != 0;
+
+    // PARODUS_START_MODE bitmask values:
+    // 0 = system + backgroundrun /usr/bin/parodus
+    // 1 = system + /usr/bin/parodus &
+    // 2 = v_secure_system + backgroundrun /usr/bin/parodus
+    // 3 = v_secure_system + /usr/bin/parodus &
+    std::string command = launchInBackground ? "backgroundrun /usr/bin/parodus" : "/usr/bin/parodus";
+
+    command += " --hw-mac=" + hw_addr;
+    command += " --webpa-ping-time=" + std::to_string(pingWaitTime);
+    command += " --webpa-interface-used=" + networkIf;
+    command += " --webpa-url=" + webpa_url;
+    command += " --partner-id=" + partnerId;
+    command += " --webpa-backoff-max=9";
+    command += " --ssl-cert-path=" + std::string(SSL_CERT_FILE);
+    command += " --acquire-jwt=" + std::to_string(acquireJWT);
+    command += " --dns-txt-url=" + dnsTextUrl;
+    command += " --jwt-public-key-file=" + jwtKey;
+    command += " --jwt-algo=RS256";
+    command += " --record-jwt-payload=" + recordJwtPayloadFile;
+    command += " --crud-config-file=" + crudConfigFile;
+    command += " --hw-manufacturer=" + std::string(manufacturer ? manufacturer : "");
+    command += " --fw-name=" + fw_name;
+    command += " --hw-model=" + std::string(model ? model : "");
+    command += " --hw-serial-number=" + serialNumber;
+    command += " --boot-time=" + bootTime;
+    command += " --hw-last-reboot-reason=\"" + reboot_reason + "\"";
+    command += " --client-cert-path=" + clientCertFile;
+    command += " --token-server-url=" + tokenServerUrl;
+
+    if (appendAmpersand)
+    {
+        command += " &";
+    }
+
+    return command;
 }
 
 #ifndef GTEST_ENABLE
@@ -351,7 +454,7 @@ int main(int argc, char *argv[])
 		     close(fd);
                      return 1; // or handle the error as needed
 		    }
-                 
+
                     webpaCfgFile[ch_count] = '\0';
                     // CID:18143 - NEGATIVE RETURNS - since ch_count cannot be negative
                     cJSON *webpa_cfg = cJSON_Parse(webpaCfgFile);
@@ -497,19 +600,22 @@ int main(int argc, char *argv[])
                CRUD_CONFIG_FILE, manufacturer, fw_name.c_str(), model,
                serialNumber.c_str(), bootTime.c_str(), reboot_reason.c_str(), clientCertFile.c_str(), tokenServerUrl.c_str());
 
-        v_secure_system("backgroundrun /usr/bin/parodus \
-        --hw-mac=%s --webpa-ping-time=%d --webpa-interface-used=%s --webpa-url=%s \
-        --partner-id=%s --webpa-backoff-max=9 --ssl-cert-path=%s  --acquire-jwt=%d \
-        --dns-txt-url=%s --jwt-public-key-file=%s --jwt-algo=RS256 --record-jwt-payload=%s \
-        --crud-config-file=%s  --hw-manufacturer=%s --fw-name=%s --hw-model=%s \
-        --hw-serial-number=%s --boot-time=%s --hw-last-reboot-reason=\"%s\" --client-cert-path=%s --token-server-url=%s",
-                        hw_addr.c_str(), pingWaitTime, networkIf.c_str(), webpa_url.c_str(),
-                        partnerId.c_str(), SSL_CERT_FILE, acquireJWT,
-                        dnsTextUrl.c_str(), JWT_KEY, RECORD_JWT_PAYLOAD_FILE,
-                       CRUD_CONFIG_FILE, manufacturer, fw_name.c_str(), model,
-                       serialNumber.c_str(), bootTime.c_str(), reboot_reason.c_str(), clientCertFile.c_str(), tokenServerUrl.c_str());
+        const int startMode = getParodusStartMode();
+        std::string parodusCommand = buildParodusLaunchCommand(startMode, hw_addr, pingWaitTime, networkIf,
+            webpa_url, partnerId, acquireJWT, dnsTextUrl, JWT_KEY,
+            RECORD_JWT_PAYLOAD_FILE, CRUD_CONFIG_FILE, manufacturer,
+            fw_name, model, serialNumber, bootTime, reboot_reason,
+            clientCertFile, tokenServerUrl);
+        std::cout << "Launching Parodus with command: " << parodusCommand << std::endl;
 
-
+        if (isSecureLaunchMode(startMode))
+        {
+            v_secure_system("%s", parodusCommand.c_str());
+        }
+        else
+        {
+            system(parodusCommand.c_str());
+        }
    }
     catch (const std::bad_cast& e)
      {
@@ -526,9 +632,9 @@ int main(int argc, char *argv[])
          std::cerr << "Unknown exception occurred" << std::endl;
          return 1;
      }
-       	
- 
-  
+
+
+
 return 0;
 }
 #endif
