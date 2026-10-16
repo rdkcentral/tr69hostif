@@ -3835,15 +3835,19 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     const char *sep = strrchr(hash, '$');
+	int dollarCount = 0;
 
-    if (strncmp(hash, "$6$", 3) != 0 || sep == NULL || sep <= hash + 3 ||
-        (size_t)(hash + hashLen - sep - 1) != 86 ||
-        strspn(sep + 1, "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") != 86 ||
-        strpbrk(hash, ":\r\n") != NULL) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password hash format\n", __FUNCTION__);
-        stMsgData->faultCode = fcInvalidParameterValue;
-        return NOK;
-    }
+	for (const char *p = hash; *p != '\0'; ++p)
+	{
+    	if (*p == '$')
+        	dollarCount++;
+	}
+
+	if (strncmp(hash, "$6$", 3) != 0 ||sep == NULL ||strlen(sep + 1) != 86 ||(dollarCount != 3 &&!(dollarCount == 4 && strncmp(hash, "$6$rounds=", 10) == 0)))
+	{
+    	stMsgData->faultCode = fcInvalidParameterValue;
+    	return NOK;
+	}
 
     int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
 
