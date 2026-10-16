@@ -4000,7 +4000,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
         {
-            ret = set_xRDKCentralComRFCSecureUnlockSSHPassword(stMsgData);
+            return set_xRDKCentralComRFCSecureUnlockSSHPassword(stMsgData);
         }
 
         validate_paramVal = validate_ParamValue(stMsgData);
