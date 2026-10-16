@@ -180,12 +180,14 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             
 
             // Calculate time taken in microseconds
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
-                __FUNCTION__, __LINE__, ret,
-                stMsgData->paramName,
-                paramValueStr,
-                timeTaken);
+            if (strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+            {
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] ret: %d, SSH Password RFC GET completed, timeTaken: %lld us\n", __FUNCTION__, __LINE__, ret, timeTaken);
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n", __FUNCTION__, __LINE__, ret, stMsgData->paramName, paramValueStr, timeTaken);
+            }
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
                 // Debug log
@@ -199,6 +201,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 
             }
         }
+
     }
     catch (const std::exception& e)
     {
