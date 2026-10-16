@@ -107,7 +107,7 @@ static void convertAndAssignParamValue (HOSTIF_MsgData_t *param, char *value)
     case hostIf_StringType:
     case hostIf_DateTimeType:
         snprintf(param->paramValue,TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", value);
-        if (!strcasecmp(param->paramName, SECURE_UNLOCK_SSH_PASSWORD))
+        if (!strcasecmp(param->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
         {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,">> SSH Password value redacted\n");
         }
