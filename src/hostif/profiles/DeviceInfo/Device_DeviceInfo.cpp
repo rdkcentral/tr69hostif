@@ -4443,6 +4443,14 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
         }
     }
 
+	if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
+	{
+    	stMsgData->paramValue[0] = '\0';
+    	stMsgData->faultCode = fcRequestDenied;
+    	RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s] GET denied for SSH Password parameter\n",__FUNCTION__);
+    	return NOK;
+	}
+
     return ret;
 }
 
