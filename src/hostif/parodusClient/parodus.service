@@ -24,11 +24,10 @@ ConditionPathExists=/opt/bspcomplete.ini
 [Service]
 SyslogIdentifier="parodus"
 EnvironmentFile=/etc/device.properties
-Environment=BACKGROUNDRUN_PIDFILE=/run/parodus.pid
 Type=forking
 PIDFile=/run/parodus.pid
 ExecStart=/bin/sh -c '/usr/bin/startParodusMain'
-ExecStop=/bin/kill -TERM $MAINPID
+ExecStop=/bin/kill -2 $MAINPID
 RestartSec=40s
 Restart=always
 
