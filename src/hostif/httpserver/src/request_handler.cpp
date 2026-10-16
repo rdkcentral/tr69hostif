@@ -107,7 +107,14 @@ static void convertAndAssignParamValue (HOSTIF_MsgData_t *param, char *value)
     case hostIf_StringType:
     case hostIf_DateTimeType:
         snprintf(param->paramValue,TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", value);
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF, ">> Type: String/Date, Value = %s\n", param->paramValue);
+        if (!strcasecmp(param->paramName, SECURE_UNLOCK_SSH_PASSWORD))
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,">> SSH Password value redacted\n");
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,">> Type: String/Date, Value = %s\n", param->paramValue);
+        }
         break;
     case hostIf_IntegerType:
     case hostIf_UnsignedIntType:
