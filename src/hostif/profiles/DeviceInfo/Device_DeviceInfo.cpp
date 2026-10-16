@@ -3834,49 +3834,74 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         return NOK;
     }
 
+    /* Validate SHA-512-crypt hash prefix. */
+    if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    int dollarCount = 0;
+    const char *sep = NULL;
+
+    for (const char *p = hash; *p != '\0'; ++p) {
+        if (*p == '$') {
+            ++dollarCount;
+            sep = p;
+        }
+    }
+
+    if (dollarCount != 3 && dollarCount != 4) {
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    const char *salt = hash + 3;
+
     /* Validate optional rounds field. */
-	const char *salt = hash + 3;
+    if (dollarCount == 4) {
+        if (strncmp(hash, "$6$rounds=", 10) != 0) {
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
 
-	if (dollarCount == 4)
-	{
-    	const char *p = hash + 10;
-    	unsigned long roundsValue = 0;
-    	int digits = 0;
+        const char *p = hash + 10;
+        unsigned long roundsValue = 0;
+        int digits = 0;
 
-    	while (*p >= '0' && *p <= '9' && digits < 9)
-    	{
-        	roundsValue = roundsValue * 10 + (*p - '0');
-        	++p;
-        	++digits;
-    	}
+        while (*p >= '0' && *p <= '9' && digits < 9) {
+            roundsValue = roundsValue * 10 + (*p - '0');
+            ++p;
+            ++digits;
+        }
 
-    	if (digits == 0 || *p != '$' || p >= sep ||
-        	roundsValue < 1000 || roundsValue > 999999999)
-    	{
-        	stMsgData->faultCode = fcInvalidParameterValue;
-        	return NOK;
-    	}
+        if (digits == 0 || *p != '$' || p >= sep ||
+            roundsValue < 1000 || roundsValue > 999999999) {
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
 
-    	salt = p + 1;
-	}
+        salt = p + 1;
+    }
 
-	/* Validate salt and digest characters. */
-	const char *cryptChars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    /* Validate salt and digest characters. */
+    const char *cryptChars =
+        "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-	size_t saltLen = (size_t)(sep - salt);
+    size_t saltLen = (size_t)(sep - salt);
 
-	if (saltLen == 0 || saltLen > 16 ||
-    	strspn(salt, cryptChars) != saltLen ||
-    	strspn(sep + 1, cryptChars) != 86)
-	{
-    	stMsgData->faultCode = fcInvalidParameterValue;
-    	return NOK;
-	}
+    if (saltLen == 0 || saltLen > 16 ||
+        strspn(salt, cryptChars) != saltLen ||
+        strlen(sep + 1) != 86 ||
+        strspn(sep + 1, cryptChars) != 86) {
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
 
     int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
 
     if (fd < 0) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open shadow file: %s\n", __FUNCTION__, strerror(errno));
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open shadow file: %s\n",
+                __FUNCTION__, strerror(errno));
         stMsgData->faultCode = fcInternalError;
         return NOK;
     }
@@ -3889,18 +3914,21 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         struct stat st;
 
         if (flock(fd, LOCK_EX) != 0) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to lock shadow file: %s\n", __FUNCTION__, strerror(errno));
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to lock shadow file: %s\n",
+                    __FUNCTION__, strerror(errno));
             break;
         }
         locked = 1;
 
         if (fstat(fd, &st) != 0) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to stat shadow file: %s\n", __FUNCTION__, strerror(errno));
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to stat shadow file: %s\n",
+                    __FUNCTION__, strerror(errno));
             break;
         }
 
         if (!S_ISREG(st.st_mode) || st.st_size <= 0 || st.st_size > 1048576) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file type or size is invalid\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file type or size is invalid\n",
+                    __FUNCTION__);
             break;
         }
 
@@ -3908,20 +3936,24 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         original = (char *)malloc(oldLen + 1);
 
         if (original == NULL) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate original buffer\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate original buffer\n",
+                    __FUNCTION__);
             break;
         }
 
         size_t count = 0;
         while (count < oldLen) {
             ssize_t n = pread(fd, original + count, oldLen - count, (off_t)count);
-            if (n < 0 && errno == EINTR) continue;
-            if (n <= 0) break;
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n <= 0)
+                break;
             count += (size_t)n;
         }
 
         if (count != oldLen) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read complete shadow file\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read complete shadow file\n",
+                    __FUNCTION__);
             break;
         }
         original[oldLen] = '\0';
@@ -3930,7 +3962,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
 
         for (size_t start = 0; start < oldLen;) {
             size_t end = start;
-            while (end < oldLen && original[end] != '\n') ++end;
+            while (end < oldLen && original[end] != '\n')
+                ++end;
 
             if (end - start >= 9 && memcmp(original + start, "rdk_user:", 9) == 0) {
                 char *colon = (char *)memchr(original + start + 9, ':', end - start - 9);
@@ -3949,7 +3982,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         }
 
         if (!found || malformed) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] rdk_user entry is missing, duplicated or malformed\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] rdk_user entry is missing, duplicated or malformed\n",
+                    __FUNCTION__);
             break;
         }
 
@@ -3957,13 +3991,16 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         updated = (char *)malloc(newLen);
 
         if (updated == NULL) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate updated buffer\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate updated buffer\n",
+                    __FUNCTION__);
             break;
         }
 
         memcpy(updated, original, pos);
         memcpy(updated + pos, hash, hashLen);
-        memcpy(updated + pos + hashLen, original + pos + oldHashLen, oldLen - pos - oldHashLen);
+        memcpy(updated + pos + hashLen,
+               original + pos + oldHashLen,
+               oldLen - pos - oldHashLen);
 
         const char *data[] = { updated, original };
         size_t lengths[] = { newLen, oldLen };
@@ -3972,16 +4009,20 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
             size_t written = 0;
 
             while (written < lengths[attempt]) {
-                ssize_t n = pwrite(fd, data[attempt] + written, lengths[attempt] - written, (off_t)written);
-                if (n < 0 && errno == EINTR) continue;
-                if (n <= 0) break;
+                ssize_t n = pwrite(fd, data[attempt] + written,
+                                   lengths[attempt] - written, (off_t)written);
+                if (n < 0 && errno == EINTR)
+                    continue;
+                if (n <= 0)
+                    break;
                 written += (size_t)n;
             }
 
             if (written == lengths[attempt] &&
                 ftruncate(fd, (off_t)lengths[attempt]) == 0 &&
                 fsync(fd) == 0) {
-                if (attempt == 0) ret = OK;
+                if (attempt == 0)
+                    ret = OK;
                 break;
             }
 
@@ -3990,14 +4031,16 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         }
 
         if (ret != OK) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password update failed; restoration may also have failed\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password update failed; restoration may also have failed\n",
+                    __FUNCTION__);
         }
     } while (0);
 
     free(updated);
     free(original);
 
-    if (locked) flock(fd, LOCK_UN);
+    if (locked)
+        flock(fd, LOCK_UN);
     close(fd);
 
     if (ret != OK) {
@@ -4005,7 +4048,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] rdk_user password updated successfully\n", __FUNCTION__);
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] rdk_user password updated successfully\n",
+            __FUNCTION__);
     stMsgData->paramValue[0] = '\0';
     stMsgData->paramLen = 0;
     return OK;
