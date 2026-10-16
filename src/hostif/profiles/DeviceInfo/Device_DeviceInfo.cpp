@@ -3826,10 +3826,9 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     const char *hash = stMsgData->paramValue;
-    size_t capacity = sizeof(stMsgData->paramValue);
-    size_t hashLen = strnlen(hash, capacity);
+    size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
 
-    if (hashLen == 0 || hashLen == capacity) {
+    if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue)) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password hash is empty or invalid\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
@@ -3854,16 +3853,34 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
 
     char *original = NULL, *updated = NULL;
     size_t oldLen = 0, newLen = 0, pos = 0, oldHashLen = 0;
-    int ret = NOK;
+    int ret = NOK, locked = 0;
 
     do {
         struct stat st;
 
-        if (flock(fd, LOCK_EX) != 0 || fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_size <= 0 || st.st_size > 1048576) break;
+        if (flock(fd, LOCK_EX) != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to lock shadow file: %s\n", __FUNCTION__, strerror(errno));
+            break;
+        }
+        locked = 1;
+
+        if (fstat(fd, &st) != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to stat shadow file: %s\n", __FUNCTION__, strerror(errno));
+            break;
+        }
+
+        if (!S_ISREG(st.st_mode) || st.st_size <= 0 || st.st_size > 1048576) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file type or size is invalid\n", __FUNCTION__);
+            break;
+        }
 
         oldLen = (size_t)st.st_size;
         original = (char *)malloc(oldLen + 1);
-        if (original == NULL) break;
+
+        if (original == NULL) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate original buffer\n", __FUNCTION__);
+            break;
+        }
 
         size_t count = 0;
         while (count < oldLen) {
@@ -3873,45 +3890,57 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
             count += (size_t)n;
         }
 
-        if (count != oldLen) break;
+        if (count != oldLen) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read complete shadow file\n", __FUNCTION__);
+            break;
+        }
         original[oldLen] = '\0';
 
         int found = 0, malformed = 0;
+
         for (size_t start = 0; start < oldLen;) {
             size_t end = start;
             while (end < oldLen && original[end] != '\n') ++end;
 
             if (end - start >= 9 && memcmp(original + start, "rdk_user:", 9) == 0) {
                 char *colon = (char *)memchr(original + start + 9, ':', end - start - 9);
+
                 if (found || colon == NULL) {
                     malformed = 1;
                     break;
                 }
+
                 pos = start + 9;
                 oldHashLen = (size_t)(colon - (original + pos));
                 found = 1;
             }
+
             start = end + 1;
         }
 
         if (!found || malformed) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] rdk_user entry missing or malformed\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] rdk_user entry is missing, duplicated or malformed\n", __FUNCTION__);
             break;
         }
 
         newLen = oldLen - oldHashLen + hashLen;
         updated = (char *)malloc(newLen);
-        if (updated == NULL) break;
+
+        if (updated == NULL) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate updated buffer\n", __FUNCTION__);
+            break;
+        }
 
         memcpy(updated, original, pos);
         memcpy(updated + pos, hash, hashLen);
         memcpy(updated + pos + hashLen, original + pos + oldHashLen, oldLen - pos - oldHashLen);
 
-        const char *data[] = {updated, original};
-        size_t lengths[] = {newLen, oldLen};
+        const char *data[] = { updated, original };
+        size_t lengths[] = { newLen, oldLen };
 
         for (int attempt = 0; attempt < 2; ++attempt) {
             size_t written = 0;
+
             while (written < lengths[attempt]) {
                 ssize_t n = pwrite(fd, data[attempt] + written, lengths[attempt] - written, (off_t)written);
                 if (n < 0 && errno == EINTR) continue;
@@ -3919,20 +3948,29 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
                 written += (size_t)n;
             }
 
-            if (written == lengths[attempt] && ftruncate(fd, (off_t)lengths[attempt]) == 0 && fsync(fd) == 0) {
+            if (written == lengths[attempt] &&
+                ftruncate(fd, (off_t)lengths[attempt]) == 0 &&
+                fsync(fd) == 0) {
                 if (attempt == 0) ret = OK;
                 break;
             }
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file %s failed\n", __FUNCTION__, attempt == 0 ? "update" : "restore");
+
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file %s failed: %s\n",
+                    __FUNCTION__, attempt == 0 ? "update" : "restore", strerror(errno));
+        }
+
+        if (ret != OK) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password update failed; restoration may also have failed\n", __FUNCTION__);
         }
     } while (0);
 
     free(updated);
     free(original);
+
+    if (locked) flock(fd, LOCK_UN);
     close(fd);
 
     if (ret != OK) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to update rdk_user password\n", __FUNCTION__);
         stMsgData->faultCode = fcInternalError;
         return NOK;
     }
