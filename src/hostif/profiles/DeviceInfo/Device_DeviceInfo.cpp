@@ -3554,7 +3554,25 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
 int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = OK;
-    if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
+    if (strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_INTERVAL) == 0)
+    {
+        if (stMsgData->paramtype != hostIf_UnsignedIntType)
+        {
+            stMsgData->faultCode = fcInvalidParameterType;
+            return NOK;
+        }
+
+        unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
+        if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%d] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                    __FUNCTION__, __LINE__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+    }
+    else if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
     {
         long int tmpVal;
         if(stMsgData->paramtype == hostIf_StringType )
@@ -3887,7 +3905,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         else
         {
             ret = NOK;
-            stMsgData->faultCode = fcInvalidParameterValue;
+            if (stMsgData->faultCode != fcInvalidParameterType)
+            {
+                stMsgData->faultCode = fcInvalidParameterValue;
+            }
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Invalid ParamValue/Type to SET for param [%s] \n", __FUNCTION__, __LINE__, stMsgData->paramName);
         }
     }
@@ -4003,6 +4024,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
     {
         ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
+    }
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_INTERVAL))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingInterval(stMsgData);
     }
     else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
     {
@@ -4229,6 +4254,74 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
                 "[%s] Failed to create %s: %s\n",
                 __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+    }
+
+    return ret;
+}
+
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingInterval(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+
+    if (!stMsgData)
+    {
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_UnsignedIntType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Wrong type for DistributedTracing.Interval, expected unsigned integer minutes.\n",
+                __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
+    if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                __FUNCTION__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    int fd = open(OTEL_EXPORT_INTERVAL_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd >= 0)
+    {
+        FILE *fp = fdopen(fd, "w");
+        if (fp)
+        {
+            int writeResult = fprintf(fp, "%u", intervalMinutes);
+            int closeResult = fclose(fp);
+            if (writeResult >= 0 && closeResult == 0)
+            {
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                        "[%s] Persisted DistributedTracing.Interval=%u minutes to %s\n",
+                        __FUNCTION__, intervalMinutes, OTEL_EXPORT_INTERVAL_FILE);
+                ret = OK;
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Failed to persist DistributedTracing.Interval to %s: %s\n",
+                        __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
+            }
+        }
+        else
+        {
+            close(fd);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to open %s for writing: %s\n",
+                    __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to create %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
     }
 
     return ret;
