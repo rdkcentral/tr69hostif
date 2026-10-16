@@ -349,10 +349,19 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
 
     if(result == OK)
     {
-        if(hostIfParam.faultCode == fcNoFault)
+        if (hostIfParam.faultCode == fcNoFault)
         {
-            param->value = getStringValue(hostIfParam.paramtype, hostIfParam.paramValue);
-            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"The value for param: %s = %s\n", hostIfParam.paramName, param->value);
+            if (!strcasecmp(hostIfParam.paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+            {
+                param->value = strdup("");
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"SSH Password operation completed\n");
+            }
+            else
+            {
+                param->value = getStringValue(hostIfParam.paramtype,hostIfParam.paramValue);
+
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"The value for param: %s = %s\n",hostIfParam.paramName, param->value);
+            }
         }
         else
         {
