@@ -683,7 +683,7 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
 /**
  * generic Api for get HostIf parameters through IARM_TR69Bus
  **/
-static WAL_STATUS set_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam)
+static WAL_STATUS set_ParamValues_tr69hostIf (HOSTIF_MsgData_t *ptrParam)
 {
     int status = -1;
     WAL_STATUS retStatus = WAL_FAILURE;
@@ -703,20 +703,13 @@ static WAL_STATUS set_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam)
     {
         retStatus = WAL_SUCCESS;
 
-        if (strcmp(ptrParam->paramName,
-                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        if (strcmp(ptrParam->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
         {
-            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,
-                    "[%s] SSH Password RFC SET completed successfully\n",
-                    __FUNCTION__);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,"[%s] SSH Password RFC SET completed successfully\n", __FUNCTION__);
         }
         else
         {
-            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,
-                    "[%s:%s:%d] The value for param: %s is %s paramLen : %d\n",
-                    __FILE__, __FUNCTION__, __LINE__,
-                    ptrParam->paramName, ptrParam->paramValue,
-                    ptrParam->paramLen);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,"[%s:%s:%d] The value for param: %s is %s paramLen : %d\n",__FILE__, __FUNCTION__, __LINE__, ptrParam->paramName, ptrParam->paramValue, ptrParam->paramLen);
         }
     }
 
