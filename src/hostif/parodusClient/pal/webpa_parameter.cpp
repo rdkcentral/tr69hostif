@@ -694,6 +694,10 @@ static WAL_STATUS set_ParamValues_tr69hostIf (HOSTIF_MsgData_t *ptrParam)
         RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Set Message Handler Status : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
         retStatus = convertFaultCodeToWalStatus(ptrParam->faultCode);
     }
+    if (strcmp(ptrParam->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+    {
+        RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,"[%s] SSH Password RFC SET completed successfully\n", __FUNCTION__);
+    }
     else
     {
         retStatus = WAL_SUCCESS;
