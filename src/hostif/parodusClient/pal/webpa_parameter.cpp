@@ -703,7 +703,7 @@ static WAL_STATUS set_ParamValues_tr69hostIf (HOSTIF_MsgData_t *ptrParam)
     {
         retStatus = WAL_SUCCESS;
 
-        if (strcmp(ptrParam->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        if (strcasecmp(ptrParam->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
         {
             RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,"[%s] SSH Password RFC SET completed successfully\n", __FUNCTION__);
         }
