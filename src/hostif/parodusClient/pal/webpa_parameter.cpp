@@ -683,26 +683,43 @@ static WDMP_STATUS get_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam, DataMo
 /**
  * generic Api for get HostIf parameters through IARM_TR69Bus
  **/
-static WAL_STATUS set_ParamValues_tr69hostIf (HOSTIF_MsgData_t *ptrParam)
+static WAL_STATUS set_ParamValues_tr69hostIf(HOSTIF_MsgData_t *ptrParam)
 {
     int status = -1;
     WAL_STATUS retStatus = WAL_FAILURE;
 
     ptrParam->reqType = HOSTIF_SET;
     status = hostIf_SetMsgHandler(ptrParam);
-    if(status != 0) {
-        RDK_LOG(RDK_LOG_ERROR,LOG_PARODUS_IF,"[%s:%s:%d] Error in Set Message Handler Status : %d\n", __FILE__, __FUNCTION__, __LINE__, status);
-        retStatus = convertFaultCodeToWalStatus(ptrParam->faultCode);
-    }
-    if (strcmp(ptrParam->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+
+    if (status != 0)
     {
-        RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,"[%s] SSH Password RFC SET completed successfully\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_PARODUS_IF,
+                "[%s:%s:%d] Error in Set Message Handler Status : %d\n",
+                __FILE__, __FUNCTION__, __LINE__, status);
+
+        retStatus = convertFaultCodeToWalStatus(ptrParam->faultCode);
     }
     else
     {
         retStatus = WAL_SUCCESS;
-        RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"[%s:%s:%d] The value for param: %s is %s paramLen : %d\n", __FILE__, __FUNCTION__, __LINE__, ptrParam->paramName,ptrParam->paramValue, ptrParam->paramLen);
+
+        if (strcmp(ptrParam->paramName,
+                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,
+                    "[%s] SSH Password RFC SET completed successfully\n",
+                    __FUNCTION__);
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,
+                    "[%s:%s:%d] The value for param: %s is %s paramLen : %d\n",
+                    __FILE__, __FUNCTION__, __LINE__,
+                    ptrParam->paramName, ptrParam->paramValue,
+                    ptrParam->paramLen);
+        }
     }
+
     return retStatus;
 }
 
