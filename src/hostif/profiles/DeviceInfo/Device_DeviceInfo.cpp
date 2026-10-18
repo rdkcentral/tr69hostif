@@ -3819,23 +3819,31 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         return NOK;
     }
 
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: entry paramtype=%d requestor=%d\n",
+            __FUNCTION__, stMsgData->paramtype, stMsgData->requestor);
+
     if (stMsgData->paramtype != hostIf_StringType) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password parameter type\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: reject: paramtype=%d is not string(%d)\n", __FUNCTION__, stMsgData->paramtype, hostIf_StringType);
         stMsgData->faultCode = fcInvalidParameterType;
         return NOK;
     }
 
     const char *hash = stMsgData->paramValue;
     size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: input present=%d length=%zu\n",
+            __FUNCTION__, hashLen > 0, hashLen);
 
     if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue)) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password hash is empty or invalid\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: reject: input %s\n", __FUNCTION__, hashLen == 0 ? "empty" : "not NUL-terminated within buffer");
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 
     /* Validate SHA-512-crypt hash prefix. */
     if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: reject: wrong prefix (not SHA-512-crypt)\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
@@ -3851,6 +3859,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     if (dollarCount != 3 && dollarCount != 4) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: reject: unexpected field separator count=%d\n", __FUNCTION__, dollarCount);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
@@ -3860,6 +3869,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     /* Validate optional rounds field. */
     if (dollarCount == 4) {
         if (strncmp(hash, "$6$rounds=", 10) != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: reject: extra field is not rounds=\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
@@ -3876,6 +3886,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
 
         if (digits == 0 || *p != '$' || p >= sep ||
             roundsValue < 1000 || roundsValue > 999999999) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: reject: invalid rounds field\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
@@ -3893,18 +3904,29 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         strspn(salt, cryptChars) != saltLen ||
         strlen(sep + 1) != 86 ||
         strspn(sep + 1, cryptChars) != 86) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: reject: %s (saltLen=%zu digestLen=%zu)\n", __FUNCTION__,
+                (saltLen == 0) ? "missing salt" :
+                (saltLen > 16) ? "salt too long" :
+                (strspn(salt, cryptChars) != saltLen) ? "invalid salt characters" :
+                (strlen(sep + 1) != 86) ? "invalid digest length" : "invalid digest characters",
+                saltLen, strlen(sep + 1));
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: hash format validation passed\n", __FUNCTION__);
+
     int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
 
     if (fd < 0) {
+        int openErr = errno;
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open shadow file: %s\n",
-                __FUNCTION__, strerror(errno));
+                __FUNCTION__, strerror(openErr));
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: open(%s, O_RDWR) failed errno=%d\n", __FUNCTION__, SIGNEDLAB_SHADOW_FILE, openErr);
         stMsgData->faultCode = fcInternalError;
         return NOK;
     }
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: open(%s) succeeded\n", __FUNCTION__, SIGNEDLAB_SHADOW_FILE);
 
     char *original = NULL, *updated = NULL;
     size_t oldLen = 0, newLen = 0, pos = 0, oldHashLen = 0;
@@ -3982,10 +4004,15 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         }
 
         if (!found || malformed) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: rdk_user lookup failed found=%d malformed=%d fileSize=%zu\n",
+                    __FUNCTION__, found, malformed, oldLen);
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] rdk_user entry is missing, duplicated or malformed\n",
                     __FUNCTION__);
             break;
         }
+
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: rdk_user entry found (existing field length=%zu)\n",
+                __FUNCTION__, oldHashLen);
 
         newLen = oldLen - oldHashLen + hashLen;
         updated = (char *)malloc(newLen);
@@ -4028,6 +4055,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
 
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file %s failed: %s\n",
                     __FUNCTION__, attempt == 0 ? "update" : "restore", strerror(errno));
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: shadow %s failed written=%zu expected=%zu errno=%d\n",
+                    __FUNCTION__, attempt == 0 ? "update" : "restore", written, lengths[attempt], errno);
         }
 
         if (ret != OK) {
@@ -4044,9 +4073,11 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     close(fd);
 
     if (ret != OK) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: exit NOK (fcInternalError)\n", __FUNCTION__);
         stMsgData->faultCode = fcInternalError;
         return NOK;
     }
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: shadow update written, exit OK\n", __FUNCTION__);
 
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] rdk_user password updated successfully\n",
             __FUNCTION__);
