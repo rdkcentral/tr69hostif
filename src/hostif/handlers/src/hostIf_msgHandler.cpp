@@ -375,15 +375,19 @@ void hostIf_Print_msgData(HOSTIF_MsgData_t *stMsgData)
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"\n****************************************************\n");
     cout << "Parameter Name : "<< stMsgData->paramName << endl;
     cout << "Parameter Request Type : "<< stMsgData->reqType << endl;
-    switch (stMsgData->paramtype) {
-    case hostIf_StringType:
-        cout << "Parameter Value : "<< (char *)stMsgData->paramValue << endl;
-        break;
-    case hostIf_BooleanType:
-        cout << "Parameter Value : "<< (get_boolean(stMsgData->paramValue)?"true":"false")  << endl;
-        break;
-    default:
-        cout << "Parameter Value : "<< get_int(stMsgData->paramValue) << endl;
+    if (strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0) {
+        cout << "Parameter Value : <redacted>" << endl;
+    } else {
+        switch (stMsgData->paramtype) {
+        case hostIf_StringType:
+            cout << "Parameter Value : "<< (char *)stMsgData->paramValue << endl;
+            break;
+        case hostIf_BooleanType:
+            cout << "Parameter Value : "<< (get_boolean(stMsgData->paramValue)?"true":"false")  << endl;
+            break;
+        default:
+            cout << "Parameter Value : "<< get_int(stMsgData->paramValue) << endl;
+        }
     }
     cout << "Parameter Length : "<< stMsgData->paramLen << endl;
     cout << "Parameter Type : "<< stMsgData->paramtype << endl;

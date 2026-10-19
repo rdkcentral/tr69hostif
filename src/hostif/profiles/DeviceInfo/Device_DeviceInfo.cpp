@@ -3820,7 +3820,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     if (stMsgData->paramtype != hostIf_StringType) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid password parameter type\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: expected string parameter\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterType;
         return NOK;
     }
@@ -3829,13 +3829,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
 
     if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue)) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password hash is empty or invalid\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: empty or invalid hash\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 
     /* Validate SHA-512-crypt hash prefix. */
     if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
@@ -3851,6 +3852,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     if (dollarCount != 3 && dollarCount != 4) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
@@ -3860,6 +3862,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     /* Validate optional rounds field. */
     if (dollarCount == 4) {
         if (strncmp(hash, "$6$rounds=", 10) != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
@@ -3876,6 +3879,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
 
         if (digits == 0 || *p != '$' || p >= sep ||
             roundsValue < 1000 || roundsValue > 999999999) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
@@ -3893,6 +3897,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         strspn(salt, cryptChars) != saltLen ||
         strlen(sep + 1) != 86 ||
         strspn(sep + 1, cryptChars) != 86) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
@@ -3900,7 +3905,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
 
     if (fd < 0) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Cannot open shadow file: %s\n",
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET failed: cannot open shadow file: %s\n",
                 __FUNCTION__, strerror(errno));
         stMsgData->faultCode = fcInternalError;
         return NOK;
@@ -3982,7 +3987,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         }
 
         if (!found || malformed) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] rdk_user entry is missing, duplicated or malformed\n",
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET failed: rdk_user entry missing, duplicated or malformed\n",
                     __FUNCTION__);
             break;
         }
@@ -4026,7 +4031,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
                 break;
             }
 
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file %s failed: %s\n",
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET failed: shadow file %s failed: %s\n",
                     __FUNCTION__, attempt == 0 ? "update" : "restore", strerror(errno));
         }
 
@@ -4048,7 +4053,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] rdk_user password updated successfully\n",
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SSH.Password SET succeeded: rdk_user credential updated\n",
             __FUNCTION__);
     stMsgData->paramValue[0] = '\0';
     stMsgData->paramLen = 0;
