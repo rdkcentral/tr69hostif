@@ -236,17 +236,12 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
     		if (strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
     		{
         		RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] SSH Password RFC SET request received\n",__FUNCTION__);
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password routed to set_xRDKCentralComRFC (paramtype=%d)\n",__FUNCTION__, stMsgData->paramtype);
     		}
     		else
     		{
         		RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n",__FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
     		}
     		ret = pIface->set_xRDKCentralComRFC(stMsgData);
-            if (strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
-            {
-                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password set_xRDKCentralComRFC returned %d faultCode=%d\n",__FUNCTION__, ret, stMsgData->faultCode);
-            }
 		}
 #ifdef USE_XRDK_BT_PROFILE
         else if(strncasecmp(stMsgData->paramName,X_BT_ROOT_OBJ,strlen(X_BT_ROOT_OBJ))==0)

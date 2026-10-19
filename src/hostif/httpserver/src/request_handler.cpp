@@ -36,13 +36,6 @@ extern "C"
 
 #define MAX_NUM_PARAMETERS 2048
 #define DEVICE_REBOOT_PARAM          "Device.X_CISCO_COM_DeviceControl.RebootDevice"
-#define SECUREUNLOCK_SSH_PWD_PARAM   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"
-
-// Temporary SecureUnlock diagnostics: callers must never log the parameter value.
-static bool isSecureUnlockSshPwd(const char *paramName)
-{
-    return paramName != NULL && !strcasecmp(paramName, SECUREUNLOCK_SSH_PWD_PARAM);
-}
 
 static DATA_TYPE getWdmpDataType(char *dmParamDataType)
 {
@@ -345,17 +338,9 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
         {
             result = fcInvalidParameterValue;
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Invalid Parameter Value\n");
-            if (isSecureUnlockSshPwd(param->name))
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password SET rejected by validateParamValue (wdmpType=%d hostIfType=%d)\n", __FUNCTION__, param->type, hostIfParam.paramtype);
         }
         else
-        {
-            if (isSecureUnlockSshPwd(param->name))
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password dispatching to hostIf_SetMsgHandler (hostIfType=%d requestor=%d bsUpdate=%d)\n", __FUNCTION__, hostIfParam.paramtype, hostIfParam.requestor, hostIfParam.bsUpdate);
             result = hostIf_SetMsgHandler(&hostIfParam);
-            if (isSecureUnlockSshPwd(param->name))
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password hostIf_SetMsgHandler returned %d faultCode=%d\n", __FUNCTION__, result, hostIfParam.faultCode);
-        }
         break;
 
     default:
@@ -418,8 +403,6 @@ static WDMP_STATUS validateAgainstDataModel(REQ_TYPE reqType, char* paramName, c
         if (!strcasecmp(paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] GET denied for SSH Password parameter\n", __FUNCTION__);
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[SecureUnlockDBG] %s: GET denied before dataType assignment; response dataType stays %d (WDMP_NONE=%d), dm dataType=%s access=%s\n",
-                    __FUNCTION__, (int)*dataType, (int)WDMP_NONE, dmParam.dataType ? dmParam.dataType : "(null)", dmParam.access ? dmParam.access : "(null)");
             return WDMP_FAILURE;
         }
         if(dmParam.dataType != NULL)
@@ -432,39 +415,20 @@ static WDMP_STATUS validateAgainstDataModel(REQ_TYPE reqType, char* paramName, c
     else if(reqType == SET)
     {
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"Validating paramValue and dataType against data-model\n");
-        const bool sshPwdDbg = isSecureUnlockSshPwd(paramName);
-        if (sshPwdDbg)
-        {
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SET SSH.Password valuePresent=%d valueLen=%zu incomingType=%d dmDataType=%s expectedType=%d access=%s\n",
-                    __FUNCTION__, paramValue != NULL, paramValue ? strlen(paramValue) : (size_t)0, (int)*dataType,
-                    dmParam.dataType ? dmParam.dataType : "(null)", dmParam.dataType ? (int)getWdmpDataType(dmParam.dataType) : -1,
-                    dmParam.access ? dmParam.access : "(null)");
-        }
         if(paramValue == NULL || *dataType >= WDMP_NONE)
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"ParameterValue is NULL or Unknown Datatype\n");
-            if (sshPwdDbg)
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password rejected: NULL value or unknown incomingType=%d -> WDMP_ERR_VALUE_IS_NULL\n", __FUNCTION__, (int)*dataType);
             ret = WDMP_ERR_VALUE_IS_NULL;
         }
         else if(dmParam.access != NULL && !strcasecmp(dmParam.access, "readOnly"))
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parameter is readOnly\n");
-            if (sshPwdDbg)
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password rejected: dm access is readOnly -> WDMP_ERR_NOT_WRITABLE\n", __FUNCTION__);
             ret = WDMP_ERR_NOT_WRITABLE;
         }
         else if (dmParam.dataType == NULL || getWdmpDataType(dmParam.dataType) != *dataType)
         {
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Datatype doesn't match\n");
-            if (sshPwdDbg)
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password rejected: incomingType=%d != expectedType=%d -> WDMP_ERR_INVALID_PARAMETER_TYPE(%d)\n",
-                        __FUNCTION__, (int)*dataType, dmParam.dataType ? (int)getWdmpDataType(dmParam.dataType) : -1, (int)WDMP_ERR_INVALID_PARAMETER_TYPE);
             ret = WDMP_ERR_INVALID_PARAMETER_TYPE;
-        }
-        else if (sshPwdDbg)
-        {
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password data-model validation passed\n", __FUNCTION__);
         }
     }
     else
@@ -775,20 +739,13 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
             else
             {
                 HostIf_Source_Type_t bsUpdate = HOSTIF_NONE;
-                const bool sshPwdDbg = isSecureUnlockSshPwd(reqSt->u.setReq->param[paramIndex].name);
-                if (sshPwdDbg)
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SET SSH.Password received callerID=%s incomingType=%d\n", __FUNCTION__, pcCallerID ? pcCallerID : "(null)", (int)reqSt->u.setReq->param[paramIndex].type);
                 respSt->retStatus[paramIndex] = validateAgainstDataModel(reqSt->reqType, reqSt->u.setReq->param[paramIndex].name, reqSt->u.setReq->param[paramIndex].value, &reqSt->u.setReq->param[paramIndex].type, NULL, &bsUpdate);
                 if(WDMP_SUCCESS != respSt->retStatus[paramIndex])
                 {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Operation not permitted : %d\n", respSt->retStatus[paramIndex]);
-                    if (sshPwdDbg)
-                        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password rejected BEFORE dispatch, status=%d\n", __FUNCTION__, respSt->retStatus[paramIndex]);
                     continue;
                 }
                 respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, reqSt->u.setReq->param + paramIndex, bsUpdate, pcCallerID);
-                if (sshPwdDbg)
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password invokeHostIfAPI final status=%d\n", __FUNCTION__, respSt->retStatus[paramIndex]);
             }
         }
         break;

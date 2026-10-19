@@ -260,10 +260,6 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
     /* Find the respective manager and forward the request*/
     msgHandler *pMsgHandler = HostIf_GetMgr(stMsgData);
 
-    const bool sshPwdDbg = (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0);
-    if (sshPwdDbg)
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password SET reached dispatch, manager handler %s\n", __FUNCTION__, pMsgHandler ? "found" : "NOT found");
-
     if(pMsgHandler)
     {
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -274,10 +270,9 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         char paramValueStr[128] = {0};
         paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
 
-        if (sshPwdDbg)
+        if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
         {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%d] ret: %d, SSH Password RFC SET processing completed, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, timeTakenset);
-            RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"[SecureUnlockDBG] %s: SSH.Password handleSetMsg returned %d faultCode=%d\n", __FUNCTION__, ret, stMsgData->faultCode);
         }
         else
         {
@@ -380,12 +375,6 @@ void hostIf_Print_msgData(HOSTIF_MsgData_t *stMsgData)
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"\n****************************************************\n");
     cout << "Parameter Name : "<< stMsgData->paramName << endl;
     cout << "Parameter Request Type : "<< stMsgData->reqType << endl;
-    if (strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
-    {
-        cout << "Parameter Value : <redacted>" << endl;
-    }
-    else
-    {
     switch (stMsgData->paramtype) {
     case hostIf_StringType:
         cout << "Parameter Value : "<< (char *)stMsgData->paramValue << endl;
@@ -395,7 +384,6 @@ void hostIf_Print_msgData(HOSTIF_MsgData_t *stMsgData)
         break;
     default:
         cout << "Parameter Value : "<< get_int(stMsgData->paramValue) << endl;
-    }
     }
     cout << "Parameter Length : "<< stMsgData->paramLen << endl;
     cout << "Parameter Type : "<< stMsgData->paramtype << endl;
