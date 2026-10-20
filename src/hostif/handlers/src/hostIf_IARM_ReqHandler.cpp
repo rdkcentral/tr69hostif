@@ -41,6 +41,12 @@
 #else
 #include "power_controller.h"
 #include <thread>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+#include <memory>
+#include <algorithm>
 #endif
 #include "waldb.h"
 #include "hostIf_NotificationHandler.h"
@@ -52,6 +58,13 @@
 #define RETRYSLEEP (300 * 1000) //Retry sleep
 #ifndef RDKV_TR69
 static bool IsPwrCtlInt = false;
+#define PRECHANGE_CLIENT_NAME            "tr69hostif"
+#define DEEPSLEEP_HOLD_BUDGET_SEC        5   // initial hold requested from PowerManager
+#define DEEPSLEEP_RENEW_MARGIN_SEC       1   // renew this long before the hold expires
+#define DEEPSLEEP_EXTENSION_SEC          3   // each additional hold
+#define DEEPSLEEP_MAX_HOLD_SEC           15  // never hold the transition longer than this
+static std::atomic<bool> s_preChangeRegistered(false);
+static uint32_t s_preChangeClientId = 0;
 #endif
 static bool TR69_HostIf_Mgr_Init();
 static bool TR69_HostIf_Mgr_Connect();
@@ -67,6 +80,9 @@ static void _hostIf_EventHandler(const char *, IARM_EventId_t, void *, size_t);
 #else
 static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
     const PowerController_PowerState_t newState, void* userdata);
+static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState, const int transactionId,
+    const int stateChangeAfter, void* userdata);
 #endif
 //----------------------------------------------------------------------
 // hostIf_IARM_IF_Start: This shall be use to initialize and register
@@ -126,6 +142,26 @@ void hostIf_getPwrContInterface()
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
     PowerController_RegisterPowerModeChangedCallback(_hostIf_EventHandler, nullptr);
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
+
+    uint32_t clientId = 0;
+    if (POWER_CONTROLLER_ERROR_NONE == PowerController_AddPowerModePreChangeClient(PRECHANGE_CLIENT_NAME, &clientId))
+    {
+        s_preChangeClientId = clientId;
+        if (POWER_CONTROLLER_ERROR_NONE == PowerController_RegisterPowerModePreChangeCallback(_hostIf_PreChangeHandler, nullptr))
+        {
+            s_preChangeRegistered = true;
+            printf("[%s] Registered as power mode pre-change client [%u]\n", __FUNCTION__, clientId);
+        }
+        else
+        {
+            PowerController_RemovePowerModePreChangeClient(clientId);
+            printf("[%s] Failed to register pre-change callback\n", __FUNCTION__);
+        }
+    }
+    else
+    {
+        printf("[%s] AddPowerModePreChangeClient failed\n", __FUNCTION__);
+    }
 
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
@@ -333,6 +369,13 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
     #ifndef RDKV_TR69
     if (IsPwrCtlInt) 
     {
+        if (s_preChangeRegistered.exchange(false))
+        {
+            // Must disengage the client before unregistering the callback.
+            PowerController_RemovePowerModePreChangeClient(s_preChangeClientId);
+            PowerController_UnRegisterPowerModePreChangeCallback(_hostIf_PreChangeHandler);
+            s_preChangeClientId = 0;
+        }
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistering power mode change callback..\n", __FUNCTION__, __FILE__);
         PowerController_UnRegisterPowerModeChangedCallback(_hostIf_EventHandler);
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistered power mode change callback..\n", __FUNCTION__, __FILE__);
@@ -531,9 +574,13 @@ static void _hostIf_EventHandler(const PowerController_PowerState_t currentState
             if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) &&
                (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
             {
-                std::string event_time_string = std::to_string(std::time(nullptr));
-                event_time = event_time_string.c_str(); 
-                NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time);
+                // Already sent from the pre-change handler when that is registered.
+                if (!s_preChangeRegistered.load())
+                {
+                    std::string event_time_string = std::to_string(std::time(nullptr));
+                    event_time = event_time_string.c_str();
+                    NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time);
+                }
             }
             else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) &&
                    (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
@@ -550,6 +597,82 @@ static void _hostIf_EventHandler(const PowerController_PowerState_t currentState
     }
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
+}
+
+struct PreChangeSync
+{
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool done = false;
+};
+
+// Runs the deep sleep entry work on its own thread so a stuck notification cannot block the acknowledgement.
+static void _hostIf_PreChangeWork(std::shared_ptr<PreChangeSync> sync)
+{
+    HOSTIF_MsgData_t stRfcData = {0};
+    int rc = snprintf(stRfcData.paramName, sizeof(stRfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
+    if((rc >= 0) && (static_cast<size_t>(rc) < sizeof(stRfcData.paramName)) &&
+       (hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) &&
+       (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
+    {
+        std::string event_time_string = std::to_string(std::time(nullptr));
+        NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time_string.c_str());
+    }
+    {
+        std::lock_guard<std::mutex> lk(sync->mtx);
+        sync->done = true;
+    }
+    sync->cv.notify_all();
+}
+
+// Holds the transition (up to DEEPSLEEP_MAX_HOLD_SEC) until the entry work completes, then acknowledges it.
+static void _hostIf_PreChangeMonitor(uint32_t clientId, int transactionId)
+{
+    auto sync = std::make_shared<PreChangeSync>();
+    const auto start = std::chrono::steady_clock::now();
+    int reservedSec = DEEPSLEEP_HOLD_BUDGET_SEC;
+
+    PowerController_DelayPowerModeChangeBy(clientId, transactionId, reservedSec);
+    std::thread(_hostIf_PreChangeWork, sync).detach();
+
+    std::unique_lock<std::mutex> lk(sync->mtx);
+    while (!sync->cv.wait_until(lk, start + std::chrono::seconds(reservedSec - DEEPSLEEP_RENEW_MARGIN_SEC),
+                                [&sync] { return sync->done; }))
+    {
+        if (reservedSec >= DEEPSLEEP_MAX_HOLD_SEC)
+        {
+            printf("[%s] Deep sleep entry work exceeded %ds, releasing trxn[%d]\n", __FUNCTION__, DEEPSLEEP_MAX_HOLD_SEC, transactionId);
+            break;
+        }
+        const int extensionSec = std::min(DEEPSLEEP_EXTENSION_SEC, DEEPSLEEP_MAX_HOLD_SEC - reservedSec);
+        lk.unlock();
+        // The delay is measured from now, so include the margin left on the current hold.
+        PowerController_DelayPowerModeChangeBy(clientId, transactionId, DEEPSLEEP_RENEW_MARGIN_SEC + extensionSec);
+        lk.lock();
+        reservedSec += extensionSec;
+    }
+    lk.unlock();
+
+    PowerController_PowerModePreChangeComplete(clientId, transactionId);
+    printf("[%s] PowerModePreChangeComplete sent trxn[%d]\n", __FUNCTION__, transactionId);
+}
+
+static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState, const int transactionId,
+    const int stateChangeAfter, void* userdata)
+{
+    (void)userdata;
+    printf("[%s] PreChange [%d] -> [%d] trxn[%d] stateChangeAfter[%d]\n", __FUNCTION__,
+           (int)currentState, (int)newState, transactionId, stateChangeAfter);
+    if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) && (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
+    {
+        // Never block the PowerManager callback; the monitor thread acknowledges when done.
+        std::thread(_hostIf_PreChangeMonitor, s_preChangeClientId, transactionId).detach();
+    }
+    else
+    {
+        PowerController_PowerModePreChangeComplete(s_preChangeClientId, transactionId);
+    }
 }
 #endif
 
