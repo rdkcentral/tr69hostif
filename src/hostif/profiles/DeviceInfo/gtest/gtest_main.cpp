@@ -80,6 +80,9 @@ extern "C"
 #define GTEST_DEFAULT_RESULT_FILENAME "hostif_gtest_report.json"
 #define GTEST_REPORT_FILEPATH_SIZE 128
 
+#define TEST_LOGCHRONO_RFC_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogChrono.Enable"
+#define TEST_LOGCHRONO_ENABLE_FILE "/opt/secure/RFC/enable_logchrono"
+
 using namespace std;
 XRFCStore* m_rfcStore;
 XBSStore* m_bsStore;
@@ -171,6 +174,17 @@ static void setSecureDebugRFCValues(bool dbgServicesEnabled, const char *deviceT
     deviceTypeParam.paramtype = hostIf_StringType;
     deviceTypeParam.paramLen = strlen(deviceTypeParam.paramValue);
     ASSERT_EQ(rfcStore->setValue(&deviceTypeParam), OK);
+}
+
+static bool fileExists(const std::string& path)
+{
+    struct stat st;
+    return (stat(path.c_str(), &st) == 0);
+}
+
+static void removeLogChronoFlag()
+{
+    std::remove(TEST_LOGCHRONO_ENABLE_FILE);
 }
 
 TEST(rfcStoreTest, setValue) {
@@ -8181,6 +8195,75 @@ TEST(StoreClearTest, setRawValue_Flush) {
     bool ret = m_bsStore->setRawValue(key, value,param.requestor);
     EXPECT_EQ(ret, true);
 } */
+
+TEST(DeviceInfoRFCLogChrono, SetEnableTrueCreatesEnableFlag)
+{
+    removeLogChronoFlag();
+    // Ensure starting from no enable file
+    ASSERT_FALSE(fileExists(TEST_LOGCHRONO_ENABLE_FILE));
+
+    XRFCStore* rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+
+    HOSTIF_MsgData_t req = {0};
+    req.reqType = HOSTIF_SET;
+    strncpy(req.paramName, TEST_LOGCHRONO_RFC_ENABLE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    req.bsUpdate = HOSTIF_NONE;
+    req.requestor = HOSTIF_SRC_RFC;
+    req.paramtype = hostIf_BooleanType;
+    req.paramLen = sizeof(hostIf_BooleanType);
+    put_boolean(req.paramValue, true);
+
+    EXPECT_EQ(rfcStore->setValue(&req), OK);
+    EXPECT_TRUE(fileExists(TEST_LOGCHRONO_ENABLE_FILE));
+}
+
+TEST(DeviceInfoRFCLogChrono, SetEnableFalseRemovesEnableFlag)
+{
+    removeLogChronoFlag();
+
+    // Create the enable file so we can verify removal
+    std::ofstream flag(TEST_LOGCHRONO_ENABLE_FILE);
+    flag << "1";
+    flag.close();
+    ASSERT_TRUE(fileExists(TEST_LOGCHRONO_ENABLE_FILE));
+
+    XRFCStore* rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+
+    HOSTIF_MsgData_t req = {0};
+    req.reqType = HOSTIF_SET;
+    strncpy(req.paramName, TEST_LOGCHRONO_RFC_ENABLE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    req.bsUpdate = HOSTIF_NONE;
+    req.requestor = HOSTIF_SRC_RFC;
+    req.paramtype = hostIf_BooleanType;
+    req.paramLen = sizeof(hostIf_BooleanType);
+    put_boolean(req.paramValue, false);
+
+    EXPECT_EQ(rfcStore->setValue(&req), OK);
+    EXPECT_FALSE(fileExists(TEST_LOGCHRONO_ENABLE_FILE));
+}
+
+TEST(DeviceInfoRFCLogChrono, SetWithWrongTypeReturnsFailure)
+{
+    removeLogChronoFlag();
+
+    XRFCStore* rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+
+    HOSTIF_MsgData_t req = {0};
+    req.reqType = HOSTIF_SET;
+    strncpy(req.paramName, TEST_LOGCHRONO_RFC_ENABLE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    req.bsUpdate = HOSTIF_NONE;
+    req.requestor = HOSTIF_SRC_RFC;
+    req.paramtype = hostIf_StringType; // wrong type
+    req.paramLen = sizeof(hostIf_StringType);
+    strncpy(req.paramValue, "true", sizeof(req.paramValue) - 1);
+
+    EXPECT_NE(rfcStore->setValue(&req), OK);
+    // Handler should not create the enable file on wrong type
+    EXPECT_FALSE(fileExists(TEST_LOGCHRONO_ENABLE_FILE));
+}
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];
