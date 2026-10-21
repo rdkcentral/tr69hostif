@@ -4478,7 +4478,7 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
 
 int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgData_t *stMsgData)
 {
-    if (stMsgData == NULL || stMsgData->paramValue == NULL)
+    if (stMsgData == NULL)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
         return NOK;
@@ -4513,7 +4513,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgDat
 
 int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData_t *stMsgData)
 {
-    if (stMsgData == NULL || stMsgData->paramValue == NULL)
+    if (stMsgData == NULL)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
         return NOK;
@@ -5764,11 +5764,17 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
-    std::string packageSpec = (stMsgData && stMsgData->paramValue) ? stMsgData->paramValue : "";
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
+        return NOK;
+    }
+
+    std::string packageSpec(stMsgData->paramValue);
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
 
-    if((!stMsgData) || packageSpec.empty()) {
+    if (packageSpec.empty()) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
         return NOK;
     }
@@ -5786,7 +5792,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
         std::string suffix = toolName.substr(dashPos + 1);
         if (suffix == "strace" || suffix == "tcpdump")
         {
-            toolName = suffix;
+            toolName = std::move(suffix);
         }
     }
 
