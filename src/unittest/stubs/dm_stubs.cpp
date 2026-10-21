@@ -297,6 +297,16 @@ uint32_t PowerController_DelayPowerModeChangeBy(const uint32_t clientId, const i
     return POWER_CONTROLLER_ERROR_NONE;
 }
 
+uint32_t PowerController_RegisterOperationalStateChangeCallback(PowerController_OperationalStateChangeCb callback, void* userdata)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_UnRegisterOperationalStateChangeCallback(PowerController_OperationalStateChangeCb callback)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
 uint32_t PowerController_GetPowerState(PowerController_PowerState_t* currentState, PowerController_PowerState_t* previousState)
 {
     return g_powerctrl_get_state_result;
