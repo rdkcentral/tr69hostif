@@ -2248,6 +2248,7 @@
      <parameter base="PackageExpiryTime" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <unsignedInt/>
+          <default type="factory" value="3600"/> 
         </syntax>
      </parameter>
     </object>
