@@ -4469,6 +4469,7 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData
 
     stMsgData->paramtype = hostIf_StringType;
     snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", installPath.c_str());
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
     stMsgData->faultCode = fcNoFault;
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read debug tool install path as %s\n", __FUNCTION__, installPath.c_str());
     return OK;
@@ -4546,7 +4547,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgDat
     }
 
     struct stat pathStat;
-    if (installPath.empty() || installPath[0] != '/' || stat(installPath.c_str(), &pathStat) != 0)
+    if (installPath.empty() || installPath[0] != '/' || stat(installPath.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
     {
         installPath = "/run/tools";
     }
@@ -4560,6 +4561,11 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgDat
 
     installPathFile << installPath << std::endl;
     installPathFile.close();
+    if (!installPathFile) {
+        stMsgData->faultCode = fcInternalError;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write debug tool install path\n", __FUNCTION__);
+        return NOK;
+    }
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Set debug tool install path to %s\n", __FUNCTION__, installPath.c_str());
     return OK;
 }
@@ -4582,7 +4588,7 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
         char *end = NULL;
         errno = 0;
         expirySeconds = std::strtoull(stMsgData->paramValue, &end, 10);
-        if (end == stMsgData->paramValue || errno == ERANGE)
+        if (end == stMsgData->paramValue || *end != '\0' || errno == ERANGE)
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
             return NOK;
@@ -4608,6 +4614,11 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData
     }
     ttlFile << expirySeconds << std::endl;
     ttlFile.close();
+    if (!ttlFile) {
+        stMsgData->faultCode = fcInternalError;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write configured package expiry TTL\n", __FUNCTION__);
+        return NOK;
+    }
 
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Stored configured package expiry TTL=%llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
     return OK;
@@ -5869,6 +5880,13 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
 
         v_secure_system("backgroundrun rdm -s %s:%llu >> /opt/logs/rdm_status.log 2>&1",
                         toolName.c_str(), static_cast<unsigned long long>(ttl));
+        int scheduleRet = v_secure_system("backgroundrun rdm -s %s:%llu >> /opt/logs/rdm_status.log 2>&1",
+                                         toolName.c_str(), static_cast<unsigned long long>(ttl));
+        if (scheduleRet != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to schedule expiry for %s: %d\n",
+                    __FUNCTION__, toolName.c_str(), scheduleRet);
+            return NOK;
+        }
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled expiry for %s with TTL %llu\n",
                 __FUNCTION__, toolName.c_str(), static_cast<unsigned long long>(ttl));
     }
