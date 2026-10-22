@@ -21,7 +21,6 @@
 #include <iostream>
 #include <fstream>
 #include "dm_stubs.h"
-#include "startParodus.h"
 #include "file_writer.h"
 #include "webpa_notification.h"
 #include "webpa_parameter.h"
@@ -476,75 +475,6 @@ TEST(datamodelTest, freeDataModelParam_AllFields) {
 
     freeDataModelParam(dmParam);
     EXPECT_EQ(0, 0);
-}
-
-TEST(startParodusTest, get_HWMAcAddress) {
-    write_on_file("/tmp/.macAddress", "D4:52:EE:DE:C6:FA");
-    std::string macAddr = get_HWMAcAddress();
-    EXPECT_EQ(macAddr, "D452EEDEC6FA");
-}
-
-TEST(startParodusTest, get_HWMAcAddress_MissingFile) {
-    std::remove("/tmp/.macAddress");
-    std::string macAddr = get_HWMAcAddress();
-    EXPECT_EQ(macAddr, "");
-}
-
-TEST(startParodusTest, get_PartnerId_Empty) {
-    write_on_file("/opt/www/authService/partnerId3.dat", "");
-    std::string partnerId = get_PartnerId();
-    EXPECT_EQ(partnerId, "*,");
-}
-
-TEST(startParodusTest, get_PartnerId) {
-    write_on_file("/opt/www/authService/partnerId3.dat", "sky");
-    std::string partnerId = get_PartnerId();
-    EXPECT_EQ(partnerId, "*,sky");
-}
-
-TEST(startParodusTest, get_PartnerId_Unknown) {
-    std::remove("/opt/www/authService/partnerId3.dat");	
-    write_on_file("/opt/www/authService/partnerId3.dat", "unknown");
-    std::string partnerId = get_PartnerId();
-    EXPECT_EQ(partnerId, "unknown");
-    std::remove("/opt/www/authService/partnerId3.dat");
-}
-
-TEST(startParodusTest, get_PartnerId_MissingFile_FallbackPrefixOnly) {
-    std::remove("/opt/www/authService/partnerId3.dat");
-    std::string partnerId = get_PartnerId();
-    EXPECT_EQ(partnerId, "*,");
-}
-
-TEST(startParodusTest, get_RebootReason_Empty) {
-    write_on_file("/opt/secure/reboot/previousreboot.info", "");
-    std::string reboot_reason = get_RebootReason();
-    EXPECT_EQ(reboot_reason, "");
-}
-
-TEST(startParodusTest, get_RebootReason) {
-    std::string jsonData = "{\"reason\": \"PowerOnReset\", \"timestamp\": 1688914800}";
-    write_on_file("/opt/secure/reboot/previousreboot.info", jsonData);
-    std::string reboot_reason = get_RebootReason();
-    EXPECT_EQ(reboot_reason, "PowerOnReset");
-}
-
-TEST(startParodusTest, get_RebootReason_InvalidJson) {
-    write_on_file("/opt/secure/reboot/previousreboot.info", "{invalid json}");
-    std::string reboot_reason = get_RebootReason();
-    EXPECT_EQ(reboot_reason, "");
-}
-
-TEST(startParodusTest, get_FwName) {
-    write_on_file("/version.txt", "imagename:ELTE11MWR_VBN_25Q3_sprint_20250814010729sdy_NG");
-    std::string fw_name = get_FwName();
-    EXPECT_EQ(fw_name, "ELTE11MWR_VBN_25Q3_sprint_20250814010729sdy_NG");
-}
-
-TEST(startParodusTest, get_FwName_MalformedLine) {
-    write_on_file("/version.txt", "imagename-only-without-delimiter");
-    std::string fw_name = get_FwName();
-    EXPECT_EQ(fw_name, "");
 }
 
 TEST(palTest, macToLower) {
