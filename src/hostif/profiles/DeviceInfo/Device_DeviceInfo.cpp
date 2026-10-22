@@ -5878,8 +5878,6 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t *
             ttlFile >> ttl;
         }
 
-        v_secure_system("backgroundrun rdm -s %s:%llu >> /opt/logs/rdm_status.log 2>&1",
-                        toolName.c_str(), static_cast<unsigned long long>(ttl));
         int scheduleRet = v_secure_system("backgroundrun rdm -s %s:%llu >> /opt/logs/rdm_status.log 2>&1",
                                          toolName.c_str(), static_cast<unsigned long long>(ttl));
         if (scheduleRet != 0) {
