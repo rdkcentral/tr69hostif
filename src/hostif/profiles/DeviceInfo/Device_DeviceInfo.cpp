@@ -3812,6 +3812,17 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *s
     return updateSecureDebugState();
 }
 
+/**
+ * @brief Sets the SecureUnlock SSH password hash for SignedLab.
+ *
+ * @param[out] stMsgData TR-069 Host interface message request.
+ *
+ * @return Returns the status of the operation.
+ *
+ * @retval OK if the password hash is successfully updated.
+ * @retval NOK if the password hash is invalid or the update fails.
+ * @ingroup TR69_HOSTIF_DEVICEINFO_API
+ */
 int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData)
 {
     if (stMsgData == NULL) {
