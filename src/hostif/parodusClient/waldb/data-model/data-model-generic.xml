@@ -2497,7 +2497,7 @@
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
           <boolean/>
-          <default type="factory" value="false"/>
+          <default type="factory" value="true"/>
         </syntax>
       </parameter>
     </object>
@@ -3706,14 +3706,6 @@
       <parameter base="Settings" access="readWrite" notification="0" maxNotification="2">
         <syntax>
           <string/>
-        </syntax>
-      </parameter>
-    </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogChrono." access="readOnly" minEntries="1" maxEntries="1">
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2">
-        <syntax>
-          <boolean/>
-          <default type="factory" value="false"/>
         </syntax>
       </parameter>
     </object>
