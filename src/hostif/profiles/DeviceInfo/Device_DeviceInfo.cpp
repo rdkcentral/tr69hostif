@@ -41,6 +41,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdio>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -4288,42 +4289,40 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingInterval(HOSTIF_Ms
     }
 
     int fd = open(OTEL_EXPORT_INTERVAL_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (fd >= 0)
-    {
-        FILE *fp = fdopen(fd, "w");
-        if (fp)
-        {
-            int writeResult = fprintf(fp, "%u", intervalMinutes);
-            int closeResult = fclose(fp);
-            if (writeResult >= 0 && closeResult == 0)
-            {
-                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
-                        "[%s] Persisted DistributedTracing.Interval=%u minutes to %s\n",
-                        __FUNCTION__, intervalMinutes, OTEL_EXPORT_INTERVAL_FILE);
-                ret = OK;
-            }
-            else
-            {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                        "[%s] Failed to persist DistributedTracing.Interval to %s: %s\n",
-                        __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
-            }
-        }
-        else
-        {
-            close(fd);
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                    "[%s] Failed to open %s for writing: %s\n",
-                    __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
-        }
-    }
-    else
+    if (fd < 0)
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
                 "[%s] Failed to create %s: %s\n",
                 __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
+        return NOK;
     }
 
+    FILE *fp = fdopen(fd, "w");
+    if (!fp)
+    {
+        int error = errno;
+        close(fd);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to open %s for writing: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(error));
+        return NOK;
+    }
+
+    int writeResult = fprintf(fp, "%u", intervalMinutes);
+    int closeResult = fclose(fp);
+    if (writeResult < 0 || closeResult != 0)
+    {
+        int error = errno;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to write %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(error));
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] Persisted DistributedTracing.Interval=%u minutes to %s\n",
+            __FUNCTION__, intervalMinutes, OTEL_EXPORT_INTERVAL_FILE);
+    ret = OK;
     return ret;
 }
 
@@ -5457,7 +5456,7 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldCompletedNotification(HOSTIF_MsgData_t *
 
         NotificationHandler::getInstance()->push_device_mgmt_notifications(NULL, start_time, (char*)status, (char* )"firmware-download-completed", NULL);
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Successfully Set [\"%s\"] and Send notification as \"status\":\"firmware-download-completed\" \
-    		with \"start-time\":\"%s\" and \"download-status\":\"%s\". \n", __FUNCTION__, stMsgData->paramName, m_strXOpsRPCFwDwldStartedNotification.c_str(), status);
+		with \"start-time\":\"%s\" and \"download-status\":\"%s\". \n", __FUNCTION__, stMsgData->paramName, m_strXOpsRPCFwDwldStartedNotification.c_str(), status);
     }
     else {
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending notification for [%s]. \n",
@@ -5481,7 +5480,7 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
         NotificationHandler::getInstance()->push_device_mgmt_notifications(temp_buff, NULL, NULL, (char* )"reboot-pending", NULL);
 
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Successfully Set [\"%s\"] and Send \"reboot-pending\" notification  \
-    		 \n", __FUNCTION__, stMsgData->paramName );
+		 \n", __FUNCTION__, stMsgData->paramName );
     }
     else {
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending notification for [%s]. \n",
@@ -5827,4 +5826,3 @@ bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr)
 
 /** @} */
 /** @} */
-
