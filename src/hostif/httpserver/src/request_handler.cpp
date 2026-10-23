@@ -325,6 +325,19 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
     hostIfParam.bsUpdate = bsUpdate;
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"Entering %s\n", __FUNCTION__);
 
+    // Return an empty value for the write-only SSH password.
+    if (reqType == GET && param != NULL && param->name != NULL && !strcasecmp(param->name, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+    {
+            param->value = strdup("");
+            if (param->value == NULL)
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to allocate empty SSH Password GET value\n");
+                return WDMP_FAILURE;
+            }
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "SSH Password GET handled with empty value before getter\n");
+            return WDMP_SUCCESS;
+    }
+
     getHostIfParamStFromRequest(reqType, param, &hostIfParam);
 
     switch(reqType)
@@ -400,11 +413,7 @@ static WDMP_STATUS validateAgainstDataModel(REQ_TYPE reqType, char* paramName, c
     *bsUpdate = getBSUpdateEnum(dmParam.bsUpdate);
     if(reqType == GET)
     {
-        if (!strcasecmp(paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] GET denied for SSH Password parameter\n", __FUNCTION__);
-            return WDMP_FAILURE;
-        }
+
         if(dmParam.dataType != NULL)
         {
             *dataType = getWdmpDataType(dmParam.dataType);  //CID:89885 - FORWARD NULL
