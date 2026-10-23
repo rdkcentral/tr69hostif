@@ -231,11 +231,18 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
                 notifyIARM(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,(const char*)stMsgData->paramName, stMsgData->paramValue, stMsgData->paramtype);
             }
         }
-        else if (strstr(stMsgData->paramName,TR181_RFC_PREFIX) != NULL)
-        {
-            RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n", __FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
-            ret = pIface->set_xRDKCentralComRFC(stMsgData);
-        }
+        else if (strstr(stMsgData->paramName, TR181_RFC_PREFIX) != NULL)
+		{
+    		if (strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
+    		{
+        		RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] SSH Password RFC SET request received\n",__FUNCTION__);
+    		}
+    		else
+    		{
+        		RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n",__FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
+    		}
+    		ret = pIface->set_xRDKCentralComRFC(stMsgData);
+		}
 #ifdef USE_XRDK_BT_PROFILE
         else if(strncasecmp(stMsgData->paramName,X_BT_ROOT_OBJ,strlen(X_BT_ROOT_OBJ))==0)
         {

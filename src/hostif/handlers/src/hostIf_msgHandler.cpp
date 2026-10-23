@@ -180,12 +180,14 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             
 
             // Calculate time taken in microseconds
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
-                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
-                __FUNCTION__, __LINE__, ret,
-                stMsgData->paramName,
-                paramValueStr,
-                timeTaken);
+            if (strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+            {
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] ret: %d, SSH Password RFC GET completed, timeTaken: %lld us\n", __FUNCTION__, __LINE__, ret, timeTaken);
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n", __FUNCTION__, __LINE__, ret, stMsgData->paramName, paramValueStr, timeTaken);
+            }
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
                 // Debug log
@@ -199,7 +201,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 
             }
         }
-        
+
     }
     catch (const std::exception& e)
     {
@@ -268,12 +270,17 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         char paramValueStr[128] = {0};
         paramValueToString(stMsgData, paramValueStr, sizeof(paramValueStr));
 
-        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+        if (strcasecmp(stMsgData->paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0)
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"[%s:%d] ret: %d, SSH Password RFC SET processing completed, timeTaken: %lld us\n",__FUNCTION__, __LINE__, ret, timeTakenset);
+        }
+        else
+        {
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
-                stMsgData->paramName,
-                paramValueStr,
-                timeTakenset);
+                stMsgData->paramName, paramValueStr, timeTakenset);
+        }
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
@@ -286,6 +293,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         }
     }
 
+    
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
 }
@@ -367,15 +375,19 @@ void hostIf_Print_msgData(HOSTIF_MsgData_t *stMsgData)
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"\n****************************************************\n");
     cout << "Parameter Name : "<< stMsgData->paramName << endl;
     cout << "Parameter Request Type : "<< stMsgData->reqType << endl;
-    switch (stMsgData->paramtype) {
-    case hostIf_StringType:
-        cout << "Parameter Value : "<< (char *)stMsgData->paramValue << endl;
-        break;
-    case hostIf_BooleanType:
-        cout << "Parameter Value : "<< (get_boolean(stMsgData->paramValue)?"true":"false")  << endl;
-        break;
-    default:
-        cout << "Parameter Value : "<< get_int(stMsgData->paramValue) << endl;
+    if (strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0) {
+        cout << "Parameter Value : <redacted>" << endl;
+    } else {
+        switch (stMsgData->paramtype) {
+        case hostIf_StringType:
+            cout << "Parameter Value : "<< (char *)stMsgData->paramValue << endl;
+            break;
+        case hostIf_BooleanType:
+            cout << "Parameter Value : "<< (get_boolean(stMsgData->paramValue)?"true":"false")  << endl;
+            break;
+        default:
+            cout << "Parameter Value : "<< get_int(stMsgData->paramValue) << endl;
+        }
     }
     cout << "Parameter Length : "<< stMsgData->paramLen << endl;
     cout << "Parameter Type : "<< stMsgData->paramtype << endl;
