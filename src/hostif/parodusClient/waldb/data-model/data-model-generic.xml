@@ -2483,6 +2483,15 @@
           <default type="factory" value=""/>
         </syntax>
       </parameter>
+      <parameter base="Interval" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt>
+            <range minInclusive="1" maxInclusive="71582"/>
+            <units value="minutes"/>
+          </unsignedInt>
+          <default type="factory" value="15"/>
+        </syntax>
+      </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKAppManager." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
