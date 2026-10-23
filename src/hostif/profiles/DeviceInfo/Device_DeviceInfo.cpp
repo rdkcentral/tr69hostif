@@ -4452,7 +4452,8 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
 
 int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *stMsgData)
 {
-    if (stMsgData == NULL) {
+    if (stMsgData == NULL)
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
         return NOK;
     }
@@ -4461,16 +4462,16 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData
     std::ifstream installPathFile("/tmp/.rdm_debug_tool_install_path");
     std::string installPath;
 
-    if (std::getline(installPathFile, installPath) && !installPath.empty()) {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read debug tool install path as %s\n", __FUNCTION__, installPath.c_str());
-    }
-    else {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No persisted debug tool install path found; allowing XML default to apply\n", __FUNCTION__);
+    if (!std::getline(installPathFile, installPath) || installPath.empty())
+    {
+        installPath = "/run/tools";
     }
 
     stMsgData->paramtype = hostIf_StringType;
     snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", installPath.c_str());
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
     stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read debug tool install path as %s\n", __FUNCTION__, installPath.c_str());
     return OK;
 }
 
@@ -4483,29 +4484,49 @@ int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_
     }
 
     memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
-
-    unsigned int expirySeconds = 0;
     std::ifstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+    std::string line;
+    unsigned long long expirySeconds = 3600;
+
     if (ttlFile.is_open())
     {
-        ttlFile >> expirySeconds;
-        if (ttlFile.fail())
+        while (std::getline(ttlFile, line))
         {
-            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Invalid numeric TTL record; using 0\n", __FUNCTION__);
-            expirySeconds = 0;
+            std::string trimmed = line;
+            trimmed.erase(trimmed.begin(), std::find_if(trimmed.begin(), trimmed.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+            trimmed.erase(std::find_if(trimmed.rbegin(), trimmed.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), trimmed.end());
+
+            if (trimmed.empty() || trimmed[0] == '#')
+            {
+                continue;
+            }
+
+            unsigned long long ttl = 0;
+            std::istringstream iss(trimmed);
+            if (iss >> ttl)
+            {
+                expirySeconds = ttl;
+                break;
+            }
         }
     }
     else
     {
-        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No persisted TTL record found; using 0\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No TTL config record found for package; using default value 3600\n", __FUNCTION__);
     }
 
     stMsgData->paramtype = hostIf_UnsignedIntType;
     stMsgData->paramLen = sizeof(unsigned int);
-    put_uint(stMsgData->paramValue, expirySeconds);
-    stMsgData->faultCode = fcNoFault;
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read configured package expiry as %u\n", __FUNCTION__, expirySeconds);
+    if (expirySeconds > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Expiry value %llu exceeds unsigned int range; clamping to max\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+        expirySeconds = std::numeric_limits<unsigned int>::max();
+    }
+
+    put_uint(stMsgData->paramValue, static_cast<unsigned int>(expirySeconds));
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read configured package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
     return OK;
 }
 
@@ -4551,20 +4572,24 @@ int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgDat
 
 int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData_t *stMsgData)
 {
-    if (stMsgData == NULL) {
+    if (stMsgData == NULL)
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
         return NOK;
     }
 
     unsigned long long expirySeconds = 0;
-    if (stMsgData->paramtype == hostIf_UnsignedIntType) {
+    if (stMsgData->paramtype == hostIf_UnsignedIntType)
+    {
         expirySeconds = static_cast<unsigned long long>(get_uint(stMsgData->paramValue));
     }
-    else if (stMsgData->paramtype == hostIf_StringType) {
+    else if (stMsgData->paramtype == hostIf_StringType)
+    {
         char *end = NULL;
         errno = 0;
         expirySeconds = std::strtoull(stMsgData->paramValue, &end, 10);
-        if (end == stMsgData->paramValue || *end != '\0' || errno == ERANGE) {
+        if (end == stMsgData->paramValue || *end != '\0' || errno == ERANGE)
+        {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
             return NOK;
         }
