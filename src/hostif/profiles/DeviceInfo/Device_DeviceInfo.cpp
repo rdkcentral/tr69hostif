@@ -4002,10 +4002,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
     }
-	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
-	{
+    else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
+    {
     	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
-	}
+    }
+    else if (!strcasecmp(stMsgData->paramName, LOGCHRONO_RFC_ENABLE))
+    {
+        ret = set_xRDKCentralComRFCLogChronoEnable(stMsgData);
+    }
     return ret;
 }
 
