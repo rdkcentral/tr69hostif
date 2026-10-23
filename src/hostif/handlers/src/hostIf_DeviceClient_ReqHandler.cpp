@@ -215,7 +215,15 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
 	else if (strcasecmp(stMsgData->paramName,X_RDKDownloadManager_DownloadStatus) == 0)
         {
             ret = pIface->set_xRDKDownloadManager_DownloadStatus(stMsgData);
-        } 
+        }
+        else if (strcasecmp(stMsgData->paramName,X_RDKDownloadManager_PackageInstallPath) == 0)
+        {
+            ret = pIface->set_xRDKDownloadManager_PackageInstallPath(stMsgData);
+        }
+        else if (strcasecmp(stMsgData->paramName,X_RDKDownloadManager_PackageExpiryTime) == 0)
+        {
+            ret = pIface->set_xRDKDownloadManager_PackageExpiryTime(stMsgData);
+        }
         else if (strcasecmp(stMsgData->paramName,IPREMOTE_SUPPORT) == 0)
         {
             ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_IPRemoteSupportEnable(stMsgData);
@@ -613,6 +621,14 @@ int DeviceClientReqHandler::handleGetMsg(HOSTIF_MsgData_t *stMsgData)
         else if (strcasecmp(stMsgData->paramName, xOpsDMMoCALogPeriod) == 0)
         {
             ret = pIface->get_xOpsDMMoCALogPeriod(stMsgData);
+        }
+        else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageInstallPath) == 0)
+        {
+            ret = pIface->get_xRDKDownloadManager_PackageInstallPath(stMsgData);
+        }
+        else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageExpiryTime) == 0)
+        {
+            ret = pIface->get_xRDKDownloadManager_PackageExpiryTime(stMsgData);
         }
         else if (strcasecmp(stMsgData->paramName,xOpsDMUploadLogsNow_STR) == 0)
         {
