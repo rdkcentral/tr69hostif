@@ -30,7 +30,6 @@ AC_CONFIG_HEADERS([cfg/config.h])
 
 LT_INIT
 
-XREMGR_FLAGS=" "
 MOCAMGR_FLAGS=" "
 SUBDIRS_MOCA=" "
 MOCA2_FLAG=" "
@@ -54,24 +53,23 @@ BLE_TILE_PROFILE=" "
 WEBCONFIG_LITE_FLAG=" "
 WEB_CONFIG_ENABLE=" "
 
+AC_ARG_ENABLE([rdk-otlp],
+                    AS_HELP_STRING([--enable-rdk-otlp],[enable RDK OpenTelemetry instrumentation (default is no)]),
+                    [
+                         case "${enableval}" in
+                          yes) RDK_OTLP_ENABLE=true
+                                        RDK_OTLP_CXXFLAGS="-DENABLE_RDK_OTLP"
+                                        RDK_OTLP_LDFLAGS="-lrdk_otlp" ;;
+                          no) RDK_OTLP_ENABLE=false ;;
+                         *) AC_MSG_ERROR([bad value ${enableval} for --enable-rdk-otlp]) ;;
+                         esac
+                    ],
+                    [RDK_OTLP_ENABLE=false])
+AM_CONDITIONAL([RDK_OTLP_ENABLE], [test x$RDK_OTLP_ENABLE = xtrue])
+
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])],
 [AM_DEFAULT_VERBOSITY=1
 AC_SUBST(AM_DEFAULT_VERBOSITY)]) 
-
-AC_ARG_ENABLE([xre],
-	[ AS_HELP_STRING([--enable-xre], [enable xre profile (default is no)])],
-        [
-        case "${enableval}" in
-	yes) XREMGR_FLAGS="-DUSE_XRESRC"
-	     xre=true;;
-	no)  AC_MSG_ERROR([xre profile is disabled])
-             xre=false;;
-	*) AC_MSG_ERROR([bad value ${enableval} for --enable-xre])
-           xre=false;;
-	esac
-	],
-        [xre=false; echo "xre profile is disabled"])
-AM_CONDITIONAL([XRELIB_FLAG], [test "x$xre" = xtrue])
 
 # This adds the option of compiling with/without using the  profile source code
 AC_ARG_ENABLE([moca],
@@ -424,7 +422,6 @@ AM_CONDITIONAL([ENABLE_RDK_STMGR_V2], [test "x$HAVE_RDK_STMGR_V2_H" = "xyes" -a 
 AC_FUNC_MALLOC
 
 AC_SUBST(PROFILE_SRC)
-AC_SUBST(XREMGR_FLAGS)
 AC_SUBST(MOCAMGR_FLAGS)
 AC_SUBST(SUBDIRS_MOCA)
 AC_SUBST(SUBDIRS_STORAGESERVICE)
@@ -448,6 +445,8 @@ AC_SUBST(BLE_TILE_PROFILE)
 AC_SUBST(WEBCONFIG_LITE_FLAG)
 AC_SUBST(WEB_CONFIG_ENABLE)
 AC_SUBST(PARODUS_ENABLE_FLAG)
+AC_SUBST(RDK_OTLP_CXXFLAGS)
+AC_SUBST(RDK_OTLP_LDFLAGS)
 
 # files to generate via autotools (.am or .in source files)
 AC_CONFIG_FILES([Makefile])

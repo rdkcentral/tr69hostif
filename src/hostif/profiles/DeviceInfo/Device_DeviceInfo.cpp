@@ -42,8 +42,9 @@
 #include <cstring>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/sysinfo.h>
+#include <linux/fs.h>
 #include <sys/ioctl.h>
+#include <sys/sysinfo.h>
 #include <net/if.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
@@ -70,6 +71,9 @@
 #include "power_controller.h"
 #endif
 #include "rbus.h"
+#ifdef ENABLE_RDK_OTLP
+#include <rdk_otlp_instrumentation.h>
+#endif
 #include <curl/curl.h>
 
 #ifndef USE_THUNDER_CLIENT
@@ -92,12 +96,10 @@
 #endif
 
 #include "secure_wrapper.h"
+#include "uploadstblogs.h"
 
 #ifdef USE_MoCA_PROFILE
 #include "Device_MoCA_Interface.h"
-#endif
-#ifdef USE_XRESRC
-#include "Device_XComcast_Xcalibur_Client_XRE_ConnectionTable.h"
 #endif
 
 #include "hostIf_NotificationHandler.h"
@@ -111,7 +113,6 @@
 #define FORWARD_SSH_FILE                   "/opt/secure/.RFC_ForwardSSH"
 #define GATEWAY_NAME_SIZE                  4
 #define IPREMOTE_SUPPORT_STATUS_FILE       "/opt/.ipremote_status"
-#define XRE_CONTAINER_SUPPORT_STATUS_FILE  "/opt/XRE_container_enable"
 #define IPREMOTE_INTERFACE_INFO            "/tmp/ipremote_interface_info"
 #define MODEL_NAME_FILE                    "/tmp/.model"
 #define IUI_VERSION_FILE                   "/tmp/.iuiVersion"
@@ -136,6 +137,12 @@
 #define SCRIPT_OUTPUT_BUFFER_SIZE 512
 #define ENTRY_WIDTH 64
 #define MigrationStatus "/opt/secure/persistent/MigrationStatus"
+
+#ifndef GTEST_ENABLE
+#define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
+#else
+#define DBG_SERVICES_STATE_FILE "/tmp/enable_secure_dbg"
+#endif
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
 GHashTable* hostIf_DeviceInfo::m_notifyHash = NULL;
@@ -344,6 +351,141 @@ GHashTable*  hostIf_DeviceInfo::getNotifyHash()
     {
         return m_notifyHash = g_hash_table_new(g_str_hash, g_str_equal);
     }
+}
+
+int hostIf_DeviceInfo::updateSecureDebugState(void)
+{
+    HOSTIF_MsgData_t dbgServices = {};
+    HOSTIF_MsgData_t deviceType = {};
+    FILE *fp = NULL;
+    int state = 0;
+    int dbgServicesRet = NOK;
+    int deviceTypeRet = NOK;
+    bool dbgServicesEnabled = false;
+
+    strncpy(dbgServices.paramName, RFC_DBG_SERVICES, sizeof(dbgServices.paramName) - 1);
+    strncpy(deviceType.paramName, RFC_DEVICE_TYPE, sizeof(deviceType.paramName) - 1);
+
+    dbgServices.paramtype = hostIf_BooleanType;
+    deviceType.paramtype = hostIf_StringType;
+
+    dbgServicesRet = get_xRDKCentralComRFC(&dbgServices);
+    deviceTypeRet = get_xRDKCentralComRFC(&deviceType);
+
+    if ((dbgServicesRet == OK) && (deviceTypeRet == OK))
+    {
+        dbgServicesEnabled = get_boolean(dbgServices.paramValue);
+
+        if (dbgServicesEnabled && (strcasecmp(deviceType.paramValue, "test") == 0))
+        {
+            state = 1;
+        }
+
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] DbgServices=%s DeviceType=%s SecureDebugState=%d\n", __FUNCTION__, dbgServicesEnabled ? "true" : "false", deviceType.paramValue, state);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read secure debug RFC values. DbgServicesRet=%d DeviceTypeRet=%d. Defaulting state to 0\n", __FUNCTION__, dbgServicesRet, deviceTypeRet);
+    }
+
+#ifndef GTEST_ENABLE
+    /* Make existing state file mutable before updating it */
+    int attrFd = open(DBG_SERVICES_STATE_FILE, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (attrFd >= 0)
+    {
+        int fileFlags = 0;
+
+        if (ioctl(attrFd, FS_IOC_GETFLAGS, &fileFlags) != 0)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to get file flags for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+            close(attrFd);
+            return NOK;
+        }
+
+        if (fileFlags & FS_IMMUTABLE_FL)
+        {
+            fileFlags &= ~FS_IMMUTABLE_FL;
+
+            if (ioctl(attrFd, FS_IOC_SETFLAGS, &fileFlags) != 0)
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to clear immutable flag for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+                close(attrFd);
+                return NOK;
+            }
+        }
+
+        close(attrFd);
+    }
+    else if (errno != ENOENT)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to open %s for attribute update: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        return NOK;
+    }
+
+#endif
+
+    int fd = open(DBG_SERVICES_STATE_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+    if (fd < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to open %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        return NOK;
+    }
+
+    if (fchmod(fd, 0644) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to set permissions for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        close(fd);
+        return NOK;
+    }
+
+    fp = fdopen(fd, "w");
+    if (fp == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to convert fd to stream for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        close(fd);
+        return NOK;
+    }
+
+    if (fprintf(fp, "%d\n", state) < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE);
+        fclose(fp);
+        return NOK;
+    }
+
+    if (fflush(fp) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to flush %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        fclose(fp);
+        return NOK;
+    }
+
+#ifndef GTEST_ENABLE
+    int fileFlags = 0;
+
+    if (ioctl(fd, FS_IOC_GETFLAGS, &fileFlags) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to get file flags for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        fclose(fp);
+        return NOK;
+    }
+
+    fileFlags |= FS_IMMUTABLE_FL;
+
+    if (ioctl(fd, FS_IOC_SETFLAGS, &fileFlags) != 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to set immutable flag for %s: %s\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, strerror(errno));
+        fclose(fp);
+        return NOK;
+    }
+#endif
+
+    fclose(fp);
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Updated %s with value %d\n", __FUNCTION__, DBG_SERVICES_STATE_FILE, state);
+
+    return OK;
 }
 
 /**
@@ -2029,7 +2171,6 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_MemoryStatus_Free (HOSTIF_MsgData_t
  *  			Joining MoCA Network
  *  			Connection successful
  *  			Acquiring IP Address from Gateway
- *  			Contacting XRE
  *
  * @param[out] stMsgData TR-069 Host interface message request.
  * @param[in] pChanged Status of the operation.
@@ -2057,23 +2198,6 @@ int hostIf_DeviceInfo::get_Device_DeviceInfo_X_RDKCENTRAL_COM_BootStatus (HOSTIF
     MoCAInterface *mIf = MoCAInterface::getInstance(0);
     mocaStatus = mIf->check_MoCABootStatus(statusStr);
 #endif
-
-    /**
-     * Check for Xre Connection State
-     *   4. XRE connection established - Successful
-     */
-
-#ifdef USE_XRESRC
-    if(get_Device_X_COMCAST_COM_Xcalibur_Client_XRE_ConnectionTable_xreConnStatus(stMsgData) == OK)
-    {
-        const char* xreConn = "XRE connection established - Successful";
-
-        if(strcasecmp(stMsgData->paramValue, "Connected" ) == 0) {
-            memset(stMsgData->paramValue, '\0', TR69HOSTIFMGR_MAX_PARAM_LEN);
-            snprintf(statusStr, TR69HOSTIFMGR_MAX_PARAM_LEN -1, xreConn);
-        }
-    }
-#endif /*USE_XRESRC*/
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] BootStatus string: %s \n", __FILE__, __FUNCTION__, statusStr);
     strncpy(stMsgData->paramValue, statusStr, TR69HOSTIFMGR_MAX_PARAM_LEN);
@@ -2555,6 +2679,27 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadURL (
     return OK;
 }
 
+static void triggerUploadLogsNow()
+{
+    UploadSTBLogsParams params = {0};
+    params.flag = 1;
+    params.dcm_flag = 1;
+    params.upload_on_reboot = true;
+    params.upload_protocol = NULL;
+    params.upload_http_link = NULL;
+    params.trigger_type = TRIGGER_ONDEMAND;
+    params.rrd_flag = false;
+    params.rrd_file = NULL;
+    params.uploadlogsnow_mode = true;
+
+    int result = uploadstblogs_run(&params);
+    if (result != 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] uploadstblogs_run failed with code %d\n", __FUNCTION__, result);
+    } else {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] uploadstblogs_run completed successfully\n", __FUNCTION__);
+    }
+}
+
 int hostIf_DeviceInfo::set_xOpsDMUploadLogsNow (HOSTIF_MsgData_t *stMsgData)
 {
     bool triggerUploadLog  = false;
@@ -2564,10 +2709,10 @@ int hostIf_DeviceInfo::set_xOpsDMUploadLogsNow (HOSTIF_MsgData_t *stMsgData)
 
     if(triggerUploadLog)
     {
-        /*@ TODO: Execute the script;*/
-        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Start executing script to upload logs... \n",__FUNCTION__);
-        v_secure_system(LOG_UPLOAD_SCR);
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully executed %s. \n", LOG_UPLOAD_SCR);
+        RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Queueing log upload API... \n",__FUNCTION__);
+        std::thread uploadThread(triggerUploadLogsNow);
+        uploadThread.detach();
+        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"Successfully executed Logupload API \n");
     }
     else
     {
@@ -3088,6 +3233,11 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
                                 shortsArgs.c_str(),
                                 nonShortsArgs.c_str());
             }else {
+                const char *buildType = getenv("BUILD_TYPE");
+                if (buildType == NULL || strcasecmp(buildType, "prod") == 0) {
+                    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] plain reverse SSH trigger rejected on prod-built device \n",__FUNCTION__);
+                    return NOK;
+                }
 
                 RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting SSH Tunnel \n",__FUNCTION__);
                 string arg = "start";
@@ -3644,6 +3794,18 @@ int hostIf_DeviceInfo::sendDeviceMgtNotification(const char* source, const char*
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+		RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] stMsgData is NULL\n", __FUNCTION__);
+        return NOK;
+    }
+
+	RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Secure debug RFC updated: %s\n", __FUNCTION__, stMsgData->paramName);
+    return updateSecureDebugState();
+}
+
 int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
@@ -3783,10 +3945,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComDABRFCEnable(stMsgData);
     }
-    else if (strcasecmp(stMsgData->paramName,XRE_CONTAINER_RFC_ENABLE) == 0)
-    {
-        ret = set_xRDKCentralComXREContainerRFCEnable(stMsgData);
-    }
     else if (strcasecmp(stMsgData->paramName,RFC_CTL_RETRIEVE_NOW) == 0)
     {
         ret = set_xRDKCentralComRFCRetrieveNow(stMsgData);
@@ -3839,6 +3997,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
+    }
+	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
+	{
+    	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
+	}
     return ret;
 }
 
@@ -3959,6 +4125,62 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    LOG_ENTRY_EXIT;
+
+    if (stMsgData->paramtype != hostIf_StringType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Wrong type for %s, expected string.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+        return NOK;
+    }
+
+    const char *url = stMsgData->paramValue;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] DistributedTracing URL: %s\n", __FUNCTION__, url);
+
+    int fd = open(OTEL_EXPORT_ENDPOINT_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd >= 0)
+    {
+        FILE *fp = fdopen(fd, "w");
+        if (fp)
+        {
+            if (fputs(url, fp) >= 0)
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                        "[%s] Wrote OTEL endpoint URL to %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
+                ret = OK;
+            }
+            else
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Failed to write OTEL endpoint URL to %s: %s\n",
+                        __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+            }
+        }
+        else
+        {
+            close(fd);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to open %s for writing: %s\n",
+                    __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to create %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+    }
+
+    return ret;
+}
+
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
     return m_bsStore->getValue(stMsgData);
@@ -4040,6 +4262,9 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_t value, preValue, byVal;
     rbusEvent_t event = {0};
     rbusObject_t data;
+#ifdef ENABLE_RDK_OTLP
+    const char *traceparent = NULL;
+#endif
 
     rbusValue_Init(&value);
     rbusValue_Init(&preValue);
@@ -4057,7 +4282,19 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     event.data = data;
     event.type = RBUS_EVENT_VALUE_CHANGED;
 
+#ifdef ENABLE_RDK_OTLP
+    rdk_otlp_start_distributed_trace(RRD_SET_ISSUE_EVENT, "set");
+    traceparent = rdk_otlp_get_current_traceparent();
+    if (traceparent != NULL)
+    {
+        rbusHandle_SetTraceContextFromString(rbusHandle, traceparent, NULL);
+    }
+#endif
     rc = rbusEvent_Publish(rbusHandle, &event);
+#ifdef ENABLE_RDK_OTLP
+    rbusHandle_ClearTraceContext(rbusHandle);
+    rdk_otlp_finish_distributed_trace();
+#endif
     if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %d !!! \n ", __FUNCTION__, __LINE__, RRD_SET_ISSUE_EVENT, rc);
@@ -4482,52 +4719,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComDABRFCEnable(HOSTIF_MsgData_t *stMsgDat
         stMsgData->faultCode = fcInvalidParameterType;
     }
 
-    return ret;
-}
-
-int hostIf_DeviceInfo::set_xRDKCentralComXREContainerRFCEnable(HOSTIF_MsgData_t *stMsgData)
-{
-    int ret = NOK;
-    bool enable;
-    LOG_ENTRY_EXIT;
-    if(stMsgData->paramtype == hostIf_BooleanType)
-    {
-        enable = get_boolean(stMsgData->paramValue);
-        if( enable )
-        {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] XRE_ContainerSupport enable request\n", __FUNCTION__);
-            ofstream ofp(XRE_CONTAINER_SUPPORT_STATUS_FILE);
-            RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Created File %s, XRE_ContainerSupport is enabled\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-            ret = OK;
-        }
-        else
-        {
-            RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF,"[%s] XRE_ContainerSupport disable request\n", __FUNCTION__);
-            ifstream ifp(XRE_CONTAINER_SUPPORT_STATUS_FILE);
-            if(ifp.is_open())
-            {
-                ifp.close();
-                if(remove(XRE_CONTAINER_SUPPORT_STATUS_FILE) == 0)
-                {
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Removed File %s, XRE_ContainerSupport is disabled\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-                    ret = OK;
-                }
-                else
-                {
-                    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Unable to remove File %s, XRE_ContainerSupport Status unchanged\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-                }
-            }
-            else
-            {
-                RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] File %s is already removed, XRE_ContainerSupport is disabled already\n", __FUNCTION__, XRE_CONTAINER_SUPPORT_STATUS_FILE);
-                ret = OK;
-            }
-        }
-    }
-    else
-    {
-        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong data type for %s, please use boolean(0/1) to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
-    }
     return ret;
 }
 

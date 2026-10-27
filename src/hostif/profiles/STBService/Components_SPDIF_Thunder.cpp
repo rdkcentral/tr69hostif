@@ -52,10 +52,31 @@ GMutex hostIf_STBServiceSPDIF::m_mutex;
 hostIf_STBServiceSPDIF* hostIf_STBServiceSPDIF::getInstance(int dev_id)
 {
     if (!ifHash)
+    {
         buildPortNameHash();
+        if (!ifHash)
+        {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%s:%d]: SPDIF hash not initialized (Thunder may be inactive)\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+            return NULL;
+        }
+    }
 
     hostIf_STBServiceSPDIF* pRet =
         (hostIf_STBServiceSPDIF*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+
+    if (!pRet)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s:%s:%d]: Retry SPDIF hash build for dev_id=%d\n",
+                __FILE__, __FUNCTION__, __LINE__, dev_id);
+        buildPortNameHash();
+        if (ifHash)
+        {
+            pRet = (hostIf_STBServiceSPDIF*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+        }
+    }
 
     if (!pRet)
     {
@@ -78,6 +99,8 @@ void hostIf_STBServiceSPDIF::buildPortNameHash()
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
                 "[%s:%d] Failed to get supported audio ports\n", __FUNCTION__, __LINE__);
+        g_hash_table_destroy(ifHash);
+        ifHash = NULL;
         return;
     }
 

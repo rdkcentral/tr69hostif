@@ -43,7 +43,7 @@
 #define THUNDER_DS_GET_CURRENT_RESOLUTION       "org.rdk.DisplaySettings.getCurrentResolution"
 #define THUNDER_DS_GET_DISPLAY_ASPECT_RATIO     "org.rdk.DisplaySettings.getDisplayAspectRatio"
 #define THUNDER_DS_GET_ENABLE_VIDEO_PORT        "org.rdk.DisplaySettings.getEnableVideoPort"
-#define THUNDER_AVO_GET_ZOOM_MODE               "org.rdk.AVOutput.getZoomMode"
+#define THUNDER_DS_GET_ZOOM_SETTINGS            "org.rdk.DisplaySettings.getZoomSetting"
 #define THUNDER_HDCP_GET_STATUS                 "org.rdk.HdcpProfile.getHDCPStatus"
 #define THUNDER_DI_CONNECTED                    "DisplayInfo.1.connected"
 
@@ -61,6 +61,8 @@ void hostIf_STBServiceVideoOutput::buildPortNameHash()
             THUNDER_DS_GET_SUPPORTED_VIDEO_DISPLAYS, "{}", "supportedVideoDisplays", ",", delimitedPorts))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%d] Failed to get video displays\n", __FUNCTION__, __LINE__);
+        g_hash_table_destroy(ifHash);
+        ifHash = NULL;
         return;
     }
 
@@ -80,9 +82,31 @@ void hostIf_STBServiceVideoOutput::buildPortNameHash()
 
 hostIf_STBServiceVideoOutput* hostIf_STBServiceVideoOutput::getInstance(int dev_id)
 {
-    if (!ifHash) buildPortNameHash();
+    if (!ifHash) {
+        buildPortNameHash();
+        if (!ifHash) {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%s:%d]: VideoOutput hash not initialized (Thunder may be inactive)\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+            return NULL;
+        }
+    }
+
     hostIf_STBServiceVideoOutput *pRet =
         (hostIf_STBServiceVideoOutput*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+
+    if (!pRet)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s:%s:%d]: Retry VideoOutput hash build for dev_id=%d\n",
+                __FILE__, __FUNCTION__, __LINE__, dev_id);
+        buildPortNameHash();
+        if (ifHash)
+        {
+            pRet = (hostIf_STBServiceVideoOutput*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+        }
+    }
+
     if (!pRet)
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%s:%d]: No instance for dev_id=%d\n",
                 __FILE__, __FUNCTION__, __LINE__, dev_id);
@@ -193,7 +217,7 @@ int hostIf_STBServiceVideoOutput::getStatus(HOSTIF_MsgData_t *stMsgData, bool *p
 {
     bool isConnected = false;
 
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_DI_CONNECTED, "{}", "isconnected", isConnected))
+    if (!invokeThunderPluginMethodAndExtractScalarBoolResult(THUNDER_DI_CONNECTED, "{}", isConnected))
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] DisplayInfo.1.connected failed, returning Disabled\n", __FUNCTION__);
         // On failure, default to Disabled
@@ -273,7 +297,7 @@ int hostIf_STBServiceVideoOutput::getVideoFormat(HOSTIF_MsgData_t *stMsgData, bo
 int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
     std::string mode;
-    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_AVO_GET_ZOOM_MODE, "{}", "zoomSetting", mode))
+    if (!invokeThunderPluginMethodAndExtractStringField(THUNDER_DS_GET_ZOOM_SETTINGS, "{}", "zoomSetting", mode))
         mode = "None";
     strncpy(stMsgData->paramValue, mode.c_str(), PARAM_LEN);
     stMsgData->paramValue[PARAM_LEN - 1] = '\0';
@@ -289,8 +313,25 @@ int hostIf_STBServiceVideoOutput::getAspectRatioBehaviour(HOSTIF_MsgData_t *stMs
 
 int hostIf_STBServiceVideoOutput::getHDCP(HOSTIF_MsgData_t *stMsgData, bool *pChanged)
 {
+    /* getHDCPStatus response nests flags inside result.HDCPStatus.{field} */
     bool hdcpEnabled = false;
-    if (!invokeThunderPluginMethodAndExtractBoolField(THUNDER_HDCP_GET_STATUS, "{}", "isHDCPCompliant", hdcpEnabled))
+    std::string response;
+    if (invokeThunderPluginMethod(THUNDER_HDCP_GET_STATUS, "{}", response))
+    {
+        cJSON *root = cJSON_Parse(response.c_str());
+        if (root)
+        {
+            cJSON *result  = cJSON_GetObjectItem(root, "result");
+            cJSON *hdcpObj = result ? cJSON_GetObjectItem(result, "HDCPStatus") : NULL;
+            cJSON *field   = hdcpObj ? cJSON_GetObjectItem(hdcpObj, "isHDCPCompliant") : NULL;
+            if (cJSON_IsBool(field))
+                hdcpEnabled = cJSON_IsTrue(field);
+            else
+                RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Missing isHDCPCompliant in HDCPStatus\n", __FUNCTION__);
+            cJSON_Delete(root);
+        }
+    }
+    else
     {
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Thunder getHDCPStatus failed, assuming not compliant\n", __FUNCTION__);
     }

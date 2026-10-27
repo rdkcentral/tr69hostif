@@ -18,12 +18,13 @@
 */
 /**
  * @file hostIf_XREClient_ReqHandler.h
- * @brief The header file provides HostIf XRE Client request handler information APIs.
+ * @brief Minimal handler for Device.X_COMCAST-COM_Xcalibur.Client.xconfCheckNow parameter.
+ * @note All XRE/Xcalibur profile features except xconfCheckNow have been removed.
  */
 
 /**
  * @defgroup TR-069HOSTIF_XRECLIENT_REQHANDLER_CLASSES XREClient RequestHandler Public Classes
- * Describe the details about classes used in TR-069 XREClient request handler.
+ * Describe the minimal classes used in TR-069 xconfCheckNow request handler.
  * @ingroup TR-069HOSTIF_DEVICECLIENT_HANDLER
  */
 
@@ -48,12 +49,11 @@
 #define HOSTIF_XRECLIENT_REQHANDLER_H_
 
 #include "hostIf_msgHandler.h"
-#include "hostIf_updateHandler.h"
 #include "hostIf_main.h"
 #include "secure_wrapper.h"
 
 /**
- * @brief This class provides the interface for getting XRE request handler information.
+ * @brief Minimal handler for xconfCheckNow parameter only.
  * @ingroup TR-069HOSTIF_XRECLIENT_REQHANDLER_CLASSES
  */
 class XREClientReqHandler : public msgHandler
@@ -61,10 +61,8 @@ class XREClientReqHandler : public msgHandler
     XREClientReqHandler() {};
     ~XREClientReqHandler() {};
     static class XREClientReqHandler *pInstance;
-    static updateCallback mUpdateCallback;
     static GMutex m_mutex;
     static void getLock();
-    static int numOfEntries;
 public:
     virtual bool init();
     virtual bool unInit();
@@ -75,7 +73,6 @@ public:
     static void releaseLock();
     static void checkForUpdates();
     static void reset();
-    static void registerUpdateCallback(updateCallback cb);
     static msgHandler* getInstance();
 };
 

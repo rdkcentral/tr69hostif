@@ -83,9 +83,31 @@ void hostIf_STBServiceVideoDecoder::buildPortNameHash()
 
 hostIf_STBServiceVideoDecoder* hostIf_STBServiceVideoDecoder::getInstance(int dev_id)
 {
-    if (!ifHash) buildPortNameHash();
+    if (!ifHash) {
+        buildPortNameHash();
+        if (!ifHash) {
+            RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF,
+                    "[%s:%s:%d]: VideoDecoder hash not initialized\n",
+                    __FILE__, __FUNCTION__, __LINE__);
+            return NULL;
+        }
+    }
+
     hostIf_STBServiceVideoDecoder *pRet =
         (hostIf_STBServiceVideoDecoder*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+
+    if (!pRet)
+    {
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                "[%s:%s:%d]: Retry VideoDecoder hash build for dev_id=%d\n",
+                __FILE__, __FUNCTION__, __LINE__, dev_id);
+        buildPortNameHash();
+        if (ifHash)
+        {
+            pRet = (hostIf_STBServiceVideoDecoder*)g_hash_table_lookup(ifHash, (gpointer)(intptr_t)dev_id);
+        }
+    }
+
     if (!pRet)
         RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s:%s:%d]: No instance for dev_id=%d\n",
                 __FILE__, __FUNCTION__, __LINE__, dev_id);
