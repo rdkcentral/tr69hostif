@@ -199,7 +199,7 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
                 
             }
         }
-
+        
     }
     catch (const std::exception& e)
     {
@@ -285,7 +285,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             
         }
     }
- 
+
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
 }
