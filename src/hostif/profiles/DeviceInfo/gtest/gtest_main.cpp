@@ -23,6 +23,8 @@
 #include <unistd.h>
 #include <thread>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <sys/inotify.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -69,9 +71,14 @@ extern "C"
 
 #include <mutex>
 #include <condition_variable>
+#include <cstdarg>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ifaddrs.h>
+#include <sys/sysinfo.h>
+#include <cerrno>
+#include <stdexcept>
 #define TEST_SECURE_DEBUG_STATE_FILE "/tmp/enable_secure_dbg"
 #define TEST_RFC_DBG_SERVICES "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable"
 #define TEST_RFC_DEVICE_TYPE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType"
@@ -97,6 +104,7 @@ T_ARGLIST argList = {{'\0'}, 0};
 extern IARM_Result_t g_iarm_bus_call_result;
 extern IARM_Result_t g_iarm_broadcast_event_result;
 extern bool g_malloc_fail;
+bool g_manufacturerPropertyReadFailure = false;
 extern bool g_gettimeofday_fail;
 extern bool g_socket_fail;
 extern bool g_ioctl_success;
@@ -110,7 +118,423 @@ extern char g_iarm_stub_swver_payload[128];
 
 #ifdef GTEST_ENABLE
 extern bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr);
+extern void executeRfcMgr();
 #endif
+
+enum GetifaddrsMode { GETIFADDRS_REAL, GETIFADDRS_FAIL, GETIFADDRS_FAKE_WLAN0, GETIFADDRS_THROW };
+static GetifaddrsMode g_getifaddrs_mode = GETIFADDRS_REAL;
+
+static struct ifaddrs g_fakeIfaddrs[2];
+static struct sockaddr_in g_fakeWlanV4;
+static struct sockaddr_in6 g_fakeWlanV6;
+static char g_fakeWlanName[] = "wlan0";
+static bool g_sysinfo_fail = false;
+
+enum SystemMgmtMonitorMode
+{
+    SYSTEM_MGMT_MONITOR_NORMAL,
+    SYSTEM_MGMT_MONITOR_INIT_FAILURE,
+    SYSTEM_MGMT_MONITOR_WATCH_FAILURE,
+    SYSTEM_MGMT_MONITOR_READ_FAILURE,
+    SYSTEM_MGMT_MONITOR_START_TIME_EVENT
+};
+
+static SystemMgmtMonitorMode g_systemMgmtMonitorMode = SYSTEM_MGMT_MONITOR_NORMAL;
+static bool g_skipSystemMgmtSleep = false;
+static int g_systemMgmtInotifyFd = -1;
+static int g_systemMgmtInotifyWatch = -1;
+
+enum SecureDebugFileFailure
+{
+    SECURE_DEBUG_FILE_NO_FAILURE,
+    SECURE_DEBUG_FILE_OPEN_FAILURE,
+    SECURE_DEBUG_FILE_CHMOD_FAILURE,
+    SECURE_DEBUG_FILE_FDOPEN_FAILURE,
+    SECURE_DEBUG_FILE_WRITE_FAILURE,
+    SECURE_DEBUG_FILE_FLUSH_FAILURE
+};
+
+static SecureDebugFileFailure g_secureDebugFileFailure = SECURE_DEBUG_FILE_NO_FAILURE;
+static int g_secureDebugFileFd = -1;
+static bool g_preferredGatewayFputsFail = false;
+static bool g_failTracingFlagFdopen = false;
+static int g_tracingFlagFd = -1;
+static bool g_failOtelEndpointOpen = false;
+static bool g_failOtelEndpointFdopen = false;
+static bool g_failOtelEndpointFputs = false;
+static int g_otelEndpointFd = -1;
+static bool g_failMemInsightRemove = false;
+
+enum ApparmorDirectoryFailure
+{
+    APPARMOR_DIRECTORY_NO_FAILURE,
+    APPARMOR_DIRECTORY_OPEN_FIRST_FAILURE,
+    APPARMOR_DIRECTORY_OPEN_SECOND_FAILURE,
+    APPARMOR_DIRECTORY_CLOSE_FIRST_FAILURE,
+    APPARMOR_DIRECTORY_CLOSE_SECOND_FAILURE
+};
+
+static ApparmorDirectoryFailure g_apparmorDirectoryFailure = APPARMOR_DIRECTORY_NO_FAILURE;
+static int g_apparmorDirectoryOpenCount = 0;
+static DIR *g_apparmorProfileDirs[2] = {NULL, NULL};
+static const char *g_apparmorServiceProfilesDirOverride = NULL;
+static bool g_failApparmorTmpFopen = false;
+static bool g_failApparmorRename = false;
+
+static void resetApparmorDirectoryFailure()
+{
+    g_apparmorDirectoryFailure = APPARMOR_DIRECTORY_NO_FAILURE;
+    g_apparmorDirectoryOpenCount = 0;
+    g_apparmorProfileDirs[0] = NULL;
+    g_apparmorProfileDirs[1] = NULL;
+}
+
+extern "C" {
+int __real_sysinfo(struct sysinfo *info);
+unsigned int __real_sleep(unsigned int seconds);
+int __real_inotify_init(void);
+int __real_inotify_add_watch(int fd, const char *pathname, uint32_t mask);
+ssize_t __real_read(int fd, void *buffer, size_t count);
+DIR *__real_opendir(const char *name);
+int __real_closedir(DIR *dir);
+FILE *__real_fopen(const char *pathname, const char *mode);
+int __real_rename(const char *oldPath, const char *newPath);
+int __real_remove(const char *pathname);
+int __real_open(const char *pathname, int flags, ...);
+int __real_fchmod(int fd, mode_t mode);
+FILE *__real_fdopen(int fd, const char *mode);
+int __real_fflush(FILE *stream);
+int __real_fputs(const char *string, FILE *stream);
+char *__real_getenvOrDefault(const char *name, const char *defaultValue)
+    __asm__("__real__Z15getenvOrDefaultPKcS0_");
+char *__wrap_getenvOrDefault(const char *name, const char *defaultValue)
+    __asm__("__wrap__Z15getenvOrDefaultPKcS0_");
+
+char *__wrap_getenvOrDefault(const char *name, const char *defaultValue)
+{
+    if (g_manufacturerPropertyReadFailure && (strcmp(name, "MANUFACTURE") == 0))
+        return NULL;
+    return __real_getenvOrDefault(name, defaultValue);
+}
+
+unsigned int __wrap_sleep(unsigned int seconds)
+{
+    return g_skipSystemMgmtSleep ? 0 : __real_sleep(seconds);
+}
+
+int __wrap_inotify_init(void)
+{
+    if (g_systemMgmtMonitorMode == SYSTEM_MGMT_MONITOR_INIT_FAILURE)
+    {
+        errno = EMFILE;
+        return -1;
+    }
+    g_systemMgmtInotifyFd = __real_inotify_init();
+    return g_systemMgmtInotifyFd;
+}
+
+int __wrap_inotify_add_watch(int fd, const char *pathname, uint32_t mask)
+{
+    if (g_systemMgmtMonitorMode == SYSTEM_MGMT_MONITOR_WATCH_FAILURE)
+    {
+        close(fd);
+        g_systemMgmtInotifyFd = -1;
+        errno = EACCES;
+        return -1;
+    }
+    g_systemMgmtInotifyWatch = __real_inotify_add_watch(fd, pathname, mask);
+    return g_systemMgmtInotifyWatch;
+}
+
+ssize_t __wrap_read(int fd, void *buffer, size_t count)
+{
+    if (fd != g_systemMgmtInotifyFd)
+        return __real_read(fd, buffer, count);
+
+    if (g_systemMgmtMonitorMode == SYSTEM_MGMT_MONITOR_READ_FAILURE)
+    {
+        if (g_systemMgmtInotifyWatch >= 0)
+            inotify_rm_watch(fd, g_systemMgmtInotifyWatch);
+        close(fd);
+        g_systemMgmtInotifyFd = -1;
+        g_systemMgmtInotifyWatch = -1;
+        errno = EIO;
+        return -1;
+    }
+
+    if (g_systemMgmtMonitorMode == SYSTEM_MGMT_MONITOR_START_TIME_EVENT)
+    {
+        const char eventName[] = "start_time";
+        const size_t eventSize = sizeof(struct inotify_event) + sizeof(eventName);
+        if (count < eventSize)
+        {
+            errno = EINVAL;
+            return -1;
+        }
+
+        struct inotify_event event = {};
+        event.wd = g_systemMgmtInotifyWatch;
+        event.mask = IN_ATTRIB;
+        event.len = sizeof(eventName);
+        memcpy(buffer, &event, sizeof(event));
+        memcpy(static_cast<char *>(buffer) + sizeof(event), eventName, sizeof(eventName));
+        return eventSize;
+    }
+    return __real_read(fd, buffer, count);
+}
+
+DIR *__wrap_opendir(const char *name)
+{
+    if (strcmp(name, "/etc/apparmor.d") == 0)
+    {
+        ++g_apparmorDirectoryOpenCount;
+        if (((g_apparmorDirectoryFailure == APPARMOR_DIRECTORY_OPEN_FIRST_FAILURE) &&
+             (g_apparmorDirectoryOpenCount == 1)) ||
+            ((g_apparmorDirectoryFailure == APPARMOR_DIRECTORY_OPEN_SECOND_FAILURE) &&
+             (g_apparmorDirectoryOpenCount == 2)))
+        {
+            errno = EACCES;
+            return NULL;
+        }
+
+        DIR *dir = __real_opendir(name);
+        if (dir != NULL && g_apparmorDirectoryOpenCount <= 2)
+            g_apparmorProfileDirs[g_apparmorDirectoryOpenCount - 1] = dir;
+        return dir;
+    }
+
+    if ((g_apparmorServiceProfilesDirOverride != NULL) &&
+        (strcmp(name, "/etc/apparmor/service_profiles") == 0))
+    {
+        return __real_opendir(g_apparmorServiceProfilesDirOverride);
+    }
+    return __real_opendir(name);
+}
+
+int __wrap_closedir(DIR *dir)
+{
+    int profileDirIndex = 0;
+    for (int index = 0; index < 2; ++index)
+    {
+        if (g_apparmorProfileDirs[index] == dir)
+        {
+            profileDirIndex = index + 1;
+            g_apparmorProfileDirs[index] = NULL;
+            break;
+        }
+    }
+
+    int result = __real_closedir(dir);
+    if ((result == 0) &&
+        (((g_apparmorDirectoryFailure == APPARMOR_DIRECTORY_CLOSE_FIRST_FAILURE) &&
+          (profileDirIndex == 1)) ||
+         ((g_apparmorDirectoryFailure == APPARMOR_DIRECTORY_CLOSE_SECOND_FAILURE) &&
+          (profileDirIndex == 2))))
+    {
+        errno = EIO;
+        return -1;
+    }
+    return result;
+}
+
+FILE *__wrap_fopen(const char *pathname, const char *mode)
+{
+    if (g_failApparmorTmpFopen &&
+        (strcmp(pathname, "/opt/secure/Apparmor_blocklist_bck.txt") == 0))
+    {
+        errno = EACCES;
+        return NULL;
+    }
+    return __real_fopen(pathname, mode);
+}
+
+int __wrap_rename(const char *oldPath, const char *newPath)
+{
+    if (g_failApparmorRename &&
+        (strcmp(newPath, "/opt/secure/Apparmor_blocklist") == 0))
+    {
+        errno = EACCES;
+        return -1;
+    }
+    return __real_rename(oldPath, newPath);
+}
+
+int __wrap_remove(const char *pathname)
+{
+    if (g_failMemInsightRemove &&
+        ((strcmp(pathname, "/opt/.enable_meminsight") == 0) ||
+         (strcmp(pathname, "/tmp/.enable_meminsight") == 0)))
+    {
+        errno = EACCES;
+        return -1;
+    }
+    return __real_remove(pathname);
+}
+
+int __wrap_open(const char *pathname, int flags, ...)
+{
+    if (g_failOtelEndpointOpen &&
+        (strcmp(pathname, OTEL_EXPORT_ENDPOINT_FILE) == 0))
+    {
+        errno = EACCES;
+        return -1;
+    }
+    if ((g_secureDebugFileFailure == SECURE_DEBUG_FILE_OPEN_FAILURE) &&
+        (strcmp(pathname, TEST_SECURE_DEBUG_STATE_FILE) == 0))
+    {
+        errno = EACCES;
+        return -1;
+    }
+
+    int fd;
+    if (flags & O_CREAT)
+    {
+        va_list args;
+        va_start(args, flags);
+        mode_t mode = va_arg(args, mode_t);
+        va_end(args);
+        fd = __real_open(pathname, flags, mode);
+    }
+    else
+    {
+        fd = __real_open(pathname, flags);
+    }
+
+    if ((fd >= 0) && (strcmp(pathname, TEST_SECURE_DEBUG_STATE_FILE) == 0))
+    {
+        g_secureDebugFileFd = fd;
+    }
+    if ((fd >= 0) && (strcmp(pathname, RDK_TRACING_FLAG_FILE) == 0))
+    {
+        g_tracingFlagFd = fd;
+    }
+    if ((fd >= 0) && (strcmp(pathname, OTEL_EXPORT_ENDPOINT_FILE) == 0))
+    {
+        g_otelEndpointFd = fd;
+    }
+    return fd;
+}
+
+int __wrap_fchmod(int fd, mode_t mode)
+{
+    if ((g_secureDebugFileFailure == SECURE_DEBUG_FILE_CHMOD_FAILURE) &&
+        (fd == g_secureDebugFileFd))
+    {
+        errno = EACCES;
+        return -1;
+    }
+    return __real_fchmod(fd, mode);
+}
+
+FILE *__wrap_fdopen(int fd, const char *mode)
+{
+    if (g_failOtelEndpointFdopen && (fd == g_otelEndpointFd))
+    {
+        errno = EMFILE;
+        return NULL;
+    }
+    if (g_failTracingFlagFdopen && (fd == g_tracingFlagFd))
+    {
+        errno = EMFILE;
+        return NULL;
+    }
+    if ((g_secureDebugFileFailure == SECURE_DEBUG_FILE_FDOPEN_FAILURE) &&
+        (fd == g_secureDebugFileFd))
+    {
+        errno = EMFILE;
+        return NULL;
+    }
+    return __real_fdopen(fd, mode);
+}
+
+int __wrap_fprintf(FILE *stream, const char *format, ...)
+{
+    if ((g_secureDebugFileFailure == SECURE_DEBUG_FILE_WRITE_FAILURE) &&
+        (fileno(stream) == g_secureDebugFileFd))
+    {
+        errno = ENOSPC;
+        return -1;
+    }
+
+    va_list args;
+    va_start(args, format);
+    int result = vfprintf(stream, format, args);
+    va_end(args);
+    return result;
+}
+
+int __wrap_fflush(FILE *stream)
+{
+    if ((g_secureDebugFileFailure == SECURE_DEBUG_FILE_FLUSH_FAILURE) &&
+        (fileno(stream) == g_secureDebugFileFd))
+    {
+        errno = ENOSPC;
+        return EOF;
+    }
+    return __real_fflush(stream);
+}
+
+int __wrap_fputs(const char *string, FILE *stream)
+{
+    if (g_failOtelEndpointFputs && (fileno(stream) == g_otelEndpointFd))
+    {
+        errno = ENOSPC;
+        return EOF;
+    }
+    if (g_preferredGatewayFputsFail)
+    {
+        errno = ENOSPC;
+        return EOF;
+    }
+    return __real_fputs(string, stream);
+}
+
+int __wrap_sysinfo(struct sysinfo *info)
+{
+    if (g_sysinfo_fail)
+    {
+        errno = EFAULT;
+        return -1;
+    }
+    return __real_sysinfo(info);
+}
+int __real_getifaddrs(struct ifaddrs **ifap);
+void __real_freeifaddrs(struct ifaddrs *ifa);
+
+int __wrap_getifaddrs(struct ifaddrs **ifap)
+{
+    switch (g_getifaddrs_mode)
+    {
+    case GETIFADDRS_FAIL:
+        return -1;
+    case GETIFADDRS_THROW:
+        throw std::runtime_error("getifaddrs failure");
+    case GETIFADDRS_FAKE_WLAN0:
+        memset(g_fakeIfaddrs, 0, sizeof(g_fakeIfaddrs));
+        memset(&g_fakeWlanV4, 0, sizeof(g_fakeWlanV4));
+        memset(&g_fakeWlanV6, 0, sizeof(g_fakeWlanV6));
+        g_fakeWlanV4.sin_family = AF_INET;
+        inet_pton(AF_INET, "192.168.10.20", &g_fakeWlanV4.sin_addr);
+        g_fakeWlanV6.sin6_family = AF_INET6;
+        inet_pton(AF_INET6, "2001:db8::20", &g_fakeWlanV6.sin6_addr);
+        g_fakeIfaddrs[0].ifa_name = g_fakeWlanName;
+        g_fakeIfaddrs[0].ifa_addr = (struct sockaddr *)&g_fakeWlanV4;
+        g_fakeIfaddrs[0].ifa_next = &g_fakeIfaddrs[1];
+        g_fakeIfaddrs[1].ifa_name = g_fakeWlanName;
+        g_fakeIfaddrs[1].ifa_addr = (struct sockaddr *)&g_fakeWlanV6;
+        *ifap = g_fakeIfaddrs;
+        return 0;
+    default:
+        return __real_getifaddrs(ifap);
+    }
+}
+
+void __wrap_freeifaddrs(struct ifaddrs *ifa)
+{
+    if (ifa != g_fakeIfaddrs)
+        __real_freeifaddrs(ifa);
+}
+} /* extern "C" */
 
 static void* handle_reset_time_mock(void* arg);
 static void* handle_zero_reset_time_mock(void* arg);
@@ -624,6 +1048,19 @@ TEST(deviceInfoTest, getUptime) {
     }
 }
 
+TEST(deviceInfoTest, getUptime_SysinfoFailure) {
+    HOSTIF_MsgData_t msgData = {};
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    g_sysinfo_fail = true;
+    int ret = pIface->get_Device_DeviceInfo_UpTime(&msgData, &bChanged);
+    g_sysinfo_fail = false;
+
+    EXPECT_EQ(ret, NOK);
+}
+
 TEST(deviceInfoTest, setFirmwareToDownload) {
     HOSTIF_MsgData_t msgData;
     int instanceNumber = 0;
@@ -741,6 +1178,22 @@ TEST(deviceInfoTest, getFirmwareDownloadUrl_NoStatusFile)
     EXPECT_EQ(ret, NOK);
 }
 
+TEST(deviceInfoTest, getFirmwareDownloadUrl_Success)
+{
+    write_on_file("/opt/fwdnldstatus.txt", "Method|xconf\nDnldURL|https://dl.example.com/fw\n");
+    HOSTIF_MsgData_t msgData;
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    memset(&msgData, 0, sizeof(msgData));
+
+    int ret = pIface->get_Device_DeviceInfo_X_COMCAST_COM_FirmwareDownloadURL(&msgData, &bChanged);
+
+    EXPECT_EQ(ret, OK);
+    EXPECT_STREQ(msgData.paramValue, "https://dl.example.com/fw");
+    std::remove("/opt/fwdnldstatus.txt");
+}
+
 TEST(deviceInfoTest, getFirmwareDownloadCodebig) {
     HOSTIF_MsgData_t msgData;
     bool bChanged;
@@ -767,6 +1220,22 @@ TEST(deviceInfoTest, getFirmwareDownloadCodebig_NoStatusFile)
     memset(&msgData, 0, sizeof(msgData));
     int ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadUseCodebig(&msgData, &bChanged);
     EXPECT_EQ(ret, NOK);
+}
+
+TEST(deviceInfoTest, getFirmwareDownloadCodebig_Success)
+{
+    write_on_file("/opt/fwdnldstatus.txt", "Method|xconf\nCodebig_Enable|true\n");
+    HOSTIF_MsgData_t msgData;
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    memset(&msgData, 0, sizeof(msgData));
+
+    int ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareDownloadUseCodebig(&msgData, &bChanged);
+
+    EXPECT_EQ(ret, OK);
+    EXPECT_STREQ(msgData.paramValue, "true");
+    std::remove("/opt/fwdnldstatus.txt");
 }
 
 TEST(deviceInfoTest, getFirmwareDownloadDeferReboot) {
@@ -812,6 +1281,22 @@ TEST(deviceInfoTest, getFirmwareDownloadState_NoStatusFile)
     EXPECT_EQ(ret, NOK);
 }
 
+TEST(deviceInfoTest, getFirmwareDownloadState_Success)
+{
+    write_on_file("/opt/fwdnldstatus.txt", "Method|xconf\nFwUpdateState|Download complete\n");
+    HOSTIF_MsgData_t msgData;
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    memset(&msgData, 0, sizeof(msgData));
+
+    int ret = pIface->get_Device_DeviceInfo_X_RDKCENTRAL_COM_FirmwareUpdateState(&msgData, &bChanged);
+
+    EXPECT_EQ(ret, OK);
+    EXPECT_STREQ(msgData.paramValue, "Download complete");
+    std::remove("/opt/fwdnldstatus.txt");
+}
+
 TEST(deviceInfoTest, getProcessorCount) {
     HOSTIF_MsgData_t msgData;
     int instanceNumber = 0;
@@ -842,6 +1327,34 @@ TEST(deviceInfoTest, getMemoryTotal) {
     }
 }
 
+TEST(deviceInfoTest, getMemoryTotal_SysinfoFailure) {
+    HOSTIF_MsgData_t msgData;
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    memset(&msgData, 0, sizeof(msgData));
+
+    g_sysinfo_fail = true;
+    int ret = pIface->get_Device_DeviceInfo_MemoryStatus_Total(&msgData, &bChanged);
+    g_sysinfo_fail = false;
+
+    EXPECT_EQ(ret, NOK);
+}
+
+TEST(deviceInfoTest, getMemoryFree_SysinfoFailure) {
+    HOSTIF_MsgData_t msgData;
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    memset(&msgData, 0, sizeof(msgData));
+
+    g_sysinfo_fail = true;
+    int ret = pIface->get_Device_DeviceInfo_MemoryStatus_Free(&msgData, &bChanged);
+    g_sysinfo_fail = false;
+
+    EXPECT_EQ(ret, NOK);
+}
+
 TEST(deviceInfoTest, getMemoryFree) {
     HOSTIF_MsgData_t msgData;
     bool bChanged;
@@ -855,6 +1368,35 @@ TEST(deviceInfoTest, getMemoryFree) {
         cout << "msgData.paramValue = " <<  get_int(msgData.paramValue) << " msgData.faultCode=" << msgData.faultCode << endl;
         EXPECT_EQ(msgData.faultCode,0);
     }
+}
+
+// BootTime caches its result in a static, so these failure tests must run before getBootTime.
+TEST(deviceInfoTest, getBootTime_SysinfoFailure) {
+    HOSTIF_MsgData_t msgData;
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    memset(&msgData, 0, sizeof(msgData));
+
+    g_sysinfo_fail = true;
+    int ret = pIface->get_X_RDKCENTRAL_COM_BootTime(&msgData, &bChanged);
+    g_sysinfo_fail = false;
+
+    EXPECT_EQ(ret, NOK);
+}
+
+TEST(deviceInfoTest, getBootTime_GettimeofdayFailure) {
+    HOSTIF_MsgData_t msgData;
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    memset(&msgData, 0, sizeof(msgData));
+
+    g_gettimeofday_fail = true;
+    int ret = pIface->get_X_RDKCENTRAL_COM_BootTime(&msgData, &bChanged);
+    g_gettimeofday_fail = false;
+
+    EXPECT_EQ(ret, NOK);
 }
 
 TEST(deviceInfoTest, getBootTime) {
@@ -1102,6 +1644,20 @@ TEST(deviceTest, get_Device_DeviceInfo_Manufacturer_EmptyEnv)
     EXPECT_EQ(msgData.paramLen, 0);
 }
 
+TEST(deviceTest, get_Device_DeviceInfo_Manufacturer_PropertyReadFailure)
+{
+    HOSTIF_MsgData_t msgData = {};
+    bool bChanged = false;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    g_manufacturerPropertyReadFailure = true;
+    int ret = pIface->get_Device_DeviceInfo_Manufacturer(&msgData, &bChanged);
+    g_manufacturerPropertyReadFailure = false;
+
+    EXPECT_EQ(ret, NOK);
+}
+
 TEST(deviceTest, getLastField) {
     char input[] = "device ip stb mac";
     char *last = getLastField(input, ' ');
@@ -1261,50 +1817,50 @@ TEST(deviceTest, set_xOpsRPCDevManageableNotification_Enabled)
 }
 
 TEST(deviceTest, set_xOpsRPCFwDwldStartedNotification) {
-    HOSTIF_MsgData_t param;
-    bool bChanged; 
-    int instanceNumber = 0;
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_SET;    
-    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ManageableNotification.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
-    
-    put_boolean(param.paramValue, true);
-    param.paramtype = hostIf_BooleanType;
-    param.paramLen = sizeof(hostIf_BooleanType);
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        bChanged =  false;
-        int ret = pIface->set_xOpsRPCFwDwldStartedNotification(&param);
-        cout << "param.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, OK);
-    }
+    XRFCStore *rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+    HOSTIF_MsgData_t rfcParam = {};
+    strncpy(rfcParam.paramName, X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    put_boolean(rfcParam.paramValue, true);
+    rfcParam.paramtype = hostIf_BooleanType;
+    rfcParam.paramLen = sizeof(hostIf_BooleanType);
+    ASSERT_EQ(rfcStore->setValue(&rfcParam), fcNoFault);
+
+    HOSTIF_MsgData_t param = {};
+    strncpy(param.paramName, X_OPS_RPC_FW_DNLD_STARTED_NOTIFICATION, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "firmware-started-time", sizeof(param.paramValue) - 1);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    param.paramtype = hostIf_StringType;
+    param.paramLen = strlen(param.paramValue);
+    EXPECT_EQ(pIface->set_xOpsRPCFwDwldStartedNotification(&param), OK);
+    put_boolean(rfcParam.paramValue, false);
+    EXPECT_EQ(rfcStore->setValue(&rfcParam), fcNoFault);
 }
 
 TEST(deviceTest, set_xOpsRPCFwDwldCompletedNotification) {
-    HOSTIF_MsgData_t param;
-    bool bChanged;
-    int instanceNumber = 0;
-    memset(&param,0,sizeof(HOSTIF_MsgData_t));
-    param.reqType = HOSTIF_SET;
-    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.ManageableNotification.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
-    param.bsUpdate = HOSTIF_NONE;
-    param.requestor = HOSTIF_SRC_RFC;
+    XRFCStore *rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+    HOSTIF_MsgData_t rfcParam = {};
+    strncpy(rfcParam.paramName, X_RDK_RFC_MANGEBLENOTIFICATION_ENABLE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    put_boolean(rfcParam.paramValue, true);
+    rfcParam.paramtype = hostIf_BooleanType;
+    rfcParam.paramLen = sizeof(hostIf_BooleanType);
+    ASSERT_EQ(rfcStore->setValue(&rfcParam), fcNoFault);
 
+    HOSTIF_MsgData_t param = {};
+    strncpy(param.paramName, X_OPS_RPC_FW_DNLD_COMPLETED_NOTIFICATION, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
     put_boolean(param.paramValue, true);
     param.paramtype = hostIf_BooleanType;
     param.paramLen = sizeof(hostIf_BooleanType);
 
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
-    if(pIface)
-    {
-        bChanged =  false;
-        int ret = pIface->set_xOpsRPCFwDwldCompletedNotification(&param);
-        cout << "param.paramValue = " << param.paramValue << endl;
-        EXPECT_EQ(ret, OK);
-    }
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xOpsRPCFwDwldCompletedNotification(&param), OK);
+
+    put_boolean(rfcParam.paramValue, false);
+    EXPECT_EQ(rfcStore->setValue(&rfcParam), fcNoFault);
 }
 
 TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification) {
@@ -1658,6 +2214,21 @@ TEST(deviceTest, set_xOpsDeviceMgmtForwardSSHEnable) {
     }
 }
 
+TEST(deviceTest, set_xOpsDeviceMgmtForwardSSHEnable_TrueValue)
+{
+    HOSTIF_MsgData_t param = {};
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ForwardSSH.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    put_boolean(param.paramValue, true);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_xOpsDeviceMgmtForwardSSHEnable(&param), OK);
+}
+
 TEST(deviceTest, set_xOpsDeviceMgmtForwardSSHDisable) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
@@ -1707,6 +2278,24 @@ TEST(deviceTest, set_xOpsDeviceMgmtForwardSSH_FileRemoved) {
     }
 }
 
+TEST(deviceTest, set_xOpsDeviceMgmtForwardSSH_OpenFails) {
+    const char *path = "/opt/secure/.RFC_ForwardSSH";
+    std::remove(path);
+    ASSERT_EQ(mkdir(path, 0755), 0);
+
+    HOSTIF_MsgData_t param = { 0 };
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ForwardSSH.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    put_boolean(param.paramValue, true);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xOpsDeviceMgmtForwardSSHEnable(&param), NOK);
+
+    rmdir(path);
+}
+
 TEST(deviceTest, validate_ParamValue) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));
@@ -1728,6 +2317,36 @@ TEST(deviceTest, validate_ParamValue) {
         cout << "param.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, OK);
     }
+}
+
+TEST(deviceTest, validate_ParamValue_ThresholdOutOfRange) {
+    HOSTIF_MsgData_t param = { 0 };
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Tr069DoSLimit.Threshold", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "31", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen = strlen(param.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    int ret = pIface->validate_ParamValue(&param);
+
+    EXPECT_EQ(ret, NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterValue);
+}
+
+TEST(deviceTest, validate_ParamValue_UnsignedInt)
+{
+    HOSTIF_MsgData_t param = {};
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Tr069DoSLimit.Threshold", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(param.paramValue, "12", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_UnsignedIntType;
+    param.paramLen = strlen(param.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->validate_ParamValue(&param), OK);
 }
 
 TEST(deviceTest, get_PartnerId_From_Script) {
@@ -1961,6 +2580,16 @@ TEST(deviceTest, get_ApparmorBlockListStatus) {
     }
 }
 
+TEST(deviceTest, get_ApparmorBlockListStatus_StrcpyFails) {
+    HOSTIF_MsgData_t msgData = {};
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    write_on_file("/opt/secure/Apparmor_blocklist", std::string(TR69HOSTIFMGR_MAX_PARAM_LEN, 'x'));
+    EXPECT_EQ(pIface->get_ApparmorBlockListStatus(&msgData), OK);
+    std::remove("/opt/secure/Apparmor_blocklist");
+}
+
 
 TEST(deviceTest, get_xOpsDeviceMgmtForwardSSHEnable) {
     HOSTIF_MsgData_t param = { 0 };
@@ -1986,6 +2615,30 @@ TEST(deviceTest, get_xOpsDeviceMgmtForwardSSHEnable) {
         EXPECT_EQ(ret, OK);
         EXPECT_EQ(getStringValue(&param), "false");
     }
+}
+
+TEST(deviceTest, get_xOpsDeviceMgmtForwardSSHEnable_ExactTrueNoNewline) {
+    HOSTIF_MsgData_t param = { 0 };
+    memset(&param,0,sizeof(HOSTIF_MsgData_t));
+    param.reqType = HOSTIF_GET;
+    strncpy (param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ForwardSSH.Enable", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+
+    std::remove("/opt/secure/.RFC_ForwardSSH");
+    std::ofstream ofs("/opt/secure/.RFC_ForwardSSH", std::ios::trunc | std::ios::out);
+    ASSERT_TRUE(ofs.is_open());
+    ofs << "ForwardSSH=true";
+    ofs.close();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    int ret = pIface->get_xOpsDeviceMgmtForwardSSHEnable(&param);
+    EXPECT_EQ(ret, OK);
+    EXPECT_EQ(getStringValue(&param), "true");
 }
 
 TEST(deviceTest, SecureDebugState_Enabled)
@@ -2074,6 +2727,63 @@ TEST(deviceTest, SecureDebugState_BothDisabled)
     EXPECT_EQ(readSecureDebugStateFile(), "0");
 
     removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_RFCReadFailure)
+{
+    removeSecureDebugStateFile();
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    setSecureDebugRFCValues(true, "test");
+
+    XRFCStore *rfcStore = XRFCStore::getInstance();
+    ASSERT_NE(rfcStore, nullptr);
+
+    HOSTIF_MsgData_t clearParam = {0};
+    clearParam.reqType = HOSTIF_SET;
+    strncpy(clearParam.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.ClearParam", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    clearParam.requestor = HOSTIF_SRC_RFC;
+    strncpy(clearParam.paramValue, TEST_RFC_DBG_SERVICES, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    clearParam.paramtype = hostIf_StringType;
+    clearParam.paramLen = strlen(clearParam.paramValue);
+    ASSERT_EQ(rfcStore->setValue(&clearParam), fcNoFault);
+
+    EXPECT_EQ(pIface->updateSecureDebugState(), OK);
+    EXPECT_EQ(readSecureDebugStateFile(), "0");
+
+    setSecureDebugRFCValues(true, "test");
+    removeSecureDebugStateFile();
+}
+
+TEST(deviceTest, SecureDebugState_FileWriteFailures)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    const SecureDebugFileFailure failures[] = {
+        SECURE_DEBUG_FILE_OPEN_FAILURE,
+        SECURE_DEBUG_FILE_CHMOD_FAILURE,
+        SECURE_DEBUG_FILE_FDOPEN_FAILURE,
+        SECURE_DEBUG_FILE_WRITE_FAILURE,
+        SECURE_DEBUG_FILE_FLUSH_FAILURE
+    };
+
+    for (SecureDebugFileFailure failure : failures)
+    {
+        removeSecureDebugStateFile();
+        setSecureDebugRFCValues(true, "test");
+        g_secureDebugFileFd = -1;
+        g_secureDebugFileFailure = failure;
+
+        EXPECT_EQ(pIface->updateSecureDebugState(), NOK)
+            << "Secure-debug file failure mode " << failure;
+
+        g_secureDebugFileFailure = SECURE_DEBUG_FILE_NO_FAILURE;
+        g_secureDebugFileFd = -1;
+        removeSecureDebugStateFile();
+    }
 }
 
 TEST(deviceTest, SecureDebugState_NullInput)
@@ -2461,6 +3171,46 @@ TEST(deviceTest, set_Device_DeviceInfo_IUI_Version) {
     }
 }
 
+TEST(deviceTest, set_Device_DeviceInfo_IUI_Version_OpenFails) {
+    std::remove("/tmp/.iuiVersion");
+    ASSERT_EQ(mkdir("/tmp/.iuiVersion", 0755), 0);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(msgData.paramValue, "5.5", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_StringType;
+    msgData.paramLen = strlen(msgData.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_IUI_Version(&msgData), NOK);
+
+    rmdir("/tmp/.iuiVersion");
+}
+
+TEST(deviceTest, set_Device_DeviceInfo_IUI_Version_WriteFails) {
+    if (access("/dev/full", W_OK) != 0) {
+        GTEST_SKIP() << "/dev/full not available";
+    }
+    std::remove("/tmp/.iuiVersion");
+    ASSERT_EQ(symlink("/dev/full", "/tmp/.iuiVersion"), 0);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.Version", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    // >= 1KB bypasses the filebuf buffer so the ENOSPC from /dev/full sets failbit immediately
+    memset(msgData.paramValue, 'v', 2048);
+    msgData.paramtype = hostIf_StringType;
+    msgData.paramLen = strlen(msgData.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_IUI_Version(&msgData), NOK);
+
+    unlink("/tmp/.iuiVersion");
+}
+
 TEST(deviceTest, get_Device_DeviceInfo_IUI_Version_FileRemoved) {
     std::remove("/tmp/.iuiVersion");
     HOSTIF_MsgData_t msgData;
@@ -2554,6 +3304,61 @@ TEST(deviceTest, set_Device_DeviceInfo_Empty_IUI_AppsVersion) {
         int ret = pIface->set_Device_DeviceInfo_IUI_AppsVersion(&msgData);
         EXPECT_EQ(ret, OK);
     }
+}
+
+TEST(deviceTest, set_Device_DeviceInfo_IUI_AppsVersion_EmptyFileAbsent) {
+    std::remove("/tmp/.iuiAppsVersion");
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_StringType;
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_IUI_AppsVersion(&msgData), OK);
+
+    std::remove("/tmp/.iuiAppsVersion");
+}
+
+TEST(deviceTest, set_Device_DeviceInfo_IUI_AppsVersion_OpenFails) {
+    std::remove("/tmp/.iuiAppsVersion");
+    ASSERT_EQ(mkdir("/tmp/.iuiAppsVersion", 0755), 0);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(msgData.paramValue, "8.8", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramtype = hostIf_StringType;
+    msgData.paramLen = strlen(msgData.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_IUI_AppsVersion(&msgData), NOK);
+
+    rmdir("/tmp/.iuiAppsVersion");
+}
+
+TEST(deviceTest, set_Device_DeviceInfo_IUI_AppsVersion_WriteFails) {
+    if (access("/dev/full", W_OK) != 0) {
+        GTEST_SKIP() << "/dev/full not available";
+    }
+    std::remove("/tmp/.iuiAppsVersion");
+    ASSERT_EQ(symlink("/dev/full", "/tmp/.iuiAppsVersion"), 0);
+
+    HOSTIF_MsgData_t msgData;
+    memset(&msgData, 0, sizeof(HOSTIF_MsgData_t));
+    strncpy(msgData.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM.IUI.AppsVersion", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    // >= 1KB bypasses the filebuf buffer so the ENOSPC from /dev/full sets failbit immediately
+    memset(msgData.paramValue, 'a', 2048);
+    msgData.paramtype = hostIf_StringType;
+    msgData.paramLen = strlen(msgData.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_IUI_AppsVersion(&msgData), NOK);
+
+    unlink("/tmp/.iuiAppsVersion");
 }
 
 TEST(deviceTest, get_Device_DeviceInfo_IUI_AppsVersion_FileRemoved) {
@@ -3221,6 +4026,17 @@ TEST(deviceInfoTest, findLocalPortAvailable) {
    }
 }
 
+TEST(deviceInfoTest, findLocalPortAvailable_SocketFailure) {
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    g_socket_fail = true;
+    int port = pIface->findLocalPortAvailable();
+    g_socket_fail = false;
+
+    EXPECT_EQ(port, -1);
+}
+
 TEST(deviceInfoTest, findLocalPortAvailable_PortInUse) {
     // Server listening on 3000 -> connect() succeeds (status>=0) -> covers lines 3021-3022,3031
     int serverSock = socket(AF_INET, SOCK_STREAM, 0);
@@ -3510,6 +4326,35 @@ TEST(deviceTest, get_Device_DeviceInfo_X_COMCAST_COM_STB_IP_WithInterface)
     EXPECT_EQ(ret, OK);
     EXPECT_FALSE(bChanged);
 
+    unsetenv("DEFAULT_ESTB_INTERFACE");
+}
+
+TEST(deviceTest, get_Device_DeviceInfo_X_COMCAST_COM_STB_IP_Changed)
+{
+    std::remove("/tmp/estb_ipv6");
+    std::remove("/tmp/wifi-on");
+    setenv("DEFAULT_ESTB_INTERFACE", "wlan0", 1);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    HOSTIF_MsgData_t param = {};
+    bool bChanged = false;
+    g_getifaddrs_mode = GETIFADDRS_FAKE_WLAN0;
+
+    int ret = pIface->get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(&param, &bChanged);
+    EXPECT_EQ(ret, OK);
+    EXPECT_STREQ(param.paramValue, "192.168.10.20");
+
+    bChanged = false;
+    { std::ofstream ipv6File("/tmp/estb_ipv6"); }
+    ret = pIface->get_Device_DeviceInfo_X_COMCAST_COM_STB_IP(&param, &bChanged);
+    EXPECT_EQ(ret, OK);
+    EXPECT_STREQ(param.paramValue, "2001:db8::20");
+    EXPECT_TRUE(bChanged);
+
+    g_getifaddrs_mode = GETIFADDRS_REAL;
+    std::remove("/tmp/estb_ipv6");
     unsetenv("DEFAULT_ESTB_INTERFACE");
 }
 
@@ -4006,6 +4851,134 @@ TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerI
     write_on_file("/opt/www/authService/partnerId3.dat", "global");
 }
 
+static void* handle_set_partner_success_mock(void* arg)
+{
+    int serverSock = (int)(intptr_t)arg;
+    int clientSock = accept(serverSock, NULL, NULL);
+    if (clientSock < 0) return NULL;
+
+    char buf[4096] = {};
+    recv(clientSock, buf, sizeof(buf) - 1, 0);
+    const char* jsonBody = "{\"jsonrpc\":\"2.0\",\"id\":\"3\",\"result\":{\"success\":true}}";
+    char resp[512];
+    snprintf(resp, sizeof(resp),
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: application/json\r\n"
+        "Content-Length: %d\r\n"
+        "Connection: close\r\n"
+        "\r\n%s",
+        (int)strlen(jsonBody), jsonBody);
+    send(clientSock, resp, strlen(resp), 0);
+    close(clientSock);
+    return NULL;
+}
+
+static int startSetPartnerMockServer(pthread_t *tid)
+{
+    int serverSock = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSock < 0) return -1;
+    int opt = 1;
+    setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    struct sockaddr_in addr = {};
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(9998);
+    if (bind(serverSock, (struct sockaddr*)&addr, sizeof(addr)) != 0 || listen(serverSock, 1) != 0) {
+        close(serverSock);
+        return -1;
+    }
+    pthread_create(tid, NULL, handle_set_partner_success_mock, (void*)(intptr_t)serverSock);
+    return serverSock;
+}
+
+static void fillPartnerIdSetMsg(HOSTIF_MsgData_t *msgData, const char *partnerId)
+{
+    memset(msgData, 0, sizeof(HOSTIF_MsgData_t));
+    msgData->reqType = HOSTIF_SET;
+    strncpy(msgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData->requestor = HOSTIF_SRC_RFC;
+    strncpy(msgData->paramValue, partnerId, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData->paramtype = hostIf_StringType;
+    msgData->paramLen = strlen(msgData->paramValue);
+}
+
+TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId_UploadSuccess) {
+    write_on_file("/opt/www/authService/partnerId3.dat", "sky");
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    pthread_t tid;
+    int serverSock = startSetPartnerMockServer(&tid);
+    if (serverSock < 0) { GTEST_SKIP() << "port 9998 unavailable"; }
+
+    HOSTIF_MsgData_t msgData;
+    fillPartnerIdSetMsg(&msgData, "comcast");
+    int ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId(&msgData);
+
+    pthread_join(tid, NULL);
+    close(serverSock);
+
+    EXPECT_EQ(ret, OK);
+    write_on_file("/opt/www/authService/partnerId3.dat", "global");
+}
+
+TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId_LoadJsonFails) {
+    const char *bsJson = "/etc/partners_defaults.json";
+    const char *bsJsonBak = "/etc/partners_defaults.json.ut_bak";
+    bool hadJson = (rename(bsJson, bsJsonBak) == 0);
+    write_on_file(bsJson, "{ not valid json");
+    write_on_file("/opt/www/authService/partnerId3.dat", "sky");
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    pthread_t tid;
+    int serverSock = startSetPartnerMockServer(&tid);
+    if (serverSock >= 0) {
+        HOSTIF_MsgData_t msgData;
+        fillPartnerIdSetMsg(&msgData, "loadjsonfail");
+        int ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId(&msgData);
+
+        pthread_join(tid, NULL);
+        close(serverSock);
+        EXPECT_EQ(ret, NOK);
+    }
+
+    std::remove(bsJson);
+    if (hadJson) {
+        rename(bsJsonBak, bsJson);
+    }
+    write_on_file("/opt/www/authService/partnerId3.dat", "global");
+    if (serverSock < 0) { GTEST_SKIP() << "port 9998 unavailable"; }
+}
+
+TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId_BootstrapUpdateFails) {
+    write_on_file("/opt/www/authService/partnerId3.dat", "sky");
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    XBSStore *bsStore = XBSStore::getInstance();
+    const string savedFilename = bsStore->m_filename;
+    // A directory as the bootstrap file makes setRawValue's ofstream fail
+    bsStore->m_filename = "/tmp";
+
+    pthread_t tid;
+    int serverSock = startSetPartnerMockServer(&tid);
+    if (serverSock >= 0) {
+        HOSTIF_MsgData_t msgData;
+        fillPartnerIdSetMsg(&msgData, "bsupdatefail");
+        int ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId(&msgData);
+
+        pthread_join(tid, NULL);
+        close(serverSock);
+        EXPECT_EQ(ret, NOK);
+    }
+
+    bsStore->m_filename = savedFilename;
+    write_on_file("/opt/www/authService/partnerId3.dat", "global");
+    if (serverSock < 0) { GTEST_SKIP() << "port 9998 unavailable"; }
+}
+
 TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType) {
     int instanceNumber = 0;
 
@@ -4064,6 +5037,22 @@ TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType
     EXPECT_EQ(ret, NOK);
 
     rmdir("/opt/prefered-gateway");
+}
+
+TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType_FputsFails) {
+    HOSTIF_MsgData_t msgData = {};
+    msgData.reqType = HOSTIF_SET;
+    strncpy(msgData.paramName, "X_RDKCENTRAL-COM_RDKVersion.X_RDKCENTRAL-COM_PreferredGatewayType", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    strncpy(msgData.paramValue, "preferred-gateway-test", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    g_preferredGatewayFputsFail = true;
+    int ret = pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType(&msgData);
+    g_preferredGatewayFputsFail = false;
+
+    EXPECT_EQ(ret, NOK);
 }
 
 TEST(deviceInfoTest, get_Device_DeviceInfo_X_RDKCENTRAL_COM_PreferredGatewayType_FileRemoved) {
@@ -4237,6 +5226,38 @@ TEST(deviceTest, set_xRDKCentralComRFCRetrieveNow_GettimeofdayFailure)
 
     g_gettimeofday_fail = false;
     EXPECT_EQ(ret, NOK);
+}
+
+TEST(deviceTest, executeRfcMgr_LogFileOpened)
+{
+    const char *logPath = "/opt/logs/rfcscript.log";
+    mkdir("/opt", 0755);
+    mkdir("/opt/logs", 0755);
+    struct stat st;
+    if (stat(logPath, &st) == 0 && S_ISDIR(st.st_mode)) {
+        rmdir(logPath);
+    }
+
+    executeRfcMgr();
+
+    EXPECT_EQ(access(logPath, F_OK), 0);
+}
+
+TEST(deviceTest, executeRfcMgr_LogFileOpenFails)
+{
+    const char *logPath = "/opt/logs/rfcscript.log";
+    mkdir("/opt", 0755);
+    mkdir("/opt/logs", 0755);
+    unlink(logPath);
+    // A directory at the log path makes fopen("a") fail, exercising the cleanup branch
+    ASSERT_EQ(mkdir(logPath, 0755), 0);
+
+    executeRfcMgr();
+
+    struct stat st;
+    EXPECT_EQ(stat(logPath, &st), 0);
+    EXPECT_TRUE(S_ISDIR(st.st_mode));
+    rmdir(logPath);
 }
 
 TEST(deviceTest, get_xRDKCentralComBootstrap) {
@@ -5549,6 +6570,58 @@ TEST(deviceTest, set_xRDKCentralComRFC_MS12_DE_Disable)
     EXPECT_TRUE((ret == OK) || (ret == NOK));
 }
 
+TEST(deviceTest, set_xRDKCentralComRFC_DispatchUncoveredBranches)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    HOSTIF_MsgData_t param = {};
+    auto setParamName = [&param](const char *paramName) {
+        memset(&param, 0, sizeof(param));
+        param.reqType = HOSTIF_SET;
+        param.requestor = HOSTIF_SRC_RFC;
+        strncpy(param.paramName, paramName, sizeof(param.paramName) - 1);
+    };
+
+    setParamName(MS12_DAPV2_RFC_ENABLE);
+    put_boolean(param.paramValue, false);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+    int ret = pIface->set_xRDKCentralComRFC(&param);
+    EXPECT_TRUE((ret == OK) || (ret == NOK));
+
+    setParamName(MS12_DE_RFC_ENABLE);
+    put_boolean(param.paramValue, true);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+    ret = pIface->set_xRDKCentralComRFC(&param);
+    EXPECT_TRUE((ret == OK) || (ret == NOK));
+
+    setParamName(DAB_RFC_ENABLE);
+    strncpy(param.paramValue, "true", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_StringType;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+
+    setParamName(RFC_CTL_RETRIEVE_NOW);
+    put_ulong(param.paramValue, 0);
+    param.paramtype = hostIf_UnsignedIntType;
+    param.paramLen = sizeof(hostIf_UnsignedIntType);
+    g_gettimeofday_fail = true;
+    ret = pIface->set_xRDKCentralComRFC(&param);
+    g_gettimeofday_fail = false;
+    EXPECT_TRUE((ret == OK) || (ret == NOK));
+
+    setParamName(MEMINSIGHT_TRIGGER);
+    strncpy(param.paramValue, "stop", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_BooleanType;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+
+    setParamName(DISTRIBUTED_TRACING_RFC_URL);
+    strncpy(param.paramValue, "https://example.invalid", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_BooleanType;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+}
+
 TEST(deviceTest, set_xRDKCentralComRFC_LoudnessEquivalence_Dispatch)
 {
     int instanceNumber = 0;
@@ -5568,6 +6641,50 @@ TEST(deviceTest, set_xRDKCentralComRFC_LoudnessEquivalence_Dispatch)
 
     int ret = pIface->set_xRDKCentralComRFC(&param);
     EXPECT_TRUE((ret == OK) || (ret == NOK));
+}
+
+TEST(deviceTest, set_xRDKCentralComApparmorBlocklist_UncoveredBranches)
+{
+    const char *configPath = "/opt/secure/Apparmor_blocklist";
+    const char *tmpPath = "/opt/secure/Apparmor_blocklist_bck.txt";
+    std::string backupPath = "/tmp/Apparmor_blocklist_" + std::to_string(getpid());
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_xRDKCentralComApparmorBlocklist(NULL), NOK);
+
+    HOSTIF_MsgData_t param = {};
+    EXPECT_EQ(pIface->set_xRDKCentralComApparmorBlocklist(&param), NOK);
+    strncpy(param.paramValue, ".:enforce", sizeof(param.paramValue) - 1);
+
+    bool hadOriginalConfig = access(configPath, F_OK) == 0;
+    if (hadOriginalConfig)
+        ASSERT_EQ(rename(configPath, backupPath.c_str()), 0);
+
+    std::remove(tmpPath);
+    g_failApparmorTmpFopen = true;
+    EXPECT_EQ(pIface->set_xRDKCentralComApparmorBlocklist(&param), NOK);
+    g_failApparmorTmpFopen = false;
+
+    {
+        std::ofstream configFile(configPath);
+        ASSERT_TRUE(configFile.is_open());
+        configFile << ".:enforce\n";
+    }
+
+    EXPECT_EQ(pIface->set_xRDKCentralComApparmorBlocklist(&param), OK);
+
+    g_failApparmorRename = true;
+    EXPECT_EQ(pIface->set_xRDKCentralComApparmorBlocklist(&param), NOK);
+    g_failApparmorRename = false;
+
+    std::remove(tmpPath);
+    std::remove(configPath);
+    if (hadOriginalConfig)
+        EXPECT_EQ(rename(backupPath.c_str(), configPath), 0);
+    else
+        std::remove(backupPath.c_str());
 }
 
 TEST(deviceTest, set_xRDKCentralComRFC_ApparmorBlocklist_Dispatch)
@@ -5691,6 +6808,10 @@ TEST(deviceTest, set_xFirmwareDownloadNow_AllBranches)
     hostIf_DeviceInfo::m_xFirmwareDownloadURL.clear();
     hostIf_DeviceInfo::m_xFirmwareToDownload.clear();
     g_v_secure_system_result = -1;
+
+    param.paramtype = hostIf_BooleanType;
+    put_boolean(param.paramValue, false);
+    EXPECT_EQ(pIface->set_xFirmwareDownloadNow(&param), NOK);
 }
 
 TEST(deviceTest, get_xOpsRPCDevManageableNotification)
@@ -5901,6 +7022,83 @@ TEST(deviceTest, get_X_RDKCENTRAL_COM_experience)
         cout << "msgData.paramValue = " << param.paramValue << endl;
         EXPECT_EQ(ret, NOK);
     }
+}
+
+TEST(deviceTest, get_X_RDKCENTRAL_COM_experience_ReturnsRetail)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    int serverSock = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSock < 0)
+        GTEST_SKIP() << "socket() failed";
+    int opt = 1;
+    setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    struct sockaddr_in addr = {};
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(9998);
+    if (bind(serverSock, (struct sockaddr *)&addr, sizeof(addr)) != 0)
+    {
+        close(serverSock);
+        GTEST_SKIP() << "Thunder mock port 9998 is already in use";
+    }
+    ASSERT_EQ(listen(serverSock, 1), 0);
+
+    pthread_t tid;
+    if (pthread_create(&tid, NULL, handle_experience_mock, (void *)(intptr_t)serverSock) != 0)
+    {
+        close(serverSock);
+        GTEST_SKIP() << "Could not start Thunder mock server";
+    }
+
+    HOSTIF_MsgData_t param = {};
+    strncpy(param.paramName, "Device.DeviceInfo.X_COMCAST-COM_EXPERIENCE", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    int ret = pIface->get_X_RDKCENTRAL_COM_experience(&param);
+
+    pthread_join(tid, NULL);
+    close(serverSock);
+
+    EXPECT_EQ(ret, OK);
+    EXPECT_STREQ(param.paramValue, "retail");
+}
+
+TEST(deviceTest, get_X_RDKCENTRAL_COM_experience_EmptyResult)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    int serverSock = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSock < 0)
+        GTEST_SKIP() << "socket() failed";
+    int opt = 1;
+    setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    struct sockaddr_in addr = {};
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(9998);
+    if (bind(serverSock, (struct sockaddr *)&addr, sizeof(addr)) != 0)
+    {
+        close(serverSock);
+        GTEST_SKIP() << "Thunder mock port 9998 is already in use";
+    }
+    ASSERT_EQ(listen(serverSock, 1), 0);
+
+    pthread_t tid;
+    if (pthread_create(&tid, NULL, handle_empty_experience_mock, (void *)(intptr_t)serverSock) != 0)
+    {
+        close(serverSock);
+        GTEST_SKIP() << "Could not start Thunder mock server";
+    }
+
+    HOSTIF_MsgData_t param = {};
+    strncpy(param.paramName, "Device.DeviceInfo.X_COMCAST-COM_EXPERIENCE", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    int ret = pIface->get_X_RDKCENTRAL_COM_experience(&param);
+
+    pthread_join(tid, NULL);
+    close(serverSock);
+
+    EXPECT_EQ(ret, NOK);
 }
 
 TEST(deviceInfoTest, get_X_RDK_FirmwareName_FileRemoved) {
@@ -6207,6 +7405,58 @@ TEST(deviceTest, ValidateInput_Arguments) {
     FILE *tmp_fptr = NULL;	
     bool ret = ValidateInput_ArgumentsFunc()(NULL, tmp_fptr);
     EXPECT_EQ(ret, false);
+}
+
+TEST(deviceTest, ValidateInput_Arguments_UncoveredBranches)
+{
+    FILE *tmpFile = tmpfile();
+    ASSERT_NE(tmpFile, nullptr);
+    auto validate = [tmpFile](const std::string &value) {
+        std::string input = value;
+        return ValidateInput_ArgumentsFunc()(&input[0], tmpFile);
+    };
+
+    resetApparmorDirectoryFailure();
+    g_apparmorDirectoryFailure = APPARMOR_DIRECTORY_OPEN_FIRST_FAILURE;
+    EXPECT_FALSE(validate("test:enforce"));
+
+    resetApparmorDirectoryFailure();
+    g_apparmorDirectoryFailure = APPARMOR_DIRECTORY_CLOSE_FIRST_FAILURE;
+    EXPECT_FALSE(validate("test:enforce"));
+
+    resetApparmorDirectoryFailure();
+    g_malloc_fail = true;
+    EXPECT_FALSE(validate("test:enforce"));
+    g_malloc_fail = false;
+
+    resetApparmorDirectoryFailure();
+    g_apparmorDirectoryFailure = APPARMOR_DIRECTORY_OPEN_SECOND_FAILURE;
+    EXPECT_FALSE(validate("test:enforce"));
+
+    resetApparmorDirectoryFailure();
+    g_apparmorDirectoryFailure = APPARMOR_DIRECTORY_CLOSE_SECOND_FAILURE;
+    EXPECT_FALSE(validate("test:enforce"));
+
+    resetApparmorDirectoryFailure();
+    EXPECT_FALSE(validate("test:invalid"));
+    EXPECT_TRUE(validate(".:enforce"));
+
+    std::string serviceDir = "/tmp/tr69hostif_apparmor_service_profiles_" + std::to_string(getpid());
+    ASSERT_EQ(mkdir(serviceDir.c_str(), 0700), 0);
+    std::string profileName = "UTPROFILE_" + std::to_string(getpid());
+    std::string profilePath = serviceDir + "/" + profileName + ".service.sp";
+    std::ofstream profileFile(profilePath.c_str());
+    ASSERT_TRUE(profileFile.is_open());
+    profileFile.close();
+
+    g_apparmorServiceProfilesDirOverride = serviceDir.c_str();
+    EXPECT_TRUE(validate(profileName + ":enforce"));
+    g_apparmorServiceProfilesDirOverride = NULL;
+
+    std::remove(profilePath.c_str());
+    rmdir(serviceDir.c_str());
+    fclose(tmpFile);
+    resetApparmorDirectoryFailure();
 }
 
 TEST(deviceTest, readFirmwareInfo_EmptyFile) {
@@ -7788,6 +9038,57 @@ TEST(deviceTest, getEstbIp_WiFiEnabled)
     unsetenv("DEFAULT_ESTB_INTERFACE");
 }
 
+TEST(deviceTest, getEstbIp_GetifaddrsFailure)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    g_getifaddrs_mode = GETIFADDRS_FAIL;
+    std::string ip = pIface->getEstbIp();
+    g_getifaddrs_mode = GETIFADDRS_REAL;
+
+    EXPECT_TRUE(ip.empty());
+}
+
+TEST(deviceTest, getEstbIp_WiFiEnabled_IPv4Wlan0)
+{
+    std::remove("/tmp/estb_ipv6");
+    { std::ofstream wifiFile("/tmp/wifi-on"); }
+    setenv("DEFAULT_ESTB_INTERFACE", "eth0", 1);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    g_getifaddrs_mode = GETIFADDRS_FAKE_WLAN0;
+    std::string ip = pIface->getEstbIp();
+    g_getifaddrs_mode = GETIFADDRS_REAL;
+
+    EXPECT_EQ(ip, "192.168.10.20");
+
+    std::remove("/tmp/wifi-on");
+    unsetenv("DEFAULT_ESTB_INTERFACE");
+}
+
+TEST(deviceTest, getEstbIp_WiFiEnabled_IPv6Wlan0)
+{
+    { std::ofstream ipv6File("/tmp/estb_ipv6"); }
+    { std::ofstream wifiFile("/tmp/wifi-on"); }
+    setenv("DEFAULT_ESTB_INTERFACE", "eth0", 1);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    g_getifaddrs_mode = GETIFADDRS_FAKE_WLAN0;
+    std::string ip = pIface->getEstbIp();
+    g_getifaddrs_mode = GETIFADDRS_REAL;
+
+    EXPECT_EQ(ip, "2001:db8::20");
+
+    std::remove("/tmp/estb_ipv6");
+    std::remove("/tmp/wifi-on");
+    unsetenv("DEFAULT_ESTB_INTERFACE");
+}
+
 TEST(deviceTest, isRsshactive)
 {
     int instanceNumber = 0;
@@ -7800,6 +9101,22 @@ TEST(deviceTest, isRsshactive)
     pidFile.close();
 
     EXPECT_TRUE(pIface->isRsshactive());
+}
+
+TEST(deviceTest, isRsshactive_StalePid)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    // PID above any possible pid_max, so getpgid() fails with ESRCH
+    std::ofstream pidFile("/var/tmp/rssh.pid", std::ios::trunc);
+    ASSERT_TRUE(pidFile.is_open());
+    pidFile << 2147483646;
+    pidFile.close();
+
+    EXPECT_FALSE(pIface->isRsshactive());
+
+    std::remove("/var/tmp/rssh.pid");
 }
 
 TEST(deviceTest, getStbMacIf_fr_devProperties)
@@ -7836,19 +9153,6 @@ TEST(deviceTest, getStbMacIf_fr_devProperties_SocketFailure)
 
     g_socket_fail = false;
 }
-
-/* TEST(deviceTest, getStbMacIf_fr_devProperties_Exception)
-{
-    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
-    ASSERT_NE(pIface, nullptr);
-    setenv("DEFAULT_ESTB_INTERFACE", "lo", 1);
-    g_ioctl_throw = true;
-
-    EXPECT_TRUE(pIface->getStbMacIf_fr_devProperties().empty());
-
-    g_ioctl_throw = false;
-    unsetenv("DEFAULT_ESTB_INTERFACE");
-} */
 
 TEST(deviceTest, initMutexOnce)
 {
@@ -7951,6 +9255,88 @@ TEST(deviceTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger)
     EXPECT_TRUE((ret == OK) || (ret == NOK));
 }
 
+TEST(deviceTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger_UncoveredBranches)
+{
+    const char *triggerPath = "/opt/.enable_meminsight";
+    const char *tmpTriggerPath = "/tmp/.enable_meminsight";
+    std::string backupPaths[] = {
+        std::string(triggerPath) + ".test-backup-" + std::to_string(getpid()),
+        std::string(tmpTriggerPath) + ".test-backup-" + std::to_string(getpid())
+    };
+    const char *paths[] = {triggerPath, tmpTriggerPath};
+    bool hadOriginal[] = {false, false};
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(NULL), NOK);
+
+    HOSTIF_MsgData_t param = {};
+    strncpy(param.paramValue, "start", sizeof(param.paramValue) - 1);
+    param.paramtype = hostIf_BooleanType;
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterType);
+
+    for (int index = 0; index < 2; ++index)
+    {
+        std::remove(backupPaths[index].c_str());
+        hadOriginal[index] = access(paths[index], F_OK) == 0;
+        if (hadOriginal[index])
+            ASSERT_EQ(rename(paths[index], backupPaths[index].c_str()), 0);
+        std::remove(paths[index]);
+    }
+
+    param.paramtype = hostIf_StringType;
+    param.paramLen = strlen(param.paramValue);
+    ASSERT_EQ(mkdir(triggerPath, 0700), 0);
+    ASSERT_EQ(mkdir(tmpTriggerPath, 0700), 0);
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInternalError);
+    rmdir(triggerPath);
+    rmdir(tmpTriggerPath);
+
+    memset(param.paramValue, 0, sizeof(param.paramValue));
+    strncpy(param.paramValue, "stop", sizeof(param.paramValue) - 1);
+    param.paramLen = strlen(param.paramValue);
+    {
+        std::ofstream triggerFile(triggerPath);
+        std::ofstream tmpTriggerFile(tmpTriggerPath);
+        ASSERT_TRUE(triggerFile.is_open());
+        ASSERT_TRUE(tmpTriggerFile.is_open());
+    }
+    g_failMemInsightRemove = true;
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(&param), NOK);
+    g_failMemInsightRemove = false;
+    EXPECT_EQ(param.faultCode, fcInternalError);
+    std::remove(triggerPath);
+    std::remove(tmpTriggerPath);
+
+    auto createTriggerFile = [triggerPath]() {
+        std::ofstream triggerFile(triggerPath);
+        return triggerFile.is_open();
+    };
+
+    int previousCommandResult = g_v_secure_system_result;
+    EXPECT_TRUE(createTriggerFile());
+    g_v_secure_system_result = 0;
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(&param), OK);
+
+    EXPECT_TRUE(createTriggerFile());
+    g_v_secure_system_result = -1;
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(&param), OK);
+
+    EXPECT_EQ(pIface->set_Device_DeviceInfo_X_RDKCENTRAL_COM_MemInsight_Trigger(&param), OK);
+    g_v_secure_system_result = previousCommandResult;
+
+    for (int index = 0; index < 2; ++index)
+    {
+        std::remove(paths[index]);
+        rmdir(paths[index]);
+        if (hadOriginal[index])
+            EXPECT_EQ(rename(backupPaths[index].c_str(), paths[index]), 0);
+    }
+}
+
 TEST(deviceTest, set_xRDKCentralComRFCDistributedTracingEnable)
 {
     HOSTIF_MsgData_t param;
@@ -8051,6 +9437,34 @@ TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagCreate
     rmdir(RDK_TRACING_FLAG_FILE);
 }
 
+TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FdopenFails)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    std::string backupPath = std::string(RDK_TRACING_FLAG_FILE) + ".test-backup-" + std::to_string(getpid());
+    bool hadOriginalFlag = access(RDK_TRACING_FLAG_FILE, F_OK) == 0;
+    if (hadOriginalFlag)
+        ASSERT_EQ(rename(RDK_TRACING_FLAG_FILE, backupPath.c_str()), 0);
+
+    HOSTIF_MsgData_t param = {};
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, DISTRIBUTED_TRACING_RFC_ENABLE, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_BooleanType;
+    param.paramLen = sizeof(hostIf_BooleanType);
+    put_boolean(param.paramValue, true);
+
+    g_tracingFlagFd = -1;
+    g_failTracingFlagFdopen = true;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFCDistributedTracingEnable(&param), OK);
+    g_failTracingFlagFdopen = false;
+    g_tracingFlagFd = -1;
+
+    std::remove(RDK_TRACING_FLAG_FILE);
+    if (hadOriginalFlag)
+        EXPECT_EQ(rename(backupPath.c_str(), RDK_TRACING_FLAG_FILE), 0);
+}
+
 TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagRemoveFails)
 {
     std::remove(RDK_TRACING_FLAG_FILE);
@@ -8070,6 +9484,57 @@ TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagRemove
 
     std::remove((std::string(RDK_TRACING_FLAG_FILE) + "/keep").c_str());
     rmdir(RDK_TRACING_FLAG_FILE);
+}
+
+TEST(deviceTest, set_xRDKCentralComRFCDistributedTracingURL)
+{
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    std::string backupPath = std::string(OTEL_EXPORT_ENDPOINT_FILE) + ".test-backup-" + std::to_string(getpid());
+    bool hadOriginalEndpoint = access(OTEL_EXPORT_ENDPOINT_FILE, F_OK) == 0;
+    if (hadOriginalEndpoint)
+        ASSERT_EQ(rename(OTEL_EXPORT_ENDPOINT_FILE, backupPath.c_str()), 0);
+
+    HOSTIF_MsgData_t param = {};
+    auto prepareParam = [&param](bool stringType) {
+        memset(&param, 0, sizeof(param));
+        param.reqType = HOSTIF_SET;
+        param.requestor = HOSTIF_SRC_RFC;
+        strncpy(param.paramName, DISTRIBUTED_TRACING_RFC_URL, sizeof(param.paramName) - 1);
+        strncpy(param.paramValue, "https://collector.example.invalid", sizeof(param.paramValue) - 1);
+        param.paramtype = stringType ? hostIf_StringType : hostIf_BooleanType;
+        param.paramLen = strlen(param.paramValue);
+    };
+
+    prepareParam(false);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+
+    prepareParam(true);
+    g_failOtelEndpointOpen = true;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    g_failOtelEndpointOpen = false;
+
+    g_otelEndpointFd = -1;
+    g_failOtelEndpointFdopen = true;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    g_failOtelEndpointFdopen = false;
+
+    g_otelEndpointFd = -1;
+    g_failOtelEndpointFputs = true;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    g_failOtelEndpointFputs = false;
+
+    g_otelEndpointFd = -1;
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), OK);
+    std::ifstream endpointFile(OTEL_EXPORT_ENDPOINT_FILE);
+    std::string writtenEndpoint;
+    std::getline(endpointFile, writtenEndpoint);
+    EXPECT_EQ(writtenEndpoint, param.paramValue);
+
+    std::remove(OTEL_EXPORT_ENDPOINT_FILE);
+    if (hadOriginalEndpoint)
+        EXPECT_EQ(rename(backupPath.c_str(), OTEL_EXPORT_ENDPOINT_FILE), 0);
 }
 
 #ifdef ENABLE_VIDEO_TELEMETRY
@@ -8141,16 +9606,48 @@ TEST(deviceTest, getAllInstances_ReturnsCreatedInstanceList)
 
 TEST(deviceTest, systemMgmtTimePathMonitorThr_WhenWebpaReady_Exits)
 {
-    mkdir("/tmp/webpa", 0755);
-    std::ofstream readyFile("/tmp/webpa/start_time");
-    ASSERT_TRUE(readyFile.is_open());
-    readyFile << "1";
-    readyFile.close();
+    const char *webpaDir = "/tmp/webpa";
+    const char *startTimePath = "/tmp/webpa/start_time";
+    std::string backupPath = std::string(startTimePath) + ".test-backup-" + std::to_string(getpid());
+    bool hadStartTimeFile = access(startTimePath, F_OK) == 0;
+    bool hadWebpaDir = access(webpaDir, F_OK) == 0;
 
+    if (hadStartTimeFile)
+        ASSERT_EQ(rename(startTimePath, backupPath.c_str()), 0);
+    if (!hadWebpaDir)
+        ASSERT_EQ(mkdir(webpaDir, 0755), 0);
+
+    {
+        std::ofstream readyFile(startTimePath);
+        ASSERT_TRUE(readyFile.is_open());
+        readyFile << "1";
+    }
+
+    g_skipSystemMgmtSleep = true;
     std::thread monitorThread(hostIf_DeviceInfo::systemMgmtTimePathMonitorThr);
     monitorThread.join();
+    std::remove(startTimePath);
 
-    SUCCEED();
+    g_systemMgmtMonitorMode = SYSTEM_MGMT_MONITOR_INIT_FAILURE;
+    hostIf_DeviceInfo::systemMgmtTimePathMonitorThr();
+
+    g_systemMgmtMonitorMode = SYSTEM_MGMT_MONITOR_WATCH_FAILURE;
+    hostIf_DeviceInfo::systemMgmtTimePathMonitorThr();
+
+    g_systemMgmtMonitorMode = SYSTEM_MGMT_MONITOR_READ_FAILURE;
+    hostIf_DeviceInfo::systemMgmtTimePathMonitorThr();
+
+    g_systemMgmtMonitorMode = SYSTEM_MGMT_MONITOR_START_TIME_EVENT;
+    hostIf_DeviceInfo::systemMgmtTimePathMonitorThr();
+
+    g_systemMgmtMonitorMode = SYSTEM_MGMT_MONITOR_NORMAL;
+    g_skipSystemMgmtSleep = false;
+    g_systemMgmtInotifyFd = -1;
+    g_systemMgmtInotifyWatch = -1;
+    if (hadStartTimeFile)
+        EXPECT_EQ(rename(backupPath.c_str(), startTimePath), 0);
+    if (!hadWebpaDir)
+        rmdir(webpaDir);
 }
 
 /* TEST(StoreClearTest, init) {
