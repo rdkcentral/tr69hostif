@@ -245,8 +245,7 @@ faultCode_t XRFCStore::getValue(HOSTIF_MsgData_t *stMsgData)
         return fcInternalError;
     }
     const bool isSecureUnlockPassword =
-        strcasecmp(stMsgData->paramName,
-                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0;
+        strcasecmp(stMsgData->paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0;
     string rawValue = getRawValue(stMsgData->paramName);
     RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Parameter: %s, rawValue: %s\n", stMsgData->paramName, rawValue.c_str());
     bool secureUnlockPasswordStored = false;
