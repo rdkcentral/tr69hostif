@@ -233,14 +233,7 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
         }
         else if (strstr(stMsgData->paramName, TR181_RFC_PREFIX) != NULL)
 		{
-    		if (strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
-    		{
-        		RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] SSH Password RFC SET request received\n",__FUNCTION__);
-    		}
-    		else
-    		{
-        		RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n",__FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
-    		}
+            RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n", __FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
     		ret = pIface->set_xRDKCentralComRFC(stMsgData);
 		}
 #ifdef USE_XRDK_BT_PROFILE
