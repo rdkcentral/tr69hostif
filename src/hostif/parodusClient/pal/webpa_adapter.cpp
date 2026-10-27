@@ -295,14 +295,7 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
             for (i = 0; i < paramCount; i++)
             {
                 RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Request:> param[%d].name = %s\n",i,reqObj->u.setReq->param[i].name);
-                if (!strcasecmp(reqObj->u.setReq->param[i].name,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
-				{
-   	 				RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF, "Request:> param[%d].value = <redacted>\n", i);
-				}
-				else
-				{
-    				RDK_LOG(RDK_LOG_DEBUG, LOG_PARODUS_IF,"Request:> param[%d].value = %s\n",i, reqObj->u.setReq->param[i].value);
-				}
+                RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Request:> param[%d].value = %s\n",i, reqObj->u.setReq->param[i].value);
                 setRebootReason(reqObj->u.setReq->param[i], WEBPA_SET);
             }
 
