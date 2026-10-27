@@ -239,11 +239,6 @@ faultCode_t XRFCStore::clearValue(const string &key, const string &value)
 faultCode_t XRFCStore::getValue(HOSTIF_MsgData_t *stMsgData)
 {
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "Entering %s \n", __FUNCTION__);
-    if (stMsgData == NULL || stMsgData->paramName == NULL)
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid GET message or parameter name\n");
-        return fcInternalError;
-    }
     if(!init())
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Init Failed, can't handle the request\n");
