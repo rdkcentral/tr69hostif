@@ -717,9 +717,7 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
             }
             else
             {
-                respSt->u.paramRes->params[paramIndex].value =
-                    strdup(normalizedParamPtr ? normalizedParamPtr->value :
-                           reqSt->u.setReq->param[paramIndex].value);
+                respSt->u.paramRes->params[paramIndex].value = strdup(normalizedParamPtr ? normalizedParamPtr->value : reqSt->u.setReq->param[paramIndex].value);
             }
 
             // Temporary handling for RFC Variables - Which are not validated against data-model.xml
@@ -732,23 +730,13 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
             else
             {
                 HostIf_Source_Type_t bsUpdate = HOSTIF_NONE;
-                respSt->retStatus[paramIndex] =
-                    validateAgainstDataModel(reqSt->reqType,
-                                             reqSt->u.setReq->param[paramIndex].name,
-                                             normalizedParamPtr ? normalizedParamPtr->value :
-                                             reqSt->u.setReq->param[paramIndex].value,
-                                             &reqSt->u.setReq->param[paramIndex].type,
-                                             NULL, &bsUpdate);
+                respSt->retStatus[paramIndex] = validateAgainstDataModel(reqSt->reqType, reqSt->u.setReq->param[paramIndex].name, normalizedParamPtr ? normalizedParamPtr->value : reqSt->u.setReq->param[paramIndex].value, &reqSt->u.setReq->param[paramIndex].type, NULL, &bsUpdate);
                 if(WDMP_SUCCESS != respSt->retStatus[paramIndex])
                 {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Operation not permitted : %d\n", respSt->retStatus[paramIndex]);
                     continue;
                 }
-                respSt->retStatus[paramIndex] =
-                    invokeHostIfAPI(reqSt->reqType,
-                                    normalizedParamPtr ? normalizedParamPtr :
-                                    reqSt->u.setReq->param + paramIndex,
-                                    bsUpdate, pcCallerID);
+                respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, normalizedParamPtr ? normalizedParamPtr : reqSt->u.setReq->param + paramIndex, bsUpdate, pcCallerID);
             }
         }
         break;
