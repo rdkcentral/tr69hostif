@@ -344,20 +344,8 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
     {
         if(hostIfParam.faultCode == fcNoFault)
         {
-            param->value = getStringValue(hostIfParam.paramtype,hostIfParam.paramValue);
-            if (param->value == NULL)
-            {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to allocate parameter value\n");
-                wdmpStatus = WDMP_FAILURE;
-            }
-            else if (!strcasecmp(hostIfParam.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
-            {
-                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "SSH Password operation completed\n");
-            }
-            else
-            {
-                RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"The value for param: %s = %s\n",hostIfParam.paramName, param->value);
-            }
+            param->value = getStringValue(hostIfParam.paramtype, hostIfParam.paramValue);
+            RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"The value for param: %s = %s\n", hostIfParam.paramName, param->value);
         }
         else
         {
@@ -396,7 +384,6 @@ static WDMP_STATUS validateAgainstDataModel(REQ_TYPE reqType, char* paramName, c
     *bsUpdate = getBSUpdateEnum(dmParam.bsUpdate);
     if(reqType == GET)
     {
-
         if(dmParam.dataType != NULL)
         {
             *dataType = getWdmpDataType(dmParam.dataType);  //CID:89885 - FORWARD NULL
