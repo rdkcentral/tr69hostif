@@ -180,7 +180,12 @@ int hostIf_GetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             
 
             // Calculate time taken in microseconds
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n", __FUNCTION__, __LINE__, ret, stMsgData->paramName, paramValueStr, timeTaken);
+            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
+                "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
+                __FUNCTION__, __LINE__, ret,
+                stMsgData->paramName,
+                paramValueStr,
+                timeTaken);
            // Telemetry and debug log if processing time > 5 second (1,000,000 us)
             if (timeTaken > 5000000) {
                 // Debug log
@@ -266,7 +271,9 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
                 "[%s:%d] ret: %d, paramName: %s, paramValue: %s, timeTaken: %lld us\n",
                 __FUNCTION__, __LINE__, ret,
-                stMsgData->paramName, paramValueStr, timeTakenset);
+                stMsgData->paramName,
+                paramValueStr,
+                timeTakenset);
        // Telemetry and debug log if processing time > 5 seconds (5,000,000 us)
         if (timeTakenset > 5000000) {
             RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,
@@ -278,8 +285,7 @@ int hostIf_SetMsgHandler(HOSTIF_MsgData_t *stMsgData)
             
         }
     }
-
-    
+ 
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
 }
