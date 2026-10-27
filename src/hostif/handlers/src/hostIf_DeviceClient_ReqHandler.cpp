@@ -232,10 +232,10 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
             }
         }
         else if (strstr(stMsgData->paramName, TR181_RFC_PREFIX) != NULL)
-		{
+        {
             RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n", __FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
-    		ret = pIface->set_xRDKCentralComRFC(stMsgData);
-		}
+            ret = pIface->set_xRDKCentralComRFC(stMsgData);
+        }
 #ifdef USE_XRDK_BT_PROFILE
         else if(strncasecmp(stMsgData->paramName,X_BT_ROOT_OBJ,strlen(X_BT_ROOT_OBJ))==0)
         {
