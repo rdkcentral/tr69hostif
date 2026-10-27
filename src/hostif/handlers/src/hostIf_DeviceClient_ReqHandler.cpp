@@ -231,7 +231,7 @@ int DeviceClientReqHandler::handleSetMsg(HOSTIF_MsgData_t *stMsgData)
                 notifyIARM(IARM_BUS_TR69HOSTIFMGR_EVENT_VALUECHANGED,(const char*)stMsgData->paramName, stMsgData->paramValue, stMsgData->paramtype);
             }
         }
-        else if (strstr(stMsgData->paramName, TR181_RFC_PREFIX) != NULL)
+        else if (strstr(stMsgData->paramName,TR181_RFC_PREFIX) != NULL)
         {
             RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s] parameter %s is being set with value %s \n", __FUNCTION__, stMsgData->paramName, stMsgData->paramValue);
             ret = pIface->set_xRDKCentralComRFC(stMsgData);
