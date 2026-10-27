@@ -699,7 +699,6 @@ static WAL_STATUS set_ParamValues_tr69hostIf (HOSTIF_MsgData_t *ptrParam)
         retStatus = WAL_SUCCESS;
         RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"[%s:%s:%d] The value for param: %s is %s paramLen : %d\n", __FILE__, __FUNCTION__, __LINE__, ptrParam->paramName,ptrParam->paramValue, ptrParam->paramLen);
     }
-
     return retStatus;
 }
 
