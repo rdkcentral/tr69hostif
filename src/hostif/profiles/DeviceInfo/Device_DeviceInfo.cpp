@@ -3838,79 +3838,86 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     const char *hash = stMsgData->paramValue;
     size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
 
-    if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue)) {
+    if (hashLen == sizeof(stMsgData->paramValue)) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: empty or invalid hash\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 
-    /* Validate SHA-512-crypt hash prefix. */
-    if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
-        stMsgData->faultCode = fcInvalidParameterValue;
-        return NOK;
-    }
-
-    int dollarCount = 0;
-    const char *sep = NULL;
-
-    for (const char *p = hash; *p != '\0'; ++p) {
-        if (*p == '$') {
-            ++dollarCount;
-            sep = p;
-        }
-    }
-
-    if (dollarCount != 3 && dollarCount != 4) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
-        stMsgData->faultCode = fcInvalidParameterValue;
-        return NOK;
-    }
-
-    const char *salt = hash + 3;
-
-    /* Validate optional rounds field. */
-    if (dollarCount == 4) {
-        if (strncmp(hash, "$6$rounds=", 10) != 0) {
+    const bool clearPassword = hashLen == 0;
+    if (!clearPassword) {
+        /* Validate SHA-512-crypt hash prefix. */
+        if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
 
-        const char *p = hash + 10;
-        unsigned long roundsValue = 0;
-        int digits = 0;
+        const char *salt = hash + 3;
+        int dollarCount = 0;
+        const char *sep = NULL;
 
-        while (*p >= '0' && *p <= '9' && digits < 9) {
-            roundsValue = roundsValue * 10 + (*p - '0');
-            ++p;
-            ++digits;
+        for (const char *p = hash; *p != '\0'; ++p) {
+            if (*p == '$') {
+                ++dollarCount;
+                sep = p;
+            }
         }
 
-        if (digits == 0 || *p != '$' || p >= sep ||
-            roundsValue < 1000 || roundsValue > 999999999) {
+        if (dollarCount != 3 && dollarCount != 4) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
 
-        salt = p + 1;
+        /* Validate optional rounds field. */
+        if (dollarCount == 4) {
+            if (strncmp(hash, "$6$rounds=", 10) != 0) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
+                stMsgData->faultCode = fcInvalidParameterValue;
+                return NOK;
+            }
+
+            const char *p = hash + 10;
+            unsigned long roundsValue = 0;
+            int digits = 0;
+
+            while (*p >= '0' && *p <= '9' && digits < 9) {
+                roundsValue = roundsValue * 10 + (*p - '0');
+                ++p;
+                ++digits;
+            }
+
+            if (digits == 0 || *p != '$' || p >= sep ||
+                roundsValue < 1000 || roundsValue > 999999999) {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
+                stMsgData->faultCode = fcInvalidParameterValue;
+                return NOK;
+            }
+
+            salt = p + 1;
+        }
+
+        /* Validate salt and digest characters. */
+        const char *cryptChars =
+            "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        const size_t saltLen = (size_t)(sep - salt);
+
+        if (saltLen == 0 || saltLen > 16 ||
+            strspn(salt, cryptChars) != saltLen ||
+            strlen(sep + 1) != 86 ||
+            strspn(sep + 1, cryptChars) != 86) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
     }
 
-    /* Validate salt and digest characters. */
-    const char *cryptChars =
-        "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    const char *passwordField = clearPassword ? "*" : hash;
+    const size_t passwordFieldLen = clearPassword ? 1 : hashLen;
 
-    size_t saltLen = (size_t)(sep - salt);
-
-    if (saltLen == 0 || saltLen > 16 ||
-        strspn(salt, cryptChars) != saltLen ||
-        strlen(sep + 1) != 86 ||
-        strspn(sep + 1, cryptChars) != 86) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
-        stMsgData->faultCode = fcInvalidParameterValue;
-        return NOK;
-    }
+    if (m_rfcStore == NULL)
+        m_rfcStore = XRFCStore::getInstance();
 
     int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
 
@@ -3924,6 +3931,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     char *original = NULL, *updated = NULL;
     size_t oldLen = 0, newLen = 0, pos = 0, oldHashLen = 0;
     int ret = NOK, locked = 0;
+    bool storeFailed = false;
 
     do {
         struct stat st;
@@ -4002,7 +4010,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
             break;
         }
 
-        newLen = oldLen - oldHashLen + hashLen;
+        newLen = oldLen - oldHashLen + passwordFieldLen;
         updated = (char *)malloc(newLen);
 
         if (updated == NULL) {
@@ -4012,8 +4020,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         }
 
         memcpy(updated, original, pos);
-        memcpy(updated + pos, hash, hashLen);
-        memcpy(updated + pos + hashLen,
+        memcpy(updated + pos, passwordField, passwordFieldLen);
+        memcpy(updated + pos + passwordFieldLen,
                original + pos + oldHashLen,
                oldLen - pos - oldHashLen);
 
@@ -4051,6 +4059,38 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         }
     } while (0);
 
+    if (ret == OK) {
+        faultCode_t storeFault = m_rfcStore->setValue(stMsgData);
+        if (storeFault != fcNoFault) {
+            storeFailed = true;
+            stMsgData->faultCode = storeFault;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to update RFC datastore for SSH password\n", __FUNCTION__);
+
+            size_t restored = 0;
+            while (restored < oldLen) {
+                ssize_t n = pwrite(fd, original + restored, oldLen - restored,
+                                   (off_t)restored);
+                if (n < 0 && errno == EINTR)
+                    continue;
+                if (n <= 0)
+                    break;
+                restored += (size_t)n;
+            }
+
+            if (restored != oldLen ||
+                ftruncate(fd, (off_t)oldLen) != 0 ||
+                fsync(fd) != 0) {
+                stMsgData->faultCode = fcInternalError;
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Failed to restore shadow file after RFC datastore failure\n", __FUNCTION__);
+            }
+            ret = NOK;
+        } else {
+            stMsgData->faultCode = fcNoFault;
+        }
+    }
+
     free(updated);
     free(original);
 
@@ -4059,14 +4099,16 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     close(fd);
 
     if (ret != OK) {
-        stMsgData->faultCode = fcInternalError;
+        if (!storeFailed)
+            stMsgData->faultCode = fcInternalError;
         return NOK;
     }
 
+    memset(stMsgData->paramValue, 0, sizeof(stMsgData->paramValue));
+    stMsgData->paramLen = 0;
+
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SSH.Password SET succeeded: rdk_user credential updated\n",
             __FUNCTION__);
-    stMsgData->paramValue[0] = '\0';
-    stMsgData->paramLen = 0;
     return OK;
 }
 
@@ -4459,14 +4501,13 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
 {
     int ret=NOK;
 
-	if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
-	{
-    	stMsgData->paramValue[0] = '\0';
-    	stMsgData->faultCode = fcRequestDenied;
-    	RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"[%s] GET denied for SSH Password parameter\n",__FUNCTION__);
-    	return NOK;
-	}
-	
+    if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
+    {
+        if (m_rfcStore == NULL)
+            m_rfcStore = XRFCStore::getInstance();
+        return m_rfcStore->getValue(stMsgData);
+    }
+
 #ifndef NEW_HTTP_SERVER_DISABLE
     if(!legacyRFCEnabled())
     {
@@ -5959,4 +6000,3 @@ bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr)
 
 /** @} */
 /** @} */
-

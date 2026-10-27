@@ -239,14 +239,37 @@ faultCode_t XRFCStore::clearValue(const string &key, const string &value)
 faultCode_t XRFCStore::getValue(HOSTIF_MsgData_t *stMsgData)
 {
     RDK_LOG (RDK_LOG_TRACE1, LOG_TR69HOSTIF, "Entering %s \n", __FUNCTION__);
+    if (stMsgData == NULL || stMsgData->paramName == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid GET message or parameter name\n");
+        return fcInternalError;
+    }
     if(!init())
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Init Failed, can't handle the request\n");
         return fcInternalError;
     }
+    const bool isSecureUnlockPassword =
+        strcasecmp(stMsgData->paramName,
+                   "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password") == 0;
     string rawValue = getRawValue(stMsgData->paramName);
     RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "Parameter: %s, rawValue: %s\n", stMsgData->paramName, rawValue.c_str());
-    if(rawValue.length() > 0)
+    bool secureUnlockPasswordStored = false;
+    if (isSecureUnlockPassword) {
+        unordered_map<string,string>::const_iterator it = m_dict.find(stMsgData->paramName);
+        if (it != m_dict.end()) {
+            rawValue = it->second;
+            secureUnlockPasswordStored = true;
+        }
+        else {
+            it = m_local_dict.find(stMsgData->paramName);
+            if (it != m_local_dict.end()) {
+                rawValue = it->second;
+                secureUnlockPasswordStored = true;
+            }
+        }
+    }
+    if(rawValue.length() > 0 || secureUnlockPasswordStored)
     {
         putValue(stMsgData, rawValue.c_str());
         stMsgData->faultCode = fcNoFault;

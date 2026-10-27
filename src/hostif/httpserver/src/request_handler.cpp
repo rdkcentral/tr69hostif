@@ -325,19 +325,6 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
     hostIfParam.bsUpdate = bsUpdate;
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"Entering %s\n", __FUNCTION__);
 
-    // Return an empty value for the write-only SSH password.
-    if (reqType == GET && param != NULL && param->name != NULL && !strcasecmp(param->name, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
-    {
-            param->value = strdup("");
-            if (param->value == NULL)
-            {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to allocate empty SSH Password GET value\n");
-                return WDMP_FAILURE;
-            }
-            RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "SSH Password GET handled with empty value before getter\n");
-            return WDMP_SUCCESS;
-    }
-
     getHostIfParamStFromRequest(reqType, param, &hostIfParam);
 
     switch(reqType)
@@ -362,18 +349,21 @@ static WDMP_STATUS invokeHostIfAPI(REQ_TYPE reqType, param_t *param, HostIf_Sour
 
     if(result == OK)
     {
-        if (hostIfParam.faultCode == fcNoFault)
+        if(hostIfParam.faultCode == fcNoFault)
         {
-            if (!strcasecmp(hostIfParam.paramName,"Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+            param->value = getStringValue(hostIfParam.paramtype,hostIfParam.paramValue);
+            if (param->value == NULL)
             {
-                param->value = strdup("");
-                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"SSH Password operation completed\n");
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to allocate parameter value\n");
+                wdmpStatus = WDMP_FAILURE;
+            }
+            else if (!strcasecmp(hostIfParam.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
+            {
+                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF, "SSH Password operation completed\n");
             }
             else
             {
-                param->value = getStringValue(hostIfParam.paramtype,hostIfParam.paramValue);
-
-                RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"The value for param: %s = %s\n",hostIfParam.paramName, param->value);
+                RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"The value for param: %s = %s\n",hostIfParam.paramName, param->value);
             }
         }
         else
@@ -713,21 +703,31 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
     case SET:
         for(paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
         {
-
-            respSt->u.paramRes->params[paramIndex].name = strdup(reqSt->u.setReq->param[paramIndex].name);
-            if(!isAuthorized(pcCallerID, reqSt->u.setReq->param[paramIndex].name))
+            param_t *setParam = reqSt->u.setReq->param + paramIndex;
+            param_t normalizedParam;
+            char emptyValue[] = "";
+            if (setParam->value == NULL && setParam->name != NULL &&
+                !strcasecmp(setParam->name, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
             {
-                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"CallerID : %s is not allowed to SET : %s\n", pcCallerID, reqSt->u.setReq->param[paramIndex].name);
+                normalizedParam = *setParam;
+                normalizedParam.value = emptyValue;
+                setParam = &normalizedParam;
+            }
+
+            respSt->u.paramRes->params[paramIndex].name = strdup(setParam->name);
+            if(!isAuthorized(pcCallerID, setParam->name))
+            {
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"CallerID : %s is not allowed to SET : %s\n", pcCallerID, setParam->name);
                 respSt->retStatus[paramIndex] = WDMP_FAILURE;
                 continue;
             }
-            else if(isWildCardParam(reqSt->u.setReq->param[paramIndex].name))
+            else if(isWildCardParam(setParam->name))
             {
                 RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Wildcard SET/SET-ATTRIBUTES is not supported \n");
                 respSt->retStatus[paramIndex] = WDMP_ERR_WILDCARD_NOT_SUPPORTED;
                 continue;
             }
-            else if(reqSt->u.setReq->param[paramIndex].value == NULL)
+            else if(setParam->value == NULL)
             {
                 RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parameter value is null\n");
                 respSt->retStatus[paramIndex] = WDMP_ERR_VALUE_IS_NULL;
@@ -735,26 +735,26 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
             }
             else
             {
-                respSt->u.paramRes->params[paramIndex].value = strdup(reqSt->u.setReq->param[paramIndex].value);
+                respSt->u.paramRes->params[paramIndex].value = strdup(setParam->value);
             }
 
             // Temporary handling for RFC Variables - Which are not validated against data-model.xml
-            if(strncmp(reqSt->u.setReq->param[paramIndex].name, "RFC_", 4) == 0 && strchr(reqSt->u.setReq->param[paramIndex].name, '.') == NULL)
+            if(strncmp(setParam->name, "RFC_", 4) == 0 && strchr(setParam->name, '.') == NULL)
             {
                 dataType = WDMP_STRING;
                 rfcParam = true;
-                respSt->retStatus[paramIndex] = handleRFCRequest(reqSt->reqType, reqSt->u.setReq->param + paramIndex);
+                respSt->retStatus[paramIndex] = handleRFCRequest(reqSt->reqType, setParam);
             }
             else
             {
                 HostIf_Source_Type_t bsUpdate = HOSTIF_NONE;
-                respSt->retStatus[paramIndex] = validateAgainstDataModel(reqSt->reqType, reqSt->u.setReq->param[paramIndex].name, reqSt->u.setReq->param[paramIndex].value, &reqSt->u.setReq->param[paramIndex].type, NULL, &bsUpdate);
+                respSt->retStatus[paramIndex] = validateAgainstDataModel(reqSt->reqType, setParam->name, setParam->value, &setParam->type, NULL, &bsUpdate);
                 if(WDMP_SUCCESS != respSt->retStatus[paramIndex])
                 {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Operation not permitted : %d\n", respSt->retStatus[paramIndex]);
                     continue;
                 }
-                respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, reqSt->u.setReq->param + paramIndex, bsUpdate, pcCallerID);
+                respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, setParam, bsUpdate, pcCallerID);
             }
         }
         break;
