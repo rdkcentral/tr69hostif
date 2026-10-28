@@ -683,19 +683,6 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
     case SET:
         for(paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
         {
-            param_t normalizedParam;
-            param_t *normalizedParamPtr = NULL;
-            char emptyValue[] = "";
-            if (reqSt->u.setReq->param[paramIndex].value == NULL &&
-                reqSt->u.setReq->param[paramIndex].name != NULL &&
-                !strcasecmp(reqSt->u.setReq->param[paramIndex].name,
-                             "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"))
-            {
-                normalizedParam = reqSt->u.setReq->param[paramIndex];
-                normalizedParam.value = emptyValue;
-                normalizedParamPtr = &normalizedParam;
-            }
-
             respSt->u.paramRes->params[paramIndex].name = strdup(reqSt->u.setReq->param[paramIndex].name);
             if(!isAuthorized(pcCallerID, reqSt->u.setReq->param[paramIndex].name))
             {
@@ -709,7 +696,7 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
                 respSt->retStatus[paramIndex] = WDMP_ERR_WILDCARD_NOT_SUPPORTED;
                 continue;
             }
-            else if(reqSt->u.setReq->param[paramIndex].value == NULL && normalizedParamPtr == NULL)
+            else if(reqSt->u.setReq->param[paramIndex].value == NULL)
             {
                 RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parameter value is null\n");
                 respSt->retStatus[paramIndex] = WDMP_ERR_VALUE_IS_NULL;
@@ -717,7 +704,7 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
             }
             else
             {
-                respSt->u.paramRes->params[paramIndex].value = strdup(normalizedParamPtr ? normalizedParamPtr->value : reqSt->u.setReq->param[paramIndex].value);
+                respSt->u.paramRes->params[paramIndex].value = strdup(reqSt->u.setReq->param[paramIndex].value);
             }
 
             // Temporary handling for RFC Variables - Which are not validated against data-model.xml
@@ -730,13 +717,13 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
             else
             {
                 HostIf_Source_Type_t bsUpdate = HOSTIF_NONE;
-                respSt->retStatus[paramIndex] = validateAgainstDataModel(reqSt->reqType, reqSt->u.setReq->param[paramIndex].name, normalizedParamPtr ? normalizedParamPtr->value : reqSt->u.setReq->param[paramIndex].value, &reqSt->u.setReq->param[paramIndex].type, NULL, &bsUpdate);
+                respSt->retStatus[paramIndex] = validateAgainstDataModel(reqSt->reqType, reqSt->u.setReq->param[paramIndex].name, reqSt->u.setReq->param[paramIndex].value, &reqSt->u.setReq->param[paramIndex].type, NULL, &bsUpdate);
                 if(WDMP_SUCCESS != respSt->retStatus[paramIndex])
                 {
                     RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Operation not permitted : %d\n", respSt->retStatus[paramIndex]);
                     continue;
                 }
-                respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, normalizedParamPtr ? normalizedParamPtr : reqSt->u.setReq->param + paramIndex, bsUpdate, pcCallerID);
+                respSt->retStatus[paramIndex] = invokeHostIfAPI(reqSt->reqType, reqSt->u.setReq->param + paramIndex, bsUpdate, pcCallerID);
             }
         }
         break;

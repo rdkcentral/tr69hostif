@@ -3838,14 +3838,14 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     const char *hash = stMsgData->paramValue;
     size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
 
-    if (hashLen == sizeof(stMsgData->paramValue)) {
+    if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue)) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: empty or invalid hash\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 
-    const bool clearPassword = hashLen == 0;
-    if (!clearPassword) {
+    const bool resetPassword = hashLen == 1 && hash[0] == '*';
+    if (!resetPassword) {
         /* Validate SHA-512-crypt hash prefix. */
         if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
@@ -3913,8 +3913,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         }
     }
 
-    const char *passwordField = clearPassword ? "*" : hash;
-    const size_t passwordFieldLen = clearPassword ? 1 : hashLen;
+    const char *passwordField = resetPassword ? "*" : hash;
+    const size_t passwordFieldLen = resetPassword ? 1 : hashLen;
 
     if (m_rfcStore == NULL)
         m_rfcStore = XRFCStore::getInstance();
