@@ -4500,14 +4500,6 @@ int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
 {
     int ret=NOK;
-
-    if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
-    {
-        if (m_rfcStore == NULL)
-            m_rfcStore = XRFCStore::getInstance();
-        return m_rfcStore->getValue(stMsgData);
-    }
-
 #ifndef NEW_HTTP_SERVER_DISABLE
     if(!legacyRFCEnabled())
     {
