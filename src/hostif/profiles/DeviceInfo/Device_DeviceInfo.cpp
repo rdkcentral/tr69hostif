@@ -4531,6 +4531,7 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
             m_rfcStorage.setValue(stMsgData);
         }
     }
+
     return ret;
 }
 
