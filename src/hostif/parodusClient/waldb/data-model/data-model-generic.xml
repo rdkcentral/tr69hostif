@@ -2229,18 +2229,6 @@
         </syntax>
       </parameter>
     </object>
-    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager." access="readOnly" minEntries="1" maxEntries="1" >
-     <parameter base="InstallPackage" access="writeOnly" notification="0" maxNotification="2" >
-        <syntax>
-          <string/>
-        </syntax>
-     </parameter>
-     <parameter base="DownloadStatus" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
- 	  <boolean/>
-        </syntax>
-     </parameter>
-    </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_xAccount.HotelCheckout." access="readOnly" minEntries="1" maxEntries="1" >
      <parameter base="LastResetTime" access="readOnly" notification="0" maxNotification="2" >
         <syntax>
@@ -2296,6 +2284,30 @@
           <string/>
         </syntax>
       </parameter>
+    </object>
+    <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKDownloadManager." access="readOnly" minEntries="1" maxEntries="1" >
+     <parameter base="InstallPackage" access="writeOnly" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+        </syntax>
+     </parameter>
+     <parameter base="DownloadStatus" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <boolean/>
+        </syntax>
+     </parameter>
+     <parameter base="PackageInstallPath" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <string/>
+          <default type="factory" value="/run/tools"/>
+        </syntax>
+     </parameter>
+     <parameter base="PackageExpiryTime" access="readWrite" notification="0" maxNotification="2" >
+        <syntax>
+          <unsignedInt/>
+          <default type="factory" value="4600"/>
+        </syntax>
+     </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
