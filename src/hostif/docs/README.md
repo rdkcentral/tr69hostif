@@ -313,7 +313,7 @@ This file provides all type-neutral helpers used across the subsystems.
 |----------|---------|
 | `matchComponent()` | Prefix and instance-number parsing for TR-181 paths |
 | `triggerResetScript()` | Executes cold / factory / warehouse / customer reset scripts |
-| `getJsonRPCData()` | `libcurl` POST to WPEFramework JSON-RPC endpoint using the current request/auth configuration |
+| `getJsonRPCData()` | `libcurl` POST to Thunder JSON-RPC endpoint using the current request/auth configuration |
 | `getCurrentTime()` / `timeValDiff()` | Wall-clock timing for request duration logging |
 | `setLegacyRFCEnabled()` / `legacyRFCEnabled()` | Runtime flag for legacy vs new HTTP server mode |
 | `getBSUpdateEnum()` | Maps "rfcUpdate" / "allUpdate" / "default" strings to `HostIf_Source_Type_t` |
@@ -651,7 +651,7 @@ size_t static writeCurlResponse(void *ptr, size_t size, size_t nmemb, string str
 
 The `stream` parameter is passed **by value**, not by reference. `stream.append(temp)` modifies a local copy that is destroyed when the function returns. The caller's `response` string in `getJsonRPCData()` is never populated.
 
-**Impact**: `getJsonRPCData()` always returns an empty string regardless of whether the HTTP JSON-RPC call succeeded. Any profile logic that depends on the WPEFramework JSON-RPC response (device info, security token validation) receives empty data and fails silently.
+**Impact**: `getJsonRPCData()` always returns an empty string regardless of whether the HTTP JSON-RPC call succeeded. Any profile logic that depends on the Thunder JSON-RPC response (device info, security token validation) receives empty data and fails silently.
 
 **Recommended fix**:
 ```cpp

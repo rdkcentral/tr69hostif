@@ -40,7 +40,7 @@ failure mode — read the issue description first, then follow the steps below.
 logs/<MAC>/<SESSION_TIMESTAMP>/logs/
     tr69hostIf.log.0          ← Primary tr69hostif daemon log (start here)
     PAMlog.txt.0              ← Platform/parameter management
-    WPEFramework*.txt.0       ← Component framework messages
+    Thunder*.txt.0       ← Component framework messages
     SelfHeal*.txt.0           ← Watchdog and recovery events
     top_log.txt.0             ← CPU/memory snapshots (useful for perf issues)
     messages.txt.0            ← Kernel and system messages

@@ -2,7 +2,7 @@
 
 ## Overview
 
-tr69hostif communicates with the Thunder (WPEFramework) runtime over a local JSON-RPC HTTP
+tr69hostif communicates with the Thunder runtime over a local JSON-RPC HTTP
 endpoint using `libcurl`. All TR-181 parameter handlers that require live device state—network,
 Wi-Fi, authentication, privacy—issue JSON-RPC 2.0 POST requests to Thunder and parse the
 JSON response before returning the parameter value to the TR-069/CWMP stack.

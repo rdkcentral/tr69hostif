@@ -82,7 +82,7 @@ AM_LDFLAGS += -lds -ldshalcli
 endif
 
 if POWERCONTROLLER_ENABLE
-AM_LDFLAGS += -lWPEFrameworkPowerController
+AM_LDFLAGS += -lThunderPowerController
 endif
 
 AM_CFLAGS =  $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)

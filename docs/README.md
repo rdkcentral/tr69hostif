@@ -82,7 +82,7 @@ The most direct runtime repository dependency in this path is `rdkcentral/networ
 
 In practice, the JSON-RPC path depends on two layers being present on the device image:
 
-- the Thunder or WPEFramework service host
+- the Thunder or Thunder service host
 - the specific plugin implementations that back the callsigns used by `tr69hostif`
 
 For the current source tree, the known JSON-RPC method usage is concentrated in DeviceInfo and WiFi profile code and includes these method families:
