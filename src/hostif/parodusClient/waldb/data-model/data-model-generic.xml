@@ -3386,7 +3386,7 @@
       </parameter>
       <parameter base="WarningThresholdMaxPsi" access="readWrite" notification="0" maxNotification="2" >
         <syntax>
-          <float/>
+          <string/>
         </syntax>
       </parameter>
       <parameter base="MinPostWarningDelay" access="readWrite" notification="0" maxNotification="2" >
