@@ -4530,7 +4530,6 @@ int hostIf_DeviceInfo::get_xRDKCentralComRFC(HOSTIF_MsgData_t *stMsgData)
             // Store the value from authservice into the db so we don't get here again
             m_rfcStorage.setValue(stMsgData);
         }
-
     }
     return ret;
 }
