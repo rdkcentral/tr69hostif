@@ -70,8 +70,10 @@ static std::atomic<bool> s_preChangeCbRegistered(false);
 static std::atomic<bool> s_opStateCbRegistered(false);
 // 0 means not currently a pre-change client (e.g. PowerManager restarted and dropped us).
 static std::atomic<uint32_t> s_preChangeClientId(0);
-// Set when the pre-change path owns the deep sleep entry notification for the current transition.
-static std::atomic<bool> s_enterNotifyHandled(false);
+static std::mutex s_deepSleepStateMutex;
+static std::atomic<uint64_t> s_powerStateGeneration(0);
+static bool s_deepSleepEntryHandled = false;
+static int s_deepSleepEntryTransactionId = -1;
 #endif
 static bool TR69_HostIf_Mgr_Init();
 static bool TR69_HostIf_Mgr_Connect();
@@ -92,6 +94,8 @@ static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentS
     const int stateChangeAfter, void* userdata);
 static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata);
 static void _hostIf_AddPreChangeClient();
+static void _hostIf_ReconcilePowerState();
+static void _hostIf_RecoverPowerManager();
 #endif
 //----------------------------------------------------------------------
 // hostIf_IARM_IF_Start: This shall be use to initialize and register
@@ -170,6 +174,8 @@ void hostIf_getPwrContInterface()
     {
         printf("[%s] Failed to register pre-change callback\n", __FUNCTION__);
     }
+
+    _hostIf_ReconcilePowerState();
 
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
@@ -571,45 +577,104 @@ static void _hostIf_EventHandler(const char *owner, IARM_EventId_t eventId, void
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
 #else
+static bool _hostIf_IsDeepSleepNotificationEnabled()
+{
+    HOSTIF_MsgData_t rfcData = {0};
+    const int rc = snprintf(rfcData.paramName, sizeof(rfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
+    if((rc < 0) || (static_cast<size_t>(rc) >= sizeof(rfcData.paramName)))
+    {
+        printf("[%s] Failed to populate RFC parameter name\n", __FUNCTION__);
+        return false;
+    }
+
+    if(hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&rfcData) != OK)
+    {
+        printf("[%s] Failed to read RFC parameter [%s]\n", __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE);
+        return false;
+    }
+
+    return strncmp(rfcData.paramValue, "true", sizeof("true")) == 0;
+}
+
+static void _hostIf_SendDeepSleepNotification(const char* eventName)
+{
+    if(!_hostIf_IsDeepSleepNotificationEnabled())
+    {
+        printf("[%s] RFC parameter [%s] is not enabled; not sending [%s]\n",
+               __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE, eventName);
+        return;
+    }
+
+    const std::string eventTime = std::to_string(std::time(nullptr));
+    printf("[%s] Sending [%s]\n", __FUNCTION__, eventName);
+    NotificationHandler::getInstance()->push_device_deepsleep_notifications(eventName, eventTime.c_str());
+}
+
+static void _hostIf_ReconcilePowerState()
+{
+    for(unsigned int attempt = 0; attempt < 3; ++attempt)
+    {
+        const uint64_t generation = s_powerStateGeneration.load();
+        PowerController_PowerState_t currentState = POWER_STATE_UNKNOWN;
+        PowerController_PowerState_t previousState = POWER_STATE_UNKNOWN;
+        const uint32_t ret = PowerController_GetPowerState(&currentState, &previousState);
+        if(ret != POWER_CONTROLLER_ERROR_NONE)
+        {
+            printf("[%s] PowerController_GetPowerState failed ret[%u]\n", __FUNCTION__, ret);
+            return;
+        }
+
+        std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
+        if(generation != s_powerStateGeneration.load())
+        {
+            printf("[%s] Power state changed during reconciliation; retrying\n", __FUNCTION__);
+            continue;
+        }
+
+        printf("[%s] Reconciled current state[%d] previous state[%d]\n",
+               __FUNCTION__, (int)currentState, (int)previousState);
+        if((currentState == POWER_STATE_STANDBY_DEEP_SLEEP) && !s_deepSleepEntryHandled)
+        {
+            s_deepSleepEntryHandled = true;
+            s_deepSleepEntryTransactionId = -1;
+            printf("[%s] Initialized while already in deep sleep; sending entry notification\n", __FUNCTION__);
+            _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
+        }
+        return;
+    }
+
+    printf("[%s] Unable to reconcile power state after concurrent changes\n", __FUNCTION__);
+}
+
 static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
     const PowerController_PowerState_t newState, void* userdata)
 {
+    (void)userdata;
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-    // Consume the per-transition flag on every mode change so a cancelled entry cannot suppress the next one.
-    const bool enterAlreadyNotified = s_enterNotifyHandled.exchange(false);
-    HOSTIF_MsgData_t stRfcData = {0};
-    int rc = snprintf(stRfcData.paramName, sizeof(stRfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
-    if((rc < 0) || (static_cast<size_t>(rc) >= sizeof(stRfcData.paramName)))
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to populate RFC parameter name.\n", __FUNCTION__);
-        return;
-    }
-    if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
-    {
-            const char *event_time = NULL;
+    ++s_powerStateGeneration;
+    std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
 
-            if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) &&
-               (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
-            {
-                if (!enterAlreadyNotified)
-                {
-                    std::string event_time_string = std::to_string(std::time(nullptr));
-                    event_time = event_time_string.c_str();
-                    NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time);
-                }
-            }
-            else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) &&
-                   (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
-            {
-                std::string event_time_string = std::to_string(std::time(nullptr));
-                event_time = event_time_string.c_str();
-                NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-exit-deepsleep-state", event_time);
-            }
-    }
-    else 
+    if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) &&
+       (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
     {
-        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending DeepSleep notification. \n",
-                 __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE );
+        if(!s_deepSleepEntryHandled)
+        {
+            printf("[%s] Pre-change did not own deep sleep entry; using post-change fallback\n", __FUNCTION__);
+            s_deepSleepEntryHandled = true;
+            s_deepSleepEntryTransactionId = -1;
+            _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
+        }
+        else
+        {
+            printf("[%s] Deep sleep entry notification owned by pre-change path\n", __FUNCTION__);
+        }
+    }
+    else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) &&
+            (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
+    {
+        s_deepSleepEntryHandled = false;
+        s_deepSleepEntryTransactionId = -1;
+        _hostIf_SendDeepSleepNotification("device-exit-deepsleep-state");
     }
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
@@ -623,17 +688,23 @@ struct PreChangeSync
 };
 
 // Runs the deep sleep entry work on its own thread so a stuck notification cannot block the acknowledgement.
-static void _hostIf_PreChangeWork(std::shared_ptr<PreChangeSync> sync)
+static void _hostIf_PreChangeWork(std::shared_ptr<PreChangeSync> sync, int transactionId,
+                                  bool ownsEntryNotification)
 {
-    HOSTIF_MsgData_t stRfcData = {0};
-    int rc = snprintf(stRfcData.paramName, sizeof(stRfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
-    if((rc >= 0) && (static_cast<size_t>(rc) < sizeof(stRfcData.paramName)) &&
-       (hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) &&
-       (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
+    if(ownsEntryNotification)
     {
-        std::string event_time_string = std::to_string(std::time(nullptr));
-        NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time_string.c_str());
+        std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
+        if(s_deepSleepEntryHandled && (s_deepSleepEntryTransactionId == transactionId))
+        {
+            _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
+        }
+        else
+        {
+            printf("[%s] Entry transaction[%d] is no longer active; skipping notification\n",
+                   __FUNCTION__, transactionId);
+        }
     }
+
     {
         std::lock_guard<std::mutex> lk(sync->mtx);
         sync->done = true;
@@ -657,14 +728,15 @@ static void _hostIf_AckPreChange(uint32_t clientId, int transactionId,
 
 // Holds the transition (up to DEEPSLEEP_MAX_HOLD_SEC) until the entry work completes, then acknowledges it.
 static void _hostIf_PreChangeMonitor(uint32_t clientId, int transactionId,
-                                     std::chrono::steady_clock::time_point receivedAt)
+                                     std::chrono::steady_clock::time_point receivedAt,
+                                     bool ownsEntryNotification)
 {
     auto sync = std::make_shared<PreChangeSync>();
     const auto start = std::chrono::steady_clock::now();
     int reservedSec = DEEPSLEEP_HOLD_BUDGET_SEC;
 
     PowerController_DelayPowerModeChangeBy(clientId, transactionId, reservedSec);
-    std::thread(_hostIf_PreChangeWork, sync).detach();
+    std::thread(_hostIf_PreChangeWork, sync, transactionId, ownsEntryNotification).detach();
 
     std::unique_lock<std::mutex> lk(sync->mtx);
     while (!sync->cv.wait_until(lk, start + std::chrono::seconds(reservedSec - DEEPSLEEP_RENEW_MARGIN_SEC),
@@ -709,8 +781,18 @@ static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentS
     // Never block the PowerManager callback; acks are sent from detached threads.
     if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) && (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
     {
-        s_enterNotifyHandled = true;
-        std::thread(_hostIf_PreChangeMonitor, clientId, transactionId, receivedAt).detach();
+        bool ownsEntryNotification = false;
+        {
+            std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
+            if(!s_deepSleepEntryHandled)
+            {
+                s_deepSleepEntryHandled = true;
+                s_deepSleepEntryTransactionId = transactionId;
+                ownsEntryNotification = true;
+            }
+        }
+        std::thread(_hostIf_PreChangeMonitor, clientId, transactionId, receivedAt,
+                    ownsEntryNotification).detach();
     }
     else
     {
@@ -734,6 +816,12 @@ static void _hostIf_AddPreChangeClient()
     }
 }
 
+static void _hostIf_RecoverPowerManager()
+{
+    _hostIf_AddPreChangeClient();
+    _hostIf_ReconcilePowerState();
+}
+
 // PowerManager keeps pre-change clients in memory only, so a plugin restart drops our client id.
 static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata)
 {
@@ -742,13 +830,18 @@ static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata)
     if (!isOperational)
     {
         s_preChangeClientId = 0;
-        s_enterNotifyHandled = false;
+        ++s_powerStateGeneration;
+        {
+            std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
+            s_deepSleepEntryHandled = false;
+            s_deepSleepEntryTransactionId = -1;
+        }
         return;
     }
     if (s_preChangeCbRegistered.load())
     {
         // Re-register off the callback thread to avoid re-entering the PowerController wrapper.
-        std::thread(_hostIf_AddPreChangeClient).detach();
+        std::thread(_hostIf_RecoverPowerManager).detach();
     }
 }
 #endif
