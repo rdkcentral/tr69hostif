@@ -683,6 +683,7 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
     case SET:
         for(paramIndex = 0; paramIndex < respSt->paramCnt; paramIndex++)
         {
+
             respSt->u.paramRes->params[paramIndex].name = strdup(reqSt->u.setReq->param[paramIndex].name);
             if(!isAuthorized(pcCallerID, reqSt->u.setReq->param[paramIndex].name))
             {
