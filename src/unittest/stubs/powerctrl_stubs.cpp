@@ -45,6 +45,50 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
     return POWER_CONTROLLER_ERROR_NONE;
 }
 
+uint32_t PowerController_RegisterPowerModePreChangeCallback(PowerController_PowerModePreChangeCb callback, void* userdata)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_UnRegisterPowerModePreChangeCallback(PowerController_PowerModePreChangeCb callback)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_AddPowerModePreChangeClient(const char *clientName, uint32_t* clientId)
+{
+    if (clientId)
+    {
+        *clientId = 1;
+    }
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_RemovePowerModePreChangeClient(const uint32_t clientId)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_PowerModePreChangeComplete(const uint32_t clientId, const int transactionId)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_DelayPowerModeChangeBy(const uint32_t clientId, const int transactionId, const int delayPeriod)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_RegisterOperationalStateChangeCallback(PowerController_OperationalStateChangeCb callback, void* userdata)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
+uint32_t PowerController_UnRegisterOperationalStateChangeCallback(PowerController_OperationalStateChangeCb callback)
+{
+    return POWER_CONTROLLER_ERROR_NONE;
+}
+
 uint32_t PowerController_GetPowerState(PowerController_PowerState_t* currentState, PowerController_PowerState_t* previousState)
 {
     return g_powerctrl_get_state_result;
