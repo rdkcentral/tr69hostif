@@ -43,10 +43,6 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
-#include <condition_variable>
-#include <chrono>
-#include <memory>
-#include <algorithm>
 #endif
 #include "waldb.h"
 #include "hostIf_NotificationHandler.h"
@@ -59,13 +55,6 @@
 #ifndef RDKV_TR69
 static bool IsPwrCtlInt = false;
 #define PRECHANGE_CLIENT_NAME            "tr69hostif"
-#define DEEPSLEEP_HOLD_BUDGET_SEC        5   // initial hold requested from PowerManager
-#define DEEPSLEEP_RENEW_MARGIN_SEC       1   // renew this long before the hold expires
-#define DEEPSLEEP_EXTENSION_SEC          3   // each additional hold
-#define DEEPSLEEP_MAX_HOLD_SEC           15  // never hold the transition longer than this
-// PowerManager calls Schedule() outside its lock after dispatching pre-change events, so an
-// immediate ack can race it; a short floor keeps our ack clear of that window.
-#define PRECHANGE_MIN_ACK_DELAY_MS       200
 static std::atomic<bool> s_preChangeCbRegistered(false);
 static std::atomic<bool> s_opStateCbRegistered(false);
 // 0 means not currently a pre-change client (e.g. PowerManager restarted and dropped us).
@@ -73,7 +62,6 @@ static std::atomic<uint32_t> s_preChangeClientId(0);
 static std::mutex s_deepSleepStateMutex;
 static std::atomic<uint64_t> s_powerStateGeneration(0);
 static bool s_deepSleepEntryHandled = false;
-static int s_deepSleepEntryTransactionId = -1;
 #endif
 static bool TR69_HostIf_Mgr_Init();
 static bool TR69_HostIf_Mgr_Connect();
@@ -636,7 +624,6 @@ static void _hostIf_ReconcilePowerState()
         if((currentState == POWER_STATE_STANDBY_DEEP_SLEEP) && !s_deepSleepEntryHandled)
         {
             s_deepSleepEntryHandled = true;
-            s_deepSleepEntryTransactionId = -1;
             printf("[%s] Initialized while already in deep sleep; sending entry notification\n", __FUNCTION__);
             _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
         }
@@ -661,7 +648,6 @@ static void _hostIf_EventHandler(const PowerController_PowerState_t currentState
         {
             printf("[%s] Pre-change did not own deep sleep entry; using post-change fallback\n", __FUNCTION__);
             s_deepSleepEntryHandled = true;
-            s_deepSleepEntryTransactionId = -1;
             _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
         }
         else
@@ -673,95 +659,10 @@ static void _hostIf_EventHandler(const PowerController_PowerState_t currentState
             (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
     {
         s_deepSleepEntryHandled = false;
-        s_deepSleepEntryTransactionId = -1;
         _hostIf_SendDeepSleepNotification("device-exit-deepsleep-state");
     }
 
     RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
-}
-
-struct PreChangeSync
-{
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool done = false;
-};
-
-// Runs the deep sleep entry work on its own thread so a stuck notification cannot block the acknowledgement.
-static void _hostIf_PreChangeWork(std::shared_ptr<PreChangeSync> sync, int transactionId,
-                                  bool ownsEntryNotification)
-{
-    if(ownsEntryNotification)
-    {
-        std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
-        if(s_deepSleepEntryHandled && (s_deepSleepEntryTransactionId == transactionId))
-        {
-            _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
-        }
-        else
-        {
-            printf("[%s] Entry transaction[%d] is no longer active; skipping notification\n",
-                   __FUNCTION__, transactionId);
-        }
-    }
-
-    {
-        std::lock_guard<std::mutex> lk(sync->mtx);
-        sync->done = true;
-    }
-    sync->cv.notify_all();
-}
-
-// Acknowledges a pre-change, but only if we are still the same PowerManager client that received it.
-static void _hostIf_AckPreChange(uint32_t clientId, int transactionId,
-                                 std::chrono::steady_clock::time_point receivedAt)
-{
-    std::this_thread::sleep_until(receivedAt + std::chrono::milliseconds(PRECHANGE_MIN_ACK_DELAY_MS));
-    if (clientId == 0 || s_preChangeClientId.load() != clientId)
-    {
-        printf("[%s] Skipping ack trxn[%d]: client [%u] no longer registered\n", __FUNCTION__, transactionId, clientId);
-        return;
-    }
-    uint32_t ret = PowerController_PowerModePreChangeComplete(clientId, transactionId);
-    printf("[%s] PowerModePreChangeComplete trxn[%d] client[%u] ret[%u]\n", __FUNCTION__, transactionId, clientId, ret);
-}
-
-// Holds the transition (up to DEEPSLEEP_MAX_HOLD_SEC) until the entry work completes, then acknowledges it.
-static void _hostIf_PreChangeMonitor(uint32_t clientId, int transactionId,
-                                     std::chrono::steady_clock::time_point receivedAt,
-                                     bool ownsEntryNotification)
-{
-    auto sync = std::make_shared<PreChangeSync>();
-    const auto start = std::chrono::steady_clock::now();
-    int reservedSec = DEEPSLEEP_HOLD_BUDGET_SEC;
-
-    PowerController_DelayPowerModeChangeBy(clientId, transactionId, reservedSec);
-    std::thread(_hostIf_PreChangeWork, sync, transactionId, ownsEntryNotification).detach();
-
-    std::unique_lock<std::mutex> lk(sync->mtx);
-    while (!sync->cv.wait_until(lk, start + std::chrono::seconds(reservedSec - DEEPSLEEP_RENEW_MARGIN_SEC),
-                                [&sync] { return sync->done; }))
-    {
-        if (s_preChangeClientId.load() != clientId)
-        {
-            printf("[%s] PowerManager client changed, abandoning hold trxn[%d]\n", __FUNCTION__, transactionId);
-            break;
-        }
-        if (reservedSec >= DEEPSLEEP_MAX_HOLD_SEC)
-        {
-            printf("[%s] Deep sleep entry work exceeded %ds, releasing trxn[%d]\n", __FUNCTION__, DEEPSLEEP_MAX_HOLD_SEC, transactionId);
-            break;
-        }
-        const int extensionSec = std::min(DEEPSLEEP_EXTENSION_SEC, DEEPSLEEP_MAX_HOLD_SEC - reservedSec);
-        lk.unlock();
-        // The delay is measured from now, so include the margin left on the current hold.
-        PowerController_DelayPowerModeChangeBy(clientId, transactionId, DEEPSLEEP_RENEW_MARGIN_SEC + extensionSec);
-        lk.lock();
-        reservedSec += extensionSec;
-    }
-    lk.unlock();
-
-    _hostIf_AckPreChange(clientId, transactionId, receivedAt);
 }
 
 static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentState,
@@ -769,7 +670,6 @@ static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentS
     const int stateChangeAfter, void* userdata)
 {
     (void)userdata;
-    const auto receivedAt = std::chrono::steady_clock::now();
     const uint32_t clientId = s_preChangeClientId.load();
     printf("[%s] PreChange [%d] -> [%d] trxn[%d] stateChangeAfter[%d] client[%u]\n", __FUNCTION__,
            (int)currentState, (int)newState, transactionId, stateChangeAfter, clientId);
@@ -778,26 +678,27 @@ static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentS
         // Not an awaited client right now; PowerManager is not waiting on us.
         return;
     }
-    // Never block the PowerManager callback; acks are sent from detached threads.
+
     if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) && (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
     {
-        bool ownsEntryNotification = false;
+        std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
+        if(!s_deepSleepEntryHandled)
         {
-            std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
-            if(!s_deepSleepEntryHandled)
-            {
-                s_deepSleepEntryHandled = true;
-                s_deepSleepEntryTransactionId = transactionId;
-                ownsEntryNotification = true;
-            }
+            s_deepSleepEntryHandled = true;
+            _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
         }
-        std::thread(_hostIf_PreChangeMonitor, clientId, transactionId, receivedAt,
-                    ownsEntryNotification).detach();
     }
-    else
+
+    if(s_preChangeClientId.load() != clientId)
     {
-        std::thread(_hostIf_AckPreChange, clientId, transactionId, receivedAt).detach();
+        printf("[%s] Skipping ack trxn[%d]: client[%u] no longer registered\n",
+               __FUNCTION__, transactionId, clientId);
+        return;
     }
+
+    const uint32_t ret = PowerController_PowerModePreChangeComplete(clientId, transactionId);
+    printf("[%s] PowerModePreChangeComplete trxn[%d] client[%u] ret[%u]\n",
+           __FUNCTION__, transactionId, clientId, ret);
 }
 
 static void _hostIf_AddPreChangeClient()
@@ -834,7 +735,6 @@ static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata)
         {
             std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
             s_deepSleepEntryHandled = false;
-            s_deepSleepEntryTransactionId = -1;
         }
         return;
     }
