@@ -64,6 +64,7 @@
 #include <fstream>
 #include <algorithm>
 #include <regex>
+#include <cstdlib>
 #include <dirent.h>
 #include <thread>
 #include "libIBus.h"
@@ -3830,7 +3831,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     if (stMsgData->paramtype != hostIf_StringType) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: expected string parameter\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: expected string parameter\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterType;
         return NOK;
     }
@@ -3839,75 +3840,62 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
 
     if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue)) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: empty or invalid hash\n", __FUNCTION__);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: empty or invalid hash\n", __FUNCTION__);
         stMsgData->faultCode = fcInvalidParameterValue;
         return NOK;
     }
 
     const bool resetPassword = hashLen == 1 && hash[0] == '*';
     if (!resetPassword) {
-        /* Validate SHA-512-crypt hash prefix. */
         if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
 
         const char *salt = hash + 3;
-        int dollarCount = 0;
-        const char *sep = NULL;
-
-        for (const char *p = hash; *p != '\0'; ++p) {
-            if (*p == '$') {
-                ++dollarCount;
-                sep = p;
-            }
-        }
-
-        if (dollarCount != 3 && dollarCount != 4) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
+        const char *roundsSep = strchr(salt, '$');
+        if (roundsSep == NULL) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
 
-        /* Validate optional rounds field. */
-        if (dollarCount == 4) {
-            if (strncmp(hash, "$6$rounds=", 10) != 0) {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
-                stMsgData->faultCode = fcInvalidParameterValue;
-                return NOK;
-            }
+        if (strncmp(salt, "rounds=", 7) == 0) {
+            const char *rounds = salt + 7;
+            const size_t roundsLen = (size_t)(roundsSep - rounds);
+            char *roundsEnd = NULL;
+            errno = 0;
+            unsigned long roundsValue = strtoul(rounds, &roundsEnd, 10);
 
-            const char *p = hash + 10;
-            unsigned long roundsValue = 0;
-            int digits = 0;
-
-            while (*p >= '0' && *p <= '9' && digits < 9) {
-                roundsValue = roundsValue * 10 + (*p - '0');
-                ++p;
-                ++digits;
-            }
-
-            if (digits == 0 || *p != '$' || p >= sep ||
+            if (roundsLen == 0 || roundsLen > 9 || rounds[0] < '0' || rounds[0] > '9' ||
+                errno == ERANGE || roundsEnd != roundsSep ||
                 roundsValue < 1000 || roundsValue > 999999999) {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
                 stMsgData->faultCode = fcInvalidParameterValue;
                 return NOK;
             }
-
-            salt = p + 1;
+            salt = roundsSep + 1;
         }
 
-        /* Validate salt and digest characters. */
+        const char *sep = strchr(salt, '$');
+        if (sep == NULL) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+
         const char *cryptChars =
             "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         const size_t saltLen = (size_t)(sep - salt);
+        const size_t digestLen = hashLen - (size_t)((sep + 1) - hash);
 
         if (saltLen == 0 || saltLen > 16 ||
             strspn(salt, cryptChars) != saltLen ||
-            strlen(sep + 1) != 86 ||
-            strspn(sep + 1, cryptChars) != 86) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET rejected: invalid hash format\n", __FUNCTION__);
+            digestLen != 86 ||
+            strspn(sep + 1, cryptChars) != digestLen ||
+            strchr(sep + 1, '$') != NULL) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
             stMsgData->faultCode = fcInvalidParameterValue;
             return NOK;
         }
@@ -3922,7 +3910,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
 
     if (fd < 0) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET failed: cannot open shadow file: %s\n",
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET failed: cannot open shadow file: %s\n",
                 __FUNCTION__, strerror(errno));
         stMsgData->faultCode = fcInternalError;
         return NOK;
@@ -3931,28 +3919,28 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     char *original = NULL, *updated = NULL;
     size_t oldLen = 0, newLen = 0, pos = 0, oldHashLen = 0;
     int ret = NOK, locked = 0;
-    bool storeFailed = false;
+    bool storeFailed = false, rollbackRequired = false, shadowChanged = false, rollbackFailed = false;
 
-    do {
+    {
         struct stat st;
 
         if (flock(fd, LOCK_EX) != 0) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to lock shadow file: %s\n",
                     __FUNCTION__, strerror(errno));
-            break;
+            goto shadow_update_done;
         }
         locked = 1;
 
         if (fstat(fd, &st) != 0) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to stat shadow file: %s\n",
                     __FUNCTION__, strerror(errno));
-            break;
+            goto shadow_update_done;
         }
 
         if (!S_ISREG(st.st_mode) || st.st_size <= 0 || st.st_size > 1048576) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file type or size is invalid\n",
                     __FUNCTION__);
-            break;
+            goto shadow_update_done;
         }
 
         oldLen = (size_t)st.st_size;
@@ -3961,7 +3949,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         if (original == NULL) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate original buffer\n",
                     __FUNCTION__);
-            break;
+            goto shadow_update_done;
         }
 
         size_t count = 0;
@@ -3977,16 +3965,15 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         if (count != oldLen) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read complete shadow file\n",
                     __FUNCTION__);
-            break;
+            goto shadow_update_done;
         }
         original[oldLen] = '\0';
 
         int found = 0, malformed = 0;
 
         for (size_t start = 0; start < oldLen;) {
-            size_t end = start;
-            while (end < oldLen && original[end] != '\n')
-                ++end;
+            const char *lineEnd = (const char *)memchr(original + start, '\n', oldLen - start);
+            const size_t end = lineEnd == NULL ? oldLen : (size_t)(lineEnd - original);
 
             if (end - start >= 9 && memcmp(original + start, "rdk_user:", 9) == 0) {
                 char *colon = (char *)memchr(original + start + 9, ':', end - start - 9);
@@ -4001,13 +3988,20 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
                 found = 1;
             }
 
-            start = end + 1;
+            start = lineEnd == NULL ? oldLen : end + 1;
         }
 
         if (!found || malformed) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET failed: rdk_user entry missing, duplicated or malformed\n",
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET failed: rdk_user entry missing, duplicated or malformed\n",
                     __FUNCTION__);
-            break;
+            goto shadow_update_done;
+        }
+
+        const bool passwordUnchanged = oldHashLen == passwordFieldLen &&
+                                       memcmp(original + pos, passwordField, oldHashLen) == 0;
+        if (passwordUnchanged) {
+            ret = OK;
+            goto shadow_update_done;
         }
 
         newLen = oldLen - oldHashLen + passwordFieldLen;
@@ -4016,7 +4010,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
         if (updated == NULL) {
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate updated buffer\n",
                     __FUNCTION__);
-            break;
+            goto shadow_update_done;
         }
 
         memcpy(updated, original, pos);
@@ -4025,39 +4019,31 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
                original + pos + oldHashLen,
                oldLen - pos - oldHashLen);
 
-        const char *data[] = { updated, original };
-        size_t lengths[] = { newLen, oldLen };
-
-        for (int attempt = 0; attempt < 2; ++attempt) {
-            size_t written = 0;
-
-            while (written < lengths[attempt]) {
-                ssize_t n = pwrite(fd, data[attempt] + written,
-                                   lengths[attempt] - written, (off_t)written);
-                if (n < 0 && errno == EINTR)
-                    continue;
-                if (n <= 0)
-                    break;
-                written += (size_t)n;
-            }
-
-            if (written == lengths[attempt] &&
-                ftruncate(fd, (off_t)lengths[attempt]) == 0 &&
-                fsync(fd) == 0) {
-                if (attempt == 0)
-                    ret = OK;
+        size_t written = 0;
+        while (written < newLen) {
+            ssize_t n = pwrite(fd, updated + written, newLen - written, (off_t)written);
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n == 0) {
+                errno = EIO;
                 break;
             }
-
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSH.Password SET failed: shadow file %s failed: %s\n",
-                    __FUNCTION__, attempt == 0 ? "update" : "restore", strerror(errno));
+            if (n < 0)
+                break;
+            written += (size_t)n;
         }
 
-        if (ret != OK) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Password update failed; restoration may also have failed\n",
-                    __FUNCTION__);
+        if (written == newLen && ftruncate(fd, (off_t)newLen) == 0 && fsync(fd) == 0) {
+            shadowChanged = true;
+            ret = OK;
+        } else {
+            rollbackRequired = true;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET failed: shadow file update failed: %s\n",
+                    __FUNCTION__, strerror(errno));
         }
-    } while (0);
+    }
+
+shadow_update_done:
 
     if (ret == OK) {
         faultCode_t storeFault = m_rfcStore->setValue(stMsgData);
@@ -4066,28 +4052,36 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
             stMsgData->faultCode = storeFault;
             RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
                     "[%s] Failed to update RFC datastore for SSH password\n", __FUNCTION__);
-
-            size_t restored = 0;
-            while (restored < oldLen) {
-                ssize_t n = pwrite(fd, original + restored, oldLen - restored,
-                                   (off_t)restored);
-                if (n < 0 && errno == EINTR)
-                    continue;
-                if (n <= 0)
-                    break;
-                restored += (size_t)n;
-            }
-
-            if (restored != oldLen ||
-                ftruncate(fd, (off_t)oldLen) != 0 ||
-                fsync(fd) != 0) {
-                stMsgData->faultCode = fcInternalError;
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
-                        "[%s] Failed to restore shadow file after RFC datastore failure\n", __FUNCTION__);
-            }
+            rollbackRequired = shadowChanged;
             ret = NOK;
         } else {
             stMsgData->faultCode = fcNoFault;
+        }
+    }
+
+    if (rollbackRequired) {
+        size_t restored = 0;
+        while (restored < oldLen) {
+            ssize_t n = pwrite(fd, original + restored, oldLen - restored, (off_t)restored);
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n == 0) {
+                errno = EIO;
+                break;
+            }
+            if (n < 0)
+                break;
+            restored += (size_t)n;
+        }
+
+        const bool restoreWriteFailed = restored != oldLen;
+        const int truncateResult = ftruncate(fd, (off_t)oldLen);
+        const int syncResult = fsync(fd);
+        if (restoreWriteFailed || truncateResult != 0 || syncResult != 0) {
+            rollbackFailed = true;
+            stMsgData->faultCode = fcInternalError;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to restore shadow file after update failure\n", __FUNCTION__);
         }
     }
 
@@ -4099,7 +4093,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     close(fd);
 
     if (ret != OK) {
-        if (!storeFailed)
+        if (!storeFailed || rollbackFailed)
             stMsgData->faultCode = fcInternalError;
         return NOK;
     }
@@ -4107,7 +4101,7 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     memset(stMsgData->paramValue, 0, sizeof(stMsgData->paramValue));
     stMsgData->paramLen = 0;
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SSH.Password SET succeeded: rdk_user credential updated\n",
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SSHPassword SET succeeded: rdk_user credential updated\n",
             __FUNCTION__);
     return OK;
 }
@@ -5992,4 +5986,3 @@ bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr)
 
 /** @} */
 /** @} */
-

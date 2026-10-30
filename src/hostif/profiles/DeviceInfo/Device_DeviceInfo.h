@@ -218,7 +218,7 @@
 /* Profile: X_RDKCENTRAL-COM_RFC.Identity */
 #define RFC_DBG_SERVICES                                "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable"
 #define RFC_DEVICE_TYPE                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType"
-#define SECURE_UNLOCK_SSH_PASSWORD                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSH.Password"
+#define SECURE_UNLOCK_SSH_PASSWORD                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSHPassword"
 #define SIGNEDLAB_SHADOW_FILE                           "/opt/secure/signedlab-shadow"
 
 char* getLastField(char* line, char delimiter);
