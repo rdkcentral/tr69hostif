@@ -3825,17 +3825,6 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *s
  */
 int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData)
 {
-    if (stMsgData == NULL) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SET message is NULL\n", __FUNCTION__);
-        return NOK;
-    }
-
-    if (stMsgData->paramtype != hostIf_StringType) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: expected string parameter\n", __FUNCTION__);
-        stMsgData->faultCode = fcInvalidParameterType;
-        return NOK;
-    }
-
     const char *hash = stMsgData->paramValue;
     size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
 
