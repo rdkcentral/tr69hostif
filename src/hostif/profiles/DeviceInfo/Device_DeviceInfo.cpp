@@ -3581,6 +3581,28 @@ int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData_t * stMsgData)
             stMsgData->faultCode = fcInvalidParameterValue;
         }
     }
+    else if (strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
+    {
+        const char *hash = stMsgData->paramValue;
+        const size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
+        const char *salt = hash + 3;
+        const char *sep = hashLen >= 3 && strncmp(hash, "$6$", 3) == 0 ? strchr(salt, '$') : NULL;
+        const char *cryptChars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+        if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue) ||
+            hashLen < 3 || strncmp(hash, "$6$", 3) != 0 ||
+            sep == NULL ||
+            (size_t)(sep - salt) == 0 || (size_t)(sep - salt) > 16 ||
+            strspn(salt, cryptChars) != (size_t)(sep - salt) ||
+            hashLen - (size_t)((sep + 1) - hash) != 86 ||
+            strspn(sep + 1, cryptChars) != hashLen - (size_t)((sep + 1) - hash) ||
+            strchr(sep + 1, '$') != NULL)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+    }
     return ret;
 }
 
@@ -3825,6 +3847,12 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *s
  */
 int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData)
 {
+    if (stMsgData->paramtype != hostIf_StringType) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: expected string parameter\n", __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
     const char *hash = stMsgData->paramValue;
     size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
 
@@ -3835,59 +3863,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgDa
     }
 
     const bool resetPassword = hashLen == 1 && hash[0] == '*';
-    if (!resetPassword) {
-        if (hashLen < 3 || strncmp(hash, "$6$", 3) != 0) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
-            stMsgData->faultCode = fcInvalidParameterValue;
-            return NOK;
-        }
-
-        const char *salt = hash + 3;
-        const char *roundsSep = strchr(salt, '$');
-        if (roundsSep == NULL) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
-            stMsgData->faultCode = fcInvalidParameterValue;
-            return NOK;
-        }
-
-        if (strncmp(salt, "rounds=", 7) == 0) {
-            const char *rounds = salt + 7;
-            const size_t roundsLen = (size_t)(roundsSep - rounds);
-            char *roundsEnd = NULL;
-            errno = 0;
-            unsigned long roundsValue = strtoul(rounds, &roundsEnd, 10);
-
-            if (roundsLen == 0 || roundsLen > 9 || rounds[0] < '0' || rounds[0] > '9' ||
-                errno == ERANGE || roundsEnd != roundsSep ||
-                roundsValue < 1000 || roundsValue > 999999999) {
-                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
-                stMsgData->faultCode = fcInvalidParameterValue;
-                return NOK;
-            }
-            salt = roundsSep + 1;
-        }
-
-        const char *sep = strchr(salt, '$');
-        if (sep == NULL) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
-            stMsgData->faultCode = fcInvalidParameterValue;
-            return NOK;
-        }
-
-        const char *cryptChars =
-            "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        const size_t saltLen = (size_t)(sep - salt);
-        const size_t digestLen = hashLen - (size_t)((sep + 1) - hash);
-
-        if (saltLen == 0 || saltLen > 16 ||
-            strspn(salt, cryptChars) != saltLen ||
-            digestLen != 86 ||
-            strspn(sep + 1, cryptChars) != digestLen ||
-            strchr(sep + 1, '$') != NULL) {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
-            stMsgData->faultCode = fcInvalidParameterValue;
-            return NOK;
-        }
+    if (!resetPassword && validate_ParamValue(stMsgData) != OK) {
+        return NOK;
     }
 
     const char *passwordField = resetPassword ? "*" : hash;
