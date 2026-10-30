@@ -37,6 +37,6 @@ devieInfo_gtest_SOURCES = $(TOP_DIR)/src/hostif/src/hostIf_utils.cpp $(TOP_DIR)/
 devieInfo_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 devieInfo_gtest_LDADD = $(COMMON_LDADD)
 devieInfo_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
-devieInfo_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl
+devieInfo_gtest_LDFLAGS = -Wl,--wrap=pthread_create -Wl,--wrap=malloc -Wl,--wrap=gettimeofday -Wl,--wrap=v_secure_system -Wl,--wrap=socket -Wl,--wrap=ioctl -Wl,--wrap=getifaddrs -Wl,--wrap=freeifaddrs -Wl,--wrap=sysinfo -Wl,--wrap=open -Wl,--wrap=fchmod -Wl,--wrap=fdopen -Wl,--wrap=fprintf -Wl,--wrap=fflush -Wl,--wrap=fputs -Wl,--wrap=_Z15getenvOrDefaultPKcS0_ -Wl,--wrap=opendir -Wl,--wrap=closedir -Wl,--wrap=fopen -Wl,--wrap=rename -Wl,--wrap=remove -Wl,--wrap=sleep -Wl,--wrap=inotify_init -Wl,--wrap=inotify_add_watch -Wl,--wrap=read
 
 

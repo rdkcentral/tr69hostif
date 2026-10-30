@@ -338,11 +338,13 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCLoudnessEquivalenceEnable);
     FRIEND_TEST(deviceTest, set_xOpsRPCRebootPendingNotification);
     FRIEND_TEST(deviceTest, set_xRDKCentralComApparmorBlocklist);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComApparmorBlocklist_UncoveredBranches);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCFwDwldStartedNotification);
     FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
     FRIEND_TEST(deviceInfoTest, findLocalPortAvailable);
+    FRIEND_TEST(deviceInfoTest, findLocalPortAvailable_SocketFailure);
     FRIEND_TEST(deviceTest, set_xRDKCentralComRFCRetrieveNow);
     FRIEND_TEST(deviceTest, set_xOpsRPCDevManageableNotification);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldCompletedNotification);
@@ -379,13 +381,13 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, getEstbIp_WiFiEnabled);
     FRIEND_TEST(deviceTest, getStbMacIf_fr_devProperties_IoctlSuccess);
     FRIEND_TEST(deviceTest, getStbMacIf_fr_devProperties_SocketFailure);
-    FRIEND_TEST(deviceTest, getStbMacIf_fr_devProperties_Exception);
     FRIEND_TEST(deviceTest, initMutexAttributes_DirectCall);
     FRIEND_TEST(deviceTest, systemMgmtTimePathMonitorThr_WhenWebpaReady_Exits);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_DisableWhenFileMissing);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_InvalidType);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagCreateFails);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FdopenFails);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagRemoveFails);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCVideoTelFreq);
     FRIEND_TEST(deviceTest, get_xOpsRPCDevManageableNotification_CopyFailure);
@@ -408,9 +410,16 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, SecureDebugState_DbgServicesDisabled);
     FRIEND_TEST(deviceTest, SecureDebugState_DeviceTypeNotTest);
     FRIEND_TEST(deviceTest, SecureDebugState_BothDisabled);
+    FRIEND_TEST(deviceTest, SecureDebugState_RFCReadFailure);
+    FRIEND_TEST(deviceTest, SecureDebugState_FileWriteFailures);
     FRIEND_TEST(deviceTest, SecureDebugState_NullInput);
     FRIEND_TEST(deviceTest, SecureDebugState_ValidHandler);
     FRIEND_TEST(deviceTest, SecureDebugState_UpdateExistingFile);
+    FRIEND_TEST(deviceTest, getEstbIp_GetifaddrsFailure);
+    FRIEND_TEST(deviceTest, getEstbIp_WiFiEnabled_IPv4Wlan0);
+    FRIEND_TEST(deviceTest, getEstbIp_WiFiEnabled_IPv6Wlan0);
+    FRIEND_TEST(deviceTest, getEstbIp_ExceptionCaught);
+    FRIEND_TEST(deviceTest, isRsshactive_StalePid);
 #endif
 
 public:
