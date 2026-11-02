@@ -146,8 +146,10 @@
 
 #ifndef GTEST_ENABLE
 #define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
+#define SIGNEDLAB_SHADOW_FILE "/opt/secure/signedlab-shadow"
 #else
 #define DBG_SERVICES_STATE_FILE "/tmp/enable_secure_dbg"
+#define SIGNEDLAB_SHADOW_FILE "/tmp/signedlab-shadow"
 #endif
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
