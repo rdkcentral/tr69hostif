@@ -413,6 +413,11 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, SecureDebugState_NullInput);
     FRIEND_TEST(deviceTest, SecureDebugState_ValidHandler);
     FRIEND_TEST(deviceTest, SecureDebugState_UpdateExistingFile);
+    FRIEND_TEST(deviceTest, SecureUnlock_InvalidHashesDoNotModifyShadow);
+    FRIEND_TEST(deviceTest, SecureUnlock_NonStringValueIsRejected);
+    FRIEND_TEST(deviceTest, SecureUnlock_InvalidShadowEntriesDoNotModifyFile);
+    FRIEND_TEST(deviceTest, SecureUnlock_MissingShadowFileIsRejected);
+    FRIEND_TEST(deviceTest, SecureUnlock_AlreadyCurrentHashLeavesFileUnchanged);
 #endif
 
 public:

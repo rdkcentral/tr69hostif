@@ -3587,13 +3587,20 @@ int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData_t * stMsgData)
     {
         const char *hash = stMsgData->paramValue;
         const size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
-        const char *salt = hash + 3;
-        const char *sep = hashLen >= 3 && strncmp(hash, "$6$", 3) == 0 ? strchr(salt, '$') : NULL;
         const char *cryptChars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
         if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue) ||
-            hashLen < 3 || strncmp(hash, "$6$", 3) != 0 ||
-            sep == NULL ||
+            hashLen < 3 || strncmp(hash, "$6$", 3) != 0)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+
+        const char *salt = hash + 3;
+        const char *sep = strchr(salt, '$');
+
+        if (sep == NULL ||
             (size_t)(sep - salt) == 0 || (size_t)(sep - salt) > 16 ||
             strspn(salt, cryptChars) != (size_t)(sep - salt) ||
             hashLen - (size_t)((sep + 1) - hash) != 86 ||

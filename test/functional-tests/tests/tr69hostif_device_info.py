@@ -286,8 +286,9 @@ def test_DeviceInfo_SecureUnlock_SSHPassword_Set_Get_Handler():
     def set_password(value, data_type="string"):
         return rbus_set_data(parameter, data_type, shlex.quote(value))
 
-    def get_password():
-        response = rbus_get_data(parameter)
+    def get_password(response=None):
+        if response is None:
+            response = rbus_get_data(parameter)
         assert RBUS_EXCEPTION_STRING not in response, "SSHPassword GET failed"
         values = []
         for line in response.splitlines():
@@ -348,8 +349,16 @@ def test_DeviceInfo_SecureUnlock_SSHPassword_Set_Get_Handler():
             and all(char in crypt_chars for char in digest)
         )
 
-    original_rfc = get_password()
+    assert is_restorable_value("$6$salt$" + ("a" * 86))
+    assert is_restorable_value("*")
+
     original_shadow = read_shadow()
+    initial_rfc_response = rbus_get_data(parameter)
+    if RBUS_EXCEPTION_STRING in initial_rfc_response:
+        pytest.skip(
+            "SSHPassword RFC value is not provisioned; skipping before device state changes"
+        )
+    original_rfc = get_password(initial_rfc_response)
     start, end = password_span(original_shadow)
     original_shadow_password = original_shadow[start:end].decode("ascii")
     if not is_restorable_value(original_rfc):

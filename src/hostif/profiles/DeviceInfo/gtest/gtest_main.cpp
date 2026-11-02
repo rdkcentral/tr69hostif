@@ -2296,6 +2296,7 @@ TEST(deviceTest, SecureUnlock_InvalidHashesDoNotModifyShadow)
     unterminatedParam.paramLen = sizeof(unterminatedParam.paramValue);
     unterminatedParam.requestor = HOSTIF_SRC_RFC;
 
+    EXPECT_EQ(pIface->validate_ParamValue(&unterminatedParam), NOK);
     EXPECT_EQ(pIface->set_xRDKCentralComRFCSecureUnlockSSHPassword(&unterminatedParam), NOK);
     EXPECT_EQ(unterminatedParam.faultCode, fcInvalidParameterValue);
     EXPECT_EQ(readSignedLabShadowFile(), original);
