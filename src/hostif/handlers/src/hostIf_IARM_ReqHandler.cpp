@@ -83,7 +83,6 @@ static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentS
 static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata);
 static void _hostIf_AddPreChangeClient();
 static void _hostIf_ReconcilePowerState();
-static void _hostIf_RecoverPowerManager();
 #endif
 //----------------------------------------------------------------------
 // hostIf_IARM_IF_Start: This shall be use to initialize and register
@@ -717,12 +716,6 @@ static void _hostIf_AddPreChangeClient()
     }
 }
 
-static void _hostIf_RecoverPowerManager()
-{
-    _hostIf_AddPreChangeClient();
-    _hostIf_ReconcilePowerState();
-}
-
 // PowerManager keeps pre-change clients in memory only, so a plugin restart drops our client id.
 static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata)
 {
@@ -740,8 +733,8 @@ static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata)
     }
     if (s_preChangeCbRegistered.load())
     {
-        // Re-register off the callback thread to avoid re-entering the PowerController wrapper.
-        std::thread(_hostIf_RecoverPowerManager).detach();
+        _hostIf_AddPreChangeClient();
+        _hostIf_ReconcilePowerState();
     }
 }
 #endif
