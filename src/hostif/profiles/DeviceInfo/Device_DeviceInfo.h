@@ -138,6 +138,8 @@
 /* Profile: X_RDKCENTRAL-COM_RDKDownloadManager. */
 #define X_RDKDownloadManager_InstallPackage             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.InstallPackage"
 #define X_RDKDownloadManager_DownloadStatus             "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.DownloadStatus"
+#define X_RDKDownloadManager_PackageInstallPath         "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath"
+#define X_RDKDownloadManager_PackageExpiryTime          "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime"
 /* Profile: X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging. */
 #define xOpsDMUploadLogsNow_STR                         "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMUploadLogsNow"
 #define xOpsDMLogsUploadStatus_STR                      "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Logging.xOpsDMLogsUploadStatus"
@@ -160,6 +162,7 @@
 #define TR181_RFC_PREFIX                                "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC"
 #define TR181_RFC_RESET_DATA_START                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDB"
 #define TR181_RFC_RESET_DATA_END                        "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Control.ClearDBEnd"
+#define RFC_GET_DATA_MODEL_LIST                         "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.GetDataModelList"
 #define HDR_DV_RFC_ENABLE                               "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DolbyVision.Enable"
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature */
 #define RFC_WL_ROAM_TRIGGER_RF                          "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RoamTrigger"
@@ -194,9 +197,12 @@
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing */
 #define DISTRIBUTED_TRACING_RFC_ENABLE              "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Enable"
 #define DISTRIBUTED_TRACING_RFC_URL                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.URL"
+#define DISTRIBUTED_TRACING_RFC_INTERVAL            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Interval"
+#define MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES    71582U
 #define RDK_TRACING_FLAG_FILE                       "/tmp/rdk_distributed_tracing_enabled"
 
 #define OTEL_EXPORT_ENDPOINT_FILE                   "/opt/secure/otel-export-endpoint"
+#define OTEL_EXPORT_INTERVAL_FILE                  "/opt/secure/otel-export-interval"
 
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.RebootStop */
 #define RDK_REBOOTSTOP_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable"
@@ -218,6 +224,7 @@
 /* Profile: X_RDKCENTRAL-COM_RFC.Identity */
 #define RFC_DBG_SERVICES                                "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable"
 #define RFC_DEVICE_TYPE                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType"
+#define SECURE_UNLOCK_SSH_PASSWORD                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSHPassword"
 
 char* getLastField(char* line, char delimiter);
 
@@ -315,9 +322,11 @@ class hostIf_DeviceInfo {
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *);
+    int set_xRDKCentralComRFCDistributedTracingInterval(HOSTIF_MsgData_t *);
 
     int updateSecureDebugState(void);
     int set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData);
+    int set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData);
 
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);
@@ -387,6 +396,10 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_InvalidType);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagCreateFails);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagRemoveFails);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_InvalidType);
+    FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_Zero);
+    FRIEND_TEST(deviceTest, set_xRDKCentralComRFCDistributedTracingInterval_InvalidValuesNotPersisted);
     FRIEND_TEST(deviceTest, direct_set_xRDKCentralComRFCVideoTelFreq);
     FRIEND_TEST(deviceTest, get_xOpsRPCDevManageableNotification_CopyFailure);
     FRIEND_TEST(deviceTest, get_xOpsRPCFwDwldStartedNotification_CopyFailure);
@@ -411,6 +424,11 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, SecureDebugState_NullInput);
     FRIEND_TEST(deviceTest, SecureDebugState_ValidHandler);
     FRIEND_TEST(deviceTest, SecureDebugState_UpdateExistingFile);
+    FRIEND_TEST(deviceTest, SecureUnlock_InvalidHashesDoNotModifyShadow);
+    FRIEND_TEST(deviceTest, SecureUnlock_NonStringValueIsRejected);
+    FRIEND_TEST(deviceTest, SecureUnlock_InvalidShadowEntriesDoNotModifyFile);
+    FRIEND_TEST(deviceTest, SecureUnlock_MissingShadowFileIsRejected);
+    FRIEND_TEST(deviceTest, SecureUnlock_AlreadyCurrentHashLeavesFileUnchanged);
 #endif
 
 public:
@@ -1345,6 +1363,16 @@ public:
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerIssueType(HOSTIF_MsgData_t *);
     int set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(HOSTIF_MsgData_t *);
 #endif
+    /*
+      * @brief RDKDownloadManager debug-tool lifecycle setters/getters.
+      *
+      * These parameters are part of the X_RDKCENTRAL-COM_RDKDownloadManager
+      * branch and are used for the actual package/tool expiry lifecycle.
+      */
+    int get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *);
+    int get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *);
+    int set_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *);
 
     /*
       * @brief set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryStartTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryEndTime, set_Device_DeviceInfo_X_RDKCENTRAL_COM_CanaryExtendTime

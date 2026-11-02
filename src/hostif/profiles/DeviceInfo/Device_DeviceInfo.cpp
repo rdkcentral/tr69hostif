@@ -40,6 +40,10 @@
 
 #include <cmath>
 #include <cstring>
+#include <cctype>
+#include <cstdio>
+#include <cerrno>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/fs.h>
@@ -48,6 +52,7 @@
 #include <net/if.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
+#include <sys/file.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -61,9 +66,13 @@
 #include <regex>
 #include <dirent.h>
 #include <thread>
+#include <cstdlib>
+#include <limits>
+#include <ctime>
 #include "libIBus.h"
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
+#include "hostIf_ExportDataModel.h"
 #include "hostIf_utils.h"
 #ifdef RDKV_TR69
 #include "pwrMgr.h"
@@ -140,8 +149,10 @@
 
 #ifndef GTEST_ENABLE
 #define DBG_SERVICES_STATE_FILE "/opt/enable_secure_dbg"
+#define SIGNEDLAB_SHADOW_FILE "/opt/secure/signedlab-shadow"
 #else
 #define DBG_SERVICES_STATE_FILE "/tmp/enable_secure_dbg"
+#define SIGNEDLAB_SHADOW_FILE "/tmp/signedlab-shadow"
 #endif
 
 GHashTable* hostIf_DeviceInfo::ifHash = NULL;
@@ -3551,7 +3562,25 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
 int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = OK;
-    if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
+    if (strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_INTERVAL) == 0)
+    {
+        if (stMsgData->paramtype != hostIf_UnsignedIntType)
+        {
+            stMsgData->faultCode = fcInvalidParameterType;
+            return NOK;
+        }
+
+        unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
+        if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%d] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                    __FUNCTION__, __LINE__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+    }
+    else if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
     {
         long int tmpVal;
         if(stMsgData->paramtype == hostIf_StringType )
@@ -3573,6 +3602,35 @@ int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData_t * stMsgData)
             ret = NOK;
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Failed due to wrong Value,Value should be[0-30] for %s to set.\n", __FUNCTION__, __LINE__, stMsgData->paramName);
             stMsgData->faultCode = fcInvalidParameterValue;
+        }
+    }
+    else if (strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD) == 0)
+    {
+        const char *hash = stMsgData->paramValue;
+        const size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
+        const char *cryptChars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+        if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue) ||
+            hashLen < 3 || strncmp(hash, "$6$", 3) != 0)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+
+        const char *salt = hash + 3;
+        const char *sep = strchr(salt, '$');
+
+        if (sep == NULL ||
+            (size_t)(sep - salt) == 0 || (size_t)(sep - salt) > 16 ||
+            strspn(salt, cryptChars) != (size_t)(sep - salt) ||
+            hashLen - (size_t)((sep + 1) - hash) != 86 ||
+            strspn(sep + 1, cryptChars) != hashLen - (size_t)((sep + 1) - hash) ||
+            strchr(sep + 1, '$') != NULL)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: invalid hash format\n", __FUNCTION__);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
         }
     }
     return ret;
@@ -3806,6 +3864,244 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *s
     return updateSecureDebugState();
 }
 
+/**
+ * @brief Sets the SecureUnlock SSH password hash for SignedLab.
+ *
+ * @param[out] stMsgData TR-069 Host interface message request.
+ *
+ * @return Returns the status of the operation.
+ *
+ * @retval OK if the password hash is successfully updated.
+ * @retval NOK if the password hash is invalid or the update fails.
+ * @ingroup TR69_HOSTIF_DEVICEINFO_API
+ */
+int hostIf_DeviceInfo::set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData->paramtype != hostIf_StringType) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: expected string parameter\n", __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    const char *hash = stMsgData->paramValue;
+    size_t hashLen = strnlen(hash, sizeof(stMsgData->paramValue));
+
+    if (hashLen == 0 || hashLen == sizeof(stMsgData->paramValue)) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET rejected: empty or invalid hash\n", __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    const bool resetPassword = hashLen == 1 && hash[0] == '*';
+    if (!resetPassword && validate_ParamValue(stMsgData) != OK) {
+        return NOK;
+    }
+
+    const char *passwordField = resetPassword ? "*" : hash;
+    const size_t passwordFieldLen = resetPassword ? 1 : hashLen;
+
+    if (m_rfcStore == NULL)
+        m_rfcStore = XRFCStore::getInstance();
+
+    int fd = open(SIGNEDLAB_SHADOW_FILE, O_RDWR);
+
+    if (fd < 0) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET failed: cannot open shadow file: %s\n",
+                __FUNCTION__, strerror(errno));
+        stMsgData->faultCode = fcInternalError;
+        return NOK;
+    }
+
+    char *original = NULL, *updated = NULL;
+    size_t oldLen = 0, newLen = 0, pos = 0, oldHashLen = 0;
+    int ret = NOK, locked = 0;
+    bool storeFailed = false, rollbackRequired = false, shadowChanged = false, rollbackFailed = false;
+
+    {
+        struct stat st;
+
+        if (flock(fd, LOCK_EX) != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to lock shadow file: %s\n",
+                    __FUNCTION__, strerror(errno));
+            goto shadow_update_done;
+        }
+        locked = 1;
+
+        if (fstat(fd, &st) != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to stat shadow file: %s\n",
+                    __FUNCTION__, strerror(errno));
+            goto shadow_update_done;
+        }
+
+        if (!S_ISREG(st.st_mode) || st.st_size <= 0 || st.st_size > 1048576) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Shadow file type or size is invalid\n",
+                    __FUNCTION__);
+            goto shadow_update_done;
+        }
+
+        oldLen = (size_t)st.st_size;
+        original = (char *)malloc(oldLen + 1);
+
+        if (original == NULL) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate original buffer\n",
+                    __FUNCTION__);
+            goto shadow_update_done;
+        }
+
+        size_t count = 0;
+        while (count < oldLen) {
+            ssize_t n = pread(fd, original + count, oldLen - count, (off_t)count);
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n <= 0)
+                break;
+            count += (size_t)n;
+        }
+
+        if (count != oldLen) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to read complete shadow file\n",
+                    __FUNCTION__);
+            goto shadow_update_done;
+        }
+        original[oldLen] = '\0';
+
+        int found = 0, malformed = 0;
+
+        for (size_t start = 0; start < oldLen;) {
+            const char *lineEnd = (const char *)memchr(original + start, '\n', oldLen - start);
+            const size_t end = lineEnd == NULL ? oldLen : (size_t)(lineEnd - original);
+
+            if (end - start >= 9 && memcmp(original + start, "rdk_user:", 9) == 0) {
+                char *colon = (char *)memchr(original + start + 9, ':', end - start - 9);
+
+                if (found || colon == NULL) {
+                    malformed = 1;
+                    break;
+                }
+
+                pos = start + 9;
+                oldHashLen = (size_t)(colon - (original + pos));
+                found = 1;
+            }
+
+            start = lineEnd == NULL ? oldLen : end + 1;
+        }
+
+        if (!found || malformed) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET failed: rdk_user entry missing, duplicated or malformed\n",
+                    __FUNCTION__);
+            goto shadow_update_done;
+        }
+
+        const bool passwordUnchanged = oldHashLen == passwordFieldLen &&
+                                       memcmp(original + pos, passwordField, oldHashLen) == 0;
+        if (passwordUnchanged) {
+            ret = OK;
+            goto shadow_update_done;
+        }
+
+        newLen = oldLen - oldHashLen + passwordFieldLen;
+        updated = (char *)malloc(newLen);
+
+        if (updated == NULL) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to allocate updated buffer\n",
+                    __FUNCTION__);
+            goto shadow_update_done;
+        }
+
+        memcpy(updated, original, pos);
+        memcpy(updated + pos, passwordField, passwordFieldLen);
+        memcpy(updated + pos + passwordFieldLen,
+               original + pos + oldHashLen,
+               oldLen - pos - oldHashLen);
+
+        size_t written = 0;
+        while (written < newLen) {
+            ssize_t n = pwrite(fd, updated + written, newLen - written, (off_t)written);
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n == 0) {
+                errno = EIO;
+                break;
+            }
+            if (n < 0)
+                break;
+            written += (size_t)n;
+        }
+
+        if (written == newLen && ftruncate(fd, (off_t)newLen) == 0 && fsync(fd) == 0) {
+            shadowChanged = true;
+            ret = OK;
+        } else {
+            rollbackRequired = true;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] SSHPassword SET failed: shadow file update failed: %s\n",
+                    __FUNCTION__, strerror(errno));
+        }
+    }
+
+shadow_update_done:
+
+    if (ret == OK) {
+        faultCode_t storeFault = m_rfcStore->setValue(stMsgData);
+        if (storeFault != fcNoFault) {
+            storeFailed = true;
+            stMsgData->faultCode = storeFault;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to update RFC datastore for SSH password\n", __FUNCTION__);
+            rollbackRequired = shadowChanged;
+            ret = NOK;
+        } else {
+            stMsgData->faultCode = fcNoFault;
+        }
+    }
+
+    if (rollbackRequired) {
+        size_t restored = 0;
+        while (restored < oldLen) {
+            ssize_t n = pwrite(fd, original + restored, oldLen - restored, (off_t)restored);
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n == 0) {
+                errno = EIO;
+                break;
+            }
+            if (n < 0)
+                break;
+            restored += (size_t)n;
+        }
+
+        const bool restoreWriteFailed = restored != oldLen;
+        const int truncateResult = ftruncate(fd, (off_t)oldLen);
+        const int syncResult = fsync(fd);
+        if (restoreWriteFailed || truncateResult != 0 || syncResult != 0) {
+            rollbackFailed = true;
+            stMsgData->faultCode = fcInternalError;
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to restore shadow file after update failure\n", __FUNCTION__);
+        }
+    }
+
+    free(updated);
+    free(original);
+
+    if (locked)
+        flock(fd, LOCK_UN);
+    close(fd);
+
+    if (ret != OK) {
+        if (!storeFailed || rollbackFailed)
+            stMsgData->faultCode = fcInternalError;
+        return NOK;
+    }
+
+    memset(stMsgData->paramValue, 0, sizeof(stMsgData->paramValue));
+    stMsgData->paramLen = 0;
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] SSHPassword SET succeeded: rdk_user credential updated\n",
+            __FUNCTION__);
+    return OK;
+}
+
 int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
@@ -3863,6 +4159,11 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     }
     else
     {
+        if (!strcasecmp(stMsgData->paramName, SECURE_UNLOCK_SSH_PASSWORD))
+        {
+            return set_xRDKCentralComRFCSecureUnlockSSHPassword(stMsgData);
+        }
+
         validate_paramVal = validate_ParamValue(stMsgData);
         if(validate_paramVal == OK)
         {
@@ -3884,7 +4185,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         else
         {
             ret = NOK;
-            stMsgData->faultCode = fcInvalidParameterValue;
+            if (stMsgData->faultCode != fcInvalidParameterType)
+            {
+                stMsgData->faultCode = fcInvalidParameterValue;
+            }
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Invalid ParamValue/Type to SET for param [%s] \n", __FUNCTION__, __LINE__, stMsgData->paramName);
         }
     }
@@ -3963,6 +4267,22 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
 #endif
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_InstallPackage) == 0)
+    {
+        ret = set_xRDKDownloadManager_InstallPackage(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_DownloadStatus) == 0)
+    {
+        ret = set_xRDKDownloadManager_DownloadStatus(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageInstallPath) == 0)
+    {
+        ret = set_xRDKDownloadManager_PackageInstallPath(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageExpiryTime) == 0)
+    {
+        ret = set_xRDKDownloadManager_PackageExpiryTime(stMsgData);
+    }
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
     {
 	ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(stMsgData);
@@ -4001,10 +4321,24 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
     }
-	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
-	{
-    	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
-	}
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_INTERVAL))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingInterval(stMsgData);
+    }
+    else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
+    {
+        ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
+    }
+    else if (ret == OK && !strcasecmp(stMsgData->paramName,
+                                  RFC_GET_DATA_MODEL_LIST) &&
+        get_boolean(stMsgData->paramValue))
+    {
+        if (scheduleDataModelExport() != EXPORT_DATA_MODEL_SUCCESS)
+        {
+            ret = NOK;
+            stMsgData->faultCode = fcInternalError;
+        }
+    }
     return ret;
 }
 
@@ -4178,6 +4512,72 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData
                 __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
     }
 
+    return ret;
+}
+
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingInterval(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+
+    if (!stMsgData)
+    {
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_UnsignedIntType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Wrong type for DistributedTracing.Interval, expected unsigned integer minutes.\n",
+                __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
+    if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                __FUNCTION__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    int fd = open(OTEL_EXPORT_INTERVAL_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to create %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
+        return NOK;
+    }
+
+    FILE *fp = fdopen(fd, "w");
+    if (!fp)
+    {
+        int error = errno;
+        close(fd);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to open %s for writing: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(error));
+        return NOK;
+    }
+
+    int writeResult = fprintf(fp, "%u", intervalMinutes);
+    int closeResult = fclose(fp);
+    if (writeResult < 0 || closeResult != 0)
+    {
+        int error = errno;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to write %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(error));
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] Persisted DistributedTracing.Interval=%u minutes to %s\n",
+            __FUNCTION__, intervalMinutes, OTEL_EXPORT_INTERVAL_FILE);
+    ret = OK;
     return ret;
 }
 
@@ -4377,6 +4777,180 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     return retVal;
 }
 #endif
+
+int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
+    std::ifstream installPathFile("/tmp/.rdm_debug_tool_install_path");
+    std::string installPath;
+
+    if (!std::getline(installPathFile, installPath) || installPath.empty())
+    {
+        installPath = "/run/tools";
+    }
+
+    stMsgData->paramtype = hostIf_StringType;
+    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", installPath.c_str());
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read debug tool install path as %s\n", __FUNCTION__, installPath.c_str());
+    return OK;
+}
+
+int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
+    std::ifstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+    std::string line;
+    unsigned long long expirySeconds = 3600;
+
+    if (ttlFile.is_open())
+    {
+        while (std::getline(ttlFile, line))
+        {
+            std::string trimmed = line;
+            trimmed.erase(trimmed.begin(), std::find_if(trimmed.begin(), trimmed.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+            trimmed.erase(std::find_if(trimmed.rbegin(), trimmed.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), trimmed.end());
+
+            if (trimmed.empty() || trimmed[0] == '#')
+            {
+                continue;
+            }
+
+            unsigned long long ttl = 0;
+            std::istringstream iss(trimmed);
+            if (iss >> ttl)
+            {
+                expirySeconds = ttl;
+                break;
+            }
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No TTL config record found for package; using default value 3600\n", __FUNCTION__);
+    }
+
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+
+    if (expirySeconds > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Expiry value %llu exceeds unsigned int range; clamping to max\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+        expirySeconds = std::numeric_limits<unsigned int>::max();
+    }
+
+    put_uint(stMsgData->paramValue, static_cast<unsigned int>(expirySeconds));
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read configured package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+    return OK;
+}
+
+int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    std::string installPath(stMsgData->paramValue);
+    while (!installPath.empty() && std::isspace(static_cast<unsigned char>(installPath.front()))) {
+        installPath.erase(installPath.begin());
+    }
+    while (!installPath.empty() && std::isspace(static_cast<unsigned char>(installPath.back()))) {
+        installPath.pop_back();
+    }
+
+    struct stat pathStat;
+    if (installPath.empty() || installPath[0] != '/' || stat(installPath.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
+    {
+        installPath = "/run/tools";
+    }
+
+    std::ofstream installPathFile("/tmp/.rdm_debug_tool_install_path");
+    if (!installPathFile.is_open())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist debug tool install path\n", __FUNCTION__);
+        return NOK;
+    }
+
+    installPathFile << installPath << std::endl;
+    installPathFile.close();
+    if (!installPathFile) {
+        stMsgData->faultCode = fcInternalError;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write debug tool install path\n", __FUNCTION__);
+        return NOK;
+    }
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Set debug tool install path to %s\n", __FUNCTION__, installPath.c_str());
+    return OK;
+}
+
+int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    unsigned long long expirySeconds = 0;
+    if (stMsgData->paramtype == hostIf_UnsignedIntType)
+    {
+        expirySeconds = static_cast<unsigned long long>(get_uint(stMsgData->paramValue));
+    }
+    else if (stMsgData->paramtype == hostIf_StringType)
+    {
+        char *end = NULL;
+        errno = 0;
+        expirySeconds = std::strtoull(stMsgData->paramValue, &end, 10);
+        if (end == stMsgData->paramValue || *end != '\0' || errno == ERANGE)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
+            return NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Unsupported expiry parameter type %d\n", __FUNCTION__, stMsgData->paramtype);
+        return NOK;
+    }
+
+    if (expirySeconds == 0 || expirySeconds > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+        return NOK;
+    }
+
+    std::ofstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+    if (!ttlFile.is_open())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist configured package expiry TTL\n", __FUNCTION__);
+        return NOK;
+    }
+    ttlFile << expirySeconds << std::endl;
+    ttlFile.close();
+    if (!ttlFile) {
+        stMsgData->faultCode = fcInternalError;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write configured package expiry TTL\n", __FUNCTION__);
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Stored configured package expiry TTL=%llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+    return OK;
+}
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart (HOSTIF_MsgData_t *stMsgData)
 {
@@ -5311,7 +5885,7 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldCompletedNotification(HOSTIF_MsgData_t *
 
         NotificationHandler::getInstance()->push_device_mgmt_notifications(NULL, start_time, (char*)status, (char* )"firmware-download-completed", NULL);
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Successfully Set [\"%s\"] and Send notification as \"status\":\"firmware-download-completed\" \
-    		with \"start-time\":\"%s\" and \"download-status\":\"%s\". \n", __FUNCTION__, stMsgData->paramName, m_strXOpsRPCFwDwldStartedNotification.c_str(), status);
+		with \"start-time\":\"%s\" and \"download-status\":\"%s\". \n", __FUNCTION__, stMsgData->paramName, m_strXOpsRPCFwDwldStartedNotification.c_str(), status);
     }
     else {
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending notification for [%s]. \n",
@@ -5335,7 +5909,7 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
         NotificationHandler::getInstance()->push_device_mgmt_notifications(temp_buff, NULL, NULL, (char* )"reboot-pending", NULL);
 
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Successfully Set [\"%s\"] and Send \"reboot-pending\" notification  \
-    		 \n", __FUNCTION__, stMsgData->paramName );
+		 \n", __FUNCTION__, stMsgData->paramName );
     }
     else {
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending notification for [%s]. \n",
@@ -5582,21 +6156,65 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
-
-    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
-
-    if((!stMsgData) || strlen(stMsgData->paramValue) == 0 ) {
+    if (stMsgData == NULL)
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
+    std::string packageSpec(stMsgData->paramValue);
 
-    ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
+
+    if (packageSpec.empty()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
+        return NOK;
+    }
+
+    std::string toolName = packageSpec;
+    std::string::size_type colonPos = toolName.find(':');
+    if (colonPos != std::string::npos)
+    {
+        toolName = toolName.substr(0, colonPos);
+    }
+
+    std::string::size_type dashPos = toolName.rfind('-');
+    if (dashPos != std::string::npos)
+    {
+        std::string suffix = toolName.substr(dashPos + 1);
+        if (suffix == "strace" || suffix == "tcpdump")
+        {
+            toolName = std::move(suffix);
+        }
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , packageSpec.c_str());
+
+    ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", packageSpec.c_str());
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
         return NOK;
+    }
+
+    if (toolName == "strace" || toolName == "tcpdump")
+    {
+        std::ifstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+        unsigned long long ttl = 3600;
+        if (ttlFile.is_open())
+        {
+            ttlFile >> ttl;
+        }
+
+        int scheduleRet = v_secure_system("backgroundrun rdm -s %s:%llu >> /opt/logs/rdm_status.log 2>&1",
+                                         toolName.c_str(), static_cast<unsigned long long>(ttl));
+        if (scheduleRet != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to schedule expiry for %s: %d\n",
+                    __FUNCTION__, toolName.c_str(), scheduleRet);
+            return NOK;
+        }
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled expiry for %s with TTL %llu\n",
+                __FUNCTION__, toolName.c_str(), static_cast<unsigned long long>(ttl));
     }
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
@@ -5681,4 +6299,3 @@ bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr)
 
 /** @} */
 /** @} */
-
