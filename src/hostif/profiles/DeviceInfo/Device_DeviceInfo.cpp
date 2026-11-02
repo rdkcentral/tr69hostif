@@ -229,6 +229,10 @@ hostIf_DeviceInfo::hostIf_DeviceInfo(int dev_id):
         m_rfcStore = XRFCStore::getInstance();
 #endif
     m_bsStore = XBSStore::getInstance();
+#ifndef NEW_HTTP_SERVER_DISABLE
+    if(!legacyRFCEnabled())
+        updateSecureDebugState();
+#endif
 }
 hostIf_DeviceInfo::~hostIf_DeviceInfo()
 {
@@ -4125,7 +4129,8 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
             {
                 RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s] Calling reloadCache in New RFC Store I/O\n",__FUNCTION__);
                 m_rfcStore->reloadCache();
-                stMsgData->faultCode = fcNoFault;
+                ret = updateSecureDebugState();
+                stMsgData->faultCode = (ret == OK) ? fcNoFault : fcInternalError;
                 sendDeviceMgtNotification("rfc", "initial");
             }
             else

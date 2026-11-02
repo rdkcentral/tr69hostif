@@ -408,6 +408,9 @@ int main(int argc, char *argv[])
             setLegacyRFCEnabled(true);
             ifs_legacyEnabled.close();
         }
+
+        if(!legacyRFCEnabled())
+            (void)hostIf_DeviceInfo::getInstance(0);
     #endif
 
         if(false == hostIf_IARM_IF_Start() )
