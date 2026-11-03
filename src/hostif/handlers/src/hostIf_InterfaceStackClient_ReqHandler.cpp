@@ -219,7 +219,7 @@ int InterfaceStackClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stM
         // There for allocating a memory for both Param name and param value. This should be freed whenever we disable Notification.
         char *notifyKey = NULL;
         notifyKey = (char*) calloc(sizeof(char),strlen(stMsgData->paramName)+1);
-        if((NULL != notifyValuePtr) && (NULL != notifyValuePtr))
+        if((NULL != notifyValuePtr) && (NULL != notifyKey))
         {
             *notifyValuePtr = 1;
 	    errno_t rc = -1;
@@ -233,11 +233,11 @@ int InterfaceStackClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stM
         }
         else
         {
+            free(notifyKey);
+            free(notifyValuePtr);
             ret = NOK;
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d]  Not able to allocate Notify pointer %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
         }
-        free(notifyKey);  //CID:80730 - Resource leak
-        free(notifyValuePtr);
     }
     else
     {

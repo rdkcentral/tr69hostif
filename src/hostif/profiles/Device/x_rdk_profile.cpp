@@ -281,7 +281,31 @@ int X_rdk_profile::get_WebPA_DNSText_URL(HOSTIF_MsgData_t *stMsgData)
 
 int X_rdk_profile::set_WebPA_DNSText_URL(HOSTIF_MsgData_t * stMsgData)
 {
-    m_bsStore->overrideValue(stMsgData);
+    if (stMsgData->paramtype != hostIf_StringType)
+    {
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+    const size_t valueLength = strnlen(stMsgData->paramValue, sizeof(stMsgData->paramValue));
+    if (valueLength == sizeof(stMsgData->paramValue))
+    {
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+    for (size_t index = 0; index < valueLength; ++index)
+    {
+        const unsigned char character = static_cast<unsigned char>(stMsgData->paramValue[index]);
+        if (character < 0x20 || character > 0x7e || character == '=')
+        {
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+    }
+    stMsgData->faultCode = m_bsStore->overrideValue(stMsgData);
+    if (stMsgData->faultCode != fcNoFault)
+    {
+        return NOK;
+    }
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%d] The [ %s ] Set Successfully value as [ %s ]. \n",__FUNCTION__, __LINE__,
             stMsgData->paramName, stMsgData->paramValue);
     return OK;

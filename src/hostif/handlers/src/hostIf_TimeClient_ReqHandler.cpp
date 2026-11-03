@@ -312,11 +312,11 @@ int TimeClientReqHandler::handleGetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         }
         else
         {
+            free(notifyKey);
+            free(notifyValuePtr);
             ret = NOK;
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] Not able to allocate Notify pointer %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
         }
-        free(notifyKey);  //CID:88420 - Resource leak
-        free(notifyValuePtr);
     }
     else
     {
@@ -362,11 +362,11 @@ int TimeClientReqHandler::handleSetAttributesMsg(HOSTIF_MsgData_t *stMsgData)
         }
         else
         {
+            free(notifyKey);
+            free(notifyValuePtr);
             ret = NOK;
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%s:%d] Not able to allocate Notify pointer %s\n", __FUNCTION__, __FILE__, __LINE__, stMsgData->paramName);
         }
-        free(notifyKey);  //CID:89484 - Resource leak
-        free(notifyValuePtr);
     }
     else
     {
