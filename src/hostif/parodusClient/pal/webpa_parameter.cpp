@@ -97,6 +97,11 @@ void setValues(const ParamVal paramVal[], const unsigned int paramCount, const W
     unsigned int cnt=0;
     for(cnt = 0; cnt < paramCount; cnt++)
     {
+        if(!paramVal[cnt].name || strnlen(paramVal[cnt].name, MAX_PARAMETERNAME_LEN) >= MAX_PARAMETERNAME_LEN)
+        {
+            (*retStatus)[cnt] = WDMP_ERR_INVALID_PARAMETER_NAME;
+            continue;
+        }
         (*retStatus)[cnt] = (WDMP_STATUS) SetParamInfo(paramVal[cnt], transaction_id);
     }
 }

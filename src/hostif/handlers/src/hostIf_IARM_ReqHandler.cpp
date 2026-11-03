@@ -62,6 +62,17 @@ static IARM_Result_t _Settr69HostIfMgr(void *arg);
 static IARM_Result_t _SetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _GetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _RegisterForEventstr69HostIfMgr(void *arg);
+
+/* Wire struct carries a process-local pointer; never trust it from IARM callers. */
+static void sanitizeIarmMsgData(HOSTIF_MsgData_t *param)
+{
+    param->paramValueLong = NULL;
+    param->isLengthyParam = false;
+    param->paramName[sizeof(param->paramName) - 1] = '\0';
+    param->paramValue[sizeof(param->paramValue) - 1] = '\0';
+    param->transactionID[sizeof(param->transactionID) - 1] = '\0';
+}
+
 #ifdef RDKV_TR69
 static void _hostIf_EventHandler(const char *, IARM_EventId_t, void *, size_t);
 #else
@@ -254,6 +265,7 @@ static IARM_Result_t _GetAttributestr69HostIfMgr(void *arg)
     if(param)
     {
         // g_printf("[%s:%s] paramName :%s \n", __FUNCTION__, __FILE__, (char *)param->paramName);
+        sanitizeIarmMsgData(param);
         hostIf_GetAttributesReqHandler(arg);
     }
 
@@ -293,6 +305,7 @@ static IARM_Result_t _SetAttributestr69HostIfMgr(void *arg)
     if(param)
     {
         // g_printf("[%s:%s] paramName :%s \n", __FUNCTION__, __FILE__, (char *)param->paramName);
+        sanitizeIarmMsgData(param);
         hostIf_SetAttributesReqHandler(arg);
     }
 
@@ -389,6 +402,7 @@ static IARM_Result_t _Settr69HostIfMgr(void *arg)
     HOSTIF_MsgData_t *param = (HOSTIF_MsgData_t *) arg;
     if(param)
     {
+        sanitizeIarmMsgData(param);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] paramName :%s \n", __FUNCTION__, __FILE__, (char *)param->paramName);
         hostIf_SetReqHandler(arg);
     }
@@ -457,6 +471,7 @@ static IARM_Result_t _Gettr69HostIfMgr(void *arg)
     HOSTIF_MsgData_t *param = (HOSTIF_MsgData_t *) arg;
     if(param)
     {
+        sanitizeIarmMsgData(param);
         RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] paramName :%s \n", __FUNCTION__, __FILE__, (char *)param->paramName);
     }
     hostIf_GetReqHandler(arg);
