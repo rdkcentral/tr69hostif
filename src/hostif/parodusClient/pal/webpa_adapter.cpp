@@ -172,8 +172,6 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
     res_struct *resObj = NULL;
     WDMP_STATUS ret = WDMP_FAILURE;
     int paramCount = 0, i = 0, retCount=0, error = 0;
-    const char *getParamList[MAX_PARAMETERNAME_LEN];
-    char *param = NULL;
 
    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"************** processRequest *****************\n");
 
@@ -202,8 +200,6 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
             for (i = 0; i < paramCount; i++)
             {
                 RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Request:> paramNames[%d] = %s\n",i,reqObj->u.getReq->paramNames[i]);
-                param = reqObj->u.getReq->paramNames[i];
-                getParamList[i] = strdup(param); // Freed from wdmp_free_res_struct()
             }
 
             if(error != 1 && paramCount > 0)
@@ -221,11 +217,11 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
                 memset(resObj->u.getRes->params, 0, sizeof(param_t*)*paramCount);
                 memset(resObj->u.getRes->paramNames, 0, sizeof(char *) * paramCount);
                 memset(resObj->u.getRes->params, 0, sizeof(param_t*)*paramCount);
-                getValues(getParamList, paramCount,&resObj->u.getRes->params,&resObj->u.getRes->retParamCnt ,&resObj->retStatus);
+                getValues(const_cast<const char **>(reqObj->u.getReq->paramNames), paramCount,&resObj->u.getRes->params,&resObj->u.getRes->retParamCnt ,&resObj->retStatus);
 
                 for(i = 0; i < paramCount; i++)
                 {
-                    resObj->u.getRes->paramNames[i] = const_cast<char *>(getParamList[i]);
+                    resObj->u.getRes->paramNames[i] = strdup(reqObj->u.getReq->paramNames[i]); // Freed from wdmp_free_res_struct()
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Response:> paramNames[%d] = %s\n",i,resObj->u.getRes->paramNames[i]);
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Response:> retParamCnt[%d] = %zu\n",i,resObj->u.getRes->retParamCnt[i]);
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Response:> retStatus[%d] = %d\n",i,resObj->retStatus[i]);

@@ -723,6 +723,11 @@ void checkforParameterMatch(XMLNode *pParent,const char *paramName,int *pMatch,D
         RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"paramName is Null - returning\n");
         return;
     }
+    if(strnlen(paramName, MAX_PARAMETER_LENGTH) >= MAX_PARAMETER_LENGTH)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"Parameter name exceeds maximum length\n");
+        return;
+    }
     // Construct Object without parameter from input ParamName
     std::string *str1 = new std::string(paramName);
     std::size_t found = str1->find_last_of(".");
@@ -736,9 +741,12 @@ void checkforParameterMatch(XMLNode *pParent,const char *paramName,int *pMatch,D
     }
     if(found != std::string::npos)
     {
-        strncpy(paramObject,paramName,found);
-        paramObject[found]='.';
-        paramObject[found+1]='\0';
+        if(found > MAX_PARAMETER_LENGTH - 2)
+        {
+            free(paramObject);
+            return;
+        }
+        snprintf(paramObject, MAX_PARAMETER_LENGTH, "%.*s.", static_cast<int>(found), paramName);
     }
     else
     {
@@ -800,6 +808,12 @@ int getParamInfoFromDataModel(void *dbhandle,const char *paramName, DataModelPar
     int first_i = 0;
     char *newparamName = NULL;
     XMLDocument *doc = NULL;
+
+    if(!paramName || strnlen(paramName, MAX_PARAMETER_LENGTH) >= MAX_PARAMETER_LENGTH)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,"Invalid parameter name length\n");
+        return false;
+    }
 
     const std::lock_guard<std::mutex> lock(g_db_mutex);
 

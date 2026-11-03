@@ -685,7 +685,13 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
         {
 
             respSt->u.paramRes->params[paramIndex].name = strdup(reqSt->u.setReq->param[paramIndex].name);
-            if(!isAuthorized(pcCallerID, reqSt->u.setReq->param[paramIndex].name))
+            if(strnlen(reqSt->u.setReq->param[paramIndex].name, MAX_PARAMETERNAME_LEN) >= MAX_PARAMETERNAME_LEN)
+            {
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parameter name exceeds maximum length\n");
+                respSt->retStatus[paramIndex] = WDMP_ERR_INVALID_PARAMETER_NAME;
+                continue;
+            }
+            else if(!isAuthorized(pcCallerID, reqSt->u.setReq->param[paramIndex].name))
             {
                 RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"CallerID : %s is not allowed to SET : %s\n", pcCallerID, reqSt->u.setReq->param[paramIndex].name);
                 respSt->retStatus[paramIndex] = WDMP_FAILURE;

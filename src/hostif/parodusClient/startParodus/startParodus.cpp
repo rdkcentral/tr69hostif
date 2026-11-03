@@ -101,7 +101,7 @@ std::string get_HWMAcAddress()
 }
 std::string get_PartnerId()
 {
-    char PartnerId[128] = "";
+    char PartnerId[MAX_PARTNER_ID_SIZE] = "";
     int dataLen = 0;
     FILE *fp = NULL;
     int ch_count = 0;
@@ -125,6 +125,13 @@ std::string get_PartnerId()
            else
            {
                 fseek(fp, 0, SEEK_SET);
+                if (ch_count >= MAX_PARTNER_ID_SIZE)
+                {
+                    printf("[%s:%d] Partner ID file %s size %d exceeds max size %d, ignoring\n",
+                           __FUNCTION__, __LINE__, PARTNERID_FILE, ch_count, MAX_PARTNER_ID_SIZE - 1);
+                    fclose(fp);
+                    return partnerId;
+                }
                 size_t bytesRead = fread(PartnerId, 1, ch_count, fp);
 	        if (bytesRead != (size_t)ch_count)
 	        {
