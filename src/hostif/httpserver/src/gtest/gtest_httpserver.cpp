@@ -43,6 +43,7 @@ extern "C"
 #include <mutex>
 #include <condition_variable>
 #include <fstream>
+#include <limits>
 
 #define GTEST_DEFAULT_RESULT_FILEPATH "/tmp/Gtest_Report/"
 #define GTEST_DEFAULT_RESULT_FILENAME "hostif_gtest_report.json"
@@ -226,6 +227,56 @@ TEST(httpserverTest, validateParamValue) {
     const string unknownTypeValue = "anything";
     dataType = (HostIf_ParamType_t)999;
     EXPECT_EQ(validateParamValueFunc()(unknownTypeValue, dataType), false);
+}
+
+TEST(httpserverTest, validateParamValue_RejectsNumericOverflow) {
+    const string tooLargeInt = to_string(std::numeric_limits<int>::max()) + "0";
+    const string tooSmallInt = to_string(std::numeric_limits<int>::min()) + "0";
+    const string tooLargeUnsigned = to_string(std::numeric_limits<unsigned long>::max()) + "0";
+
+    EXPECT_FALSE(validateParamValueFunc()(tooLargeInt, hostIf_IntegerType));
+    EXPECT_FALSE(validateParamValueFunc()(tooSmallInt, hostIf_IntegerType));
+    EXPECT_FALSE(validateParamValueFunc()(tooLargeUnsigned, hostIf_UnsignedIntType));
+    EXPECT_FALSE(validateParamValueFunc()(tooLargeUnsigned, hostIf_UnsignedLongType));
+}
+
+TEST(httpserverTest, validateParamValue_AcceptsNumericBoundaries) {
+    EXPECT_TRUE(validateParamValueFunc()(to_string(std::numeric_limits<int>::min()), hostIf_IntegerType));
+    EXPECT_TRUE(validateParamValueFunc()(to_string(std::numeric_limits<int>::max()), hostIf_IntegerType));
+    EXPECT_TRUE(validateParamValueFunc()(to_string(std::numeric_limits<unsigned int>::max()), hostIf_UnsignedIntType));
+    EXPECT_TRUE(validateParamValueFunc()(to_string(std::numeric_limits<unsigned long>::max()), hostIf_UnsignedLongType));
+    EXPECT_TRUE(validateParamValueFunc()("0", hostIf_IntegerType));
+    EXPECT_TRUE(validateParamValueFunc()("0", hostIf_UnsignedIntType));
+    EXPECT_TRUE(validateParamValueFunc()("0", hostIf_UnsignedLongType));
+}
+
+TEST(httpserverTest, validateParamValue_RejectsMalformedNumbers) {
+    for(const auto dataType : {hostIf_IntegerType, hostIf_UnsignedIntType, hostIf_UnsignedLongType})
+    {
+        for(const string value : {"", "-", "+", "abc", "123abc", " 123", "+123"})
+        {
+            EXPECT_FALSE(validateParamValueFunc()(value, dataType)) << value;
+        }
+    }
+    EXPECT_FALSE(validateParamValueFunc()("-1", hostIf_UnsignedIntType));
+    EXPECT_FALSE(validateParamValueFunc()("-1", hostIf_UnsignedLongType));
+}
+
+TEST(httpserverTest, invokeHostIfAPI_SET_NumericOverflowReturnsInvalidValue) {
+    for(const auto dataType : {WDMP_INT, WDMP_UINT, WDMP_ULONG})
+    {
+        char name[] = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Telemetry.UploadInterval";
+        char value[] = "9999999999999999999999999999999999999999";
+        param_t param = {};
+        param.name = name;
+        param.value = value;
+        param.type = dataType;
+        HOSTIF_MsgData_t msgData = {};
+
+        EXPECT_EQ(invokeHostIfAPIFunc()(SET, &param, msgData.bsUpdate, "test"),
+                  WDMP_ERR_INVALID_PARAMETER_VALUE);
+        free(param.value);
+    }
 }
 
 TEST(httpserverTest, handleRFCRequest_GET) {

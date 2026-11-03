@@ -465,6 +465,60 @@ TEST(datamodelTest, getParamInfoFromDataModel_NullDbHandle) {
     EXPECT_EQ(match, 0);
 }
 
+TEST(datamodelTest, getParamInfoFromDataModel_RejectsOversizedNames) {
+    ASSERT_EQ(loadDataModel(), DB_SUCCESS);
+    const size_t lengths[] = {512, 513, 1009, 4095};
+    for(size_t length : lengths)
+    {
+        SCOPED_TRACE(length);
+        const std::string paramName = "Device." + std::string(length - 9, 'A') + ".x";
+        DataModelParam dmParam = {0};
+        EXPECT_EQ(getParamInfoFromDataModel(getDataModelHandle(), paramName.c_str(), &dmParam), 0);
+        EXPECT_EQ(dmParam.paramName, nullptr);
+        freeDataModelParam(dmParam);
+    }
+}
+
+TEST(datamodelTest, getParamInfoFromDataModel_RejectsOversizedInstanceNames) {
+    ASSERT_EQ(loadDataModel(), DB_SUCCESS);
+    const std::string paramName = "Device." + std::string(1000, 'A') + ".1.x";
+    DataModelParam dmParam = {0};
+    EXPECT_EQ(getParamInfoFromDataModel(getDataModelHandle(), paramName.c_str(), &dmParam), 0);
+    freeDataModelParam(dmParam);
+}
+
+TEST(datamodelTest, getParamInfoFromDataModel_MaximumLengthNameDoesNotOverflow) {
+    ASSERT_EQ(loadDataModel(), DB_SUCCESS);
+    const std::string paramName = "Device." + std::string(502, 'A') + ".x";
+    DataModelParam dmParam = {0};
+    EXPECT_EQ(getParamInfoFromDataModel(getDataModelHandle(), paramName.c_str(), &dmParam), 0);
+    freeDataModelParam(dmParam);
+}
+
+TEST(datamodelTest, getParamInfoFromDataModel_NullName) {
+    DataModelParam dmParam = {0};
+    EXPECT_EQ(getParamInfoFromDataModel(nullptr, nullptr, &dmParam), 0);
+}
+
+TEST(palTest, setValues_RejectsOversizedNames) {
+    const size_t lengths[] = {MAX_PARAMETERNAME_LEN, MAX_PARAMETERNAME_LEN + 1, 1009};
+    for(size_t length : lengths)
+    {
+        SCOPED_TRACE(length);
+        const std::string paramName = "Device." + std::string(length - 9, 'A') + ".x";
+        ParamVal param = {};
+        param.name = strdup(paramName.c_str());
+        param.value = strdup("1");
+        param.type = WAL_STRING;
+        WDMP_STATUS status = WDMP_SUCCESS;
+        WDMP_STATUS *statuses = &status;
+        setValues(&param, 1, WEBPA_SET, nullptr, &statuses, nullptr);
+        EXPECT_EQ(status, WDMP_ERR_INVALID_PARAMETER_NAME);
+        free(param.name);
+        free(param.value);
+    }
+}
+
 TEST(datamodelTest, freeDataModelParam_AllFields) {
     DataModelParam dmParam = {0};
     dmParam.objectName = strdup("Device.DeviceInfo.ModelName");
@@ -1105,6 +1159,40 @@ TEST(palTest, processRequest_GET) {
         EXPECT_STREQ(result.name, "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SWDLSpLimit.TopSpeed");
 	EXPECT_STREQ(result.value, "1280000");
     }
+}
+
+static std::string buildGetPayload(int count) {
+    std::string payload = "{\"command\":\"GET\",\"names\":[";
+    for (int i = 0; i < count; ++i) {
+        if (i != 0)
+            payload += ",";
+        payload += "\"Device.DeviceInfo.Manufacturer\"";
+    }
+    payload += "]}";
+    return payload;
+}
+
+TEST(palTest, processRequest_GETHandlesMoreThan256Parameters) {
+    std::string payload = buildGetPayload(MAX_PARAMETERNAME_LEN + 1);
+
+    char *responsePayload = NULL;
+    processRequest(&payload[0], (char *)"transaction-id", &responsePayload);
+
+    ASSERT_NE(responsePayload, nullptr);
+    EXPECT_EQ(strstr(responsePayload, "Invalid Input Command"), nullptr);
+    EXPECT_NE(strstr(responsePayload, "\"parameters\""), nullptr);
+    free(responsePayload);
+}
+
+TEST(palTest, processRequest_GETRejectsMoreThanWdmpCapacity) {
+    std::string payload = buildGetPayload((int)(sizeof(((get_req_t *)0)->paramNames) / sizeof(char *)) + 1);
+
+    char *responsePayload = NULL;
+    processRequest(&payload[0], (char *)"transaction-id", &responsePayload);
+
+    ASSERT_NE(responsePayload, nullptr);
+    EXPECT_NE(strstr(responsePayload, "Invalid Input Command"), nullptr);
+    free(responsePayload);
 }
 
 TEST(palTest, processRequest_GETWildCard) {

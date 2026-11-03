@@ -160,6 +160,79 @@ TEST(DeviceTest, set_WebPA_DNSText_URL) {
     }
 }
 
+TEST(DeviceTest, DNSTextRejectsConfigInjectionWithoutChangingBootstrapValues) {
+    X_rdk_profile *profile = X_rdk_profile::getInstance();
+    ASSERT_NE(profile, nullptr);
+    const char *names[] = {X_RDK_WebPA_DNSText_URL_STRING, X_RDK_WebPA_SERVER_URL_STPRING,
+                           X_RDK_WebPA_TokenServer_URL_STRING};
+    string originalValues[3];
+    for (size_t index = 0; index < 3; ++index)
+    {
+        HOSTIF_MsgData_t param = {};
+        snprintf(param.paramName, sizeof(param.paramName), "%s", names[index]);
+        ASSERT_EQ(profile->handleGetMsg(&param), OK);
+        originalValues[index] = param.paramValue;
+    }
+    const char *invalidValues[] = {
+        "fabric.example\r\nDevice.X_RDK_WebPA_Server.URL=https://other.invalid",
+        "fabric.example\nDevice.X_RDK_WebPA_TokenServer.URL=https://other.invalid",
+        "fabric.example\rX_TEST_CANARY=INJECTED", "fabric.example\t", "fabric.example ",
+        "fabric.example\x01", "fabric.example\x7f", "fabric.example\xc2\x85"
+    };
+    const HostIf_Source_Type_t sources[] = {HOSTIF_SRC_RFC, HOSTIF_SRC_WEBPA};
+    for (const auto source : sources)
+    {
+        for (const char *value : invalidValues)
+        {
+            SCOPED_TRACE(::testing::Message() << "requestor=" << source << ", value=" << value);
+            HOSTIF_MsgData_t param = {};
+            snprintf(param.paramName, sizeof(param.paramName), "%s", X_RDK_WebPA_DNSText_URL_STRING);
+            snprintf(param.paramValue, sizeof(param.paramValue), "%s", value);
+            param.paramtype = hostIf_StringType;
+            param.paramLen = strlen(param.paramValue);
+            param.requestor = source;
+            EXPECT_EQ(profile->handleSetMsg(&param), NOK);
+            EXPECT_EQ(param.faultCode, fcInvalidParameterValue);
+            for (size_t index = 0; index < 3; ++index)
+            {
+                HOSTIF_MsgData_t result = {};
+                snprintf(result.paramName, sizeof(result.paramName), "%s", names[index]);
+                ASSERT_EQ(profile->handleGetMsg(&result), OK);
+                EXPECT_EQ(string(result.paramValue), originalValues[index]);
+            }
+        }
+    }
+}
+
+TEST(DeviceTest, DNSTextRejectsInvalidTypeAndUnterminatedValues) {
+    X_rdk_profile *profile = X_rdk_profile::getInstance();
+    ASSERT_NE(profile, nullptr);
+    HOSTIF_MsgData_t param = {};
+    snprintf(param.paramName, sizeof(param.paramName), "%s", X_RDK_WebPA_DNSText_URL_STRING);
+    param.paramtype = hostIf_BooleanType;
+    EXPECT_EQ(profile->handleSetMsg(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterType);
+
+    param.paramtype = hostIf_StringType;
+    EXPECT_EQ(profile->handleSetMsg(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterValue);
+
+    memset(param.paramValue, 'a', sizeof(param.paramValue));
+    EXPECT_EQ(profile->handleSetMsg(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterValue);
+}
+
+TEST(DeviceTest, DNSTextRejectsParameterNameSuffix) {
+    X_rdk_profile *profile = X_rdk_profile::getInstance();
+    ASSERT_NE(profile, nullptr);
+    HOSTIF_MsgData_t param = {};
+    snprintf(param.paramName, sizeof(param.paramName), "%s.extra", X_RDK_WebPA_DNSText_URL_STRING);
+    snprintf(param.paramValue, sizeof(param.paramValue), "%s", "fabric.xmidt.comcast.net");
+    param.paramtype = hostIf_StringType;
+    EXPECT_EQ(profile->handleSetMsg(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterName);
+}
+
 TEST(DeviceTest, handleGetMsg_WebPA_Server_URL) {
     HOSTIF_MsgData_t param = { 0 };
     memset(&param,0,sizeof(HOSTIF_MsgData_t));

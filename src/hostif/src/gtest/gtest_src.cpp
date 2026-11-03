@@ -1,4 +1,5 @@
 #include <gmock/gmock.h>
+#include <climits>
 #include <iostream>
 #include "hostIf_tr69ReqHandler.h"
 #include "hostIf_utils.h"
@@ -169,6 +170,11 @@ TEST(srcTest, type_conversions) {
     int d = 100;
     string itosret = int_to_string(d);
     EXPECT_EQ(itosret, "100");
+    EXPECT_EQ(int_to_string(0), "0");
+    EXPECT_EQ(int_to_string(-1), "-1");
+    EXPECT_EQ(int_to_string(1000000000), "1000000000");
+    EXPECT_EQ(int_to_string(INT_MIN), "-2147483648");
+    EXPECT_EQ(int_to_string(INT_MAX), "2147483647");
 
     uint unum = 143;
     string uitosret = uint_to_string(unum);
@@ -712,7 +718,6 @@ TEST(srcTest, thunderInvokeHelpersFailForEmptyMethod)
     EXPECT_FALSE(invokeThunderPluginMethodAndExtractDelimitedStringArrayField("", "", "field", ",", sValue));
     EXPECT_FALSE(invokeThunderPluginMethodAndExtractScalarStringResult("", "", sValue));
 }
-
 
 GTEST_API_ int main(int argc, char *argv[]){
     char testresults_fullfilepath[GTEST_REPORT_FILEPATH_SIZE];

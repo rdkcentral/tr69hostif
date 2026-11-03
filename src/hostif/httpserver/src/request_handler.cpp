@@ -18,6 +18,7 @@
 */
 
 #include <stdlib.h>
+#include <stdexcept>
 #ifdef __cplusplus
 extern "C"
 {
@@ -191,34 +192,65 @@ static bool validateParamValue(const string &paramValue, HostIf_ParamType_t data
         break;
 
     case hostIf_IntegerType:
-        if(isdigit(paramValue[0]) || (paramValue[0] == '-' && isdigit(paramValue[1])))
+        if(!paramValue.empty() &&
+                (isdigit(static_cast<unsigned char>(paramValue[0])) ||
+                 (paramValue.length() > 1 && paramValue[0] == '-' &&
+                  isdigit(static_cast<unsigned char>(paramValue[1])))))
         {
-            stoi(paramValue, &index);
-            if(index != paramValue.length())
+            try
+            {
+                stoi(paramValue, &index);
+                if(index != paramValue.length())
+                {
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid Parameter Value for an Integer Type\n");
+                    ret = false;
+                }
+            }
+            catch(const std::invalid_argument&)
             {
                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid Parameter Value for an Integer Type\n");
+                ret = false;
+            }
+            catch(const std::out_of_range&)
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Parameter Value out of range for an Integer Type\n");
                 ret = false;
             }
         }
         else
         {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid Parameter Value for an Integer Type\n");
             ret = false;
         }
         break;
 
     case hostIf_UnsignedIntType:
     case hostIf_UnsignedLongType:
-        if(isdigit(paramValue[0]))
+        if(!paramValue.empty() && isdigit(static_cast<unsigned char>(paramValue[0])))
         {
-            stoul(paramValue, &index);
-            if(index != paramValue.length())
+            try
+            {
+                stoul(paramValue, &index);
+                if(index != paramValue.length())
+                {
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid Parameter Value for an UnsignedInt or UnsignedLong Type\n");
+                    ret = false;
+                }
+            }
+            catch(const std::invalid_argument&)
             {
                 RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid Parameter Value for an UnsignedInt or UnsignedLong Type\n");
+                ret = false;
+            }
+            catch(const std::out_of_range&)
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Parameter Value out of range for an UnsignedInt or UnsignedLong Type\n");
                 ret = false;
             }
         }
         else
         {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Invalid Parameter Value for an UnsignedInt or UnsignedLong Type\n");
             ret = false;
         }
         break;
@@ -685,7 +717,13 @@ res_struct* handleRequest(const char* pcCallerID, req_struct *reqSt)
         {
 
             respSt->u.paramRes->params[paramIndex].name = strdup(reqSt->u.setReq->param[paramIndex].name);
-            if(!isAuthorized(pcCallerID, reqSt->u.setReq->param[paramIndex].name))
+            if(strnlen(reqSt->u.setReq->param[paramIndex].name, MAX_PARAMETERNAME_LEN) >= MAX_PARAMETERNAME_LEN)
+            {
+                RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"Parameter name exceeds maximum length\n");
+                respSt->retStatus[paramIndex] = WDMP_ERR_INVALID_PARAMETER_NAME;
+                continue;
+            }
+            else if(!isAuthorized(pcCallerID, reqSt->u.setReq->param[paramIndex].name))
             {
                 RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"CallerID : %s is not allowed to SET : %s\n", pcCallerID, reqSt->u.setReq->param[paramIndex].name);
                 respSt->retStatus[paramIndex] = WDMP_FAILURE;
