@@ -594,6 +594,87 @@ TEST(requestHandlerTest, getHandler)
     }
 }
 
+static void resetDebugToolDefaultFiles()
+{
+    std::remove("/tmp/.rdm_debug_tool_install_path");
+    std::remove("/nvram/rdm_debug_tool_expiry");
+}
+
+TEST(deviceInfoTest, get_xRDKDownloadManager_PackageInstallPath_DefaultValue)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageInstallPath(&msgData), OK);
+    EXPECT_STREQ(msgData.paramValue, "/run/tools");
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, set_get_xRDKDownloadManager_PackageInstallPath_RoundTrip)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    strncpy(msgData.paramValue, "/tmp", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramLen = strlen(msgData.paramValue);
+    EXPECT_EQ(pIface->set_xRDKDownloadManager_PackageInstallPath(&msgData), OK);
+
+    memset(&msgData, 0, sizeof(msgData));
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageInstallPath(&msgData), OK);
+    EXPECT_STREQ(msgData.paramValue, "/tmp");
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, get_xRDKDownloadManager_PackageExpiryTime_DefaultValue)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageExpiryTime(&msgData), OK);
+    EXPECT_EQ(get_uint(msgData.paramValue), 3600U);
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, set_get_xRDKDownloadManager_PackageExpiryTime_RoundTrip)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    msgData.paramtype = hostIf_UnsignedIntType;
+    put_uint(msgData.paramValue, 1800U);
+    EXPECT_EQ(pIface->set_xRDKDownloadManager_PackageExpiryTime(&msgData), OK);
+
+    memset(&msgData, 0, sizeof(msgData));
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageExpiryTime(&msgData), OK);
+    EXPECT_EQ(get_uint(msgData.paramValue), 1800U);
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, set_xRDKDownloadManager_PackageExpiryTime_InvalidValue)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    msgData.paramtype = hostIf_StringType;
+    strncpy(msgData.paramValue, "abc", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    EXPECT_EQ(pIface->set_xRDKDownloadManager_PackageExpiryTime(&msgData), NOK);
+}
+
 TEST(deviceInfoTest, getDescription) {
     HOSTIF_MsgData_t msgData;
     bool bChanged;
