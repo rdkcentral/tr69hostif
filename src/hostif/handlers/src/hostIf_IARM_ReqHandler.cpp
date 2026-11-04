@@ -75,8 +75,6 @@ static IARM_Result_t _RegisterForEventstr69HostIfMgr(void *arg);
 #ifdef RDKV_TR69
 static void _hostIf_EventHandler(const char *, IARM_EventId_t, void *, size_t);
 #else
-static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
-    const PowerController_PowerState_t newState, void* userdata);
 static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentState,
     const PowerController_PowerState_t newState, const int transactionId,
     const int stateChangeAfter, void* userdata);
@@ -139,10 +137,6 @@ void hostIf_getPwrContInterface()
         usleep(RETRYSLEEP); //retry after RETRYSLEEP milli seconds.
 
     }
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
-    PowerController_RegisterPowerModeChangedCallback(_hostIf_EventHandler, nullptr);
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
-
     if (POWER_CONTROLLER_ERROR_NONE == PowerController_RegisterOperationalStateChangeCallback(_hostIf_OperationalStateHandler, nullptr))
     {
         s_opStateCbRegistered = true;
@@ -384,10 +378,6 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
             }
             PowerController_UnRegisterPowerModePreChangeCallback(_hostIf_PreChangeHandler);
         }
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistering power mode change callback..\n", __FUNCTION__, __FILE__);
-        PowerController_UnRegisterPowerModeChangedCallback(_hostIf_EventHandler);
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistered power mode change callback..\n", __FUNCTION__, __FILE__);
-
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
         PowerController_Term();
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
@@ -623,45 +613,13 @@ static void _hostIf_ReconcilePowerState()
         if((currentState == POWER_STATE_STANDBY_DEEP_SLEEP) && !s_deepSleepEntryHandled)
         {
             s_deepSleepEntryHandled = true;
-            printf("[%s] Initialized while already in deep sleep; sending entry notification\n", __FUNCTION__);
+            printf("[%s] Already in deep sleep at startup/reconnect; sending entry notification\n", __FUNCTION__);
             _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
         }
         return;
     }
 
     printf("[%s] Unable to reconcile power state after concurrent changes\n", __FUNCTION__);
-}
-
-static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
-    const PowerController_PowerState_t newState, void* userdata)
-{
-    (void)userdata;
-    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-    ++s_powerStateGeneration;
-    std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
-
-    if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) &&
-       (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
-    {
-        if(!s_deepSleepEntryHandled)
-        {
-            printf("[%s] Pre-change did not own deep sleep entry; using post-change fallback\n", __FUNCTION__);
-            s_deepSleepEntryHandled = true;
-            _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
-        }
-        else
-        {
-            printf("[%s] Deep sleep entry notification owned by pre-change path\n", __FUNCTION__);
-        }
-    }
-    else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) &&
-            (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
-    {
-        s_deepSleepEntryHandled = false;
-        _hostIf_SendDeepSleepNotification("device-exit-deepsleep-state");
-    }
-
-    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
 
 static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentState,
@@ -678,13 +636,21 @@ static void _hostIf_PreChangeHandler(const PowerController_PowerState_t currentS
         return;
     }
 
-    if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) && (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
     {
         std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
-        if(!s_deepSleepEntryHandled)
+        ++s_powerStateGeneration;
+        if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) && (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
         {
-            s_deepSleepEntryHandled = true;
-            _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
+            if(!s_deepSleepEntryHandled)
+            {
+                s_deepSleepEntryHandled = true;
+                _hostIf_SendDeepSleepNotification("device-enter-deepsleep-state");
+            }
+        }
+        else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) && (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
+        {
+            s_deepSleepEntryHandled = false;
+            _hostIf_SendDeepSleepNotification("device-exit-deepsleep-state");
         }
     }
 
@@ -724,11 +690,9 @@ static void _hostIf_OperationalStateHandler(bool isOperational, void* userdata)
     if (!isOperational)
     {
         s_preChangeClientId = 0;
+        std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
         ++s_powerStateGeneration;
-        {
-            std::lock_guard<std::mutex> stateLock(s_deepSleepStateMutex);
-            s_deepSleepEntryHandled = false;
-        }
+        s_deepSleepEntryHandled = false;
         return;
     }
     if (s_preChangeCbRegistered.load())
