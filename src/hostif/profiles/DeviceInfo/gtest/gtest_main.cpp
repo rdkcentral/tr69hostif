@@ -597,7 +597,7 @@ TEST(requestHandlerTest, getHandler)
 static void resetDebugToolDefaultFiles()
 {
     std::remove("/tmp/.rdm_debug_tool_install_path");
-    std::remove("/nvram/rdm_debug_tool_expiry");
+    std::remove("/tmp/.rdm_debug_tool_expiry_value");
 }
 
 TEST(deviceInfoTest, get_xRDKDownloadManager_PackageInstallPath_DefaultValue)
