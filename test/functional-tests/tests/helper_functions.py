@@ -94,8 +94,11 @@ def rbus_get_value(param: str):
     # If no Value line found, return the full output stripped
     return output.strip()
 
+def rbus_set_data_result(param: str, type: str, value: str):
+    return subprocess.run(f"{RBUSCLI_SET_CMD} {param} {type} {value}", shell=True, capture_output=True)
+
 def rbus_set_data(param: str, type:str, value: str):
-    return subprocess.run(f"{RBUSCLI_SET_CMD} {param} {type} {value}", shell=True, capture_output=True).stdout.decode('utf-8')
+    return rbus_set_data_result(param, type, value).stdout.decode('utf-8')
 
 def get_process_uptime(pid):
     return time.time() - os.path.getctime(f"/proc/{pid}")
