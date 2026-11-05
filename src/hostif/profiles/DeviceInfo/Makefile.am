@@ -23,6 +23,7 @@ DIST_SUBDIRS =
 AM_CXXFLAGS = -I$(top_srcdir)/src/hostif/include \
 -I$(top_srcdir)/src/hostif/handlers/include \
 -I$(top_srcdir)/src/hostif/handlers/src \
+-I$(top_srcdir)/src/hostif/parodusClient/waldb \
 -I$(top_srcdir)/src/hostif/profiles/moca \
 $(GLIB_CFLAGS) $(G_THREAD_CFLAGS) $(MOCAMGR_FLAGS) $(PROCPS_CFLAGS) $(YOCTO_FLAG) \
 -I=/usr/include/rdk/iarmbus/ \
@@ -55,6 +56,7 @@ endif
 
 noinst_LTLIBRARIES = libdeviceinfo.la
 libdeviceinfo_la_SOURCES = 	Device_DeviceInfo.cpp\
+				$(top_srcdir)/src/hostif/handlers/src/hostIf_ExportDataModel.cpp \
 				Device_DeviceInfo_Processor.cpp\
 				Device_DeviceInfo_ProcessStatus_Process.cpp \
 				Device_DeviceInfo_ProcessStatus.cpp \

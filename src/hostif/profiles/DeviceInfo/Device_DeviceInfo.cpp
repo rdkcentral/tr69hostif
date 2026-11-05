@@ -67,6 +67,7 @@
 #include "libIBus.h"
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
+#include "hostIf_ExportDataModel.h"
 #include "hostIf_utils.h"
 #ifdef RDKV_TR69
 #include "pwrMgr.h"
@@ -4024,6 +4025,17 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
 	{
     	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
 	}
+
+    if (ret == OK && !strcasecmp(stMsgData->paramName,
+                                  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.GetDataModelList") &&
+        get_boolean(stMsgData->paramValue))
+    {
+        if (scheduleDataModelExport() != EXPORT_DATA_MODEL_SUCCESS)
+        {
+            ret = NOK;
+            stMsgData->faultCode = fcInternalError;
+        }
+    }
     return ret;
 }
 

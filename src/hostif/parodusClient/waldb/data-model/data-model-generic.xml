@@ -2271,6 +2271,13 @@
           <string/>
         </syntax>
       </parameter>
+      <parameter base="GetDataModelList" access="readWrite" notification="0" maxNotification="2">
+        <syntax>
+          <boolean/>
+          <default type="factory" value="false"/>
+        </syntax>
+        <description>Generate an export of the loaded TR-181 data model.</description>
+      </parameter>
     </object>
     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap." access="readOnly" minEntries="1" maxEntries="1" >
       <parameter base="PartnerName" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
