@@ -103,6 +103,28 @@ def test_RFC_Set_Get_Handler():
     assert RBUS_EXCEPTION_STRING not in rstdout
     assert CDL_STATE_MSG in rstdout
 
+    INTERVAL_PARAM = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Interval"
+    INTERVAL_VALUE = "4"
+    previous_interval = rbus_get_value(INTERVAL_PARAM)
+    assert previous_interval.isdecimal(), \
+        f"Expected an unsigned integer for the current reporting interval, got: {previous_interval}"
+
+    try:
+        set_result = rbus_set_data_result(INTERVAL_PARAM, "uint", INTERVAL_VALUE)
+        assert set_result.returncode == 0, \
+            f"RBUS SET failed for {INTERVAL_PARAM}: {set_result.stderr.decode('utf-8')}"
+        interval_value = rbus_get_value(INTERVAL_PARAM)
+        assert interval_value == INTERVAL_VALUE, \
+            f"Expected interval '{INTERVAL_VALUE}', got: {interval_value}"
+    finally:
+        restore_result = rbus_set_data_result(INTERVAL_PARAM, "uint", previous_interval)
+        assert restore_result.returncode == 0, \
+            f"Failed to restore {INTERVAL_PARAM}: {restore_result.stderr.decode('utf-8')}"
+
+    restored_interval = rbus_get_value(INTERVAL_PARAM)
+    assert restored_interval == previous_interval, \
+        f"Expected reporting interval to be restored to '{previous_interval}', got: {restored_interval}"
+
 @pytest.mark.run(order=22)
 def test_NonRFC_Set_Get_Handler():
     #clear_tr69hostiflogs()
