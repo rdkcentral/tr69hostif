@@ -91,6 +91,7 @@ private:
     FRIEND_TEST(bsStoreTest, getPartnerDeviceConfig_FileRemoved);
     FRIEND_TEST(bsStoreTest, getRawValue_Empty);
     FRIEND_TEST(StoreClearTest, setRawValue_Flush);
+    FRIEND_TEST(deviceInfoTest, set_Device_DeviceInfo_X_RDKCENTRAL_COM_Syndication_PartnerId_BootstrapUpdateFails);
 #endif
 };
 

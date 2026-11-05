@@ -174,6 +174,10 @@ make
 ./devieInfo_gtest
 echo "********************"
 
+cd $TOP_DIR/src/hostif/profiles/DeviceInfo/
+gcov -b -c devieInfo_gtest-Device_DeviceInfo.gcno
+cat Device_DeviceInfo.cpp.gcov
+
 echo "**** Compiling STBService Thunder gtest ****"
 cd $TOP_DIR/src/hostif/profiles/STBService/gtest
 rm -f stbservice_thunder_gtest
