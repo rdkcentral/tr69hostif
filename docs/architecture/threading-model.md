@@ -155,9 +155,9 @@ sequenceDiagram
 | [hostIf_main.cpp:350](../../src/hostif/src/hostIf_main.cpp) | `SIGTERM` | `quit_handler` | Safe |
 | [hostIf_main.cpp:351](../../src/hostif/src/hostIf_main.cpp) | `SIGHUP` | `quit_handler` | Safe |
 | [hostIf_main.cpp:352](../../src/hostif/src/hostIf_main.cpp) | `SIGPIPE` | `SIG_IGN` | Safe |
-| [startParodus.cpp:300](../../src/hostif/parodusClient/startParodus/startParodus.cpp) | `SIGTERM` | `processExit` | **⚠ Unsafe** — calls `printf()` which is not async-signal-safe |
-| [startParodus.cpp:301](../../src/hostif/parodusClient/startParodus/startParodus.cpp) | `SIGKILL` | `processExit` | **⚠ Invalid** — `SIGKILL` cannot be caught; this `signal()` call is silently ignored |
-| [startParodus.cpp:302](../../src/hostif/parodusClient/startParodus/startParodus.cpp) | `SIGABRT` | `processExit` | **⚠ Unsafe** — `printf()` in handler |
+| [start_parodus.c:300](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c) | `SIGTERM` | `processExit` | **⚠ Unsafe** — calls `printf()` which is not async-signal-safe |
+| [start_parodus.c:301](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c) | `SIGKILL` | `processExit` | **⚠ Invalid** — `SIGKILL` cannot be caught; this `signal()` call is silently ignored |
+| [start_parodus.c:302](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c) | `SIGABRT` | `processExit` | **⚠ Unsafe** — `printf()` in handler |
 
 ## Gaps and High-Risk Areas
 
@@ -173,7 +173,7 @@ This section documents specific defects, undocumented behaviors, and patterns th
 | T-4 | `updateHandler::stopped` not atomic | **High** | Stale read / thread never stops |
 | T-5 | `isShutdownTriggered` not atomic | **Medium** | Stale read / double shutdown |
 | T-6 | `httpServerThreadDone` pre-read without lock | **Medium** | Race condition |
-| T-7 | `startParodus.cpp` signal handler `printf` | **Medium** | Signal-handler safety violation |
+| T-7 | `start_parodus.c` signal handler `printf` | **Medium** | Signal-handler safety violation |
 | T-8 | `SIGKILL` registered but cannot be caught | **Medium** | Programmer error, misleading code |
 | T-9 | `libparodus_instance` unguarded | **Medium** | Data race |
 | T-10 | `updateHandler` uses `sleep(60)` not cond-wait | **Medium** | Slow shutdown response |
@@ -248,9 +248,9 @@ Written on the shutdown thread, read on the same thread. Risk is low in practice
 
 ---
 
-### T-7 — Signal handler in `startParodus.cpp` calls `printf()` (Medium)
+### T-7 — Signal handler in `start_parodus.c` calls `printf()` (Medium)
 
-**File:** [startParodus.cpp:300–302](../../src/hostif/parodusClient/startParodus/startParodus.cpp)
+**File:** [start_parodus.c:300–302](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c)
 
 `processExit`, registered for `SIGTERM` and `SIGABRT`, calls `printf()`. `printf()` is not async-signal-safe (POSIX.1-2017 §2.4.3). If the signal fires while the process is inside `malloc`, `printf`, or any other non-reentrant function, the result is undefined behavior, commonly a deadlock on the internal `flockfile()` mutex.
 
@@ -260,7 +260,7 @@ Written on the shutdown thread, read on the same thread. Risk is low in practice
 
 ### T-8 — `SIGKILL` cannot be caught (Medium)
 
-**File:** [startParodus.cpp:301](../../src/hostif/parodusClient/startParodus/startParodus.cpp)
+**File:** [start_parodus.c:301](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c)
 
 `signal(SIGKILL, processExit)` is silently ignored by the kernel. The intent (run cleanup before a forced kill) cannot be achieved. The call gives a false impression that cleanup will run on `SIGKILL` and should be removed to avoid confusing future readers.
 
