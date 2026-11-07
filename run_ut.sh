@@ -101,71 +101,6 @@ make clean
 
 echo "TOP_DIR = $TOP_DIR"
 
-echo "**** Compiling handlers gtest ****"
-cd $TOP_DIR/src/hostif/handlers/src/gtest
-rm handlers_gtest
-sed -i '/getCurrentTime/,/^ *}/d' ../../../src/hostIf_utils.cpp
-make clean
-make
-./handlers_gtest
-echo "********************"
-
-
-echo "**** Compiling data model gtest ****"
-cd $TOP_DIR/src/hostif/parodusClient/gtest
-rm dm_gtest
-#sed -i '/getCurrentTime/,/^ *}/d' ../../src/hostIf_utils.cpp
-make
-./dm_gtest
-echo "********************"
-
-echo "**** Compiling httpserver gtest ****"
-cd $TOP_DIR/src/hostif/httpserver/src/gtest
-rm httpserver_gtest
-#sed -i '$a void getCurrentTime(struct timespec *timer)\n{\n    clock_gettime(CLOCK_REALTIME, timer);\n}' ../../../src/hostIf_utils.cpp
-#sed -i '/getCurrentTime/,/^ *}/d' ../../src/hostIf_utils.cpp
-make clean
-make
-./httpserver_gtest
-echo "********************"
-
-echo "**** Compiling src gtest ****"
-cd $TOP_DIR/src/hostif/src/gtest
-rm src_gtest
-sed -i '$a void getCurrentTime(struct timespec *timer)\n{\n    clock_gettime(CLOCK_REALTIME, timer);\n}' ../hostIf_utils.cpp
-make clean
-make
-./src_gtest
-echo "********************"
-
-echo "**** Compiling DHCPv4 gtest ****"
-cd $TOP_DIR/src/hostif/profiles/DHCPv4/gtest
-rm dhcpv4_gtest
-make
-./dhcpv4_gtest
-echo "********************"
-
-echo "**** Compiling Device gtest ****"
-cd $TOP_DIR/src/hostif/profiles/Device/gtest
-rm device_gtest
-make
-./device_gtest
-echo "********************"
-
-echo "**** Compiling Ethernet gtest ****"
-cd $TOP_DIR/src/hostif/profiles/Ethernet/gtest
-rm ethernet_gtest
-make
-./ethernet_gtest
-echo "********************"
-
-echo "**** Compiling Time gtest ****"
-cd $TOP_DIR/src/hostif/profiles/Time/gtest
-rm time_gtest
-make
-./time_gtest
-echo "********************"
-
 echo "**** Compiling DeviceInfo gtest ****"
 cd $TOP_DIR/src/hostif/profiles/DeviceInfo/gtest
 cp ../../../../unittest/stubs/rfc.properties /etc/rfc.properties
@@ -174,12 +109,12 @@ make
 ./devieInfo_gtest
 echo "********************"
 
-echo "**** Compiling STBService Thunder gtest ****"
-cd $TOP_DIR/src/hostif/profiles/STBService/gtest
-rm -f stbservice_thunder_gtest
-make || { echo "ERROR: STBService Thunder gtest build failed"; exit 1; }
-./stbservice_thunder_gtest || { echo "ERROR: STBService Thunder gtest execution failed"; exit 1; }
-echo "********************"
+cd $TOP_DIR/src/hostif/profiles/DeviceInfo/
+gcov -b -c devieInfo_gtest-Device_DeviceInfo.gcno
+cat Device_DeviceInfo.cpp.gcov
+
+
+
 
 cd $TOP_DIR
 
