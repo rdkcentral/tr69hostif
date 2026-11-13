@@ -40,6 +40,9 @@
 
 #include <cmath>
 #include <cstring>
+#include <cstdio>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/fs.h>
@@ -61,6 +64,9 @@
 #include <regex>
 #include <dirent.h>
 #include <thread>
+#include <cstdlib>
+#include <limits>
+#include <ctime>
 #include "libIBus.h"
 #include "mfrMgr.h"
 #include "Device_DeviceInfo.h"
@@ -71,6 +77,9 @@
 #include "power_controller.h"
 #endif
 #include "rbus.h"
+#ifdef ENABLE_RDK_OTLP
+#include <rdk_otlp_instrumentation.h>
+#endif
 #include <curl/curl.h>
 
 #ifndef USE_THUNDER_CLIENT
@@ -3230,6 +3239,11 @@ int hostIf_DeviceInfo::set_xOpsReverseSshTrigger(HOSTIF_MsgData_t *stMsgData)
                                 shortsArgs.c_str(),
                                 nonShortsArgs.c_str());
             }else {
+                const char *buildType = getenv("BUILD_TYPE");
+                if (buildType == NULL || strcasecmp(buildType, "prod") == 0) {
+                    RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s] plain reverse SSH trigger rejected on prod-built device \n",__FUNCTION__);
+                    return NOK;
+                }
 
                 RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s] Starting SSH Tunnel \n",__FUNCTION__);
                 string arg = "start";
@@ -3543,7 +3557,25 @@ int hostIf_DeviceInfo::set_xOpsDeviceMgmtForwardSSHEnable(HOSTIF_MsgData_t * stM
 int hostIf_DeviceInfo::validate_ParamValue(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = OK;
-    if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
+    if (strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_INTERVAL) == 0)
+    {
+        if (stMsgData->paramtype != hostIf_UnsignedIntType)
+        {
+            stMsgData->faultCode = fcInvalidParameterType;
+            return NOK;
+        }
+
+        unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
+        if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s:%d] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                    __FUNCTION__, __LINE__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+            stMsgData->faultCode = fcInvalidParameterValue;
+            return NOK;
+        }
+    }
+    else if (strcasecmp(stMsgData->paramName,TR069DOSLIMIT_THRESHOLD) == 0)
     {
         long int tmpVal;
         if(stMsgData->paramtype == hostIf_StringType )
@@ -3876,7 +3908,10 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         else
         {
             ret = NOK;
-            stMsgData->faultCode = fcInvalidParameterValue;
+            if (stMsgData->faultCode != fcInvalidParameterType)
+            {
+                stMsgData->faultCode = fcInvalidParameterValue;
+            }
             RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s:%d] Invalid ParamValue/Type to SET for param [%s] \n", __FUNCTION__, __LINE__, stMsgData->paramName);
         }
     }
@@ -3955,6 +3990,22 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
         ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerWebCfgData(stMsgData);
     }
 #endif
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_InstallPackage) == 0)
+    {
+        ret = set_xRDKDownloadManager_InstallPackage(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_DownloadStatus) == 0)
+    {
+        ret = set_xRDKDownloadManager_DownloadStatus(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageInstallPath) == 0)
+    {
+        ret = set_xRDKDownloadManager_PackageInstallPath(stMsgData);
+    }
+    else if (strcasecmp(stMsgData->paramName, X_RDKDownloadManager_PackageExpiryTime) == 0)
+    {
+        ret = set_xRDKDownloadManager_PackageExpiryTime(stMsgData);
+    }
     else if (strcasecmp(stMsgData->paramName,CANARY_START_TIME) == 0)
     {
 	ret = set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart(stMsgData);
@@ -3989,10 +4040,18 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFC(HOSTIF_MsgData_t * stMsgData)
     {
         ret = set_xRDKCentralComRFCDistributedTracingEnable(stMsgData);
     }
-	else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
-	{
-    	ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
-	}
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_URL))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingURL(stMsgData);
+    }
+    else if (!strcasecmp(stMsgData->paramName, DISTRIBUTED_TRACING_RFC_INTERVAL))
+    {
+        ret = set_xRDKCentralComRFCDistributedTracingInterval(stMsgData);
+    }
+    else if ((ret == OK) && ((!strcasecmp(stMsgData->paramName, RFC_DBG_SERVICES)) || (!strcasecmp(stMsgData->paramName, RFC_DEVICE_TYPE))))
+    {
+        ret = set_xRDKCentralComRFCSecureDebugState(stMsgData);
+    }
     return ret;
 }
 
@@ -4113,6 +4172,128 @@ int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgD
     return ret;
 }
 
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+    LOG_ENTRY_EXIT;
+
+    if (stMsgData->paramtype != hostIf_StringType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s:%d] Wrong type for %s, expected string.\n",
+                __FUNCTION__, __LINE__, stMsgData->paramName);
+        return NOK;
+    }
+
+    const char *url = stMsgData->paramValue;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] DistributedTracing URL: %s\n", __FUNCTION__, url);
+
+    int fd = open(OTEL_EXPORT_ENDPOINT_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd >= 0)
+    {
+        FILE *fp = fdopen(fd, "w");
+        if (fp)
+        {
+            if (fputs(url, fp) >= 0)
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+                        "[%s] Wrote OTEL endpoint URL to %s\n", __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE);
+                ret = OK;
+            }
+            else
+            {
+                fclose(fp);
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                        "[%s] Failed to write OTEL endpoint URL to %s: %s\n",
+                        __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+            }
+        }
+        else
+        {
+            close(fd);
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                    "[%s] Failed to open %s for writing: %s\n",
+                    __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to create %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_ENDPOINT_FILE, strerror(errno));
+    }
+
+    return ret;
+}
+
+int hostIf_DeviceInfo::set_xRDKCentralComRFCDistributedTracingInterval(HOSTIF_MsgData_t *stMsgData)
+{
+    int ret = NOK;
+
+    if (!stMsgData)
+    {
+        return NOK;
+    }
+
+    if (stMsgData->paramtype != hostIf_UnsignedIntType)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Wrong type for DistributedTracing.Interval, expected unsigned integer minutes.\n",
+                __FUNCTION__);
+        stMsgData->faultCode = fcInvalidParameterType;
+        return NOK;
+    }
+
+    unsigned int intervalMinutes = get_uint(stMsgData->paramValue);
+    if (intervalMinutes == 0 || intervalMinutes > MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] DistributedTracing.Interval must be in the range 1-%u minutes.\n",
+                __FUNCTION__, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+        stMsgData->faultCode = fcInvalidParameterValue;
+        return NOK;
+    }
+
+    int fd = open(OTEL_EXPORT_INTERVAL_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to create %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(errno));
+        return NOK;
+    }
+
+    FILE *fp = fdopen(fd, "w");
+    if (!fp)
+    {
+        int error = errno;
+        close(fd);
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to open %s for writing: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(error));
+        return NOK;
+    }
+
+    int writeResult = fprintf(fp, "%u", intervalMinutes);
+    int closeResult = fclose(fp);
+    if (writeResult < 0 || closeResult != 0)
+    {
+        int error = errno;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF,
+                "[%s] Failed to write %s: %s\n",
+                __FUNCTION__, OTEL_EXPORT_INTERVAL_FILE, strerror(error));
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] Persisted DistributedTracing.Interval=%u minutes to %s\n",
+            __FUNCTION__, intervalMinutes, OTEL_EXPORT_INTERVAL_FILE);
+    ret = OK;
+    return ret;
+}
+
 int hostIf_DeviceInfo::get_xRDKCentralComBootstrap(HOSTIF_MsgData_t *stMsgData)
 {
     return m_bsStore->getValue(stMsgData);
@@ -4194,6 +4375,9 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     rbusValue_t value, preValue, byVal;
     rbusEvent_t event = {0};
     rbusObject_t data;
+#ifdef ENABLE_RDK_OTLP
+    const char *traceparent = NULL;
+#endif
 
     rbusValue_Init(&value);
     rbusValue_Init(&preValue);
@@ -4211,7 +4395,19 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerI
     event.data = data;
     event.type = RBUS_EVENT_VALUE_CHANGED;
 
+#ifdef ENABLE_RDK_OTLP
+    rdk_otlp_start_distributed_trace(RRD_SET_ISSUE_EVENT, "set");
+    traceparent = rdk_otlp_get_current_traceparent();
+    if (traceparent != NULL)
+    {
+        rbusHandle_SetTraceContextFromString(rbusHandle, traceparent, NULL);
+    }
+#endif
     rc = rbusEvent_Publish(rbusHandle, &event);
+#ifdef ENABLE_RDK_OTLP
+    rbusHandle_ClearTraceContext(rbusHandle);
+    rdk_otlp_finish_distributed_trace();
+#endif
     if ((rc != RBUS_ERROR_SUCCESS) && (rc != RBUS_ERROR_NOSUBSCRIBERS))
     {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s:%d]: RBUS Publish event failed for %s with return : %d !!! \n ", __FUNCTION__, __LINE__, RRD_SET_ISSUE_EVENT, rc);
@@ -4294,6 +4490,180 @@ int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_RDKRemoteDebuggerW
     return retVal;
 }
 #endif
+
+int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageInstallPath(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
+    std::ifstream installPathFile("/tmp/.rdm_debug_tool_install_path");
+    std::string installPath;
+
+    if (!std::getline(installPathFile, installPath) || installPath.empty())
+    {
+        installPath = "/run/tools";
+    }
+
+    stMsgData->paramtype = hostIf_StringType;
+    snprintf(stMsgData->paramValue, TR69HOSTIFMGR_MAX_PARAM_LEN, "%s", installPath.c_str());
+    stMsgData->paramLen = strlen(stMsgData->paramValue);
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read debug tool install path as %s\n", __FUNCTION__, installPath.c_str());
+    return OK;
+}
+
+int hostIf_DeviceInfo::get_xRDKDownloadManager_PackageExpiryTime(HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    memset(stMsgData->paramValue, 0, TR69HOSTIFMGR_MAX_PARAM_LEN);
+    std::ifstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+    std::string line;
+    unsigned long long expirySeconds = 3600;
+
+    if (ttlFile.is_open())
+    {
+        while (std::getline(ttlFile, line))
+        {
+            std::string trimmed = line;
+            trimmed.erase(trimmed.begin(), std::find_if(trimmed.begin(), trimmed.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+            trimmed.erase(std::find_if(trimmed.rbegin(), trimmed.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), trimmed.end());
+
+            if (trimmed.empty() || trimmed[0] == '#')
+            {
+                continue;
+            }
+
+            unsigned long long ttl = 0;
+            std::istringstream iss(trimmed);
+            if (iss >> ttl)
+            {
+                expirySeconds = ttl;
+                break;
+            }
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] No TTL config record found for package; using default value 3600\n", __FUNCTION__);
+    }
+
+    stMsgData->paramtype = hostIf_UnsignedIntType;
+    stMsgData->paramLen = sizeof(unsigned int);
+
+    if (expirySeconds > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_WARN, LOG_TR69HOSTIF, "[%s] Expiry value %llu exceeds unsigned int range; clamping to max\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+        expirySeconds = std::numeric_limits<unsigned int>::max();
+    }
+
+    put_uint(stMsgData->paramValue, static_cast<unsigned int>(expirySeconds));
+    stMsgData->faultCode = fcNoFault;
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Read configured package expiry as %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+    return OK;
+}
+
+int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageInstallPath (HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    std::string installPath(stMsgData->paramValue);
+    while (!installPath.empty() && std::isspace(static_cast<unsigned char>(installPath.front()))) {
+        installPath.erase(installPath.begin());
+    }
+    while (!installPath.empty() && std::isspace(static_cast<unsigned char>(installPath.back()))) {
+        installPath.pop_back();
+    }
+
+    struct stat pathStat;
+    if (installPath.empty() || installPath[0] != '/' || stat(installPath.c_str(), &pathStat) != 0 || !S_ISDIR(pathStat.st_mode))
+    {
+        installPath = "/run/tools";
+    }
+
+    std::ofstream installPathFile("/tmp/.rdm_debug_tool_install_path");
+    if (!installPathFile.is_open())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist debug tool install path\n", __FUNCTION__);
+        return NOK;
+    }
+
+    installPathFile << installPath << std::endl;
+    installPathFile.close();
+    if (!installPathFile) {
+        stMsgData->faultCode = fcInternalError;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write debug tool install path\n", __FUNCTION__);
+        return NOK;
+    }
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Set debug tool install path to %s\n", __FUNCTION__, installPath.c_str());
+    return OK;
+}
+
+int hostIf_DeviceInfo::set_xRDKDownloadManager_PackageExpiryTime (HOSTIF_MsgData_t *stMsgData)
+{
+    if (stMsgData == NULL)
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] NULL parameter payload\n", __FUNCTION__);
+        return NOK;
+    }
+
+    unsigned long long expirySeconds = 0;
+    if (stMsgData->paramtype == hostIf_UnsignedIntType)
+    {
+        expirySeconds = static_cast<unsigned long long>(get_uint(stMsgData->paramValue));
+    }
+    else if (stMsgData->paramtype == hostIf_StringType)
+    {
+        char *end = NULL;
+        errno = 0;
+        expirySeconds = std::strtoull(stMsgData->paramValue, &end, 10);
+        if (end == stMsgData->paramValue || *end != '\0' || errno == ERANGE)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %s\n", __FUNCTION__, stMsgData->paramValue);
+            return NOK;
+        }
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Unsupported expiry parameter type %d\n", __FUNCTION__, stMsgData->paramtype);
+        return NOK;
+    }
+
+    if (expirySeconds == 0 || expirySeconds > std::numeric_limits<unsigned int>::max())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid expiry value: %llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+        return NOK;
+    }
+
+    std::ofstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+    if (!ttlFile.is_open())
+    {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to persist configured package expiry TTL\n", __FUNCTION__);
+        return NOK;
+    }
+    ttlFile << expirySeconds << std::endl;
+    ttlFile.close();
+    if (!ttlFile) {
+        stMsgData->faultCode = fcInternalError;
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to write configured package expiry TTL\n", __FUNCTION__);
+        return NOK;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Stored configured package expiry TTL=%llu\n", __FUNCTION__, static_cast<unsigned long long>(expirySeconds));
+    return OK;
+}
 
 int hostIf_DeviceInfo::set_Device_DeviceInfo_X_RDKCENTRAL_COM_Canary_wakeUpStart (HOSTIF_MsgData_t *stMsgData)
 {
@@ -5228,7 +5598,7 @@ int hostIf_DeviceInfo::set_xOpsRPCFwDwldCompletedNotification(HOSTIF_MsgData_t *
 
         NotificationHandler::getInstance()->push_device_mgmt_notifications(NULL, start_time, (char*)status, (char* )"firmware-download-completed", NULL);
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Successfully Set [\"%s\"] and Send notification as \"status\":\"firmware-download-completed\" \
-    		with \"start-time\":\"%s\" and \"download-status\":\"%s\". \n", __FUNCTION__, stMsgData->paramName, m_strXOpsRPCFwDwldStartedNotification.c_str(), status);
+		with \"start-time\":\"%s\" and \"download-status\":\"%s\". \n", __FUNCTION__, stMsgData->paramName, m_strXOpsRPCFwDwldStartedNotification.c_str(), status);
     }
     else {
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending notification for [%s]. \n",
@@ -5252,7 +5622,7 @@ int hostIf_DeviceInfo::set_xOpsRPCRebootPendingNotification(HOSTIF_MsgData_t *st
         NotificationHandler::getInstance()->push_device_mgmt_notifications(temp_buff, NULL, NULL, (char* )"reboot-pending", NULL);
 
         RDK_LOG (RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Successfully Set [\"%s\"] and Send \"reboot-pending\" notification  \
-    		 \n", __FUNCTION__, stMsgData->paramName );
+		 \n", __FUNCTION__, stMsgData->paramName );
     }
     else {
         RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending notification for [%s]. \n",
@@ -5499,21 +5869,65 @@ int hostIf_DeviceInfo::get_X_RDK_FirmwareName(HOSTIF_MsgData_t * stMsgData)
 int hostIf_DeviceInfo::set_xRDKDownloadManager_InstallPackage(HOSTIF_MsgData_t * stMsgData)
 {
     int ret = NOK;
-
-    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
-
-    if((!stMsgData) || strlen(stMsgData->paramValue) == 0 ) {
+    if (stMsgData == NULL)
+    {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
         return NOK;
     }
 
-    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , stMsgData->paramValue);
+    std::string packageSpec(stMsgData->paramValue);
 
-    ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", stMsgData->paramValue);
+    RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Entering..\n", __FUNCTION__ );
+
+    if (packageSpec.empty()) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Invalid parameter value\n", __FUNCTION__);
+        return NOK;
+    }
+
+    std::string toolName = packageSpec;
+    std::string::size_type colonPos = toolName.find(':');
+    if (colonPos != std::string::npos)
+    {
+        toolName = toolName.substr(0, colonPos);
+    }
+
+    std::string::size_type dashPos = toolName.rfind('-');
+    if (dashPos != std::string::npos)
+    {
+        std::string suffix = toolName.substr(dashPos + 1);
+        if (suffix == "strace" || suffix == "tcpdump")
+        {
+            toolName = std::move(suffix);
+        }
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Executing Command rdm %s \n", __FUNCTION__ , packageSpec.c_str());
+
+    ret = v_secure_system("backgroundrun rdm -v \"%s\" >> /opt/logs/rdm_status.log 2>&1", packageSpec.c_str());
 
     if (ret != 0) {
         RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to execute the command. Returned error code '%d'\n", __FUNCTION__, ret);
         return NOK;
+    }
+
+    if (toolName == "strace" || toolName == "tcpdump")
+    {
+        std::ifstream ttlFile("/tmp/.rdm_debug_tool_expiry_value");
+        unsigned long long ttl = 3600;
+        if (ttlFile.is_open())
+        {
+            ttlFile >> ttl;
+        }
+
+        int scheduleRet = v_secure_system("backgroundrun rdm -s %s:%llu >> /opt/logs/rdm_status.log 2>&1",
+                                         toolName.c_str(), static_cast<unsigned long long>(ttl));
+        if (scheduleRet != 0) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to schedule expiry for %s: %d\n",
+                    __FUNCTION__, toolName.c_str(), scheduleRet);
+            return NOK;
+        }
+        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s] Scheduled expiry for %s with TTL %llu\n",
+                __FUNCTION__, toolName.c_str(), static_cast<unsigned long long>(ttl));
     }
 
     RDK_LOG(RDK_LOG_TRACE1, LOG_TR69HOSTIF, "[%s] Exiting..\n", __FUNCTION__ );
@@ -5598,4 +6012,3 @@ bool (*ValidateInput_ArgumentsFunc()) (char *input, FILE *tmp_fptr)
 
 /** @} */
 /** @} */
-

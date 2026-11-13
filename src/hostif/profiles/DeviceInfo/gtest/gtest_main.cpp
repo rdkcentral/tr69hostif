@@ -594,6 +594,87 @@ TEST(requestHandlerTest, getHandler)
     }
 }
 
+static void resetDebugToolDefaultFiles()
+{
+    std::remove("/tmp/.rdm_debug_tool_install_path");
+    std::remove("/tmp/.rdm_debug_tool_expiry_value");
+}
+
+TEST(deviceInfoTest, get_xRDKDownloadManager_PackageInstallPath_DefaultValue)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageInstallPath(&msgData), OK);
+    EXPECT_STREQ(msgData.paramValue, "/run/tools");
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, set_get_xRDKDownloadManager_PackageInstallPath_RoundTrip)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    strncpy(msgData.paramValue, "/tmp", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    msgData.paramLen = strlen(msgData.paramValue);
+    EXPECT_EQ(pIface->set_xRDKDownloadManager_PackageInstallPath(&msgData), OK);
+
+    memset(&msgData, 0, sizeof(msgData));
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageInstallPath(&msgData), OK);
+    EXPECT_STREQ(msgData.paramValue, "/tmp");
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, get_xRDKDownloadManager_PackageExpiryTime_DefaultValue)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageExpiryTime(&msgData), OK);
+    EXPECT_EQ(get_uint(msgData.paramValue), 3600U);
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, set_get_xRDKDownloadManager_PackageExpiryTime_RoundTrip)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    msgData.paramtype = hostIf_UnsignedIntType;
+    put_uint(msgData.paramValue, 1800U);
+    EXPECT_EQ(pIface->set_xRDKDownloadManager_PackageExpiryTime(&msgData), OK);
+
+    memset(&msgData, 0, sizeof(msgData));
+    EXPECT_EQ(pIface->get_xRDKDownloadManager_PackageExpiryTime(&msgData), OK);
+    EXPECT_EQ(get_uint(msgData.paramValue), 1800U);
+    EXPECT_EQ(msgData.faultCode, fcNoFault);
+}
+
+TEST(deviceInfoTest, set_xRDKDownloadManager_PackageExpiryTime_InvalidValue)
+{
+    resetDebugToolDefaultFiles();
+    HOSTIF_MsgData_t msgData = {0};
+    int instanceNumber = 0;
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
+    ASSERT_NE(pIface, nullptr);
+
+    msgData.paramtype = hostIf_StringType;
+    strncpy(msgData.paramValue, "abc", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    EXPECT_EQ(pIface->set_xRDKDownloadManager_PackageExpiryTime(&msgData), NOK);
+}
+
 TEST(deviceInfoTest, getDescription) {
     HOSTIF_MsgData_t msgData;
     bool bChanged;
@@ -5082,7 +5163,6 @@ TEST(deviceTest, set_xOpsReverseSshTrigger)
 }
 
 TEST(deviceTest, set_xOpsReverseSshTrigger_StartNoShorts) {
-    // trigger=true, trigger_shorts=false -> else branch at line 3092 (startTunnel.sh start)
     int instanceNumber = 0;
     HOSTIF_MsgData_t param = { 0 };
     memset(&param, 0, sizeof(HOSTIF_MsgData_t));
@@ -5096,7 +5176,54 @@ TEST(deviceTest, set_xOpsReverseSshTrigger_StartNoShorts) {
 
     hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(instanceNumber);
     ASSERT_NE(pIface, nullptr);
-    EXPECT_EQ(pIface->set_xOpsReverseSshTrigger(&param), OK);
+
+    const char *buildType = getenv("BUILD_TYPE");
+    const std::string savedBuildType = buildType ? buildType : "";
+    setenv("BUILD_TYPE", "dev", 1);
+
+    testing::internal::CaptureStdout();
+    int ret = pIface->set_xOpsReverseSshTrigger(&param);
+    std::string logs = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, OK);
+    EXPECT_NE(logs.find("Starting SSH Tunnel"), std::string::npos);
+
+    if (buildType) {
+        setenv("BUILD_TYPE", savedBuildType.c_str(), 1);
+    } else {
+        unsetenv("BUILD_TYPE");
+    }
+}
+
+TEST(deviceTest, set_xOpsReverseSshTrigger_BlocksPlainStartOnProd) {
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, "Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.ReverseSSH.xOpsReverseSshTrigger", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.bsUpdate = HOSTIF_NONE;
+    param.requestor = HOSTIF_SRC_RFC;
+    strncpy(param.paramValue, "start", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_StringType;
+    param.paramLen = strlen(param.paramValue);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    const char *buildType = getenv("BUILD_TYPE");
+    const std::string savedBuildType = buildType ? buildType : "";
+    setenv("BUILD_TYPE", "PROD", 1);
+
+    testing::internal::CaptureStdout();
+    int ret = pIface->set_xOpsReverseSshTrigger(&param);
+    std::string logs = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(ret, NOK);
+    EXPECT_NE(logs.find("plain reverse SSH trigger rejected on prod-built device"), std::string::npos);
+
+    if (buildType) {
+        setenv("BUILD_TYPE", savedBuildType.c_str(), 1);
+    } else {
+        unsetenv("BUILD_TYPE");
+    }
 }
 
 TEST(deviceTest, set_xOpsReverseSshTrigger_Stop) {
@@ -8024,6 +8151,119 @@ TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingEnable_FlagRemove
 
     std::remove((std::string(RDK_TRACING_FLAG_FILE) + "/keep").c_str());
     rmdir(RDK_TRACING_FLAG_FILE);
+}
+
+TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval)
+{
+    int secureDirCreated = (mkdir("/opt/secure", 0700) == 0);
+    if (!secureDirCreated && errno != EEXIST)
+    {
+        GTEST_SKIP() << "Unable to create /opt/secure for persistence test";
+    }
+    if (access(OTEL_EXPORT_INTERVAL_FILE, F_OK) == 0)
+    {
+        if (secureDirCreated)
+        {
+            rmdir("/opt/secure");
+        }
+        GTEST_SKIP() << "Interval persistence file already exists";
+    }
+
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, DISTRIBUTED_TRACING_RFC_INTERVAL, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_UnsignedIntType;
+    put_uint(param.paramValue, 15);
+    param.paramLen = sizeof(hostIf_UnsignedIntType);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), OK);
+
+    std::ifstream intervalFile(OTEL_EXPORT_INTERVAL_FILE);
+    std::string persistedInterval;
+    std::getline(intervalFile, persistedInterval);
+    EXPECT_EQ(persistedInterval, "15");
+    intervalFile.close();
+
+    put_uint(param.paramValue, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), OK);
+    std::ifstream maximumIntervalFile(OTEL_EXPORT_INTERVAL_FILE);
+    std::getline(maximumIntervalFile, persistedInterval);
+    EXPECT_EQ(persistedInterval, std::to_string(MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES));
+    maximumIntervalFile.close();
+
+    remove(OTEL_EXPORT_INTERVAL_FILE);
+    if (secureDirCreated)
+    {
+        rmdir("/opt/secure");
+    }
+}
+
+TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_InvalidType)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    param.paramtype = hostIf_StringType;
+    strncpy(param.paramValue, "15", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFCDistributedTracingInterval(&param), NOK);
+}
+
+TEST(deviceTest, direct_set_xRDKCentralComRFCDistributedTracingInterval_Zero)
+{
+    HOSTIF_MsgData_t param = { 0 };
+    param.paramtype = hostIf_UnsignedIntType;
+    put_uint(param.paramValue, 0);
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFCDistributedTracingInterval(&param), NOK);
+}
+
+TEST(deviceTest, set_xRDKCentralComRFCDistributedTracingInterval_InvalidValuesNotPersisted)
+{
+    int secureDirCreated = (mkdir("/opt/secure", 0700) == 0);
+    if (!secureDirCreated && errno != EEXIST)
+    {
+        GTEST_SKIP() << "Unable to create /opt/secure for persistence test";
+    }
+    if (access(OTEL_EXPORT_INTERVAL_FILE, F_OK) == 0)
+    {
+        if (secureDirCreated)
+        {
+            rmdir("/opt/secure");
+        }
+        GTEST_SKIP() << "Interval persistence file already exists";
+    }
+
+    HOSTIF_MsgData_t param = { 0 };
+    param.reqType = HOSTIF_SET;
+    strncpy(param.paramName, DISTRIBUTED_TRACING_RFC_INTERVAL, TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    param.paramtype = hostIf_UnsignedIntType;
+
+    hostIf_DeviceInfo *pIface = hostIf_DeviceInfo::getInstance(0);
+    ASSERT_NE(pIface, nullptr);
+
+    put_uint(param.paramValue, 0);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    EXPECT_NE(access(OTEL_EXPORT_INTERVAL_FILE, F_OK), 0);
+
+    put_uint(param.paramValue, MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES + 1);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    EXPECT_NE(access(OTEL_EXPORT_INTERVAL_FILE, F_OK), 0);
+
+    param.paramtype = hostIf_StringType;
+    strncpy(param.paramValue, "15", TR69HOSTIFMGR_MAX_PARAM_LEN - 1);
+    EXPECT_EQ(pIface->set_xRDKCentralComRFC(&param), NOK);
+    EXPECT_EQ(param.faultCode, fcInvalidParameterType);
+    EXPECT_NE(access(OTEL_EXPORT_INTERVAL_FILE, F_OK), 0);
+
+    if (secureDirCreated)
+    {
+        rmdir("/opt/secure");
+    }
 }
 
 #ifdef ENABLE_VIDEO_TELEMETRY
