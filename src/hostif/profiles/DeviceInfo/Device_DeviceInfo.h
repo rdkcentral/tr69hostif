@@ -223,6 +223,7 @@
 /* Profile: X_RDKCENTRAL-COM_RFC.Identity */
 #define RFC_DBG_SERVICES                                "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DbgServices.Enable"
 #define RFC_DEVICE_TYPE                                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Identity.DeviceType"
+#define SECURE_UNLOCK_SSH_PASSWORD                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureUnlock.SSHPassword"
 
 char* getLastField(char* line, char delimiter);
 
@@ -324,6 +325,7 @@ class hostIf_DeviceInfo {
 
     int updateSecureDebugState(void);
     int set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData);
+    int set_xRDKCentralComRFCSecureUnlockSSHPassword(HOSTIF_MsgData_t *stMsgData);
 
     int get_xRDKCentralComRFCAccountId (HOSTIF_MsgData_t *);
     int get_xOpsDeviceMgmtRPCRebootNow (HOSTIF_MsgData_t *);
@@ -421,6 +423,11 @@ class hostIf_DeviceInfo {
     FRIEND_TEST(deviceTest, SecureDebugState_NullInput);
     FRIEND_TEST(deviceTest, SecureDebugState_ValidHandler);
     FRIEND_TEST(deviceTest, SecureDebugState_UpdateExistingFile);
+    FRIEND_TEST(deviceTest, SecureUnlock_InvalidHashesDoNotModifyShadow);
+    FRIEND_TEST(deviceTest, SecureUnlock_NonStringValueIsRejected);
+    FRIEND_TEST(deviceTest, SecureUnlock_InvalidShadowEntriesDoNotModifyFile);
+    FRIEND_TEST(deviceTest, SecureUnlock_MissingShadowFileIsRejected);
+    FRIEND_TEST(deviceTest, SecureUnlock_AlreadyCurrentHashLeavesFileUnchanged);
 #endif
 
 public:
