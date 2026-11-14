@@ -172,8 +172,6 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
     res_struct *resObj = NULL;
     WDMP_STATUS ret = WDMP_FAILURE;
     int paramCount = 0, i = 0, retCount=0, error = 0;
-    const char *getParamList[MAX_PARAMETERNAME_LEN];
-    char *param = NULL;
 
    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"************** processRequest *****************\n");
 
@@ -202,8 +200,6 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
             for (i = 0; i < paramCount; i++)
             {
                 RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Request:> paramNames[%d] = %s\n",i,reqObj->u.getReq->paramNames[i]);
-                param = reqObj->u.getReq->paramNames[i];
-                getParamList[i] = strdup(param); // Freed from wdmp_free_res_struct()
             }
 
             if(error != 1 && paramCount > 0)
@@ -221,11 +217,11 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
                 memset(resObj->u.getRes->params, 0, sizeof(param_t*)*paramCount);
                 memset(resObj->u.getRes->paramNames, 0, sizeof(char *) * paramCount);
                 memset(resObj->u.getRes->params, 0, sizeof(param_t*)*paramCount);
-                getValues(getParamList, paramCount,&resObj->u.getRes->params,&resObj->u.getRes->retParamCnt ,&resObj->retStatus);
+                getValues(const_cast<const char **>(reqObj->u.getReq->paramNames), paramCount,&resObj->u.getRes->params,&resObj->u.getRes->retParamCnt ,&resObj->retStatus);
 
                 for(i = 0; i < paramCount; i++)
                 {
-                    resObj->u.getRes->paramNames[i] = const_cast<char *>(getParamList[i]);
+                    resObj->u.getRes->paramNames[i] = strdup(reqObj->u.getReq->paramNames[i]); // Freed from wdmp_free_res_struct()
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Response:> paramNames[%d] = %s\n",i,resObj->u.getRes->paramNames[i]);
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Response:> retParamCnt[%d] = %zu\n",i,resObj->u.getRes->retParamCnt[i]);
                     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Response:> retStatus[%d] = %d\n",i,resObj->retStatus[i]);
@@ -292,16 +288,16 @@ void processRequest(char *reqPayload,char *transactionId, char **resPayload)
             resObj->u.paramRes = (param_res_t *) malloc(sizeof(param_res_t));
             memset(resObj->u.paramRes, 0, sizeof(param_res_t));
 
-            for (i = 0; i < paramCount; i++)
-            {
-                RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Request:> param[%d].name = %s\n",i,reqObj->u.setReq->param[i].name);
-                RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Request:> param[%d].value = %s\n",i,reqObj->u.setReq->param[i].value);
-                setRebootReason(reqObj->u.setReq->param[i], WEBPA_SET);
-            }
-
             ret = validate_parameter(reqObj->u.setReq->param, paramCount);
             if(ret == WDMP_SUCCESS)
             {
+                for (i = 0; i < paramCount; i++)
+                {
+                    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Request:> param[%d].name = %s\n",i,reqObj->u.setReq->param[i].name);
+                    RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"Request:> param[%d].value = %s\n",i,reqObj->u.setReq->param[i].value);
+                    setRebootReason(reqObj->u.setReq->param[i], WEBPA_SET);
+                }
+
                 if(reqObj->reqType == SET)
                 {
                     setValues((ParamVal*)reqObj->u.setReq->param, paramCount, WEBPA_SET, resObj->timeSpan, &resObj->retStatus, transactionId);
@@ -437,6 +433,12 @@ static WDMP_STATUS validate_parameter(param_t *param, int paramCount)
     RDK_LOG(RDK_LOG_DEBUG,LOG_PARODUS_IF,"------------ validate_parameter ----------\n");
     for (i = 0; i < paramCount; i++)
     {
+        if(param[i].name == NULL || param[i].value == NULL)
+        {
+            RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Parameter value is null\n");
+            return WDMP_ERR_VALUE_IS_NULL;
+        }
+
         // If input parameter is wildcard ending with "." then send error as wildcard is not supported for TEST_AND_SET
         if(param[i].name[(strlen(param[i].name)-1)] == '.')
         {
@@ -449,12 +451,6 @@ static WDMP_STATUS validate_parameter(param_t *param, int paramCount)
             RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Invalid Input parameter - CID/CMC value cannot be set \n");
             return WDMP_ERR_SET_OF_CMC_OR_CID_NOT_SUPPORTED;
         }
-
-        if(param[i].name == NULL || param[i].value == NULL)
-        {
-            RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Parameter value is null\n");
-            return WDMP_ERR_VALUE_IS_NULL;
-        }
     }
     return WDMP_SUCCESS;
 }
@@ -466,6 +462,12 @@ static WDMP_STATUS validate_parameter(param_t *param, int paramCount)
  */
 static void setRebootReason(param_t param, WEBPA_SET_TYPE setType)
 {
+    if(param.name == NULL || param.value == NULL)
+    {
+        RDK_LOG(RDK_LOG_INFO,LOG_PARODUS_IF,"Skipping reboot reason: parameter name or value is null\n");
+        return;
+    }
+
     WDMP_STATUS *retReason = NULL;
     param_t *rebootParam = NULL;
     // Detect device reboot through WEBPA and log message for device reboot through webpa
