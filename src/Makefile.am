@@ -22,9 +22,6 @@ DIST_SUBDIRS = hostif/handlers hostif/profiles
 SUBDIRS +=hostif/parodusClient
 DIST_SUBDIRS += hostif/parodusClient
 
-SUBDIRS +=hostif/parodusClient/startParodus
-DIST_SUBDIRS += hostif/parodusClient/startParodus
-
 if !WITH_NEW_HTTP_SERVER_DISABLE
 SUBDIRS += hostif/httpserver
 DIST_SUBDIRS += hostif/httpserver
