@@ -139,4 +139,65 @@ def test_RFC_wakeUpEnd_Set_Handler():
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "int", VALUE)
     assert RBUS_SUCCESS_STRING in rstdout
 
+@pytest.mark.run(order=93)
+def test_RFC_ResourceMonitor_PollingInterval_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.PollingInterval"
+    VALUE = "6000"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "uint", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
 
+
+@pytest.mark.run(order=94)
+def test_RFC_ResourceMonitor_LowMemoryWarningEnabled_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.LowMemoryWarningEnabled"
+    VALUE = "true"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "boolean", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=95)
+def test_RFC_ResourceMonitor_WarningThresholdMinMemory_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMinMemory"
+    VALUE = "50000"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "uint", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=96)
+def test_RFC_ResourceMonitor_WarningThresholdMaxSwapPercentage_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMaxSwapPercentage"
+    VALUE = "40"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "uint", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=97)
+def test_RFC_ResourceMonitor_WarningThresholdMaxPsi_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMaxPsi"
+    VALUE = "5"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=98)
+def test_RFC_ResourceMonitor_MinPostWarningDelay_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.MinPostWarningDelay"
+    VALUE = "60"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "uint", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=99)
+def test_RFC_ResourceMonitor_SoftThresholdDeltaPercentage_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.SoftThresholdDeltaPercentage"
+    VALUE = "10"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "uint", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=100)
+def test_RFC_ResourceMonitor_HardThresholdDeltaPercentage_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.HardThresholdDeltaPercentage"
+    VALUE = "20"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "uint", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
