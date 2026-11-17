@@ -64,9 +64,6 @@ static IARM_Result_t _GetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _RegisterForEventstr69HostIfMgr(void *arg);
 #ifdef RDKV_TR69
 static void _hostIf_EventHandler(const char *, IARM_EventId_t, void *, size_t);
-#else
-static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
-    const PowerController_PowerState_t newState, void* userdata);
 #endif
 //----------------------------------------------------------------------
 // hostIf_IARM_IF_Start: This shall be use to initialize and register
@@ -123,10 +120,6 @@ void hostIf_getPwrContInterface()
         usleep(RETRYSLEEP); //retry after RETRYSLEEP milli seconds.
 
     }
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registering power mode change callback..\n", __FUNCTION__, __FILE__);
-    PowerController_RegisterPowerModeChangedCallback(_hostIf_EventHandler, nullptr);
-    RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Registered power mode change callback..\n", __FUNCTION__, __FILE__);
-
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
 #endif
@@ -333,10 +326,6 @@ static IARM_Result_t tr69hostIfMgr_Stop(void)
     #ifndef RDKV_TR69
     if (IsPwrCtlInt) 
     {
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistering power mode change callback..\n", __FUNCTION__, __FILE__);
-        PowerController_UnRegisterPowerModeChangedCallback(_hostIf_EventHandler);
-        RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] UnRegistered power mode change callback..\n", __FUNCTION__, __FILE__);
-
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: start PowerController_Term().. \n", __FUNCTION__, __LINE__);
         PowerController_Term();
         RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "[%s:%d]: completed PowerController_Term().. \n", __FUNCTION__, __LINE__);
@@ -511,45 +500,6 @@ static void _hostIf_EventHandler(const char *owner, IARM_EventId_t eventId, void
         }
     }
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
-}
-#else
-static void _hostIf_EventHandler(const PowerController_PowerState_t currentState,
-    const PowerController_PowerState_t newState, void* userdata)
-{
-    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-    HOSTIF_MsgData_t stRfcData = {0};
-    int rc = snprintf(stRfcData.paramName, sizeof(stRfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
-    if((rc < 0) || (static_cast<size_t>(rc) >= sizeof(stRfcData.paramName)))
-    {
-        RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to populate RFC parameter name.\n", __FUNCTION__);
-        return;
-    }
-    if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
-    {
-            const char *event_time = NULL;
-
-            if((newState == POWER_STATE_STANDBY_DEEP_SLEEP) &&
-               (currentState != POWER_STATE_STANDBY_DEEP_SLEEP))
-            {
-                std::string event_time_string = std::to_string(std::time(nullptr));
-                event_time = event_time_string.c_str(); 
-                NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time);
-            }
-            else if((newState != POWER_STATE_STANDBY_DEEP_SLEEP) &&
-                   (currentState == POWER_STATE_STANDBY_DEEP_SLEEP))
-            {
-                std::string event_time_string = std::to_string(std::time(nullptr));
-                event_time = event_time_string.c_str();
-                NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-exit-deepsleep-state", event_time);
-            }
-    }
-    else 
-    {
-        RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending DeepSleep notification. \n",
-                 __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE );
-    }
-
-    RDK_LOG(RDK_LOG_DEBUG,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
 }
 #endif
 
