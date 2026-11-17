@@ -1,0 +1,16 @@
+{
+  "component_id": "tr69hostif",
+  "source_label": "src/hostif (C++ runtime coverage is in LCOV and HTML artifacts)",
+  "test_suite": "test/functional-tests/tests (run_l2.sh)",
+  "target_coverage": "No threshold configured",
+  "behavior_detail": [
+    "The aggregate runtime trace is not attributable to individual tests or behaviors."
+  ],
+  "infrastructure_notes": [
+    "LCOV and HTML include instrumented C++ production sources under src/hostif.",
+    "The shared Markdown generator inventories C source files only. Since the exercised tr69hostif implementation is C++, its source coverage tables may show N/A and are not an aggregate component coverage percentage.",
+    "The shared Markdown generator inventories test_*.py files only; most functional suites here are named tr69hostif_*.py, so its feature/test mapping is partial.",
+    "Feature-to-test mapping is definition-based; execution outcomes are reported separately in coverage-status.md and the pytest JSON reports.",
+    "The coverage build is opt-in for L2 CI and uses GCC --coverage flags; unit-test counters are cleared before the L2 run."
+  ]
+}
