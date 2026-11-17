@@ -74,3 +74,35 @@ Feature: RFC Store Control and Feature Parameters SET via rbus
   Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd
     When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Canary.wakeUpEnd" to "100" as integer via rbus
     Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.PollingInterval
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.PollingInterval" to "6000" as uint via rbus
+    Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.LowMemoryWarningEnabled
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.LowMemoryWarningEnabled" to "true" as boolean via rbus
+    Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMinMemory
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMinMemory" to "50000" as uint via rbus
+    Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMaxSwapPercentage
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMaxSwapPercentage" to "40" as uint via rbus
+    Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMaxPsi
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.WarningThresholdMaxPsi" to "5" as string via rbus
+    Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.MinPostWarningDelay
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.MinPostWarningDelay" to "60" as uint via rbus
+    Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.SoftThresholdDeltaPercentage
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.SoftThresholdDeltaPercentage" to "10" as uint via rbus
+    Then the rbus response should indicate success
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.HardThresholdDeltaPercentage
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemonitor.HardThresholdDeltaPercentage" to "20" as uint via rbus
+    Then the rbus response should indicate success
