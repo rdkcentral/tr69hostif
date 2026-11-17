@@ -36,19 +36,14 @@
 #include "libIBus.h"
 #include "libIARM.h"
 #include "sysMgr.h"
-#ifdef RDKV_TR69
-#include "pwrMgr.h"
-#else
+#ifndef RDKV_TR69
 #include "power_controller.h"
 #include <thread>
 #endif
 #include "waldb.h"
-#include "hostIf_NotificationHandler.h"
 #include "Device_DeviceInfo.h"
 #include "safec_lib.h"
-#include <cstdio>
 
-#define X_RDK_RFC_DEEPSLEEP_ENABLE           "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable"
 #define RETRYSLEEP (300 * 1000) //Retry sleep
 #ifndef RDKV_TR69
 static bool IsPwrCtlInt = false;
@@ -62,9 +57,6 @@ static IARM_Result_t _Settr69HostIfMgr(void *arg);
 static IARM_Result_t _SetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _GetAttributestr69HostIfMgr(void *arg);
 static IARM_Result_t _RegisterForEventstr69HostIfMgr(void *arg);
-#ifdef RDKV_TR69
-static void _hostIf_EventHandler(const char *, IARM_EventId_t, void *, size_t);
-#endif
 //----------------------------------------------------------------------
 // hostIf_IARM_IF_Start: This shall be use to initialize and register
 // the  hostIf application to IARM bus.
@@ -209,9 +201,6 @@ static bool TR69_HostIf_Mgr_Get_RegisterCall()
 
     /* Notification RPC:*/
     IARM_Bus_RegisterEvent(IARM_BUS_TR69HOSTIFMGR_EVENT_MAX);
-    #ifdef RDKV_TR69
-     IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, _hostIf_EventHandler);
-    #endif
     RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
     return ret;
 }
@@ -453,55 +442,6 @@ static IARM_Result_t _Gettr69HostIfMgr(void *arg)
     return IARM_RESULT_SUCCESS;
 }
 
-
-//----------------------------------------------------------------------
-//_hostIf_EventHandler: This is to listen the IARM events and handles.
-//----------------------------------------------------------------------
-
-#ifdef RDKV_TR69
-static void _hostIf_EventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-{
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Entering..\n", __FUNCTION__, __FILE__);
-    if (0 == strcmp(owner, IARM_BUS_PWRMGR_NAME))
-    {
-        HOSTIF_MsgData_t stRfcData = {0};
-        int rc = snprintf(stRfcData.paramName, sizeof(stRfcData.paramName), "%s", X_RDK_RFC_DEEPSLEEP_ENABLE);
-        if((rc < 0) || (static_cast<size_t>(rc) >= sizeof(stRfcData.paramName)))
-        {
-            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "[%s] Failed to populate RFC parameter name.\n", __FUNCTION__);
-            return;
-        }
-        if((hostIf_DeviceInfo::getInstance(0)->get_xRDKCentralComRFC(&stRfcData) == OK) && (strncmp(stRfcData.paramValue, "true", sizeof("true")) == 0))
-        {
-            IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
-            IARM_Bus_PWRMgr_PowerState_t curPowerState = param->data.state.curState;
-            IARM_Bus_PWRMgr_PowerState_t newPowerState = param->data.state.newState;
-            const char *event_time = NULL;
-
-            if((newPowerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) &&
-               (curPowerState != IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
-            {
-                std::string event_time_string = std::to_string(std::time(nullptr));
-                event_time = event_time_string.c_str(); 
-                NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-enter-deepsleep-state", event_time);
-            }
-            else if((newPowerState != IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) &&
-                   (curPowerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
-            {
-                std::string event_time_string = std::to_string(std::time(nullptr));
-                event_time = event_time_string.c_str();
-                NotificationHandler::getInstance()->push_device_deepsleep_notifications("device-exit-deepsleep-state", event_time);
-            }
-        }
-        else 
-        {
-            RDK_LOG (RDK_LOG_DEBUG, LOG_TR69HOSTIF, "[%s] RFC Parameter (%s) is disabled, so not sending DeepSleep notification. \n",
-                 __FUNCTION__, X_RDK_RFC_DEEPSLEEP_ENABLE );
-        }
-    }
-    RDK_LOG(RDK_LOG_TRACE1,LOG_TR69HOSTIF,"[%s:%s] Exiting..\n", __FUNCTION__, __FILE__);
-}
-#endif
 
 /** @} */
 /** @} */
