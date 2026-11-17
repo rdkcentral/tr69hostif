@@ -2,7 +2,12 @@ name: L2 Integration Tests for tr69hostif
 
 on:
   pull_request:
-    branches: [ develop, feature/RDK-55468_tr69hostif_L2 ]
+    branches: [ develop ]
+  push:
+    branches: [ develop ]
+      
+permissions:
+  contents: write
 
 env:
   AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME }}
@@ -16,6 +21,15 @@ jobs:
     steps:
       - name: Checkout tr69hostif Code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Check out shared L2 coverage tooling
+        uses: actions/checkout@v4
+        with:
+          repository: 'rdkcentral/docker-device-mgt-service-test'
+          ref: 'develop'
+          path: docker-device-mgt-service-test    
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
@@ -54,6 +68,7 @@ jobs:
           docker exec -i native-platform /bin/bash -c "cd /mnt/L2_CONTAINER_SHARED_VOLUME/ && sh ./cov_build.sh && export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu:/usr/local/lib && sh run_l2.sh"
 
       - name: Copy L2 Test report to Host Runner
+        if: always()
         run: |
           docker cp native-platform:/tmp/l2_test_report /tmp/L2_TEST_RESULTS
           ls -lh /tmp/L2_TEST_RESULTS
@@ -71,3 +86,42 @@ jobs:
         run: |
           docker cp /tmp/L2_TEST_RESULTS ci-container:/tmp/L2_TEST_RESULTS
           docker exec -i ci-container bash -c "cd /mnt/L2_CONTAINER_SHARED_VOLUME && echo 'Contents in workspace directory' && ls -l . && echo '===============================' && echo 'Contents in /tmp/L2_TEST_RESULTS' && ls -l /tmp/L2_TEST_RESULTS && echo '===============================' && git config --global --add safe.directory /mnt/L2_CONTAINER_SHARED_VOLUME && gtest-json-result-push.py /tmp/L2_TEST_RESULTS https://rdkeorchestrationservice.apps.cloud.comcast.net/rdke_orchestration_api/push_unit_test_results /mnt/L2_CONTAINER_SHARED_VOLUME"
+       
+      - name: Copy lcov tracefile from container
+        id: copy_tracefile
+        if: always() && (github.event_name == 'push' || github.event_name == 'pull_request')
+        continue-on-error: true
+        run: docker cp native-platform:/tmp/l2_coverage/coverage.info /tmp/coverage.info 
+
+      - name: Upload L2 diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tr69hostif-l2-results
+          path: |
+            /tmp/L2_TEST_RESULTS
+            /tmp/coverage.info
+
+      - name: Generate L2_Coverage.md
+        if: (github.event_name == 'push' || github.event_name == 'pull_request') && steps.copy_tracefile.outcome == 'success'
+        run: |
+          python3 docker-device-mgt-service-test/generate_l2_coverage_report.py \
+            --component    "tr69hostif" \
+            --report-details test/functional-tests/l2_coverage_details.json \
+            --tracefile    /tmp/coverage.info \
+            --src-dir      src \
+            --features-dir test/functional-tests/features \
+            --tests-dir    test/functional-tests/tests \
+            --output       test/functional-tests/L2_Coverage.md
+
+      - name: Commit L2_Coverage.md
+        if: >-
+          steps.copy_tracefile.outcome == 'success' &&
+          (github.event_name == 'push' ||
+          github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add test/functional-tests/L2_Coverage.md
+          git diff --cached --quiet || git commit -m "ci: regenerate L2_Coverage.md [skip ci]"
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}

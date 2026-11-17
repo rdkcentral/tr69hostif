@@ -22,6 +22,10 @@
 export top_srcdir=`pwd`
 RESULT_DIR="/tmp/l2_test_report"
 mkdir -p "$RESULT_DIR"
+COV_DIR="/tmp/l2_coverage"
+mkdir -p "$COV_DIR"
+
+export TR69HOSTIF_COVERAGE_MODE=1
 
 apt-get update && apt-get install -y iproute2
 
@@ -72,6 +76,9 @@ fi
 
 /usr/local/bin/tr69hostif -c /etc/mgrlist.conf -p 10999 -s 11999 | tee /opt/logs/tr69hostIf.log.0 &
 
+# lcov baseline: zero counters before any test runs
+sh "$top_srcdir/test/l2_coverage.sh" init || exit 1
+
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/bootup_sequence.json test/functional-tests/tests/test_bootup_sequence.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/handlers_communications.json test/functional-tests/tests/test_handlers_communications.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/deviceip.json test/functional-tests/tests/tr69hostif_deviceip.py
@@ -111,3 +118,5 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/blueto
 pkill -f thunder-mock-server.js
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/thunder_negative_edge.json test/functional-tests/tests/tr69hostif_thunder_negative_edge_cases.py
 
+# Capture, filter and report L2 coverage
+sh "$top_srcdir/test/l2_coverage.sh" report
