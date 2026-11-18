@@ -290,6 +290,15 @@ EXTERNAL uint32_t PowerController_SetSystemMode(const PowerController_SystemMode
 // @param powerStateBeforeReboot: power state
 EXTERNAL uint32_t PowerController_GetPowerStateBeforeReboot(PowerController_PowerState_t* powerStateBeforeReboot /* @out */);
 
+/** Register as a power mode pre-change client; call PowerModePreChangeComplete or DelayPowerModeChangeBy on each pre-change event */
+EXTERNAL uint32_t PowerController_AddPowerModePreChangeClient(const char *clientName /* @in */, uint32_t* clientId /* @out */);
+/** Disengage the client; call before unregistering the pre-change callback */
+EXTERNAL uint32_t PowerController_RemovePowerModePreChangeClient(const uint32_t clientId /* @in */);
+/** Acknowledge that the client has completed its pre-change operation */
+EXTERNAL uint32_t PowerController_PowerModePreChangeComplete(const uint32_t clientId /* @in */, const int transactionId /* @in */);
+/** Delay Powermode change by given time; the maximum across clients is used */
+EXTERNAL uint32_t PowerController_DelayPowerModeChangeBy(const uint32_t clientId /* @in */, const int transactionId /* @in */, const int delayPeriod /* @in */);
+
 /* Callback data types for event notifications from power manager plugin */
 
 // @brief Operational state changed event
@@ -307,7 +316,7 @@ typedef void (*PowerController_PowerModeChangedCb)(const PowerController_PowerSt
 // @param currentState: Current Power State
 // @param newState: Changing power state to this New Power State
 // @param userdata: opaque data, client can use it to have context to callbacks
-typedef void (*PowerController_PowerModePreChangeCb)(const PowerController_PowerState_t currentState, const PowerController_PowerState_t newState, void* userdata);
+typedef void (*PowerController_PowerModePreChangeCb)(const PowerController_PowerState_t currentState, const PowerController_PowerState_t newState, const int transactionId, const int stateChangeAfter, void* userdata);
 
 // @brief Deep sleep timeout event
 // @param wakeupTimeout: Deep sleep wakeup timeout in seconds
