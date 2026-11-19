@@ -44,12 +44,13 @@
 #include "libpd.h"
 #include <semaphore.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "libIBus.h"
 
 #define LOG_FILE 		"./tr69hostIflog.txt"
 #ifdef WEBPA_RFC_ENABLED
-#include <sys/stat.h>
-#include <unistd.h>
 #define RFC_BUFFER_SIZE 256
 #endif
 
@@ -752,7 +753,34 @@ MergeStatus mergeDataModelRDKE(const char* rdk_profile) {
 bool filter_and_merge_xml(const char *input1, const char *input2, const char *output) {
     FILE *in_fp1 = fopen(input1, "r"); 
     FILE *in_fp2 = fopen(input2, "r"); 
-    FILE *out_fp = fopen(output, "w"); 
+    FILE *out_fp = NULL;
+
+    if (in_fp1 && in_fp2) {
+        if (unlink(output) != 0 && errno != ENOENT) {
+            RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to unlink data model output %s: %s\n", output, strerror(errno));
+        }
+        else {
+            int output_fd = open(output, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0600);
+            if (output_fd >= 0) {
+                struct stat output_stat;
+                if (fstat(output_fd, &output_stat) != 0 || output_stat.st_uid != 0 ||
+                    !S_ISREG(output_stat.st_mode) || output_stat.st_nlink != 1) {
+                    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Unsafe data model output %s\n", output);
+                    close(output_fd);
+                    errno = EACCES;
+                }
+                else {
+                    out_fp = fdopen(output_fd, "w");
+                    if (!out_fp) {
+                        close(output_fd);
+                    }
+                }
+            }
+            else {
+                RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to securely create data model output %s: %s\n", output, strerror(errno));
+            }
+        }
+    }
 
     if (!in_fp1 || !in_fp2 || !out_fp) {
         perror("Error opening files");
@@ -804,9 +832,13 @@ bool filter_and_merge_xml(const char *input1, const char *input2, const char *ou
         fputs(line, out_fp); 
     }  
 
+bool io_error = ferror(in_fp1) || ferror(in_fp2) || ferror(out_fp);
 fclose(in_fp1);
 fclose(in_fp2);
-fclose(out_fp);
+if (fclose(out_fp) != 0 || io_error) {
+    RDK_LOG(RDK_LOG_ERROR, LOG_TR69HOSTIF, "Failed to write merged XML into %s\n", output);
+    return false;
+}
 
 RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF, "Merged XML files successfully into %s\n", output);
 return true;

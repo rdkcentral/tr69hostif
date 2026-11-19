@@ -42,6 +42,7 @@
 #include <sys/types.h>
 #include <net/if.h>
 #include <arpa/inet.h>
+#include <stdio.h>
 #include <fstream>
 #include "Device_Ethernet_Interface_Stats.h"
 #include "Device_Ethernet_Interface.h"
@@ -89,8 +90,7 @@ static int readStatFile(const char * file, ParamT& param)
 static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterfaceNum, EEthInterfaceStatsMembers ethInterfaceStatMem)
 {
     int ret = -1;
-    char *cmd = NULL;
-    cmd = (char *)malloc(BUFF_LENGTH * sizeof(char));
+    char cmd[BUFF_LENGTH + sizeof("/sys/class/net//statistics/tx_packets")] = {'\0'};
     char ethName[BUFF_LENGTH] = {'\0'};
     unsigned long valueUL = 0;
     unsigned int valueUInt = 0;
@@ -104,7 +104,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
     switch(ethInterfaceStatMem)
     {
     case eBytesSent:
-	asprintf(&cmd, "/sys/class/net/%s/statistics/tx_bytes", ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/tx_bytes", ethName);
 
         ret = readStatFile(cmd, hostIf_EthernetInterfaceStats::stEthInterfaceStats.bytesSent);
         if(ret == -1)
@@ -116,7 +116,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
         break;
 
     case eBytesReceived:
-        asprintf(&cmd, "/sys/class/net/%s/statistics/rx_bytes", ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/rx_bytes", ethName);
 
         ret = readStatFile(cmd, hostIf_EthernetInterfaceStats::stEthInterfaceStats.bytesReceived);
         if(ret == -1)
@@ -130,7 +130,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
     case eUnicastPacketsSent:
     case eMulticastPacketsSent:
     case eBroadcastPacketsSent:
-        asprintf(&cmd, "cat /sys/class/net/%s/statistics/tx_packets", ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/tx_packets", ethName);
 
         ret = readStatFile(cmd, valueUL);
         if(ret == -1)
@@ -150,7 +150,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
     case eUnicastPacketsReceived:
     case eMulticastPacketsReceived:
     case eBroadcastPacketsReceived:
-        asprintf(&cmd,"cat /sys/class/net/%s/statistics/rx_packets",ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/rx_packets", ethName);
         ret = readStatFile(cmd, valueUL);
         if(ret == -1)
         {
@@ -166,7 +166,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
         break;
 
     case eErrorsSent:
-        asprintf(&cmd,"cat /sys/class/net/%s/statistics/tx_errors",ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/tx_errors", ethName);
         
 
         ret = readStatFile(cmd, hostIf_EthernetInterfaceStats::stEthInterfaceStats.errorsSent);
@@ -180,7 +180,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
         break;
 
     case eErrorsReceived:
-        asprintf(&cmd,"cat /sys/class/net/%s/statistics/rx_errors",ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/rx_errors", ethName);
         ret = readStatFile(cmd, hostIf_EthernetInterfaceStats::stEthInterfaceStats.errorsReceived);
         if(ret == -1)
         {
@@ -191,7 +191,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
         break;
 
     case eDiscardPacketsSent:
-        asprintf(&cmd,"cat /sys/class/net/%s/statistics/tx_dropped",ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/tx_dropped", ethName);
         ret = readStatFile(cmd, valueUInt);
         if(ret == -1)
         {
@@ -205,7 +205,7 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
 
     case eDiscardPacketsReceived:
     case eUnknownProtoPacketsReceived:
-        asprintf(&cmd, "cat /sys/class/net/%s/statistics/rx_dropped",ethName);
+        snprintf(cmd, sizeof(cmd), "/sys/class/net/%s/statistics/rx_dropped", ethName);
         ret = readStatFile(cmd, valueUInt);
         if(ret == -1)
         {
@@ -221,7 +221,6 @@ static int read_Device_Ethernet_Interface_Stats_Fields(unsigned int ethInterface
     default:
         break;
     }
-    free(cmd);
     return 0;
 }
 
