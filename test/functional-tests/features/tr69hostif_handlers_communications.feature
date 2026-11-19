@@ -98,6 +98,13 @@ Feature: TR-181 Parameter Handler SET/GET via rbus DML
     Then the rbus response should not contain an error
     And the rbus response should contain "true"
 
+  @order-21
+  Scenario: RFC DistributedTracing Interval unsigned integer set and get
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Interval" to "4" as uint via rbus
+    And I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Interval" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "4"
+
   # =====================================================================
   # Non-RFC Parameter Handlers
   # =====================================================================
