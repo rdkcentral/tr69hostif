@@ -202,7 +202,6 @@
 | 188 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.EndTime` | readWrite | unsignedInt | RFC configuration value for Feature PingTelemetry EndTime. |
 | 189 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.StartTime` | readWrite | unsignedInt | RFC configuration value for Feature PingTelemetry StartTime. |
 | 190 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.PingTelemetry.Type` | readWrite | string | RFC configuration value for Feature PingTelemetry Type. |
-| 191 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification.Enable` | readWrite | boolean | RFC flag that enables or disables Feature Power DeepSleepNotification Enable. |
 | 192 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.PwrMgr2.Enable` | readWrite | boolean | RFC flag that enables or disables Feature Power PwrMgr2 Enable. |
 | 193 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable` | readWrite | boolean | RFC flag that enables or disables Feature Power UserInactivityNotification Enable. |
 | 194 | `Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes` | readWrite | unsignedInt | RFC configuration value for Feature Power UserInactivityNotification TimeMinutes. |
