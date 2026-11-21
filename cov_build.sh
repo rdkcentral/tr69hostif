@@ -130,3 +130,4 @@ sh mock_parodus_build.sh
 
 ln -sf /usr/local/bin/tr181 /usr/bin/tr181Set
 rbuscli set Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MOCASSH.Enable boolean true
+echo "##### coverage"
