@@ -144,6 +144,19 @@ static  int         shutdown_sig_received = 0;          /* The signal that trigg
 pthread_mutex_t     graceful_exit_mutex;
 #define UNUSED(x)   ((void)(x))
 
+#ifdef USECOV
+#include <signal.h>
+#include <stdlib.h>
+extern void __gcov_dump(void);
+/* Flush gcov counters on SIGTERM so lcov captures L2 exercise data. */
+static void tr69hostif_gcov_sigterm_handler(int sig)
+{
+    (void)sig;
+    __gcov_dump();
+    _exit(0);
+}
+#endif
+
 //------------------------------------------------------------------------------
 // shutdown_thread_entry: frees all resources and exits the process
 //                        when signalled to do so
@@ -215,6 +228,9 @@ void t2ValNotify( const char *marker, const char *val )
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+#ifdef USECOV
+    signal(SIGTERM, tr69hostif_gcov_sigterm_handler);
+#endif
     try
     {
         int ch = 0;
