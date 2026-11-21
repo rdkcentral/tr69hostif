@@ -14,5 +14,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-SUBDIRS = waldb pal startParodus
-DIST_SUBDIRS = waldb pal startParodus
+SUBDIRS = waldb pal
+DIST_SUBDIRS = waldb pal
