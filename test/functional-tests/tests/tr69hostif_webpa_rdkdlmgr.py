@@ -91,6 +91,38 @@ def test_RDKRemoteDebugger_WebCfgData_Set_Handler():
     rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
     assert RBUS_SUCCESS_STRING in rstdout
 
+@pytest.mark.run(order=218)
+def test_RDKDownloadManager_PackageInstallPath_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath"
+    VALUE = "/run/tools"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "string", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=219)
+def test_RDKDownloadManager_PackageInstallPath_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath"
+    VALUE = "/run/tools"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+    assert VALUE in rstdout
+
+
+@pytest.mark.run(order=220)
+def test_RDKDownloadManager_PackageExpiryTime_Set_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime"
+    VALUE = "3600"
+    rstdout = rbus_set_data(DATA_ELEMENT_NAME, "uint", VALUE)
+    assert RBUS_SUCCESS_STRING in rstdout
+
+
+@pytest.mark.run(order=221)
+def test_RDKDownloadManager_PackageExpiryTime_Get_Handler():
+    DATA_ELEMENT_NAME = "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime"
+    VALUE = "3600"
+    rstdout = rbus_get_data(DATA_ELEMENT_NAME)
+    assert RBUS_EXCEPTION_STRING not in rstdout
+    assert VALUE in rstdout
 
 @pytest.mark.run(order=472)
 def test_X_RDK_WebPA_Server_URL_Get_Handler():

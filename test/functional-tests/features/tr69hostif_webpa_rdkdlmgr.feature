@@ -55,6 +55,24 @@ Feature: WebPA DNSText and RDK Download Manager/Remote Debugger Parameters SET/G
     When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKRemoteDebugger.WebCfgData" to "testcfgdata" as string via rbus
     Then the rbus response should indicate success
 
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath" to "/run/tools" as string via rbus
+    Then the rbus response should indicate success
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageInstallPath" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "/run/tools"
+
+  Scenario: SET Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime
+    When I SET "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime" to "3600" as uint via rbus
+    Then the rbus response should indicate success
+
+  Scenario: GET Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime
+    When I GET "Device.DeviceInfo.X_RDKCENTRAL-COM_RDKDownloadManager.PackageExpiryTime" via rbus
+    Then the rbus response should not contain an error
+    And the rbus response should contain "3600"
+
   Scenario: GET Device.X_RDK_WebPA_Server.URL
     When I GET "Device.X_RDK_WebPA_Server.URL" via rbus
     Then the rbus response should not contain an error
