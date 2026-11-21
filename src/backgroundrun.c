@@ -24,10 +24,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
 
 void usage() {
 	printf("usage:  background command args ...");
 	exit(1);
+}
+
+static void write_pidfile_if_configured(void) {
+	const char *pidfile = getenv("BACKGROUNDRUN_PIDFILE");
+	if (pidfile == NULL || *pidfile == '\0') {
+		return;
+	}
+
+	int fd = open(pidfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd < 0) {
+		fprintf(stderr, "background - failed to open pidfile %s: %s\n", pidfile, strerror(errno));
+		return;
+	}
+
+	char buf[32];
+	snprintf(buf, sizeof(buf), "%ld\n", (long)getpid());
+	if (write(fd, buf, strlen(buf)) < 0) {
+		fprintf(stderr, "background - failed to write pidfile %s: %s\n", pidfile, strerror(errno));
+	}
+	close(fd);
 }
 
 int main(int argc, char *argv[]) {
@@ -44,7 +67,8 @@ int main(int argc, char *argv[]) {
 	}
 	// child process
 	setpgid(0,0);
+	write_pidfile_if_configured();
 	execvp(argv[1], &argv[1]);
 	perror("background - execvp");
-	exit(1);	
+	exit(1);
 }
