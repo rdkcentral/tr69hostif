@@ -20,6 +20,10 @@
 #include <iostream>
 #include <string>
 #include <mutex>
+#include <set>
+#include <utility>
+#include <vector>
+#include <climits>
 #include "waldb.h"
 #include "tinyxml2.h"
 #include "stdlib.h"
@@ -1034,6 +1038,179 @@ DB_STATUS get_complete_param_list (char **out_param_list, int *out_param_count)
         }
     }
     return status;
+}
+
+struct DataModelExportRecord
+{
+    std::string name;
+    std::string dataType;
+    std::string defaultValue;
+    std::string access;
+    std::string description;
+};
+
+static DB_STATUS collectDataModelExportRecords(
+    XMLNode *node,
+    const std::string &objectPath,
+    std::vector<DataModelExportRecord> &records,
+    std::set<std::string> &names)
+{
+    for (XMLNode *child = node ? node->FirstChild() : NULL; child; child = child->NextSibling())
+    {
+        XMLElement *element = child->ToElement();
+        if (!element)
+            continue;
+
+        if (!strcmp(element->Name(), "object"))
+        {
+            const char *base = element->Attribute("base");
+            if (!base || !*base)
+                return DB_FAILURE;
+
+            std::string childObjectPath(base);
+            if (childObjectPath.compare(0, 7, "Device.") != 0 && !objectPath.empty())
+                childObjectPath = objectPath + childObjectPath;
+
+            DB_STATUS status = collectDataModelExportRecords(child, childObjectPath, records, names);
+            if (status != DB_SUCCESS)
+                return status;
+        }
+        else if (!strcmp(element->Name(), "parameter"))
+        {
+            const char *base = element->Attribute("base");
+            if (!base || !*base)
+                return DB_FAILURE;
+
+            DataModelExportRecord record;
+            record.name = objectPath;
+            if (!record.name.empty() && record.name[record.name.size() - 1] != '.')
+                record.name += '.';
+            record.name += base;
+
+            if (!names.insert(record.name).second)
+                return DB_FAILURE;
+
+            const char *access = element->Attribute("access");
+            if (access)
+                record.access = access;
+
+            XMLElement *syntax = element->FirstChildElement("syntax");
+            if (syntax)
+            {
+                for (XMLElement *syntaxChild = syntax->FirstChildElement(); syntaxChild;
+                     syntaxChild = syntaxChild->NextSiblingElement())
+                {
+                    if (!strcmp(syntaxChild->Name(), "default"))
+                    {
+                        const char *value = syntaxChild->Attribute("value");
+                        if (value)
+                            record.defaultValue = value;
+                    }
+                    else if (record.dataType.empty())
+                    {
+                        record.dataType = syntaxChild->Name();
+                    }
+                }
+            }
+
+            XMLElement *description = element->FirstChildElement("description");
+            if (description && description->GetText())
+                record.description = description->GetText();
+
+            records.push_back(std::move(record));
+        }
+        else
+        {
+            DB_STATUS status = collectDataModelExportRecords(child, objectPath, records, names);
+            if (status != DB_SUCCESS)
+                return status;
+        }
+    }
+
+    return DB_SUCCESS;
+}
+
+static char *copyExportField(const std::string &value)
+{
+    char *copy = static_cast<char *>(malloc(value.size() + 1));
+    if (!copy)
+        return NULL;
+    memcpy(copy, value.c_str(), value.size() + 1);
+    return copy;
+}
+
+void freeDataModelExportSnapshot(DataModelExportParam *params, int paramCount)
+{
+    if (!params)
+        return;
+
+    for (int index = 0; index < paramCount; ++index)
+    {
+        free(params[index].name);
+        free(params[index].dataType);
+        free(params[index].defaultValue);
+        free(params[index].access);
+        free(params[index].description);
+    }
+    free(params);
+}
+
+DB_STATUS getDataModelExportSnapshot(DataModelExportParam **outParams, int *outParamCount)
+{
+    if (!outParams || !outParamCount)
+        return DB_ERR_INVALID_PARAMETER;
+
+    *outParams = NULL;
+    *outParamCount = 0;
+
+    try
+    {
+        std::vector<DataModelExportRecord> records;
+        std::set<std::string> names;
+        {
+            const std::lock_guard<std::mutex> lock(g_db_mutex);
+            XMLDocument *doc = static_cast<XMLDocument *>(g_dbhandle);
+            XMLElement *document = doc ? doc->FirstChildElement("dm:document") : NULL;
+            XMLElement *model = document ? document->FirstChildElement("model") : NULL;
+            if (!model)
+                return doc ? DB_FAILURE : DB_ERR_NOT_EXIST;
+
+            DB_STATUS status = collectDataModelExportRecords(model, "", records, names);
+            if (status != DB_SUCCESS)
+                return status;
+        }
+
+        if (records.empty() || records.size() > static_cast<size_t>(INT_MAX))
+            return DB_FAILURE;
+
+        DataModelExportParam *params = static_cast<DataModelExportParam *>(
+            calloc(records.size(), sizeof(DataModelExportParam)));
+        if (!params)
+            return DB_FAILURE;
+
+        for (size_t index = 0; index < records.size(); ++index)
+        {
+            params[index].name = copyExportField(records[index].name);
+            params[index].dataType = copyExportField(records[index].dataType);
+            params[index].defaultValue = copyExportField(records[index].defaultValue);
+            params[index].access = copyExportField(records[index].access);
+            params[index].description = copyExportField(records[index].description);
+            if (!params[index].name || !params[index].dataType || !params[index].defaultValue ||
+                !params[index].access || !params[index].description)
+            {
+                freeDataModelExportSnapshot(params, static_cast<int>(records.size()));
+                return DB_FAILURE;
+            }
+        }
+
+        *outParams = params;
+        *outParamCount = static_cast<int>(records.size());
+        return DB_SUCCESS;
+    }
+    catch (...)
+    {
+        return DB_FAILURE;
+    }
 }
 
 void freeDataModelParam(DataModelParam dmParam)

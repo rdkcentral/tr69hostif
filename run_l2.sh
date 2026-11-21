@@ -103,6 +103,7 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/moca.j
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/stbservice_thunder.json test/functional-tests/tests/tr69hostif_stbservice_thunder.py
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/device_info.json test/functional-tests/tests/tr69hostif_device_info.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/datamodel_export.json test/functional-tests/tests/tr69hostif_datamodel_export.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/interfacestack.json test/functional-tests/tests/tr69hostif_interfacestack.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_logging.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_logging.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/opsdevicemgmt_rpc.json test/functional-tests/tests/tr69hostif_opsdevicemgmt_rpc.py
