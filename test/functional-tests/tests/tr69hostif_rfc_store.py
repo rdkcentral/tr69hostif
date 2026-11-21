@@ -107,4 +107,41 @@ def test_rfc_var_store_consistency_after_daemon_restart(restore_rfc_var_file):
         f"Expected '{RFC_L2_NEWVALUE}' after restart, got '{after}'"
     )
 
+PARAM = "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogChrono.Enable"
+FLAG_PATH = "/opt/secure/RFC/enable_logchrono"
+
+def remove_flag():
+    try:
+        os.remove(FLAG_PATH)
+    except FileNotFoundError:
+        pass
+
+def test_logchrono_enable_true_creates_flag():
+    remove_flag()
+    assert not os.path.exists(FLAG_PATH)
+
+    result = set_tr181_param(PARAM, True)
+    assert result["status"] == "success"
+
+    time.sleep(1)
+    assert os.path.exists(FLAG_PATH)
+
+def test_logchrono_enable_false_removes_flag():
+    remove_flag()
+    with open(FLAG_PATH, "w") as f:
+        f.write("1")
+    assert os.path.exists(FLAG_PATH)
+
+    result = set_tr181_param(PARAM, False)
+    assert result["status"] == "success"
+
+    time.sleep(1)
+    assert not os.path.exists(FLAG_PATH)
+
+def test_logchrono_wrong_type_fails_without_creating_flag():
+    remove_flag()
+    result = set_tr181_param(PARAM, "true")  # wrong type
+    assert result["status"] != "success"
+    assert not os.path.exists(FLAG_PATH)
+
 
