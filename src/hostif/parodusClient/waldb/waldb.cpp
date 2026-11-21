@@ -600,6 +600,7 @@ static XMLNode* getList(XMLNode *pParent,char *paramName,char* currentParam,char
  */
 DB_STATUS getChildParamNamesFromDataModel(void *dbhandle,char *paramName,char **ParamList,char **ParamDataTypeList,int *paramCount)
 {
+	//data
     char parameterName[MAX_PARAMETER_LENGTH];
     char currentParam[MAX_PARAMETER_LENGTH] = "\0";
     strncpy(parameterName, paramName, MAX_PARAMETER_LENGTH-1);
@@ -610,6 +611,7 @@ DB_STATUS getChildParamNamesFromDataModel(void *dbhandle,char *paramName,char **
 
     if(isWildCardParam(parameterName))
     {
+		//data
         XMLDocument *doc = (XMLDocument *) dbhandle;
         getList(doc,parameterName,currentParam,ParamList,ParamDataTypeList,paramCount);
         if(*paramCount == 0)
