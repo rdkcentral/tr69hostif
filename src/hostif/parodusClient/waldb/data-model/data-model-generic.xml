@@ -3151,13 +3151,6 @@
         </syntax>
       </parameter>
      </object>
-     <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.DeepSleepNotification." access="readOnly" minEntries="0" maxEntries="1" >
-      <parameter base="Enable" access="readWrite" notification="0" maxNotification="2" >
-        <syntax>
-          <boolean/>
-        </syntax>
-      </parameter>
-     </object>
      <object base="Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Miracast." minEntries="0" maxEntries="1" >
        <parameter base="Enable" bsUpdate="allUpdate" access="readWrite" notification="0" maxNotification="2" >
            <syntax>
