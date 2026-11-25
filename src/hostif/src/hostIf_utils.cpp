@@ -124,10 +124,7 @@ bool matchComponent(const char* pParam, const char *pKey, const char **pSetting,
 
 std::string int_to_string(int d)
 {
-    char tmp_buff[10];
-    memset(tmp_buff,0,10);
-    sprintf(tmp_buff,"%d",d);
-    return std::string(tmp_buff);
+    return std::to_string(d);
 }
 
 std::string uint_to_string(uint d)

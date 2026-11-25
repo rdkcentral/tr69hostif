@@ -240,7 +240,6 @@ int hostif_InterfaceStack:: get_Device_InterfaceStackNumberOfEntries(HOSTIF_MsgD
 
 void hostif_InterfaceStack::getLock()
 {
-    g_mutex_init(&hostif_InterfaceStack::stMutex);
     g_mutex_lock(&hostif_InterfaceStack::stMutex);
 }
 
@@ -258,7 +257,7 @@ GHashTable* hostif_InterfaceStack::getNotifyHash()
     }
     else
     {
-        return m_notifyHash = g_hash_table_new(g_str_hash, g_str_equal);
+        return m_notifyHash = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
     }
 }
 
