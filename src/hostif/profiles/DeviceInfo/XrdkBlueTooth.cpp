@@ -1976,7 +1976,7 @@ int hostIf_DeviceInfoRdk_xBT::process_TileCmdRequest(HOSTIF_MsgData_t *stMsgData
     leTileRequestHandleParam_t param;
     memset(&param, 0, sizeof(param));
     IARM_Result_t retVal = IARM_RESULT_SUCCESS;
-    snprintf(param.request, TILE_REQUEST_MAX_SIZE -1, stMsgData->paramValue);
+    snprintf(param.request, TILE_REQUEST_MAX_SIZE -1, "%s", stMsgData->paramValue);
 
     retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_BTRLEMGR_NAME, IARM_BUS_LEMGR_API_leTileRequest, (void *)&param, sizeof(leTileRequestHandleParam_t ), 15000);
     

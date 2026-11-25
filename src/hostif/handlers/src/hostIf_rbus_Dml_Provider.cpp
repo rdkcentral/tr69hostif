@@ -599,12 +599,11 @@ int setRbusStringParam(const char *rbusParamName, char* rbusParamValue) {
     rbusValue_SetString(value, rbusParamValue);
     //ret = rbus_set(rbusHandle, "Device.X_RDKCENTRAL-COM_T2.ReportProfiles", value, &opts);
     ret = rbus_set(rbusHandle, rbusParamName, value, &opts);
+    rbusValue_Release(value);
     if (ret != RBUS_ERROR_SUCCESS) {
         RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s][rbusdml] rbus_set Failed for [%s] with error [%d].\n", __FUNCTION__, rbusParamName, ret);
         return NOT_HANDLED;
     }
-    rbusValue_Release(value);
-
     return OK ;
 
 }
@@ -626,11 +625,16 @@ int getRbusStringParam(const char *rbusParamName, char **rbusParamValue) {
         return NOK;
     }
     stringValue = rbusValue_ToString(paramValue_t, NULL, 0);
-    if (stringValue != NULL)
-        *rbusParamValue = strdup(stringValue);
-
+    if (stringValue != NULL) {
+        *rbusParamValue = stringValue;
+        ret = OK;
+    }
+    else {
+        RDK_LOG(RDK_LOG_ERROR,LOG_TR69HOSTIF,"[%s][rbusdml] Unable to convert %s to a string.\n", __FUNCTION__, rbusParamName);
+        ret = NOK;
+    }
     rbusValue_Release(paramValue_t);
-    return OK ;
+    return ret;
 
 }
 
