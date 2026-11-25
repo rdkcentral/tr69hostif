@@ -193,7 +193,13 @@
 
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing */
 #define DISTRIBUTED_TRACING_RFC_ENABLE              "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Enable"
+#define DISTRIBUTED_TRACING_RFC_URL                 "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.URL"
+#define DISTRIBUTED_TRACING_RFC_INTERVAL            "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DistributedTracing.Interval"
+#define MAX_DISTRIBUTED_TRACING_INTERVAL_MINUTES    71582U
 #define RDK_TRACING_FLAG_FILE                       "/tmp/rdk_distributed_tracing_enabled"
+
+#define OTEL_EXPORT_ENDPOINT_FILE                   "/opt/secure/otel-export-endpoint"
+#define OTEL_EXPORT_INTERVAL_FILE                  "/opt/secure/otel-export-interval"
 
 /* Profile: X_RDKCENTRAL-COM_RFC.Feature.RebootStop */
 #define RDK_REBOOTSTOP_ENABLE                      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RebootStop.Enable"
@@ -311,6 +317,8 @@ class hostIf_DeviceInfo {
 
     int set_xRDKCentralComNewNtpEnable(HOSTIF_MsgData_t *);
     int set_xRDKCentralComRFCDistributedTracingEnable(HOSTIF_MsgData_t *);
+    int set_xRDKCentralComRFCDistributedTracingURL(HOSTIF_MsgData_t *);
+    int set_xRDKCentralComRFCDistributedTracingInterval(HOSTIF_MsgData_t *);
 
     int updateSecureDebugState(void);
     int set_xRDKCentralComRFCSecureDebugState(HOSTIF_MsgData_t *stMsgData);
@@ -1452,4 +1460,3 @@ public:
 
 /** @} */
 /** @} */
-
