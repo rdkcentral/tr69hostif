@@ -142,7 +142,8 @@ The GET and SET paths also include:
 - registration of TR-069 host interface RPCs
 - initial manager startup for Device and DS paths
 - translation from incoming IARM calls to the common `hostIf_*MsgHandler()` dispatcher APIs
-- power-state event handling used to publish deep-sleep notifications when the matching RFC parameter is enabled
+
+The bridge does not subscribe to power-mode changes or publish deep-sleep notifications on either RDKV or RDKE. On RDKE, these notifications are handled by `entservices-devicesettings`; PowerController initialization, connection, and termination remain for other power operations.
 
 ### Update and notification path
 
@@ -171,7 +172,7 @@ These files do not own a single TR-181 subtree. They connect external transports
 
 | File or class | Operates on | What it does in the module |
 |---------------|-------------|-----------------------------|
-| `hostIf_IARM_ReqHandler.cpp` | IARM bus RPCs and power events | Registers TR-069 hostif RPC calls on IARM, converts IARM requests into `HOSTIF_MsgData_t`, invokes GET/SET/attribute dispatch, and publishes deep-sleep related notifications when the relevant RFC is enabled |
+| `hostIf_IARM_ReqHandler.cpp` | IARM bus RPCs | Registers TR-069 hostif RPC calls on IARM, converts IARM requests into `HOSTIF_MsgData_t`, and invokes GET/SET/attribute dispatch |
 | `hostIf_msgHandler.cpp` | Common dispatch path | Owns the shared GET/SET/attribute routing logic, request timing logs, boot-time counters, manager lookup, and configuration-driven prefix mapping |
 | `hostIf_jsonReqHandlerThread.cpp` | JSON-over-HTTP request path | Starts the HTTP server thread and parses incoming JSON `paramList` payloads with YAJL before those requests are handed into the shared hostif path |
 | `hostIf_rbus_Dml_Provider.cpp` | RBUS DML interface | Exposes parameters through RBUS, validates parameters against the loaded data model, converts RBUS value types to hostif types, and forwards RBUS GET requests to `hostIf_GetMsgHandler()` |
@@ -229,7 +230,7 @@ The handlers layer is not a single-threaded module. It is entered concurrently f
 | JSON handler thread | `hostIf_jsonReqHandlerThread.cpp` | Process JSON-based requests |
 | RBUS context | `hostIf_rbus_Dml_Provider.cpp` | Serve RBUS DML operations |
 | Update thread | `updateHandler::run()` | Poll enabled managers for state changes every 60 seconds |
-| Detached power-controller thread | `hostIf_getPwrContInterface()` on non-RDKV builds | Connect power controller callbacks used for deep-sleep notifications |
+| Detached power-controller thread | `hostIf_getPwrContInterface()` on non-RDKV builds | Initialize DS client and connect the PowerController interface for power operations |
 
 ### Synchronization
 
