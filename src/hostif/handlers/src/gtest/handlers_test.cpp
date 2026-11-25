@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "dm_stubs.h"
-#include "startParodus.h"
 #include "file_writer.h"
 #include "webpa_notification.h"
 #include "webpa_parameter.h"

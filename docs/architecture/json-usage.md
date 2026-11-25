@@ -61,7 +61,7 @@ flowchart LR
 |----------|-----------------|---------|-----------|
 | Legacy local HTTP requests | `src/hostif/handlers/src/hostIf_jsonReqHandlerThread.cpp` | `YAJL` | inbound + outbound |
 | Current WDMP HTTP server | `src/hostif/httpserver/src/http_server.cpp` | `cJSON` | inbound + outbound |
-| Parodus and startup config files | `src/hostif/parodusClient/startParodus/startParodus.cpp`, `src/hostif/parodusClient/pal/libpd.cpp`, `src/hostif/parodusClient/pal/webpa_notification.cpp` | `cJSON` | inbound |
+| Parodus and startup config files | [`start-parodus/source/parodusStart/start_parodus.c`](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c), `src/hostif/parodusClient/pal/libpd.cpp`, `src/hostif/parodusClient/pal/webpa_notification.cpp` | `cJSON` | inbound |
 | Device defaults and bootstrap data | `src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp` | `cJSON` | inbound |
 | Thunder JSON-RPC consumers | `src/hostif/src/hostIf_utils.cpp`, `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp` | `cJSON` | outbound request + inbound response |
 | Parodus notifications | `src/hostif/handlers/src/hostIf_NotificationHandler.cpp` | `cJSON` | outbound |
@@ -208,7 +208,7 @@ This is the newer local HTTP interface. It accepts JSON request bodies, converts
 
 **Owners:**
 
-- `src/hostif/parodusClient/startParodus/startParodus.cpp`
+- [`start-parodus/source/parodusStart/start_parodus.c`](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c)
 - `src/hostif/parodusClient/pal/libpd.cpp`
 
 **Observed keys:**
@@ -261,7 +261,7 @@ This is the newer local HTTP interface. It accepts JSON request bodies, converts
 
 **Owners:**
 
-- `src/hostif/parodusClient/startParodus/startParodus.cpp`
+- [`start-parodus/source/parodusStart/start_parodus.c`](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c)
 - `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp`
 
 **Observed shape:**
@@ -329,7 +329,7 @@ The following items are the main input for the planned robustness story.
 |-----|----------------|----------------|
 | `getJsonRPCData()` does not accumulate the HTTP response body because the curl write callback takes the output string by value | `src/hostif/src/hostIf_utils.cpp` | Most Thunder JSON-RPC consumers effectively parse an empty string, which breaks the central JSON-RPC integration path |
 | Nested JSON members are dereferenced without consistent null and type checks | `src/hostif/profiles/DeviceInfo/Device_DeviceInfo.cpp` | Malformed or changed JSON can cause crashes or invalid reads |
-| Parsed JSON roots are not deleted on many success and error paths | `src/hostif/parodusClient/startParodus/startParodus.cpp`, `src/hostif/parodusClient/pal/libpd.cpp`, `src/hostif/parodusClient/pal/webpa_notification.cpp`, `src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp` | Long-running service code accumulates avoidable leaks |
+| Parsed JSON roots are not deleted on many success and error paths | [`start-parodus/source/parodusStart/start_parodus.c`](https://github.com/rdkcentral/start-parodus/blob/main/source/parodusStart/start_parodus.c), `src/hostif/parodusClient/pal/libpd.cpp`, `src/hostif/parodusClient/pal/webpa_notification.cpp`, `src/hostif/profiles/DeviceInfo/XrdkCentralComBSStore.cpp` | Long-running service code accumulates avoidable leaks |
 | The notify config parser dereferences `notify_cfg` before verifying parse success | `src/hostif/parodusClient/pal/webpa_notification.cpp` | Invalid JSON can turn into null dereference or inconsistent startup behavior |
 
 ### Medium Priority Gaps
