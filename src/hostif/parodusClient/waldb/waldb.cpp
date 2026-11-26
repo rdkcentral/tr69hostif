@@ -1084,7 +1084,7 @@ void test_get_complete_param_list()
 
     if(DB_SUCCESS != get_complete_param_list (pParam_name_list, &num_of_params))
     {
-        RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"Failed to get complete parameter list.\n");
+        RDK_LOG(RDK_LOG_DEBUG, LOG_TR69HOSTIF,"Failed to get complete parameter list.\n");
     }
 
     RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,"Count = %d \n", num_of_params);
