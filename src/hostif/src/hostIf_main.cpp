@@ -145,6 +145,10 @@ static  int         shutdown_sig_received = 0;          /* The signal that trigg
 pthread_mutex_t     graceful_exit_mutex;
 #define UNUSED(x)   ((void)(x))
 
+#ifdef USECOV
+extern void __gcov_dump(void);
+#endif
+
 //------------------------------------------------------------------------------
 // shutdown_thread_entry: frees all resources and exits the process
 //                        when signalled to do so
@@ -158,6 +162,11 @@ static void *shutdown_thread_entry(void *arg)
     {
         continue;   /* Restart if interrupted by handler */
     }
+
+#ifdef USECOV
+    // Dump outside signal context, before potentially blocking shutdown work.
+    __gcov_dump();
+#endif
 
     RDK_LOG(RDK_LOG_INFO,LOG_TR69HOSTIF,"[%s:%s] TR69 Host-If received signal handler with sigNum : %d \n",__FILE__, __FUNCTION__, shutdown_sig_received);
 
