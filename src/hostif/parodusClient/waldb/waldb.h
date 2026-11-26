@@ -46,6 +46,15 @@ typedef struct __DataModelParam
     char *bsUpdate;
 } DataModelParam;
 
+typedef struct __DataModelExportParam
+{
+    char *name;
+    char *dataType;
+    char *defaultValue;
+    char *access;
+    char *description;
+} DataModelExportParam;
+
 
 /* @brief Loads the Parameter count query string to memory
  *
@@ -84,6 +93,8 @@ DB_STATUS getChildParamNamesFromDataModel(void *dbhandle,char *paramName,char **
 int getParamInfoFromDataModel(void *handle,const char *paramName,DataModelParam *dmParam);
 
 DB_STATUS get_complete_param_list (char **out_param_list, int *out_param_count);
+DB_STATUS getDataModelExportSnapshot(DataModelExportParam **outParams, int *outParamCount);
+void freeDataModelExportSnapshot(DataModelExportParam *params, int paramCount);
 
 #if defined(GTEST_ENABLE)
 int isParamEndsWithInstance(const char* paramName);
