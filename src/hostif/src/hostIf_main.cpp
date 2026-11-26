@@ -788,6 +788,7 @@ bool filter_and_merge_xml(const char *input1, const char *input2, const char *ou
         if (in_fp2) fclose(in_fp2);
          return false;
     }
+	// for testing 
     char line[1024];
     char last_model_line[1024] = {0};
     char last_dm_document_line[1024] = {0};
