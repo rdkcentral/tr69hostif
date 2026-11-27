@@ -66,6 +66,10 @@ static void sanitizeIarmMsgData(HOSTIF_MsgData_t *param)
     param->paramName[sizeof(param->paramName) - 1] = '\0';
     param->paramValue[sizeof(param->paramValue) - 1] = '\0';
     param->transactionID[sizeof(param->transactionID) - 1] = '\0';
+    RDK_LOG(RDK_LOG_INFO, LOG_TR69HOSTIF,
+            "[%s] paramValueLong=%p, isLengthyParam=%s, paramName=%s, paramValue=%s, transactionID=%s\n",
+            __FUNCTION__, (void *)param->paramValueLong, param->isLengthyParam ? "true" : "false",
+            param->paramName, param->paramValue, param->transactionID);
 }
 
 //----------------------------------------------------------------------
